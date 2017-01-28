@@ -1,0 +1,3 @@
+dependencies {
+    compile 'it.unimi.dsi:fastutil:7.0.13'
+}
