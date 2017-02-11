@@ -35,11 +35,13 @@ public interface TerraWorld {
      */
     float getChunkScale();
     
-    // Low level, optional API. Better performance, but not for general usage
-    
-    void low_getOctree(long[] data, int uint_index);
-    
-    long low_getChunkPtr(int uint_index);
-    
-    void low_getChunk(long[] data, long ptr);
+    /**
+     * Creates an octree with data only to given "view" distance.
+     * @param x X coordinate.
+     * @param y Y coordinate.
+     * @param z Z coordinate.
+     * @param viewDistance "View" distance.
+     * @return
+     */
+    Octree stripData(float x, float y, float z, float viewDistance);
 }

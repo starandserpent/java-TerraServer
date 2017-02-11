@@ -1,0 +1,4 @@
+dependencies {
+    compile project(':terra-core')
+    compile 'net.openhft:chronicle-bytes:1.7.32'
+}

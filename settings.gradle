@@ -1,3 +1,5 @@
 rootProject.name = 'Terra'
 
 include 'terra-core'
+include 'terra-offheap'
+include 'terra-io-files'
