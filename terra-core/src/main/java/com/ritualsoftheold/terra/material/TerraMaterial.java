@@ -6,5 +6,5 @@ public interface TerraMaterial {
      * Gets this material's id in world data.
      * @return Material id.
      */
-    char getWorldId();
+    short getWorldId();
 }

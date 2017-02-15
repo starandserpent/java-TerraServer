@@ -7,10 +7,11 @@ import com.ritualsoftheold.terra.node.Octree;
 import com.ritualsoftheold.terra.offheap.DataConstants;
 
 import net.openhft.chronicle.core.Memory;
+import net.openhft.chronicle.core.OS;
 
 public class OffheapOctree implements Octree {
     
-    private static Memory mem;
+    private static Memory mem = OS.memory();
     
     private long address;
     
@@ -70,10 +71,12 @@ public class OffheapOctree implements Octree {
     }
 
     @Override
-    public void l_getData(long[] data) {
-        if (data.length < 5)
-            throw new IllegalArgumentException("data array must be at least 5 longs");
-        mem.copyMemory(address, data, DataConstants.ARRAY_DATA + 7, DataConstants.OCTREE_SIZE);
+    public void l_getData(int[] data) {
+        if (data.length < 9)
+            throw new IllegalArgumentException("data array must be at least 9 ints");
+        // First int, least significant: flags
+        // Other ints: octree data
+        mem.copyMemory(address, data, DataConstants.ARRAY_DATA + 2, DataConstants.OCTREE_SIZE);
     }
 
 }

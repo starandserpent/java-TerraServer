@@ -26,5 +26,5 @@ public interface Octree extends Node {
     
     int l_getNodeAt(int index);
     
-    void l_getData(long[] data);
+    void l_getData(int[] data);
 }

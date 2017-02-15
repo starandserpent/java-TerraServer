@@ -11,4 +11,12 @@ public interface MaterialRegistry {
      * @return The material.
      */
     TerraMaterial getMaterial(TerraModule mod, String name);
+    
+    /**
+     * Gets a material, based on its char id. If it doesn't exist, null
+     * is returned.
+     * @param id World id.
+     * @return The material.
+     */
+    TerraMaterial getForWorldId(short id);
 }
