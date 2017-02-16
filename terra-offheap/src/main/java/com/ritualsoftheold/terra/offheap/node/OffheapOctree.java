@@ -1,19 +1,26 @@
 package com.ritualsoftheold.terra.offheap.node;
 
+import com.ritualsoftheold.terra.material.MaterialRegistry;
 import com.ritualsoftheold.terra.node.Block;
 import com.ritualsoftheold.terra.node.Chunk;
 import com.ritualsoftheold.terra.node.Node;
 import com.ritualsoftheold.terra.node.Octree;
 import com.ritualsoftheold.terra.offheap.DataConstants;
+import com.ritualsoftheold.terra.offheap.data.MemoryRegion;
+import com.ritualsoftheold.terra.offheap.world.OffheapWorld;
 
 import net.openhft.chronicle.core.Memory;
 import net.openhft.chronicle.core.OS;
 
-public class OffheapOctree implements Octree {
+public class OffheapOctree implements Octree, OffheapNode {
     
     private static Memory mem = OS.memory();
     
     private long address;
+    
+    private MemoryRegion region;
+    
+    private MaterialRegistry reg;
     
     @Override
     public Type getNodeType() {
@@ -34,8 +41,9 @@ public class OffheapOctree implements Octree {
 
     @Override
     public Block getBlockAt(int index) {
-        // TODO Auto-generated method stub
-        return null;
+        OffheapOctreeBlock block = new OffheapOctreeBlock(reg, address +  index * DataConstants.OCTREE_NODE_SIZE);
+        region.trackObject(block);
+        return block;
     }
 
     @Override
@@ -51,12 +59,7 @@ public class OffheapOctree implements Octree {
     }
 
     @Override
-    public long l_getAddress() {
-        return address;
-    }
-
-    @Override
-    public int l_getSize() {
+    public int l_getDataSize() {
         return DataConstants.OCTREE_SIZE;
     }
 
@@ -77,6 +80,16 @@ public class OffheapOctree implements Octree {
         // First int, least significant: flags
         // Other ints: octree data
         mem.copyMemory(address, data, DataConstants.ARRAY_DATA + 2, DataConstants.OCTREE_SIZE);
+    }
+
+    @Override
+    public long memoryAddress() {
+        return address;
+    }
+
+    @Override
+    public void memoryAddress(long addr) {
+        address = addr;
     }
 
 }

@@ -4,7 +4,7 @@ package com.ritualsoftheold.terra.node;
  * Chunk is a node which contains many blocks.
  *
  */
-public interface Chunk {
+public interface Chunk extends Node {
     
     Block getBlockAt(float x, float y, float z);
     
@@ -23,8 +23,8 @@ public interface Chunk {
      * Note that creating this data is potentially very expensive.
      * @return Chunk data.
      */
-    default char[] getData() {
-        char[] data = new char[getMaxBlockCount()];
+    default short[] getData() {
+        short[] data = new short[getMaxBlockCount()];
         getData(data);
         return data;
     }
@@ -35,7 +35,7 @@ public interface Chunk {
      * 
      * Note that creating this data is potentially very expensive.
      */
-    void getData(char[] data);
+    void getData(short[] data);
     
     /**
      * Sets the data of this chunk. Each entry represents 0.25m space in chunk,
@@ -44,5 +44,5 @@ public interface Chunk {
      * Note that setting chunk data is potentially very expensive.
      * @param data
      */
-    void setData(char[] data);
+    void setData(short[] data);
 }

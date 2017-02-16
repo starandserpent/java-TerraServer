@@ -16,11 +16,7 @@ public interface Octree extends Node {
     
     Node[] getNodes();
     
-    // Lowe level, optional API
-    
-    long l_getAddress();
-    
-    int l_getSize();
+    // Low level, optional API
     
     long l_getNodeAddr(int index);
     

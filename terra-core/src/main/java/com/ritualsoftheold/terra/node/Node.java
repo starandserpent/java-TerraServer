@@ -23,4 +23,10 @@ public interface Node {
         
         OTHER
     }
+    
+    // Low level, optional API
+    
+    long l_getAddress();
+    
+    int l_getDataSize();
 }

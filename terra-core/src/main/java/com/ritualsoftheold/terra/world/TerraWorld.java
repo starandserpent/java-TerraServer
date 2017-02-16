@@ -1,5 +1,6 @@
 package com.ritualsoftheold.terra.world;
 
+import com.ritualsoftheold.terra.material.MaterialRegistry;
 import com.ritualsoftheold.terra.node.Octree;
 
 /**
@@ -44,4 +45,10 @@ public interface TerraWorld {
      * @return
      */
     Octree stripData(float x, float y, float z, float viewDistance);
+    
+    /**
+     * Gets material registry that is used with this world.
+     * @return Material registry.
+     */
+    MaterialRegistry getMaterialRegistry();
 }
