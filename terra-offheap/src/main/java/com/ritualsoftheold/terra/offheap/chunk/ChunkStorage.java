@@ -1,5 +1,10 @@
 package com.ritualsoftheold.terra.offheap.chunk;
 
+import java.util.HashSet;
+import java.util.Set;
+
+import com.ritualsoftheold.terra.offheap.node.OffheapChunk;
+
 import net.openhft.chronicle.core.Memory;
 import net.openhft.chronicle.core.OS;
 
@@ -11,17 +16,9 @@ public class ChunkStorage {
     
     private static Memory mem = OS.memory();
     
-    /**
-     * The beginning of chunk storage.
-     */
-    private long address;
-    
-    /**
-     * Length of chunk storage.
-     */
-    private long length;
+    private Set<OffheapChunk> chunks;
     
     public ChunkStorage() {
-        
+        chunks = new HashSet<>();
     }
 }
