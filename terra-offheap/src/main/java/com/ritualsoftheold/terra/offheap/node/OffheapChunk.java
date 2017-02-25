@@ -1,24 +1,38 @@
 package com.ritualsoftheold.terra.offheap.node;
 
-import com.ritualsoftheold.terra.material.MaterialRegistry;
+import java.util.Objects;
+
 import com.ritualsoftheold.terra.node.Block;
 import com.ritualsoftheold.terra.node.Chunk;
 import com.ritualsoftheold.terra.offheap.ChunkUtils;
 import com.ritualsoftheold.terra.offheap.DataConstants;
-import com.ritualsoftheold.terra.offheap.data.MemoryRegion;
+import com.ritualsoftheold.terra.offheap.chunk.ChunkStorage;
 import com.ritualsoftheold.terra.offheap.world.OffheapWorld;
 
 import net.openhft.chronicle.core.Memory;
 import net.openhft.chronicle.core.OS;
 
-// TODO why did I think that storing whole CHUNK offheap would be good idea?
 public class OffheapChunk implements Chunk, OffheapNode {
 
     private static Memory mem = OS.memory();
     
+    /**
+     * Memory address of block data.
+     */
     private long address;
+    
+    /**
+     * Length of block data.
+     */
     private int length;
+    
+    
     private int reserved;
+    
+    /**
+     * Storage for this chunk. Will be used to allocate memory as needed.
+     */
+    private ChunkStorage storage;
     
     /**
      * Determines if this chunk uses material atlas.
@@ -31,6 +45,11 @@ public class OffheapChunk implements Chunk, OffheapNode {
      * underlying data if not present.
      */
     private OffheapWorld world;
+    
+    /**
+     * If this has memory address.
+     */
+    private boolean isValid;
     
     // Cache these, its faster
     private long sizesAddr = sizesAddr();
@@ -85,8 +104,8 @@ public class OffheapChunk implements Chunk, OffheapNode {
                      * black magic this time, having 64 possible indexes to return.
                      */
                     if (scaleFlag == 0) { // 1m cube
-                        blockId = hasAtlas ? mem.readByte(offset)
-                                : mem.readShort(offset);
+                        blockId = hasAtlas ? mem.readByte(blocksAddr + offset)
+                                : mem.readShort(blocksAddr + offset);
                         blockScale = 1;
                     } else if (scaleFlag == 1) { // 0.5m cube!
                         /*
@@ -98,8 +117,8 @@ public class OffheapChunk implements Chunk, OffheapNode {
                         float z0 = z % 1;
                         
                         int index = ChunkUtils.getSmallBlockIndex(x0, y0, z0);
-                        blockId = hasAtlas ? mem.readByte(offset + index)
-                                : mem.readShort(offset + index * 2);
+                        blockId = hasAtlas ? mem.readByte(blocksAddr + offset + index)
+                                : mem.readShort(blocksAddr + offset + index * 2);
                         blockScale = 0.5f;
                     } else {
                         /*
@@ -112,8 +131,8 @@ public class OffheapChunk implements Chunk, OffheapNode {
                         
                         // TODO implement method that we call here
                         int index = ChunkUtils.get025BlockIndex(x0, y0, z0);
-                        blockId = hasAtlas ? mem.readByte(offset + index)
-                                : mem.readShort(offset + index * 2);
+                        blockId = hasAtlas ? mem.readByte(blocksAddr + offset + index)
+                                : mem.readShort(blocksAddr + offset + index * 2);
                         blockScale = 0.25f;
                     }
                     break outer;
@@ -164,19 +183,112 @@ public class OffheapChunk implements Chunk, OffheapNode {
 
     @Override
     public int getMaxBlockCount() {
-        return (int) (DataConstants.CHUNK_SCALE * DataConstants.CHUNK_SCALE * DataConstants.CHUNK_SCALE / DataConstants.SMALLEST_BLOCK);
+        return DataConstants.CHUNK_MAX_BLOCKS;
     }
 
     @Override
     public void getData(short[] data) {
-        // TODO Auto-generated method stub
         
     }
 
     @Override
     public void setData(short[] data) {
-        // TODO Auto-generated method stub
+        Objects.requireNonNull(data, "chunk data array cannot be null");
+        if (data.length != getMaxBlockCount()) {
+            throw new IllegalArgumentException("length of data array must be exactly " + getMaxBlockCount());
+        }
         
+        /**
+         * Packed 0.5m blocks go here.
+         */
+        short[] packed = new short[data.length / 8];
+        
+        /**
+         * Packed 1m blocks go here.
+         */
+        short[] bigBlocks = new short[packed.length / 8];
+        
+        // Some variables related to 1m packing
+        int repack = 8;
+        boolean canRepack = true;
+        
+        /**
+         * Block data length in bytes.
+         */
+        int dataLength = 0;
+        
+        // Loop through the data, packing 0.25m cubes to 0.5m cubes where possible
+        for (int i = 0; i < data.length; i += 8) {
+            // First, get 8 0.25m blocks
+            short id1 = data[i];
+            short id2 = data[i + 1];
+            short id3 = data[i + 2];
+            short id4 = data[i + 3];
+            short id5 = data[i + 4];
+            short id6 = data[i + 5];
+            short id7 = data[i + 6];
+            short id8 = data[i + 7];
+            
+            /*
+             * Now, check if they are all same material.
+             * If yes, we found 0.5m block!
+             */
+            if (id1 == id2 && id1 == id3 && id1 == id4 && id1 == id5 && id1 == id6 && id1 == id7 && id1 == id8) {
+                packed[i / 8] = id1; // Mark id here, we packed it into 0.5m block!
+            } else {
+                canRepack = false; // Don't even bother trying to pack into 1m block if there are 0.25m blocks
+                dataLength += 8; // 8 0.25m blocks
+            }
+            
+            /*
+             * Check for repacking, aka packing 0.5m blocks which have same material
+             * to 1m blocks.
+             */
+            repack--; // Reduce the counter...
+            if (repack < 1) { // Time to try packing!
+                repack = 8; // Reset the counter
+                
+                if (canRepack) { // If we can't pack, don't bother to do advanced checks
+                    /**
+                     * Index of 0.5m packed block which is first of this
+                     * batch of 8 packed blocks.
+                     */
+                    int pi = i / 8 - 7; // pi=packedIndex
+                    
+                    /*
+                     * Ids of the packed blocks (pid=packedId).
+                     * 0 means that we couldn't pack something.
+                     */
+                    short pid1 = packed[pi];
+                    short pid2 = packed[pi + 1];
+                    short pid3 = packed[pi + 2];
+                    short pid4 = packed[pi + 3];
+                    short pid5 = packed[pi + 4];
+                    short pid6 = packed[pi + 5];
+                    short pid7 = packed[pi + 6];
+                    short pid8 = packed[pi + 7];
+                    
+                    if (pid1 == pid2 && pid1 == pid3 && pid1 == pid4 && pid1 == pid5 && pid1 == pid6 && pid1 == pid7 && pid1 == pid8) {
+                        bigBlocks[pi / 8] = pid1; // Mark id here, we packed it into 0.5m block!
+                        dataLength++; // 1 1m cube
+                    } else {
+                        dataLength += 8; // 8 0.5m cubes
+                    }
+                }
+                
+                canRepack = true; // Finally, reset this flag
+            }
+        }
+        
+        // Allocate memory, if necessary
+        if (!isValid || dataLength > length) {
+            storage.alloc(this, dataLength);
+        }
+        
+        // Finally, construct sizes data and actual block data
+        for (int i = 0; i < bigBlocks.length; i++) {
+            // TODO
+        }
     }
 
     @Override
@@ -196,7 +308,18 @@ public class OffheapChunk implements Chunk, OffheapNode {
 
     @Override
     public void memoryAddress(long addr) {
+        isValid = true;
         address = addr;
+    }
+    
+    @Override
+    public boolean isValid() {
+        return isValid;
+    }
+
+    @Override
+    public void invalidate() {
+        isValid = false;
     }
 
 }

@@ -37,16 +37,6 @@ public interface TerraWorld {
     float getChunkScale();
     
     /**
-     * Creates an octree with data only to given "view" distance.
-     * @param x X coordinate.
-     * @param y Y coordinate.
-     * @param z Z coordinate.
-     * @param viewDistance "View" distance.
-     * @return
-     */
-    Octree stripData(float x, float y, float z, float viewDistance);
-    
-    /**
      * Gets material registry that is used with this world.
      * @return Material registry.
      */

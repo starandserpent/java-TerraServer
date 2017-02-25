@@ -39,4 +39,6 @@ public class DataConstants {
      * 3 bytes: extra data length (might be 0)
      */
     public static final int CHUNK_STATIC_NOATLAS = 1 + BLOCK_SIZE_DATA + 3 + 3;
+    
+    public static final int CHUNK_MAX_BLOCKS = (int) (DataConstants.CHUNK_SCALE * DataConstants.CHUNK_SCALE * DataConstants.CHUNK_SCALE / DataConstants.SMALLEST_BLOCK);
 }
