@@ -51,4 +51,22 @@ public class OffheapOctreeBlock implements Block, OffheapNode {
         address = addr;
     }
 
+    @Override
+    public long l_getAddress() {
+        // TODO Auto-generated method stub
+        return 0;
+    }
+
+    @Override
+    public boolean isValid() {
+        // TODO Auto-generated method stub
+        return false;
+    }
+
+    @Override
+    public void invalidate() {
+        // TODO Auto-generated method stub
+        
+    }
+
 }

@@ -35,11 +35,12 @@ public class ChunkBuffer {
         chunks = new OffheapChunk[maxChunks];
     }
     
-    public long addChunk(OffheapChunk chunk, int length) {
+    public long addChunk(OffheapChunk chunk) {
         int offset = offsets[offsetIndex]; // We can begin new chunk there
         offsetIndex++; // Increment index to point to next offset
-        offsets[offsetIndex] = offset + length; // Add actually offset to array where index points to
+        offsets[offsetIndex] = offset + chunk.l_getDataSize(); // Add actually offset to array where index points to
         chunks[offsetIndex] = chunk; // Store chunk
+        chunk.bufferId(offsetIndex); // "buffer id" aka offset index, so chunk can request update
         
         long addr = address + offset;
         chunk.memoryAddress(addr); // Tell the chunk about memory address
@@ -57,17 +58,42 @@ public class ChunkBuffer {
         int nextId = chunkId + 1;
         if (nextId == offsetIndex) { // This is last chunk
             offsets[nextId] = offsets[chunkId] + length; // Just update this...
-        } else { // This is not last chunk :(
+        } else { // This is not last chunk
+            /*
+             * Old length of chunk data:
+             * old end of chunk data - beginning (old AND new) of chunk data
+             */
             int oldLength = offsets[nextId] - offsets[chunkId];
-            if (oldLength >= length) {
+            if (oldLength >= length) { // If we have enough space...
                 // For now, do nothing, since we have enough space
                 return;
-            }
-            int change = length - oldLength;
-            for (int i = nextId; i < offsetIndex; i++) {
+            } // Or if we don't have enough space...
+            int change = length - oldLength; // Calculate how much extra bytes we need
+            /*
+             * Loop through chunk ids. Start from next chunk's id, stop at
+             * offset index, after which there is not chunk data.
+             */
+            for (int i = nextId; i <= offsetIndex; i++) {
                 offsets[i] += change; // Update offset
                 chunks[i].memoryAddress(address + offsets[i]); // Tell the chunk about address update
             }
         }
+    }
+    
+    /**
+     * Checks if this chunk buffer can contain one more chunk with given size.
+     * Returns false if there can be no more chunks OR if given chunk is too
+     * big to fit to the buffer.
+     * @param length
+     * @return If you can add chunk with given length.
+     */
+    public boolean hasSpace(int length) {
+        if (offsetIndex == offsets.length) { // Out of index array space
+            return false;
+        }
+        if (offsets[offsetIndex] + length > length) { // Out of space... literally
+            return false;
+        }
+        return true;
     }
 }

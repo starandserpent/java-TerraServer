@@ -26,13 +26,15 @@ public class OffheapChunk implements Chunk, OffheapNode {
      */
     private int length;
     
-    
-    private int reserved;
-    
     /**
      * Storage for this chunk. Will be used to allocate memory as needed.
      */
     private ChunkStorage storage;
+    
+    /**
+     * Buffer id of this chunk (some methods in storage might need this).
+     */
+    private int bufferId;
     
     /**
      * Determines if this chunk uses material atlas.
@@ -56,10 +58,10 @@ public class OffheapChunk implements Chunk, OffheapNode {
     private long blocksAddr = blocksAddr();
     private int bytesPerBlock = hasAtlas ? 1 : 2;
     
-    public OffheapChunk(OffheapWorld world, long address, int length, int reserved) {
+    public OffheapChunk(OffheapWorld world, int length) {
         this.world = world;
-        this.address = address;
-        this.reserved = reserved;
+        isValid = false;
+        this.length = length;
     }
     
     @Override
@@ -213,9 +215,10 @@ public class OffheapChunk implements Chunk, OffheapNode {
         boolean canRepack = true;
         
         /**
-         * Block data length in bytes.
+         * Chunk length in bytes. We start with only static data, then
+         * increment this as block data is added.
          */
-        int dataLength = 0;
+        int dataLength = (hasAtlas ? DataConstants.CHUNK_STATIC : DataConstants.CHUNK_STATIC_NOATLAS);
         
         // Loop through the data, packing 0.25m cubes to 0.5m cubes where possible
         for (int i = 0; i < data.length; i += 8) {
@@ -280,9 +283,10 @@ public class OffheapChunk implements Chunk, OffheapNode {
             }
         }
         
-        // Allocate memory, if necessary
+        // Get more memory for this chunk, if needed
         if (!isValid || dataLength > length) {
-            storage.alloc(this, dataLength);
+            storage.updateChunk(this, dataLength); // Ask for updated length
+            length = dataLength; // Set length of this chunk to new length
         }
         
         // Finally, construct sizes data and actual block data
@@ -320,6 +324,20 @@ public class OffheapChunk implements Chunk, OffheapNode {
     @Override
     public void invalidate() {
         isValid = false;
+    }
+
+    /**
+     * @return Buffer id.
+     */
+    public int bufferId() {
+        return bufferId;
+    }
+
+    /**
+     * @param bufferId New buffer id.
+     */
+    public void bufferId(int bufferId) {
+        this.bufferId = bufferId;
     }
 
 }
