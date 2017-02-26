@@ -4,6 +4,7 @@ import java.util.Objects;
 
 import com.ritualsoftheold.terra.node.Block;
 import com.ritualsoftheold.terra.node.Chunk;
+import com.ritualsoftheold.terra.node.SimpleBlock;
 import com.ritualsoftheold.terra.offheap.ChunkUtils;
 import com.ritualsoftheold.terra.offheap.DataConstants;
 import com.ritualsoftheold.terra.offheap.chunk.ChunkStorage;
@@ -145,8 +146,10 @@ public class OffheapChunk implements Chunk, OffheapNode {
             // Just continue...
         }
         
-        // TODO construct some kind of block out of id and scale
-        return null;
+        // TODO handle atlas dereferencing (fast way to do that)
+        
+        // TODO store more useful data in block, like scale...
+        return new SimpleBlock(world.getMaterialRegistry().getForWorldId(blockId));
     }
     
     private long sizesAddr() {

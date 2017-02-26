@@ -26,7 +26,11 @@ public interface Node {
     
     // Low level, optional API
     
-    long l_getAddress();
+    default long l_getAddress() {
+        throw new UnsupportedOperationException();
+    }
     
-    int l_getDataSize();
+    default int l_getDataSize() {
+        throw new UnsupportedOperationException();
+    }
 }

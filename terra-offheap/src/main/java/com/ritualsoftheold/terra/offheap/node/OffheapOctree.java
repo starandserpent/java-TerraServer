@@ -5,6 +5,7 @@ import com.ritualsoftheold.terra.node.Block;
 import com.ritualsoftheold.terra.node.Chunk;
 import com.ritualsoftheold.terra.node.Node;
 import com.ritualsoftheold.terra.node.Octree;
+import com.ritualsoftheold.terra.node.SimpleBlock;
 import com.ritualsoftheold.terra.offheap.DataConstants;
 import com.ritualsoftheold.terra.offheap.data.MemoryRegion;
 import com.ritualsoftheold.terra.offheap.world.OffheapWorld;
@@ -41,9 +42,8 @@ public class OffheapOctree implements Octree, OffheapNode {
 
     @Override
     public Block getBlockAt(int index) {
-        OffheapOctreeBlock block = new OffheapOctreeBlock(reg, address +  index * DataConstants.OCTREE_NODE_SIZE);
-        region.trackObject(block);
-        return block;
+        // Read first 2 bytes from node; they serve as block id
+        return new SimpleBlock(reg.getForWorldId(mem.readShort(address +  index * DataConstants.OCTREE_NODE_SIZE)));
     }
 
     @Override
@@ -77,7 +77,7 @@ public class OffheapOctree implements Octree, OffheapNode {
     public void l_getData(int[] data) {
         if (data.length < 9)
             throw new IllegalArgumentException("data array must be at least 9 ints");
-        // First int, least significant: flags
+        // First int, least significant byte: flags
         // Other ints: octree data
         mem.copyMemory(address, data, DataConstants.ARRAY_DATA + 2, DataConstants.OCTREE_SIZE);
     }
