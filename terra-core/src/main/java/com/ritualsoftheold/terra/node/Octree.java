@@ -14,7 +14,11 @@ public interface Octree extends Node {
     
     Chunk getChunkAt(int index) throws ClassCastException;
     
+    void setNodeAt(int index, Node node);
+    
     Node[] getNodes();
+    
+    void setNodes(Node[] nodes);
     
     // Low level, optional API
     

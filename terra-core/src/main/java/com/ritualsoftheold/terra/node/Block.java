@@ -10,7 +10,21 @@ import com.ritualsoftheold.terra.material.TerraMaterial;
  */
 public interface Block extends Node {
     
+    /**
+     * Sets material of this block.
+     * @param mat New material.
+     */
     void setMaterial(TerraMaterial mat);
     
+    /**
+     * Gets material of this block.
+     * @return Material.
+     */
     TerraMaterial getMaterial();
+    
+    /**
+     * Gets size (scale) of this block.
+     * @return Size, in meters.
+     */
+    float getSize();
 }

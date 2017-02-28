@@ -41,7 +41,7 @@ public interface DataProvider {
         throw new UnsupportedOperationException();
     }
     
-    default long l_getChunkPtr(int uint_index) throws UnsupportedOperationException {
+    default long l_getChunkAddr(int uint_index) throws UnsupportedOperationException {
         throw new UnsupportedOperationException();
     }
     

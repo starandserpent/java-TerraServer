@@ -27,4 +27,10 @@ public interface ChunkIterator {
      * @return This block, not pooled.
      */
     Block getBlock();
+    
+    /**
+     * Sets the block at this place.
+     * @param block
+     */
+    void setBlock(Block block);
 }

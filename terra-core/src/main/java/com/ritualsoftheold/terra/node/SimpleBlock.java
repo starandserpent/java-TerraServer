@@ -12,9 +12,11 @@ import com.ritualsoftheold.terra.material.TerraMaterial;
 public class SimpleBlock implements Block {
     
     private TerraMaterial material;
+    private float size;
     
-    public SimpleBlock(TerraMaterial initialMat) {
+    public SimpleBlock(TerraMaterial initialMat, float size) {
         this.material = initialMat;
+        this.size = size;
     }
     
     @Override
@@ -30,6 +32,11 @@ public class SimpleBlock implements Block {
     @Override
     public TerraMaterial getMaterial() {
         return material;
+    }
+
+    @Override
+    public float getSize() {
+        return size;
     }
 
 }

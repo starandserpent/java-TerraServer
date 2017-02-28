@@ -149,7 +149,7 @@ public class OffheapChunk implements Chunk, OffheapNode {
         // TODO handle atlas dereferencing (fast way to do that)
         
         // TODO store more useful data in block, like scale...
-        return new SimpleBlock(world.getMaterialRegistry().getForWorldId(blockId));
+        return new SimpleBlock(world.getMaterialRegistry().getForWorldId(blockId), blockScale);
     }
     
     private long sizesAddr() {
@@ -288,7 +288,7 @@ public class OffheapChunk implements Chunk, OffheapNode {
         
         // Get more memory for this chunk, if needed
         if (!isValid || dataLength > length) {
-            storage.updateChunk(this, dataLength); // Ask for updated length
+            // TODO storage implementation, come on... rewriting it third time
             length = dataLength; // Set length of this chunk to new length
         }
         

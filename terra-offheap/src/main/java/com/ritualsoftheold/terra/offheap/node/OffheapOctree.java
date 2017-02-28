@@ -8,7 +8,6 @@ import com.ritualsoftheold.terra.node.Octree;
 import com.ritualsoftheold.terra.node.SimpleBlock;
 import com.ritualsoftheold.terra.offheap.DataConstants;
 import com.ritualsoftheold.terra.offheap.data.MemoryRegion;
-import com.ritualsoftheold.terra.offheap.world.OffheapWorld;
 
 import net.openhft.chronicle.core.Memory;
 import net.openhft.chronicle.core.OS;
@@ -43,7 +42,8 @@ public class OffheapOctree implements Octree, OffheapNode {
     @Override
     public Block getBlockAt(int index) {
         // Read first 2 bytes from node; they serve as block id
-        return new SimpleBlock(reg.getForWorldId(mem.readShort(address +  index * DataConstants.OCTREE_NODE_SIZE)));
+        // TODO block size with octree
+        return new SimpleBlock(reg.getForWorldId(mem.readShort(address +  index * DataConstants.OCTREE_NODE_SIZE)), 0);
     }
 
     @Override
@@ -51,11 +51,23 @@ public class OffheapOctree implements Octree, OffheapNode {
         // TODO Auto-generated method stub
         return null;
     }
+    
+    @Override
+    public void setNodeAt(int index, Node node) {
+        // TODO Auto-generated method stub
+        
+    }
 
     @Override
     public Node[] getNodes() {
         // TODO Auto-generated method stub
         return null;
+    }
+    
+    @Override
+    public void setNodes(Node[] nodes) {
+        // TODO Auto-generated method stub
+        
     }
 
     @Override
