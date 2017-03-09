@@ -1,21 +1,19 @@
 package com.ritualsoftheold.terra.offheap.chunk;
 
-import it.unimi.dsi.fastutil.shorts.Short2ObjectMap;
+import it.unimi.dsi.fastutil.ints.Int2LongMap;
 
 /**
  * Chunk storage stores chunks in their memory representation.
+ * 
+ * For now this doesn't use ChunkBuffers. I truly hope that it
+ * works well enough.
  *
  */
 public class ChunkStorage {
     
     /**
-     * Chunk storage blocks.
+     * A map of chunk addresses.
      */
-    private Short2ObjectMap<ChunkBuffer> storageBlocks;
-    
-    /**
-     * Chunk pointer data length.
-     */
-    private int pointerLength;
+    private Int2LongMap chunkMap;
     
 }
