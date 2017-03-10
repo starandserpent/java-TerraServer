@@ -1,13 +1,10 @@
 package com.ritualsoftheold.terra.offheap.chunk;
 
-import com.ritualsoftheold.terra.offheap.DataConstants;
-
 import net.openhft.chronicle.core.Memory;
 import net.openhft.chronicle.core.OS;
 
 /**
  * Represents a buffer or "block" of chunks.
- * TODO enlarging chunk would move others too -> BAD THING
  *
  */
 public class ChunkBuffer {
@@ -15,37 +12,78 @@ public class ChunkBuffer {
     private static Memory mem = OS.memory();
     
     /**
-     * Memory address of this chunk buffer.
+     * Address to chunk pointer data.
      */
-    private long address;
+    private long pointerAddr;
     
     /**
-     * Length of this chunk's data.
+     * Maximum chunk count in this buffer.
      */
-    private int length;
+    private int chunkCount;
     
     /**
-     * Chunk data offset (this is after metadata).
+     * Array of memory addresses for chunks.
      */
-    private int dataOffset;
+    private long[] chunks;
     
     /**
-     * Reserved space for this chunk.
+     * Array of chunk data lengths.
      */
-    private int reserved;
+    private int[] lengths;
     
     /**
-     * Reserved space is increased by this when length exceeds it.
+     * Index of first free chunk slot in this buffer.
      */
-    private int reserveFactor;
+    private int freeIndex;
     
-    public ChunkBuffer(int reserved, int reserveFactor, int dataOffset) {
-        this.reserved = reserved;
-        this.dataOffset = dataOffset;
-        this.reserveFactor = reserveFactor;
+    public ChunkBuffer(int chunkCount) {
+        this.chunkCount = chunkCount;
+        
+        chunks = new long[chunkCount];
+        lengths = new int[chunkCount];
+        freeIndex = 0;
     }
     
-    public long getChunkEntry(short index) {
-        return mem.readLong(address + index * DataConstants.CHUNK_POINTER_STORE);
+    /**
+     * Checks if this buffer can take one more chunk.
+     * @return If one more chunk can be added.
+     */
+    public boolean hasSpace() {
+        return chunkCount > freeIndex;
+    }
+    
+    /**
+     * Creates a chunk to this buffer.
+     * @param firstLength Starting length of chunk (in memory). Try to have
+     * something sensible here to avoid instant reallocation.
+     * @return Chunk index in this buffer.
+     */
+    public int createChunk(int firstLength) {
+        // Take index, adjust freeIndex
+        int index = freeIndex;
+        freeIndex++;
+        
+        long addr = mem.allocate(firstLength);
+        chunks[index] = addr;
+        lengths[index] = firstLength;
+        
+        // And finally return the index
+        return index;
+    }
+    
+    /**
+     * Reallocates chunk with given amount of space. Note that you <b>must</b>
+     * free old data, after you have copied all relevant parts to new area.
+     * @param index Chunk index in this buffer.
+     * @param newLength New length in bytes.
+     * @return New memory address. Remember to free the old one!
+     */
+    public long reallocChunk(int index, int newLength) {
+        long addr = mem.allocate(newLength);
+        
+        chunks[index] = addr;
+        lengths[index] = newLength;
+        
+        return addr;
     }
 }

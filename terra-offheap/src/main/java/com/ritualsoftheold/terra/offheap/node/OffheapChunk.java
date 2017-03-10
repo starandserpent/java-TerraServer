@@ -7,6 +7,7 @@ import com.ritualsoftheold.terra.node.Chunk;
 import com.ritualsoftheold.terra.node.SimpleBlock;
 import com.ritualsoftheold.terra.offheap.ChunkUtils;
 import com.ritualsoftheold.terra.offheap.DataConstants;
+import com.ritualsoftheold.terra.offheap.chunk.ChunkBuffer;
 import com.ritualsoftheold.terra.offheap.chunk.ChunkStorage;
 import com.ritualsoftheold.terra.offheap.world.OffheapWorld;
 
@@ -28,9 +29,9 @@ public class OffheapChunk implements Chunk, OffheapNode {
     private int length;
     
     /**
-     * Storage for this chunk. Will be used to allocate memory as needed.
+     * Storage buffer for this chunk.
      */
-    private ChunkStorage storage;
+    private ChunkBuffer buffer;
     
     /**
      * Buffer id of this chunk (some methods in storage might need this).
@@ -39,9 +40,9 @@ public class OffheapChunk implements Chunk, OffheapNode {
     
     /**
      * Determines if this chunk uses material atlas.
-     * For now, always true: need to concentrate on one thing at time.
+     * For now, always false: need to concentrate on one thing at time.
      */
-    private boolean hasAtlas = true;
+    private boolean hasAtlas = false;
     
     /**
      * World of this chunk. Used for misc operations, like force loading its
@@ -288,13 +289,27 @@ public class OffheapChunk implements Chunk, OffheapNode {
         
         // Get more memory for this chunk, if needed
         if (!isValid || dataLength > length) {
-            // TODO storage implementation, come on... rewriting it third time
+            mem.freeMemory(address, length);
+            address = buffer.reallocChunk(bufferId, length);
             length = dataLength; // Set length of this chunk to new length
         }
         
+        long blockAddr = blocksAddr();
+        long sizesAddr = sizesAddr();
         // Finally, construct sizes data and actual block data
         for (int i = 0; i < bigBlocks.length; i++) {
-            // TODO
+            long sizes = 0;
+            for (int j = 0; j < 32; j++) {
+                short big = bigBlocks[i];
+                if (big != 0) { // 1m block
+                    mem.writeInt(blockAddr, big);
+                    blockAddr += 2;
+                    
+                    sizes = sizes << 2; // Just shift sizes, since 1m=zero
+                } else { // Smaller block
+                    
+                }
+            }
         }
     }
 
