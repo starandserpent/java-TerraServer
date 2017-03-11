@@ -1,5 +1,7 @@
 package com.ritualsoftheold.terra.offheap.chunk;
 
+import com.ritualsoftheold.terra.offheap.DataConstants;
+
 import net.openhft.chronicle.core.Memory;
 import net.openhft.chronicle.core.OS;
 
@@ -10,11 +12,6 @@ import net.openhft.chronicle.core.OS;
 public class ChunkBuffer {
     
     private static Memory mem = OS.memory();
-    
-    /**
-     * Address to chunk pointer data.
-     */
-    private long pointerAddr;
     
     /**
      * Maximum chunk count in this buffer.
@@ -36,12 +33,20 @@ public class ChunkBuffer {
      */
     private int freeIndex;
     
-    public ChunkBuffer(int chunkCount) {
+    /**
+     * Every time memory is allocated, the amount of it to be allocated is
+     * increased by this value. This is to avoid constant and pointless
+     * reallocations.
+     */
+    private int extraAlloc;
+    
+    public ChunkBuffer(int chunkCount, int extraAlloc) {
         this.chunkCount = chunkCount;
         
         chunks = new long[chunkCount];
         lengths = new int[chunkCount];
         freeIndex = 0;
+        this.extraAlloc = extraAlloc;
     }
     
     /**
@@ -63,9 +68,9 @@ public class ChunkBuffer {
         int index = freeIndex;
         freeIndex++;
         
-        long addr = mem.allocate(firstLength);
+        long addr = mem.allocate(firstLength + extraAlloc);
         chunks[index] = addr;
-        lengths[index] = firstLength;
+        lengths[index] = firstLength + extraAlloc;
         
         // And finally return the index
         return index;
@@ -79,11 +84,37 @@ public class ChunkBuffer {
      * @return New memory address. Remember to free the old one!
      */
     public long reallocChunk(int index, int newLength) {
-        long addr = mem.allocate(newLength);
+        long addr = mem.allocate(newLength + extraAlloc);
         
         chunks[index] = addr;
-        lengths[index] = newLength;
+        lengths[index] = newLength + extraAlloc;
         
         return addr;
+    }
+    
+    /**
+     * Loads chunk buffer from given memory address
+     * @param addr
+     */
+    public void load(long addr) {
+        // Read pointer data
+        for (int i = 0; i < chunkCount; i++) {
+            long entry = mem.readLong(addr + i * DataConstants.CHUNK_POINTER_STORE);
+            long chunkAddr = addr + (entry >>> 32);
+            int chunkLen = (int) (entry >> 8 & 0xffffff);
+            
+            // Save the length
+            lengths[i] = chunkLen + extraAlloc;
+            
+            // Allocate memory, then copy data
+            long newAddr = mem.allocate(chunkLen + extraAlloc);
+            mem.copyMemory(chunkAddr, newAddr, chunkLen);
+            chunks[i] = newAddr;
+        }
+        
+    }
+    
+    public int getExtraAlloc() {
+        return extraAlloc;
     }
 }

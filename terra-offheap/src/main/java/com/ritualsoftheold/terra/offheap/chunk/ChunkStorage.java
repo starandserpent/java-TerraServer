@@ -13,9 +13,4 @@ public class ChunkStorage {
      */
     private Short2ObjectMap<ChunkBuffer> storageBlocks;
     
-    /**
-     * Chunk pointer data length.
-     */
-    private int pointerLength;
-    
 }

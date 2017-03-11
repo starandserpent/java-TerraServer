@@ -289,7 +289,7 @@ public class OffheapChunk implements Chunk, OffheapNode {
         
         // Get more memory for this chunk, if needed
         if (!isValid || dataLength > length) {
-            mem.freeMemory(address, length);
+            mem.freeMemory(address, length + buffer.getExtraAlloc());
             address = buffer.reallocChunk(bufferId, length);
             length = dataLength; // Set length of this chunk to new length
         }
