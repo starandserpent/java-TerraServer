@@ -209,20 +209,24 @@ public class OffheapChunk implements Chunk, OffheapNode {
          */
         short[] packed = new short[data.length / 8];
         
-        /**
-         * Packed 1m blocks go here.
-         */
-        short[] bigBlocks = new short[packed.length / 8];
-        
         // Some variables related to 1m packing
         int repack = 8;
         boolean canRepack = true;
         
         /**
-         * Chunk length in bytes. We start with only static data, then
-         * increment this as block data is added.
+         * Address to sizes data. Modified when writing sizes data.
          */
-        int dataLength = (hasAtlas ? DataConstants.CHUNK_STATIC : DataConstants.CHUNK_STATIC_NOATLAS);
+        long sizesAddr = sizesAddr();
+        long sizesData = 0; // We place 32x size data there and then write it once
+        int sizesCounter = 0; // When this reaches 32, we write sizesData
+        
+        
+        /**
+         * Chunk length in bytes. Starts from zero, remember to add static
+         * data to this when used with memory allocations
+         */
+        int dataLength = 0;
+        long blocksAddr = blocksAddr();
         
         // Loop through the data, packing 0.25m cubes to 0.5m cubes where possible
         for (int i = 0; i < data.length; i += 8) {
@@ -242,9 +246,33 @@ public class OffheapChunk implements Chunk, OffheapNode {
              */
             if (id1 == id2 && id1 == id3 && id1 == id4 && id1 == id5 && id1 == id6 && id1 == id7 && id1 == id8) {
                 packed[i / 8] = id1; // Mark id here, we packed it into 0.5m block!
+                // Note: don't increase dataLength there, we do it AFTER we are sure that
+                // this block won't end up as 64 0.25m cubes
             } else {
-                canRepack = false; // Don't even bother trying to pack into 1m block if there are 0.25m blocks
-                dataLength += 8; // 8 0.25m blocks
+                i += repack * 8;
+                
+                // Write block data
+                int blockStart = i - (8 - repack) * 8; // We might need to start from a place which we had already looped
+                for (int j = 0; j < 64; j++) {
+                    mem.writeShort(blocksAddr + dataLength + j * 2, data[blockStart + j]);
+                }
+                
+                repack = 0; // Reset repack counter for next block
+                
+                dataLength += 64; // Just wrote 64 small blocks!
+                
+                // Insert into sizes data
+                sizesData = sizesData << 2 | 2; // 2=0.25m
+                
+                // Write sizes data!
+                if (sizesCounter > 30) {
+                    mem.writeLong(sizesAddr, sizesData);
+                    sizesData = 0;
+                    sizesAddr += 8;
+                    sizesCounter = 0;
+                }
+                
+                continue;
             }
             
             /*
@@ -276,10 +304,32 @@ public class OffheapChunk implements Chunk, OffheapNode {
                     short pid8 = packed[pi + 7];
                     
                     if (pid1 == pid2 && pid1 == pid3 && pid1 == pid4 && pid1 == pid5 && pid1 == pid6 && pid1 == pid7 && pid1 == pid8) {
-                        bigBlocks[pi / 8] = pid1; // Mark id here, we packed it into 0.5m block!
+                        // Insert into sizes data
+                        sizesData = sizesData << 2 | 0; // 0=1m
+                        
+                        // Write block data
+                        mem.writeShort(blocksAddr + dataLength, pid1);
                         dataLength++; // 1 1m cube
                     } else {
+                        // Write block data
+                        int blockStart = i - 8;
+                        for (int j = 0; j < 8; j++) {
+                            mem.writeShort(blocksAddr + dataLength + j * 2, packed[blockStart + j]);
+                        }
+                        
                         dataLength += 8; // 8 0.5m cubes
+                        
+                        // Insert into sizes data
+                        sizesData = sizesData << 2 | 1; // 1=0.5m
+                    }
+                    sizesCounter++;
+                    
+                    // Write sizes data!
+                    if (sizesCounter > 30) {
+                        mem.writeLong(sizesAddr, sizesData);
+                        sizesData = 0;
+                        sizesAddr += 8;
+                        sizesCounter = 0;
                     }
                 }
                 
@@ -288,28 +338,11 @@ public class OffheapChunk implements Chunk, OffheapNode {
         }
         
         // Get more memory for this chunk, if needed
+        // TODO not needed, split into places where it IS needed (look up)
         if (!isValid || dataLength > length) {
             mem.freeMemory(address, length + buffer.getExtraAlloc());
             address = buffer.reallocChunk(bufferId, length);
             length = dataLength; // Set length of this chunk to new length
-        }
-        
-        long blockAddr = blocksAddr();
-        long sizesAddr = sizesAddr();
-        // Finally, construct sizes data and actual block data
-        for (int i = 0; i < bigBlocks.length; i++) {
-            long sizes = 0;
-            for (int j = 0; j < 32; j++) {
-                short big = bigBlocks[i];
-                if (big != 0) { // 1m block
-                    mem.writeInt(blockAddr, big);
-                    blockAddr += 2;
-                    
-                    sizes = sizes << 2; // Just shift sizes, since 1m=zero
-                } else { // Smaller block
-                    
-                }
-            }
         }
     }
 
