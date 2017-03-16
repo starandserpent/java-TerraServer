@@ -8,7 +8,6 @@ import com.ritualsoftheold.terra.node.SimpleBlock;
 import com.ritualsoftheold.terra.offheap.ChunkUtils;
 import com.ritualsoftheold.terra.offheap.DataConstants;
 import com.ritualsoftheold.terra.offheap.chunk.ChunkBuffer;
-import com.ritualsoftheold.terra.offheap.chunk.ChunkStorage;
 import com.ritualsoftheold.terra.offheap.world.OffheapWorld;
 
 import net.openhft.chronicle.core.Memory;
@@ -28,6 +27,8 @@ public class OffheapChunk implements Chunk, OffheapNode {
      */
     private int length;
     
+    private OffheapWorld world;
+    
     /**
      * Storage buffer for this chunk.
      */
@@ -45,12 +46,6 @@ public class OffheapChunk implements Chunk, OffheapNode {
     private boolean hasAtlas = false;
     
     /**
-     * World of this chunk. Used for misc operations, like force loading its
-     * underlying data if not present.
-     */
-    private OffheapWorld world;
-    
-    /**
      * If this has memory address.
      */
     private boolean isValid;
@@ -60,10 +55,19 @@ public class OffheapChunk implements Chunk, OffheapNode {
     private long blocksAddr = blocksAddr();
     private int bytesPerBlock = hasAtlas ? 1 : 2;
     
-    public OffheapChunk(OffheapWorld world, int length) {
+    /**
+     * Constructs new offheap chunk. Usually, DO NOT call this directly.
+     * @param world
+     * @param buffer
+     * @param bufferId
+     */
+    public OffheapChunk(OffheapWorld world, ChunkBuffer buffer, int bufferId) {
         this.world = world;
-        isValid = false;
-        this.length = length;
+        this.buffer = buffer;
+        this.bufferId = bufferId;
+        this.address = buffer.getChunkAddress(bufferId);
+        isValid = true;
+        this.length = buffer.getChunkLength(bufferId);
     }
     
     @Override
@@ -149,7 +153,6 @@ public class OffheapChunk implements Chunk, OffheapNode {
         
         // TODO handle atlas dereferencing (fast way to do that)
         
-        // TODO store more useful data in block, like scale...
         return new SimpleBlock(world.getMaterialRegistry().getForWorldId(blockId), blockScale);
     }
     
@@ -183,8 +186,7 @@ public class OffheapChunk implements Chunk, OffheapNode {
 
     @Override
     public void setBlockAt(float x, float y, float z, Block block) {
-        // TODO Auto-generated method stub
-        
+        // TODO this will be needed once initial tests are passing
     }
 
     @Override

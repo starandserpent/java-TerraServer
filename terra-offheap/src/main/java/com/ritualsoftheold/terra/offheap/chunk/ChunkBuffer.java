@@ -117,4 +117,12 @@ public class ChunkBuffer {
     public int getExtraAlloc() {
         return extraAlloc;
     }
+    
+    public long getChunkAddress(int bufferId) {
+        return chunks[bufferId];
+    }
+    
+    public int getChunkLength(int bufferId) {
+        return lengths[bufferId];
+    }
 }
