@@ -1,5 +1,6 @@
 package com.ritualsoftheold.terra.offheap.node;
 
+import java.util.Arrays;
 import java.util.Objects;
 
 import com.ritualsoftheold.terra.node.Block;
@@ -73,6 +74,7 @@ public class OffheapChunk implements Chunk, OffheapNode {
     @Override
     public Block getBlockAt(float x, float y, float z) {
         float dist = ChunkUtils.distance(x, y, z);
+        System.out.println("dist: " + dist);
         float traveled = 0f;
         int offset = 0;
         
@@ -85,6 +87,7 @@ public class OffheapChunk implements Chunk, OffheapNode {
          */
         outer: while (true) {
             long scales = mem.readLong(sizesAddr()); // Scale data for 32 blocks
+            System.out.println("scales: " + scales);
             
             for (int i = 32; i > 0; i--) { // We are going backwards for minor performance improvement+ease of coding
                 long scaleFlag = scales >>> (i * 2) & 0b11; // Flag for the scale; 0=1, 1=0.5, 2=0.25
@@ -113,7 +116,7 @@ public class OffheapChunk implements Chunk, OffheapNode {
                      */
                     if (scaleFlag == 0) { // 1m cube
                         blockId = hasAtlas ? mem.readByte(blocksAddr + offset)
-                                : mem.readShort(blocksAddr + offset);
+                                : mem.readShort(blocksAddr() + offset);
                         blockScale = 1;
                     } else if (scaleFlag == 1) { // 0.5m cube!
                         /*

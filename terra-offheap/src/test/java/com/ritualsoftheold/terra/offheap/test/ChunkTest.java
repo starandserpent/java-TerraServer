@@ -31,5 +31,10 @@ public class ChunkTest {
         
         int bufferId = buf.createChunk(DataConstants.CHUNK_MIN_SIZE);
         OffheapChunk chunk = new OffheapChunk(null, buf, bufferId);
+        
+        short[] data = new short[DataConstants.CHUNK_MAX_BLOCKS];
+        data[0] = 1; // Set on 25cm cube to... not AIR
+        chunk.setData(data);
+        assertEquals(chunk.getBlockAt(0, 0, 0), 1);
     }
 }
