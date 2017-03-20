@@ -4,6 +4,7 @@ import org.junit.Test;
 
 import com.ritualsoftheold.terra.offheap.DataConstants;
 import com.ritualsoftheold.terra.offheap.chunk.ChunkBuffer;
+import com.ritualsoftheold.terra.offheap.chunk.ChunkUtils;
 import com.ritualsoftheold.terra.offheap.node.OffheapChunk;
 
 import net.openhft.chronicle.core.Memory;
@@ -36,5 +37,13 @@ public class ChunkTest {
         data[0] = 1; // Set on 25cm cube to... not AIR
         chunk.setData(data);
         assertEquals(chunk.getBlockAt(0, 0, 0), 1);
+    }
+    
+    @Test
+    public void chunk025LookupTest() {
+        // TODO more comprehensive test
+        assertEquals(0, ChunkUtils.get025BlockIndex(-0.6f, -0.6f, -0.6f));
+        assertEquals(ChunkUtils.get025BlockIndex(-0.4f, -0.1f, -0.1f), 21);
+        assertEquals(63, ChunkUtils.get025BlockIndex(1f, 1f, 1f));
     }
 }

@@ -5,9 +5,9 @@ import java.util.Objects;
 import com.ritualsoftheold.terra.node.Block;
 import com.ritualsoftheold.terra.node.Chunk;
 import com.ritualsoftheold.terra.node.SimpleBlock;
-import com.ritualsoftheold.terra.offheap.ChunkUtils;
 import com.ritualsoftheold.terra.offheap.DataConstants;
 import com.ritualsoftheold.terra.offheap.chunk.ChunkBuffer;
+import com.ritualsoftheold.terra.offheap.chunk.ChunkUtils;
 import com.ritualsoftheold.terra.offheap.data.OffheapNode;
 import com.ritualsoftheold.terra.offheap.world.OffheapWorld;
 

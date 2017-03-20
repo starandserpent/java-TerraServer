@@ -1,4 +1,4 @@
-package com.ritualsoftheold.terra.offheap;
+package com.ritualsoftheold.terra.offheap.chunk;
 
 public class ChunkUtils {
     
@@ -49,7 +49,6 @@ public class ChunkUtils {
     }
     
     public static int get025BlockIndex(float x, float y, float z) {
-        // TODO test this
         if (x <= -0.5f) {
             if (y <= -0.5f) {
                 if (z <= -0.5f) {
