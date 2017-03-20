@@ -1,7 +1,6 @@
-package com.ritualsoftheold.terra.offheap.node;
+package com.ritualsoftheold.terra.offheap.data;
 
 import com.ritualsoftheold.terra.node.Node;
-import com.ritualsoftheold.terra.offheap.data.OffheapObject;
 
 public interface OffheapNode extends OffheapObject, Node {
     

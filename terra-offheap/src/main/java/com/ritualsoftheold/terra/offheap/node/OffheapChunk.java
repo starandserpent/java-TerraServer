@@ -1,6 +1,5 @@
 package com.ritualsoftheold.terra.offheap.node;
 
-import java.util.Arrays;
 import java.util.Objects;
 
 import com.ritualsoftheold.terra.node.Block;
@@ -9,6 +8,7 @@ import com.ritualsoftheold.terra.node.SimpleBlock;
 import com.ritualsoftheold.terra.offheap.ChunkUtils;
 import com.ritualsoftheold.terra.offheap.DataConstants;
 import com.ritualsoftheold.terra.offheap.chunk.ChunkBuffer;
+import com.ritualsoftheold.terra.offheap.data.OffheapNode;
 import com.ritualsoftheold.terra.offheap.world.OffheapWorld;
 
 import net.openhft.chronicle.core.Memory;
@@ -52,8 +52,8 @@ public class OffheapChunk implements Chunk, OffheapNode {
     private boolean isValid;
     
     // Cache these, its faster
-    private long sizesAddr = sizesAddr();
-    private long blocksAddr = blocksAddr();
+    private long sizesAddr;
+    private long blocksAddr;
     private int bytesPerBlock = hasAtlas ? 1 : 2;
     
     /**
@@ -69,6 +69,91 @@ public class OffheapChunk implements Chunk, OffheapNode {
         this.address = buffer.getChunkAddress(bufferId);
         isValid = true;
         this.length = buffer.getChunkLength(bufferId);
+        
+        blocksAddr = blocksAddr();
+        sizesAddr = sizesAddr();
+    }
+    
+    @Override
+    public short l_getMaterial(float x, float y, float z) {
+        float dist = ChunkUtils.distance(x, y, z);
+        System.out.println("dist: " + dist);
+        float traveled = 0f;
+        int offset = 0;
+        
+        short blockId;
+        
+        /*
+         * We will try to figure out correct address for the "distance".
+         * Since there can be 32 flags in one long, this is quite fast - I hope.
+         */
+        outer: while (true) {
+            long scales = mem.readLong(sizesAddr); // Scale data for 32 blocks
+            System.out.println("scales: " + scales);
+            
+            for (int i = 32; i > 0; i--) { // We are going backwards for minor performance improvement+ease of coding
+                long scaleFlag = scales >>> (i * 2) & 0b11; // Flag for the scale; 0=1, 1=0.5, 2=0.25
+                traveled++; // Increment traveled by one meter
+                /*
+                 * Offset change is 1 for 1m block, 8 for 8 0.5m blocks and finally,
+                 * 8^2 aka 64 for 64 64 0.5m blocks.
+                 * 
+                 * Sadly this makes 0.25m blocks quite costly.
+                 * TODO improve 0.25m block handling
+                 */
+                offset += getScaleOffset(scaleFlag) * bytesPerBlock; // Offset change * bytes per block
+                
+                // Now, check if we have traveled long enough to have gone past the block
+                if (traveled >= dist) {
+                    /*
+                     * Yes? Then, based on block type we will decide what to do.
+                     * 
+                     * 1m: Just get the block at offset.
+                     * 
+                     * 0.5m: First, lookup (=black magic) for the block index.
+                     * Then, offset + that index read.
+                     * 
+                     * 0.25m: Same as above, except the lookup table is really
+                     * black magic this time, having 64 possible indexes to return.
+                     */
+                    if (scaleFlag == 0) { // 1m cube
+                        blockId = hasAtlas ? mem.readByte(blocksAddr + offset)
+                                : mem.readShort(blocksAddr() + offset);
+                    } else if (scaleFlag == 1) { // 0.5m cube!
+                        /*
+                         * Get decimal parts of float coordinates.
+                         * This is necessary when the scale of block is not 1m.
+                         */
+                        float x0 = x % 1;
+                        float y0 = y % 1;
+                        float z0 = z % 1;
+                        
+                        int index = ChunkUtils.getSmallBlockIndex(x0, y0, z0);
+                        blockId = hasAtlas ? mem.readByte(blocksAddr + offset + index)
+                                : mem.readShort(blocksAddr + offset + index * 2);
+                    } else {
+                        /*
+                         * Get decimal parts of float coordinates.
+                         * This is necessary when the scale of block is not 1m.
+                         */
+                        float x0 = x % 1;
+                        float y0 = y % 1;
+                        float z0 = z % 1;
+                        
+                        int index = ChunkUtils.get025BlockIndex(x0, y0, z0);
+                        blockId = hasAtlas ? mem.readByte(blocksAddr + offset + index)
+                                : mem.readShort(blocksAddr + offset + index * 2);
+                    }
+                    break outer;
+                }
+            }
+            
+            // If we got this far, the block was not in first long we read
+            // Just continue...
+        }
+        
+        // TODO handle atlas dereferencing (fast way to do that)
+        return blockId;
     }
     
     @Override
@@ -86,7 +171,7 @@ public class OffheapChunk implements Chunk, OffheapNode {
          * Since there can be 32 flags in one long, this is quite fast - I hope.
          */
         outer: while (true) {
-            long scales = mem.readLong(sizesAddr()); // Scale data for 32 blocks
+            long scales = mem.readLong(sizesAddr); // Scale data for 32 blocks
             System.out.println("scales: " + scales);
             
             for (int i = 32; i > 0; i--) { // We are going backwards for minor performance improvement+ease of coding
@@ -140,7 +225,6 @@ public class OffheapChunk implements Chunk, OffheapNode {
                         float y0 = y % 1;
                         float z0 = z % 1;
                         
-                        // TODO implement method that we call here
                         int index = ChunkUtils.get025BlockIndex(x0, y0, z0);
                         blockId = hasAtlas ? mem.readByte(blocksAddr + offset + index)
                                 : mem.readShort(blocksAddr + offset + index * 2);
@@ -394,6 +478,13 @@ public class OffheapChunk implements Chunk, OffheapNode {
      */
     public void bufferId(int bufferId) {
         this.bufferId = bufferId;
+    }
+
+    @Override
+    public void l_setMaterial(float x, float y, float z, short id,
+            float scale) {
+        // TODO Auto-generated method stub
+        
     }
 
 }

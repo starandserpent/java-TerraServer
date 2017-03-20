@@ -45,4 +45,14 @@ public interface Chunk extends Node {
      * @param data
      */
     void setData(short[] data);
+    
+    // Low level, optional API
+    
+    default short l_getMaterial(float x, float y, float z) {
+        throw new UnsupportedOperationException();
+    }
+    
+    default void l_setMaterial(float x, float y, float z, short id, float scale) {
+        throw new UnsupportedOperationException();
+    }
 }

@@ -7,7 +7,7 @@ import com.ritualsoftheold.terra.node.Node;
 import com.ritualsoftheold.terra.node.Octree;
 import com.ritualsoftheold.terra.node.SimpleBlock;
 import com.ritualsoftheold.terra.offheap.DataConstants;
-import com.ritualsoftheold.terra.offheap.data.MemoryRegion;
+import com.ritualsoftheold.terra.offheap.data.OffheapNode;
 
 import net.openhft.chronicle.core.Memory;
 import net.openhft.chronicle.core.OS;
@@ -17,8 +17,6 @@ public class OffheapOctree implements Octree, OffheapNode {
     private static Memory mem = OS.memory();
     
     private long address;
-    
-    private MemoryRegion region;
     
     private MaterialRegistry reg;
     
