@@ -92,16 +92,9 @@ public class OffheapChunk implements Chunk, OffheapNode {
             System.out.println("scales: " + scales);
             
             for (int i = 32; i > 0; i--) { // We are going backwards for minor performance improvement+ease of coding
-                long scaleFlag = scales >>> (i * 2) & 0b11; // Flag for the scale; 0=1, 1=0.5, 2=0.25
+                long scaleFlag = scales >>> (i * 2 - 2) & 0b11; // Flag for the scale; 0=1, 1=0.5, 2=0.25
+                System.out.println("scaleFlag: " + scaleFlag);
                 traveled++; // Increment traveled by one meter
-                /*
-                 * Offset change is 1 for 1m block, 8 for 8 0.5m blocks and finally,
-                 * 8^2 aka 64 for 64 64 0.5m blocks.
-                 * 
-                 * Sadly this makes 0.25m blocks quite costly.
-                 * TODO improve 0.25m block handling
-                 */
-                offset += getScaleOffset(scaleFlag) * bytesPerBlock; // Offset change * bytes per block
                 
                 // Now, check if we have traveled long enough to have gone past the block
                 if (traveled >= dist) {
@@ -118,7 +111,7 @@ public class OffheapChunk implements Chunk, OffheapNode {
                      */
                     if (scaleFlag == 0) { // 1m cube
                         blockId = hasAtlas ? mem.readByte(blocksAddr + offset)
-                                : mem.readShort(blocksAddr() + offset);
+                                : mem.readShort(blocksAddr + offset);
                     } else if (scaleFlag == 1) { // 0.5m cube!
                         /*
                          * Get decimal parts of float coordinates.
@@ -139,13 +132,26 @@ public class OffheapChunk implements Chunk, OffheapNode {
                         float x0 = x % 1;
                         float y0 = y % 1;
                         float z0 = z % 1;
+                        System.out.println("x0: " + x0 + ", y0: " + y0 + " z0: " + z0);
                         
                         int index = ChunkUtils.get025BlockIndex(x0, y0, z0);
+                        System.out.println("Index: " + index);
                         blockId = hasAtlas ? mem.readByte(blocksAddr + offset + index)
                                 : mem.readShort(blocksAddr + offset + index * 2);
+                        System.out.println("blocksAddr: " + blocksAddr);
+                        System.out.println("Readed: " + (blocksAddr + offset + index * 2));
                     }
                     break outer;
                 }
+                
+                /*
+                 * Offset change is 1 for 1m block, 8 for 8 0.5m blocks and finally,
+                 * 8^2 aka 64 for 64 64 0.5m blocks.
+                 * 
+                 * Sadly this makes 0.25m blocks quite costly.
+                 * TODO improve 0.25m block handling
+                 */
+                offset += getScaleOffset(scaleFlag) * bytesPerBlock; // Offset change * bytes per block
             }
             
             // If we got this far, the block was not in first long we read
@@ -338,15 +344,17 @@ public class OffheapChunk implements Chunk, OffheapNode {
                 // Note: don't increase dataLength there, we do it AFTER we are sure that
                 // this block won't end up as 64 0.25m cubes
             } else {
-                i += repack * 8;
+                System.out.println("Cannot pack: " + i);
                 
                 // Write block data
                 int blockStart = i - (8 - repack) * 8; // We might need to start from a place which we had already looped
                 for (int j = 0; j < 64; j++) {
+                    System.out.println("Write: " + (blocksAddr + dataLength + j * 2) + " for " + j + ": " + data[blockStart + j] + " at " + (blockStart + j));
                     mem.writeShort(blocksAddr + dataLength + j * 2, data[blockStart + j]);
                 }
                 
-                repack = 0; // Reset repack counter for next block
+                repack = 8; // Reset repack counter for next block
+                i += repack * 8; // Set i to point at next 1m block
                 
                 dataLength += 64; // Just wrote 64 small blocks!
                 

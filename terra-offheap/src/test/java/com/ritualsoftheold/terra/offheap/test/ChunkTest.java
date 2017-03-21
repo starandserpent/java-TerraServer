@@ -34,9 +34,9 @@ public class ChunkTest {
         OffheapChunk chunk = new OffheapChunk(null, buf, bufferId);
         
         short[] data = new short[DataConstants.CHUNK_MAX_BLOCKS];
-        data[0] = 1; // Set on 25cm cube to... not AIR
+        data[21] = 1; // Set on 25cm cube to... not AIR; 21th is at 0,0,0 inside 1m block
         chunk.setData(data);
-        assertEquals(chunk.getBlockAt(0, 0, 0), 1);
+        assertEquals(1, chunk.l_getMaterial(0, 0, 0));
     }
     
     @Test
