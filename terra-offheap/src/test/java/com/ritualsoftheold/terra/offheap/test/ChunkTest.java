@@ -24,8 +24,23 @@ public class ChunkTest {
     @SuppressWarnings("unused")
     private static Memory mem = OS.memory();
     
+//    @Test
+//    public void chunkTest1() {
+//        ChunkBuffer buf = new ChunkBuffer(10, 1024);
+//        
+//        assertTrue(buf.hasSpace());
+//        
+//        int bufferId = buf.createChunk(DataConstants.CHUNK_MIN_SIZE);
+//        OffheapChunk chunk = new OffheapChunk(null, buf, bufferId);
+//        
+//        short[] data = new short[DataConstants.CHUNK_MAX_BLOCKS];
+//        data[21] = 1; // Set on 25cm cube to... not AIR; 21th is at 0,0,0 inside 1m block
+//        chunk.setData(data);
+//        assertEquals(1, chunk.l_getMaterial(0, 0, 0));
+//    }
+    
     @Test
-    public void testChunkBuffer() {
+    public void chunkTest2() {
         ChunkBuffer buf = new ChunkBuffer(10, 1024);
         
         assertTrue(buf.hasSpace());
@@ -34,9 +49,10 @@ public class ChunkTest {
         OffheapChunk chunk = new OffheapChunk(null, buf, bufferId);
         
         short[] data = new short[DataConstants.CHUNK_MAX_BLOCKS];
-        data[21] = 1; // Set on 25cm cube to... not AIR; 21th is at 0,0,0 inside 1m block
+        data[21] = 1;
+        data[84] = 2;
         chunk.setData(data);
-        assertEquals(1, chunk.l_getMaterial(0, 0, 0));
+        assertEquals(2, chunk.l_getMaterial(1, 0, 0));
     }
     
     @Test

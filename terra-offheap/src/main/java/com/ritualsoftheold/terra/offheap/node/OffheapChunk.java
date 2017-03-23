@@ -97,7 +97,7 @@ public class OffheapChunk implements Chunk, OffheapNode {
                 traveled++; // Increment traveled by one meter
                 
                 // Now, check if we have traveled long enough to have gone past the block
-                if (traveled >= dist) {
+                if (traveled > dist) {
                     /*
                      * Yes? Then, based on block type we will decide what to do.
                      * 
@@ -136,6 +136,7 @@ public class OffheapChunk implements Chunk, OffheapNode {
                         
                         int index = ChunkUtils.get025BlockIndex(x0, y0, z0);
                         System.out.println("Index: " + index);
+                        System.out.println("Offset: " + offset);
                         blockId = hasAtlas ? mem.readByte(blocksAddr + offset + index)
                                 : mem.readShort(blocksAddr + offset + index * 2);
                         System.out.println("blocksAddr: " + blocksAddr);
@@ -344,7 +345,7 @@ public class OffheapChunk implements Chunk, OffheapNode {
                 // Note: don't increase dataLength there, we do it AFTER we are sure that
                 // this block won't end up as 64 0.25m cubes
             } else {
-                System.out.println("Cannot pack: " + i);
+                System.out.println("Cannot pack: " + i + "; repack is " + repack);
                 
                 // Write block data
                 int blockStart = i - (8 - repack) * 8; // We might need to start from a place which we had already looped
@@ -354,10 +355,11 @@ public class OffheapChunk implements Chunk, OffheapNode {
                 }
                 
                 repack = 8; // Reset repack counter for next block
-                i += repack * 8; // Set i to point at next 1m block
+                i = blockStart + 56; // Set i to 8 before next 1m block; then for loop will add rest 8 -> 64
                 
-                dataLength += 64; // Just wrote 64 small blocks!
+                dataLength += 64 * bytesPerBlock; // Just wrote 64 small blocks!
                 
+                sizesCounter++;
                 // Insert into sizes data
                 sizesData = sizesData << 2 | 2; // 2=0.25m
                 
