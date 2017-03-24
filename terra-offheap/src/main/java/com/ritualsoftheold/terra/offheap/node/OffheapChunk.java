@@ -89,11 +89,12 @@ public class OffheapChunk implements Chunk, OffheapNode {
          */
         outer: while (true) {
             long scales = mem.readLong(sizesAddr); // Scale data for 32 blocks
-            System.out.println("scales: " + scales);
+            System.out.println("scales: " + Long.toBinaryString(scales));
             
+            int counter = 0;
             for (int i = 32; i > 0; i--) { // We are going backwards for minor performance improvement+ease of coding
-                long scaleFlag = scales >>> (i * 2 - 2) & 0b11; // Flag for the scale; 0=1, 1=0.5, 2=0.25
-                System.out.println("scaleFlag: " + scaleFlag);
+                long scaleFlag = scales >>> (i * 2 - 4) & 0b11; // Flag for the scale; 0=1, 1=0.5, 2=0.25
+                System.out.println("scaleFlag: " + scaleFlag + "; shifted: " + (i * 2 - 2));
                 traveled++; // Increment traveled by one meter
                 
                 // Now, check if we have traveled long enough to have gone past the block
@@ -145,6 +146,7 @@ public class OffheapChunk implements Chunk, OffheapNode {
                     break outer;
                 }
                 
+                counter++;
                 /*
                  * Offset change is 1 for 1m block, 8 for 8 0.5m blocks and finally,
                  * 8^2 aka 64 for 64 64 0.5m blocks.
@@ -152,7 +154,7 @@ public class OffheapChunk implements Chunk, OffheapNode {
                  * Sadly this makes 0.25m blocks quite costly.
                  * TODO improve 0.25m block handling
                  */
-                offset += getScaleOffset(scaleFlag) * bytesPerBlock; // Offset change * bytes per block
+                offset += getScaleOffset(scaleFlag) * bytesPerBlock - (2 * counter); // Offset change * bytes per block
             }
             
             // If we got this far, the block was not in first long we read
@@ -361,7 +363,8 @@ public class OffheapChunk implements Chunk, OffheapNode {
                 
                 sizesCounter++;
                 // Insert into sizes data
-                sizesData = sizesData << 2 | 2; // 2=0.25m
+                sizesData = sizesData << 2 | 2; // 2=0.25
+                System.out.println("sizesData: " + Long.toBinaryString(sizesData));
                 
                 // Write sizes data!
                 if (sizesCounter > 30) {
