@@ -91,7 +91,6 @@ public class OffheapChunk implements Chunk, OffheapNode {
             long scales = mem.readLong(sizesAddr); // Scale data for 32 blocks
             System.out.println("scales: " + Long.toBinaryString(scales));
             
-            int counter = 0;
             for (int i = 32; i > 0; i--) { // We are going backwards for minor performance improvement+ease of coding
                 long scaleFlag = scales >>> (i * 2 - 4) & 0b11; // Flag for the scale; 0=1, 1=0.5, 2=0.25
                 System.out.println("scaleFlag: " + scaleFlag + "; shifted: " + (i * 2 - 2));
@@ -137,7 +136,6 @@ public class OffheapChunk implements Chunk, OffheapNode {
                         
                         int index = ChunkUtils.get025BlockIndex(x0, y0, z0);
                         System.out.println("Index: " + index);
-                        System.out.println("Offset: " + offset);
                         blockId = hasAtlas ? mem.readByte(blocksAddr + offset + index)
                                 : mem.readShort(blocksAddr + offset + index * 2);
                         System.out.println("blocksAddr: " + blocksAddr);
@@ -146,7 +144,6 @@ public class OffheapChunk implements Chunk, OffheapNode {
                     break outer;
                 }
                 
-                counter++;
                 /*
                  * Offset change is 1 for 1m block, 8 for 8 0.5m blocks and finally,
                  * 8^2 aka 64 for 64 64 0.5m blocks.
@@ -154,7 +151,8 @@ public class OffheapChunk implements Chunk, OffheapNode {
                  * Sadly this makes 0.25m blocks quite costly.
                  * TODO improve 0.25m block handling
                  */
-                offset += getScaleOffset(scaleFlag) * bytesPerBlock - (2 * counter); // Offset change * bytes per block
+                offset += getScaleOffset(scaleFlag) * bytesPerBlock; // Offset change * bytes per block
+                System.out.println("offset: " + offset);
             }
             
             // If we got this far, the block was not in first long we read
@@ -411,7 +409,7 @@ public class OffheapChunk implements Chunk, OffheapNode {
                         
                         // Write block data
                         mem.writeShort(blocksAddr + dataLength, pid1);
-                        dataLength++; // 1 1m cube
+                        dataLength += bytesPerBlock; // 1 1m cube
                     } else {
                         // Write block data
                         int blockStart = i - 8;
@@ -419,7 +417,7 @@ public class OffheapChunk implements Chunk, OffheapNode {
                             mem.writeShort(blocksAddr + dataLength + j * 2, packed[blockStart + j]);
                         }
                         
-                        dataLength += 8; // 8 0.5m cubes
+                        dataLength += 8 * bytesPerBlock; // 8 0.5m cubes
                         
                         // Insert into sizes data
                         sizesData = sizesData << 2 | 1; // 1=0.5m

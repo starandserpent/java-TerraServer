@@ -50,12 +50,68 @@ public class ChunkTest {
         
         short[] data = new short[DataConstants.CHUNK_MAX_BLOCKS];
         data[21] = 1;
-        data[84] = 2;
-        data[146] = 3;
+        data[85] = 2;
+        data[149] = 3;
         chunk.setData(data);
         assertEquals(1, chunk.l_getMaterial(0, 0, 0));
         assertEquals(2, chunk.l_getMaterial(1, 0, 0));
         assertEquals(3, chunk.l_getMaterial(2, 0, 0));
+    }
+    
+    @Test
+    public void chunkTest3() {
+        ChunkBuffer buf = new ChunkBuffer(10, 1024);
+        
+        assertTrue(buf.hasSpace());
+        
+        int bufferId = buf.createChunk(DataConstants.CHUNK_MIN_SIZE);
+        OffheapChunk chunk = new OffheapChunk(null, buf, bufferId);
+        
+        short[] data = new short[DataConstants.CHUNK_MAX_BLOCKS];
+        data[21] = 1;
+        data[149] = 3;
+        chunk.setData(data);
+        assertEquals(1, chunk.l_getMaterial(0, 0, 0));
+        assertEquals(0, chunk.l_getMaterial(1, 0, 0));
+        assertEquals(3, chunk.l_getMaterial(2, 0, 0));
+    }
+    
+    @Test
+    public void chunkTest4() {
+        ChunkBuffer buf = new ChunkBuffer(10, 1024);
+        
+        assertTrue(buf.hasSpace());
+        
+        int bufferId = buf.createChunk(DataConstants.CHUNK_MIN_SIZE);
+        OffheapChunk chunk = new OffheapChunk(null, buf, bufferId);
+        
+        short[] data = new short[DataConstants.CHUNK_MAX_BLOCKS];
+        data[21] = 1;
+        for (int i = 0; i < 64; i++) {
+            data[64 + i] = 4;
+        }
+        data[149] = 3;
+        chunk.setData(data);
+        assertEquals(1, chunk.l_getMaterial(0, 0, 0));
+        assertEquals(4, chunk.l_getMaterial(1.1f, 0, 0));
+        assertEquals(3, chunk.l_getMaterial(2, 0, 0));
+    }
+    
+    @Test
+    public void chunkTest5() {
+        ChunkBuffer buf = new ChunkBuffer(10, 1024);
+        
+        assertTrue(buf.hasSpace());
+        
+        int bufferId = buf.createChunk(DataConstants.CHUNK_MIN_SIZE);
+        OffheapChunk chunk = new OffheapChunk(null, buf, bufferId);
+        
+        short[] data = new short[DataConstants.CHUNK_MAX_BLOCKS];
+        data[64 * 16 + 21] = 1;
+        data[64 * 16 * 16] = 2;
+        chunk.setData(data);
+        assertEquals(1, chunk.l_getMaterial(0, 1, 0));
+        //assertEquals(2, chunk.l_getMaterial(0, 0, 1));
     }
     
     @Test
