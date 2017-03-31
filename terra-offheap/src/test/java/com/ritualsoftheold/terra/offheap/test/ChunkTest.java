@@ -25,6 +25,14 @@ public class ChunkTest {
     private static Memory mem = OS.memory();
     
     @Test
+    public void jvmMemoryTest() {
+        short[] data = new short[DataConstants.CHUNK_MAX_BLOCKS]; // Initialize big array
+        data[64 * 16 + 21] = 1;
+        data[64 * 16 * 16] = 2;
+        // Does this crash?
+    }
+    
+    @Test
     public void chunkTest1() {
         ChunkBuffer buf = new ChunkBuffer(10, 1024);
         

@@ -42,5 +42,5 @@ public class DataConstants {
     
     public static final int CHUNK_MAX_BLOCKS = (int) (DataConstants.CHUNK_SCALE * DataConstants.CHUNK_SCALE * DataConstants.CHUNK_SCALE * 64);
 
-    public static final int CHUNK_MIN_SIZE = 16 * 16 * 16 + 1 + CHUNK_STATIC;
+    public static final int CHUNK_MIN_SIZE = 16 * 16 * 16 * 2 + 1 + CHUNK_STATIC;
 }

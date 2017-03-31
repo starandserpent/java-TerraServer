@@ -350,8 +350,11 @@ public class OffheapChunk implements Chunk, OffheapNode {
                 // Write block data
                 int blockStart = i - (8 - repack) * 8; // We might need to start from a place which we had already looped
                 for (int j = 0; j < 64; j++) {
-                    System.out.println("Write: " + (blocksAddr + dataLength + j * 2) + " for " + j + ": " + data[blockStart + j] + " at " + (blockStart + j));
-                    mem.writeShort(blocksAddr + dataLength + j * 2, data[blockStart + j]);
+                    long targetAddr = blocksAddr + dataLength + j * bytesPerBlock;
+                    if (targetAddr > address + length) {
+                        throw new ArrayIndexOutOfBoundsException();
+                    }
+                    mem.writeShort(targetAddr, data[blockStart + j]);
                 }
                 
                 repack = 8; // Reset repack counter for next block
@@ -408,13 +411,21 @@ public class OffheapChunk implements Chunk, OffheapNode {
                         sizesData = sizesData << 2 | 0; // 0=1m
                         
                         // Write block data
-                        mem.writeShort(blocksAddr + dataLength, pid1);
+                        long targetAddr = blocksAddr + dataLength;
+                        if (targetAddr > address + length) {
+                            throw new ArrayIndexOutOfBoundsException();
+                        }
+                        mem.writeShort(targetAddr, pid1);
                         dataLength += bytesPerBlock; // 1 1m cube
                     } else {
                         // Write block data
                         int blockStart = i - 8;
                         for (int j = 0; j < 8; j++) {
-                            mem.writeShort(blocksAddr + dataLength + j * 2, packed[blockStart + j]);
+                            long targetAddr = blocksAddr + dataLength + j * bytesPerBlock;
+                            if (targetAddr > address + length) {
+                                throw new ArrayIndexOutOfBoundsException();
+                            }
+                            mem.writeShort(targetAddr, packed[blockStart + j]);
                         }
                         
                         dataLength += 8 * bytesPerBlock; // 8 0.5m cubes
