@@ -116,10 +116,28 @@ public class ChunkTest {
         
         short[] data = new short[DataConstants.CHUNK_MAX_BLOCKS];
         data[64 * 16 + 21] = 1;
-        data[64 * 16 * 16] = 2;
+        data[64 * 16 * 16 + 21] = 2;
         chunk.setData(data);
         assertEquals(1, chunk.l_getMaterial(0, 1, 0));
         //assertEquals(2, chunk.l_getMaterial(0, 0, 1));
+    }
+    
+    @Test
+    public void setDataSpeedTest() {
+        ChunkBuffer buf = new ChunkBuffer(10, 1024);
+        
+        assertTrue(buf.hasSpace());
+        
+        int bufferId = buf.createChunk(DataConstants.CHUNK_MAX_BLOCKS * 2);
+        OffheapChunk chunk = new OffheapChunk(null, buf, bufferId);
+        
+        short[] data = new short[DataConstants.CHUNK_MAX_BLOCKS];
+        for (int i = 0; i < 4096; i++) {
+            data[64 * i + 21] = 1;
+        }
+        long nanoTime = System.nanoTime();
+        chunk.setData(data);
+        System.out.println("setData speed: " + (System.nanoTime() - nanoTime));
     }
     
     @Test

@@ -345,7 +345,7 @@ public class OffheapChunk implements Chunk, OffheapNode {
                 // Note: don't increase dataLength there, we do it AFTER we are sure that
                 // this block won't end up as 64 0.25m cubes
             } else {
-                System.out.println("Cannot pack: " + i + "; repack is " + repack);
+                //System.out.println("Cannot pack: " + i + "; repack is " + repack);
                 
                 // Write block data
                 int blockStart = i - (8 - repack) * 8; // We might need to start from a place which we had already looped
@@ -365,7 +365,7 @@ public class OffheapChunk implements Chunk, OffheapNode {
                 sizesCounter++;
                 // Insert into sizes data
                 sizesData = sizesData << 2 | 2; // 2=0.25
-                System.out.println("sizesData: " + Long.toBinaryString(sizesData));
+                //System.out.println("sizesData: " + Long.toBinaryString(sizesData));
                 
                 // Write sizes data!
                 if (sizesCounter > 30) {
