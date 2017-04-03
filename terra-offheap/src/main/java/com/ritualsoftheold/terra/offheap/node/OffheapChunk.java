@@ -447,6 +447,7 @@ public class OffheapChunk implements Chunk, OffheapNode {
                 canRepack = true; // Finally, reset this flag
             }
         }
+        length = dataLength; // FIXME remove this once memory allocation really works...
         
         // Get more memory for this chunk, if needed
         // TODO not needed, split into places where it IS needed (look up)
