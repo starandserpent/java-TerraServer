@@ -158,7 +158,7 @@ public class CompressTest {
     
     @Test
     public void snappy1Test() throws IOException {
-        System.out.println("\nTesting Snappy, 0.5m random:");
+        System.out.println("\nTesting Snappy, 1m random:");
         byte[] data = new byte[DataConstants.CHUNK_MAX_BLOCKS];
         for (int i = 0; i < data.length / 64; i += 64) { // Create pseudo-random test data
             byte rand = (byte) new Random().nextInt(MATERIAL_COUNT);
