@@ -28,6 +28,11 @@ public class OffheapChunk implements Chunk, OffheapNode {
      */
     private int length;
     
+    /**
+     * Length allocated for this chunk.
+     */
+    private int allocated;
+    
     private OffheapWorld world;
     
     /**
@@ -68,7 +73,8 @@ public class OffheapChunk implements Chunk, OffheapNode {
         this.bufferId = bufferId;
         this.address = buffer.getChunkAddress(bufferId);
         isValid = true;
-        this.length = buffer.getChunkLength(bufferId);
+        this.length = DataConstants.CHUNK_MIN_BLOCKS;
+        this.allocated = buffer.getChunkLength(bufferId);
         
         blocksAddr = blocksAddr();
         sizesAddr = sizesAddr();
@@ -351,9 +357,6 @@ public class OffheapChunk implements Chunk, OffheapNode {
                 int blockStart = i - (8 - repack) * 8; // We might need to start from a place which we had already looped
                 for (int j = 0; j < 64; j++) {
                     long targetAddr = blocksAddr + dataLength + j * bytesPerBlock;
-                    if (targetAddr > address + length) {
-                        throw new ArrayIndexOutOfBoundsException();
-                    }
                     mem.writeShort(targetAddr, data[blockStart + j]);
                 }
                 
@@ -412,9 +415,6 @@ public class OffheapChunk implements Chunk, OffheapNode {
                         
                         // Write block data
                         long targetAddr = blocksAddr + dataLength;
-                        if (targetAddr > address + length) {
-                            throw new ArrayIndexOutOfBoundsException();
-                        }
                         mem.writeShort(targetAddr, pid1);
                         dataLength += bytesPerBlock; // 1 1m cube
                     } else {
@@ -422,9 +422,6 @@ public class OffheapChunk implements Chunk, OffheapNode {
                         int blockStart = i - 8;
                         for (int j = 0; j < 8; j++) {
                             long targetAddr = blocksAddr + dataLength + j * bytesPerBlock;
-                            if (targetAddr > address + length) {
-                                throw new ArrayIndexOutOfBoundsException();
-                            }
                             mem.writeShort(targetAddr, packed[blockStart + j]);
                         }
                         
@@ -447,15 +444,15 @@ public class OffheapChunk implements Chunk, OffheapNode {
                 canRepack = true; // Finally, reset this flag
             }
         }
-        length = dataLength; // FIXME remove this once memory allocation really works...
+        length = dataLength;
         
         // Get more memory for this chunk, if needed
         // TODO not needed, split into places where it IS needed (look up)
-        if (!isValid || dataLength > length) {
-            mem.freeMemory(address, length + buffer.getExtraAlloc());
-            address = buffer.reallocChunk(bufferId, length);
-            length = dataLength; // Set length of this chunk to new length
-        }
+//        if (!isValid || dataLength > length) {
+//            mem.freeMemory(address, length + buffer.getExtraAlloc());
+//            address = buffer.reallocChunk(bufferId, length);
+//            length = dataLength; // Set length of this chunk to new length
+//        }
     }
 
     @Override
