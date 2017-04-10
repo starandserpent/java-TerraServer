@@ -10,7 +10,6 @@ import com.ritualsoftheold.terra.offheap.node.OffheapChunk;
 
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
-import it.unimi.dsi.fastutil.ints.Int2ObjectSortedMap;
 import it.unimi.dsi.fastutil.shorts.Short2ObjectArrayMap;
 import it.unimi.dsi.fastutil.shorts.Short2ObjectMap;
 
@@ -83,9 +82,13 @@ public class ChunkStorage {
         ChunkBuffer buf = buffers.get(bufferId);
         if (buf == null) { // Oops we need to load this
             buf = new ChunkBuffer(chunksPerBuffer, extraAlloc); // Create buffer
-            buffers.put(bufferId, buf); // Put to map
-            BufferEntry entry = new BufferEntry(false, bufferId, buf, callback); // Create entry for queue
+            BufferEntry entry = new BufferEntry(false, bufferId, buf, (buffer -> {
+                buffers.put(bufferId, buffer); // Put to map
+                callback.accept(buffer);
+            })); // Create entry for queue
             loaderQueue.add(entry); // Add to queue
+        } else {
+            callback.accept(buf);
         }
     }
     

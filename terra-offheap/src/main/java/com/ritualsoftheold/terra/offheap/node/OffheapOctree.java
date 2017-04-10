@@ -1,6 +1,5 @@
 package com.ritualsoftheold.terra.offheap.node;
 
-import com.ritualsoftheold.terra.material.MaterialRegistry;
 import com.ritualsoftheold.terra.node.Block;
 import com.ritualsoftheold.terra.node.Chunk;
 import com.ritualsoftheold.terra.node.Node;
@@ -8,17 +7,35 @@ import com.ritualsoftheold.terra.node.Octree;
 import com.ritualsoftheold.terra.node.SimpleBlock;
 import com.ritualsoftheold.terra.offheap.DataConstants;
 import com.ritualsoftheold.terra.offheap.data.OffheapNode;
+import com.ritualsoftheold.terra.offheap.world.OffheapWorld;
 
 import net.openhft.chronicle.core.Memory;
 import net.openhft.chronicle.core.OS;
 
+// TODO need some API changes for callback stuff
 public class OffheapOctree implements Octree, OffheapNode {
     
     private static Memory mem = OS.memory();
     
+    /**
+     * Memory address of the octree.
+     */
     private long address;
     
-    private MaterialRegistry reg;
+    /**
+     * Is this node valid.
+     */
+    private boolean valid;
+    
+    /**
+     * Scale of this octree. Required to see if children might be chunks.
+     */
+    private float scale;
+    
+    /**
+     * Reference to world of this octree.
+     */
+    private OffheapWorld world;
     
     @Override
     public Type getNodeType() {
@@ -41,7 +58,7 @@ public class OffheapOctree implements Octree, OffheapNode {
     public Block getBlockAt(int index) {
         // Read first 2 bytes from node; they serve as block id
         // TODO block size with octree
-        return new SimpleBlock(reg.getForWorldId(mem.readShort(address +  index * DataConstants.OCTREE_NODE_SIZE)), 0);
+        return new SimpleBlock(world.getMaterialRegistry().getForWorldId(mem.readShort(address +  index * DataConstants.OCTREE_NODE_SIZE)), 0);
     }
 
     @Override

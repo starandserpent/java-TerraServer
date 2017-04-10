@@ -9,9 +9,9 @@ public interface OctreeLoader {
     /**
      * Loads octrees based on group/file index.
      * @param index
-     * @return Memory address where they were loaded.
+     * @param address Where to load; make sure there is enough space! 
      */
-    long loadOctrees(byte index);
+    void loadOctrees(byte index, long address);
     
     /**
      * Saves octrees based on group/file index by reading data at given address.

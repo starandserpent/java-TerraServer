@@ -1,5 +1,5 @@
 dependencies {
     compile project(':terra-core')
-    compile 'net.openhft:chronicle-bytes:1.7.32'
+    compile 'net.openhft:chronicle-core:1.7.16'
     compile 'org.xerial.snappy:snappy-java:1.1.2.6'
 }

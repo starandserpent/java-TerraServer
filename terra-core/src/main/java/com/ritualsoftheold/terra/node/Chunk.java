@@ -48,6 +48,10 @@ public interface Chunk extends Node {
     
     // Low level, optional API
     
+    default long l_getBlockMemoryAddr(float x, float y, float z) {
+        throw new UnsupportedOperationException();
+    }
+    
     default short l_getMaterial(float x, float y, float z) {
         throw new UnsupportedOperationException();
     }

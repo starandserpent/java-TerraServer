@@ -40,7 +40,6 @@ public class ChunkLoaderThread extends Thread {
             } catch (InterruptedException e) {
                 continue;
             }
-            
         }
     }
     
