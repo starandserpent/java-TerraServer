@@ -1,10 +1,9 @@
 package com.ritualsoftheold.terra.offheap.chunk;
 
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executor;
 import java.util.function.Consumer;
 
-import com.ritualsoftheold.terra.offheap.chunk.ChunkLoaderThread.BufferEntry;
 import com.ritualsoftheold.terra.offheap.io.ChunkLoader;
 import com.ritualsoftheold.terra.offheap.node.OffheapChunk;
 
@@ -34,15 +33,9 @@ public class ChunkStorage {
      */
     private int extraAlloc;
     
-    /**
-     * Loader threads, so they are not garbage collected.
-     */
-    private ChunkLoaderThread[] loaderThreads;
+    private ChunkLoader loader;
     
-    /**
-     * Loader queue, accessed by {@link #loaderThreads}.
-     */
-    private BlockingQueue<BufferEntry> loaderQueue;
+    private Executor loaderExecutor;
     
     /**
      * Cache of chunks, which are NOT compressed.
@@ -52,17 +45,14 @@ public class ChunkStorage {
     /**
      * Initializes new chunk storage. Usually this should be done once per world.
      * @param loader Chunk loader, responsible for loading and optionally saving chunks.
-     * @param threadCount How many threads to start for asynchronous chunk
-     * loading and saving? They all will call same chunk loader, so make sure
-     * the operations in it are thread safe.
+     * @param executor Executor for asynchronous chunk loading.
      * @param chunksPerBuffer Maximum amount of chunks per chunk buffer.
      * @param extraAlloc How many bytes to allocate at end of each chunk
      * in all chunk buffers.
      */
-    public ChunkStorage(ChunkLoader loader, int threadCount, int chunksPerBuffer, int extraAlloc) {
-        initLoaderThreads(loader, threadCount);
-        loaderQueue = new ArrayBlockingQueue<>(2000); // Should never ever run out of space
-        
+    public ChunkStorage(ChunkLoader loader, Executor executor, int chunksPerBuffer, int extraAlloc) {
+        this.loader = loader;
+        loaderExecutor = executor;
         this.chunksPerBuffer = chunksPerBuffer;
         this.extraAlloc = extraAlloc;
         
@@ -71,32 +61,24 @@ public class ChunkStorage {
         this.buffers = new Short2ObjectArrayMap<>();
     }
     
-    private void initLoaderThreads(ChunkLoader loader, int threadCount) {
-        loaderThreads = new ChunkLoaderThread[threadCount];
-        for (int i = 0; i < threadCount; i++) {
-            loaderThreads[i] = new ChunkLoaderThread(loaderQueue, loader);
-        }
-    }
-    
-    public void requestBuffer(short bufferId, Consumer<ChunkBuffer> callback) {
+    public CompletableFuture<ChunkBuffer> requestBuffer(short bufferId) {
         ChunkBuffer buf = buffers.get(bufferId);
         if (buf == null) { // Oops we need to load this
-            buf = new ChunkBuffer(chunksPerBuffer, extraAlloc); // Create buffer
-            BufferEntry entry = new BufferEntry(false, bufferId, buf, (buffer -> {
-                buffers.put(bufferId, buffer); // Put to map
-                callback.accept(buffer);
-            })); // Create entry for queue
-            loaderQueue.add(entry); // Add to queue
+            ChunkBuffer newBuf = new ChunkBuffer(chunksPerBuffer, extraAlloc); // Create buffer
+            CompletableFuture<ChunkBuffer> future = CompletableFuture.supplyAsync(() -> loader.loadChunks(bufferId, newBuf), loaderExecutor);
+            future.thenAccept((loadedBuffer) -> buffers.put(bufferId, loadedBuffer));
+            return future;
         } else {
-            callback.accept(buf);
+            return CompletableFuture.completedFuture(buf);
         }
     }
     
-    public void saveBuffer(short bufferId, Consumer<ChunkBuffer> callback) {
+    public CompletableFuture<ChunkBuffer> saveBuffer(short bufferId, Consumer<ChunkBuffer> callback) {
         ChunkBuffer buf = buffers.get(bufferId);
         if (buf != null) {
-            BufferEntry entry = new BufferEntry(true, bufferId, buf, callback); // Create entry for queue
-            loaderQueue.add(entry); // Put to queue
+            return CompletableFuture.supplyAsync(() -> loader.saveChunks(bufferId, buf), loaderExecutor);
+        } else {
+            throw new IllegalStateException("chunk buffer not even loaded!");
         }
     }
     
@@ -104,9 +86,7 @@ public class ChunkStorage {
         OffheapChunk chunk = chunkCache.get(chunkId);
         if (chunk == null) { // Not in cache...
             short bufferId = (short) (chunkId >>> 16);
-            requestBuffer(bufferId, (buf -> {
-                // TODO do this once chunk rework with Snappy is done
-            }));
+            // TODO do this later
         }
     }
     

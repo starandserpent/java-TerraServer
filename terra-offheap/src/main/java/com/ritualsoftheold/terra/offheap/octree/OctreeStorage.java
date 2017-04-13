@@ -1,6 +1,8 @@
 package com.ritualsoftheold.terra.offheap.octree;
 
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executor;
 import java.util.function.LongConsumer;
 
 import com.ritualsoftheold.terra.offheap.DataConstants;
@@ -32,21 +34,15 @@ public class OctreeStorage {
      */
     private int blockSize;
     
-    private BlockingQueue<GroupEntry> loaderQueue;
+    private OctreeLoader loader;
     
-    private OctreeLoaderThread[] loaderThreads;
+    private Executor loaderExecutor;
     
-    public OctreeStorage(int blockSize, OctreeLoader loader, int threadCount) {
-        initLoaderThreads(loader, threadCount);
+    public OctreeStorage(int blockSize, OctreeLoader loader, Executor executor) {
+        this.loader = loader;
+        this.loaderExecutor = executor;
         this.blockSize = blockSize;
         this.groups = new Byte2LongArrayMap();
-    }
-    
-    private void initLoaderThreads(OctreeLoader loader, int threadCount) {
-        loaderThreads = new OctreeLoaderThread[threadCount];
-        for (int i = 0; i < threadCount; i++) {
-            loaderThreads[i] = new OctreeLoaderThread(loaderQueue, loader);
-        }
     }
     
     /**
@@ -67,16 +63,17 @@ public class OctreeStorage {
         mem.freeMemory(groups.remove(index), blockSize);
     }
     
-    public void requestOctreeGroup(byte groupIndex, LongConsumer callback) {
+    public CompletableFuture<Long> requestOctreeGroup(byte groupIndex) {
         long addr = groups.get(groupIndex >>> 24);
         if (addr == -1) {
-            GroupEntry entry = new GroupEntry(false, groupIndex, mem.allocate(blockSize), (groupAddr -> {
-                groups.put(groupIndex, groupAddr);
-                callback.accept(groupAddr);
-            }) );
-            loaderQueue.add(entry);
+            CompletableFuture<Long> future = CompletableFuture.supplyAsync(() -> {
+                long newAddr = mem.allocate(blockSize);
+                loader.loadOctrees(groupIndex, newAddr);
+                return newAddr;
+            });
+            return future;
         } else {
-            callback.accept(addr);
+            return CompletableFuture.completedFuture(groups.get(groupIndex));
         }
     }
     
@@ -87,8 +84,6 @@ public class OctreeStorage {
      */
     public void getOctreeAddr(int index, LongConsumer callback) {
         byte groupIndex = (byte) (index >>> 24);
-        requestOctreeGroup(groupIndex, (startAddr -> {
-            callback.accept(startAddr + DataConstants.OCTREE_SIZE * (index & 0xffffff));
-        }));
+        // TODO do this with CompletableFuture
     }
 }
