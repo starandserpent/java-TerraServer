@@ -28,6 +28,7 @@ public class OffheapWorld implements TerraWorld {
     private OctreeLoader octreeLoader;
     
     // Data storage
+    private Executor storageExecutor;
     private ChunkStorage chunkStorage;
     private OctreeStorage octreeStorage;
     
@@ -39,7 +40,7 @@ public class OffheapWorld implements TerraWorld {
         this.octreeLoader = octreeLoader;
         
         // Init storages
-        Executor storageExecutor = new ForkJoinPool();
+        this.storageExecutor = new ForkJoinPool();
         this.chunkStorage = new ChunkStorage(chunkLoader, storageExecutor, 64, 1024); // TODO settings
         this.octreeStorage = new OctreeStorage(8192, octreeLoader, storageExecutor);
         
@@ -77,7 +78,7 @@ public class OffheapWorld implements TerraWorld {
             octree.memoryAddress(addr); // Validate octree with memory address!
             
             return octree;
-        });
+        }, storageExecutor);
         return future;
     }
 
