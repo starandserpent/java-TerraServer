@@ -1,14 +1,19 @@
 package com.ritualsoftheold.terra.offheap.world;
 
+import java.io.InterruptedIOException;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ForkJoinPool;
 
 import com.ritualsoftheold.terra.material.MaterialRegistry;
 import com.ritualsoftheold.terra.node.Chunk;
 import com.ritualsoftheold.terra.node.Octree;
+import com.ritualsoftheold.terra.offheap.DataConstants;
 import com.ritualsoftheold.terra.offheap.chunk.ChunkStorage;
 import com.ritualsoftheold.terra.offheap.io.ChunkLoader;
 import com.ritualsoftheold.terra.offheap.io.OctreeLoader;
+import com.ritualsoftheold.terra.offheap.node.OffheapChunk;
 import com.ritualsoftheold.terra.offheap.node.OffheapOctree;
 import com.ritualsoftheold.terra.offheap.octree.OctreeStorage;
 import com.ritualsoftheold.terra.world.TerraWorld;
@@ -56,6 +61,24 @@ public class OffheapWorld implements TerraWorld {
     public Chunk getChunk(float x, float y, float z) {
         // TODO Auto-generated method stub
         return null;
+    }
+    
+    @Override
+    public CompletableFuture<Octree> requestOctree(int index) {
+        byte groupIndex = (byte) (index >>> 24);
+        int octreeIndex = index & 0xffffff;
+        
+        CompletableFuture<Long> groupFuture = octreeStorage.requestGroup(groupIndex);
+        CompletableFuture<Octree> future = CompletableFuture.supplyAsync(() -> {
+            // This future will block on groupFuture.get()... hopefully
+            long addr = groupFuture.join() + octreeIndex * DataConstants.OCTREE_SIZE;
+            
+            OffheapOctree octree = new OffheapOctree(this, 0f); // TODO scale, somehow
+            octree.memoryAddress(addr); // Validate octree with memory address!
+            
+            return octree;
+        });
+        return future;
     }
 
 }

@@ -25,7 +25,7 @@ public class OffheapOctree implements Octree, OffheapNode {
     /**
      * Is this node valid.
      */
-    private boolean valid;
+    private boolean valid = false;
     
     /**
      * Scale of this octree. Required to see if children might be chunks.
@@ -36,6 +36,11 @@ public class OffheapOctree implements Octree, OffheapNode {
      * Reference to world of this octree.
      */
     private OffheapWorld world;
+    
+    public OffheapOctree(OffheapWorld world, float scale) {
+        this.world = world;
+        this.scale = scale;
+    }
     
     @Override
     public Type getNodeType() {
@@ -116,25 +121,18 @@ public class OffheapOctree implements Octree, OffheapNode {
 
     @Override
     public void memoryAddress(long addr) {
+        valid = true;
         address = addr;
     }
 
     @Override
-    public long l_getAddress() {
-        // TODO Auto-generated method stub
-        return 0;
-    }
-
-    @Override
     public boolean isValid() {
-        // TODO Auto-generated method stub
-        return false;
+        return valid;
     }
 
     @Override
     public void invalidate() {
-        // TODO Auto-generated method stub
-        
+        valid = false;
     }
 
 }

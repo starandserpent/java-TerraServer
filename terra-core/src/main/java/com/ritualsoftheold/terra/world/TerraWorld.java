@@ -1,5 +1,7 @@
 package com.ritualsoftheold.terra.world;
 
+import java.util.concurrent.CompletableFuture;
+
 import com.ritualsoftheold.terra.material.MaterialRegistry;
 import com.ritualsoftheold.terra.node.Chunk;
 import com.ritualsoftheold.terra.node.Octree;
@@ -31,4 +33,6 @@ public interface TerraWorld {
      * @return Chunk at location.
      */
     Chunk getChunk(float x, float y, float z);
+
+    CompletableFuture<Octree> requestOctree(int index);
 }

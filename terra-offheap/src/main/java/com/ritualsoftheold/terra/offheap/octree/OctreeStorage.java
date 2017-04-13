@@ -1,13 +1,12 @@
 package com.ritualsoftheold.terra.offheap.octree;
 
-import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.function.LongConsumer;
 
 import com.ritualsoftheold.terra.offheap.DataConstants;
 import com.ritualsoftheold.terra.offheap.io.OctreeLoader;
-import com.ritualsoftheold.terra.offheap.octree.OctreeLoaderThread.GroupEntry;
+import com.ritualsoftheold.terra.offheap.node.OffheapOctree;
 
 import it.unimi.dsi.fastutil.bytes.Byte2LongArrayMap;
 import it.unimi.dsi.fastutil.bytes.Byte2LongMap;
@@ -63,27 +62,30 @@ public class OctreeStorage {
         mem.freeMemory(groups.remove(index), blockSize);
     }
     
-    public CompletableFuture<Long> requestOctreeGroup(byte groupIndex) {
-        long addr = groups.get(groupIndex >>> 24);
+    public CompletableFuture<Long> requestGroup(byte groupIndex) {
+        long addr = groups.get(groupIndex);
         if (addr == -1) {
             CompletableFuture<Long> future = CompletableFuture.supplyAsync(() -> {
                 long newAddr = mem.allocate(blockSize);
                 loader.loadOctrees(groupIndex, newAddr);
                 return newAddr;
-            });
+            }, loaderExecutor);
             return future;
         } else {
             return CompletableFuture.completedFuture(groups.get(groupIndex));
         }
     }
     
-    /**
-     * Gets octree memory address for given octree index using consumer.
-     * @param index Octree index.
-     * @param callback
-     */
-    public void getOctreeAddr(int index, LongConsumer callback) {
-        byte groupIndex = (byte) (index >>> 24);
-        // TODO do this with CompletableFuture
+    public CompletableFuture<Long> saveGroup(byte groupIndex) {
+        long addr = groups.get(groupIndex);
+        if (addr == -1) {
+            throw new IllegalStateException("cannot save not loaded group");
+        } else {
+            CompletableFuture<Long> future = CompletableFuture.supplyAsync(() -> {
+                loader.saveOctrees(groupIndex, addr);
+                return addr;
+            });
+            return future;
+        }
     }
 }
