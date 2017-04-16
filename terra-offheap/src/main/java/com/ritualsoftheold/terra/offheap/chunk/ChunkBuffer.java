@@ -1,5 +1,9 @@
 package com.ritualsoftheold.terra.offheap.chunk;
 
+import java.io.IOException;
+
+import org.xerial.snappy.Snappy;
+
 import com.ritualsoftheold.terra.offheap.DataConstants;
 
 import net.openhft.chronicle.core.Memory;
@@ -124,5 +128,23 @@ public class ChunkBuffer {
     
     public int getChunkLength(int bufferId) {
         return lengths[bufferId];
+    }
+    
+    /**
+     * Unpacks specific chunk to given address.
+     * @param index
+     * @param addr
+     * @throws IOException 
+     */
+    public void unpack(int index, long addr) throws IOException {
+        Snappy.rawUncompress(chunks[index], lengths[index], addr);
+    }
+    
+    public void pack(int index, long addr, int length) throws IOException {
+        // TODO optimize to do less memory allocations
+        long tempAddr = mem.allocate(length);
+        long compressedLength = Snappy.rawCompress(addr, length, tempAddr);
+        // TODO finish this
+        mem.freeMemory(tempAddr, length);
     }
 }

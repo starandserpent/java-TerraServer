@@ -1,16 +1,11 @@
 package com.ritualsoftheold.terra.offheap.node;
 
-import java.util.Objects;
-
 import com.ritualsoftheold.terra.material.MaterialRegistry;
 import com.ritualsoftheold.terra.node.Block;
 import com.ritualsoftheold.terra.node.Chunk;
 import com.ritualsoftheold.terra.node.SimpleBlock;
 import com.ritualsoftheold.terra.offheap.DataConstants;
-import com.ritualsoftheold.terra.offheap.chunk.ChunkBuffer;
-import com.ritualsoftheold.terra.offheap.chunk.ChunkUtils;
 import com.ritualsoftheold.terra.offheap.data.OffheapNode;
-import com.ritualsoftheold.terra.offheap.world.OffheapWorld;
 
 import net.openhft.chronicle.core.Memory;
 import net.openhft.chronicle.core.OS;
@@ -70,7 +65,7 @@ public class OffheapChunk implements Chunk, OffheapNode {
         int z0 = (int) (z * 0.25f);
         
         // Multiply offsets by coordinate multiplers (x=1, y=16, z=16²)
-        return x0 * DataConstants.CHUNK_COORD_X + y0 * DataConstants.CHUNK_COORD_Y + z0 * DataConstants.CHUNK_COORD_Z;
+        return address + x0 * DataConstants.CHUNK_COORD_X + y0 * DataConstants.CHUNK_COORD_Y + z0 * DataConstants.CHUNK_COORD_Z;
     }
     
     @Override
