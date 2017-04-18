@@ -35,4 +35,6 @@ public interface TerraWorld {
     Chunk getChunk(float x, float y, float z);
 
     CompletableFuture<Octree> requestOctree(int index);
+
+    CompletableFuture<Chunk> requestChunk(int index);
 }

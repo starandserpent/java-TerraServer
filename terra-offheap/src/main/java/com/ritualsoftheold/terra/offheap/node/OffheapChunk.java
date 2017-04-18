@@ -25,6 +25,10 @@ public class OffheapChunk implements Chunk, OffheapNode {
     private boolean valid;
     
     private MaterialRegistry reg;
+    
+    public OffheapChunk(MaterialRegistry reg) {
+        this.reg = reg;
+    }
 
     @Override
     public Type getNodeType() {

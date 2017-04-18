@@ -1,9 +1,13 @@
 package com.ritualsoftheold.terra.offheap.chunk;
 
+import java.io.IOException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.function.Consumer;
 
+import com.ritualsoftheold.terra.material.MaterialRegistry;
+import com.ritualsoftheold.terra.node.Chunk;
+import com.ritualsoftheold.terra.offheap.DataConstants;
 import com.ritualsoftheold.terra.offheap.io.ChunkLoader;
 import com.ritualsoftheold.terra.offheap.node.OffheapChunk;
 
@@ -11,12 +15,16 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.shorts.Short2ObjectArrayMap;
 import it.unimi.dsi.fastutil.shorts.Short2ObjectMap;
+import net.openhft.chronicle.core.Memory;
+import net.openhft.chronicle.core.OS;
 
 /**
  * Chunk storage stores chunks in their memory representation.
  *
  */
 public class ChunkStorage {
+    
+    private static Memory mem = OS.memory();
     
     /**
      * Chunk buffers.
@@ -82,11 +90,31 @@ public class ChunkStorage {
         }
     }
     
-    public void requestChunk(int chunkId, Consumer<OffheapChunk> callback) {
+    public CompletableFuture<Chunk> requestChunk(int chunkId, MaterialRegistry registry) {
         OffheapChunk chunk = chunkCache.get(chunkId);
         if (chunk == null) { // Not in cache...
+            // TODO optimize memory allocations here
+            // We have static-sized cache, why not recycle memory?
             short bufferId = (short) (chunkId >>> 16);
-            // TODO do this later
+            int index = chunkId & 0xffff;
+            CompletableFuture<ChunkBuffer> bufFuture = requestBuffer(bufferId);
+            CompletableFuture<Chunk> chunkFuture = CompletableFuture.supplyAsync(() -> {
+                long addr = mem.allocate(DataConstants.CHUNK_UNCOMPRESSED);
+                try {
+                    bufFuture.join().unpack(index, addr); // Unpack data
+                } catch (IOException e) {
+                    e.printStackTrace();
+                    // TODO handle these rare errors
+                }
+                OffheapChunk loadedChunk = new OffheapChunk(registry);
+                loadedChunk.memoryAddress(addr); // Set memory address to point to data
+                chunkCache.put(chunkId, loadedChunk); // Cache what we just loaded
+                
+                return loadedChunk;
+            });
+            return chunkFuture;
+        } else { // Cache found!
+            return CompletableFuture.completedFuture(chunk);
         }
     }
     

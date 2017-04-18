@@ -30,7 +30,7 @@ public class ChunkBuffer {
     /**
      * Array of chunk data lengths.
      */
-    private int[] lengths;
+    private long[] lengths;
     
     /**
      * Index of first free chunk slot in this buffer.
@@ -48,7 +48,7 @@ public class ChunkBuffer {
         this.chunkCount = chunkCount;
         
         chunks = new long[chunkCount];
-        lengths = new int[chunkCount];
+        lengths = new long[chunkCount];
         freeIndex = 0;
         this.extraAlloc = extraAlloc;
     }
@@ -87,7 +87,7 @@ public class ChunkBuffer {
      * @param newLength New length in bytes.
      * @return New memory address. Remember to free the old one!
      */
-    public long reallocChunk(int index, int newLength) {
+    public long reallocChunk(int index, long newLength) {
         long addr = mem.allocate(newLength + extraAlloc);
         
         chunks[index] = addr;
@@ -126,7 +126,7 @@ public class ChunkBuffer {
         return chunks[bufferId];
     }
     
-    public int getChunkLength(int bufferId) {
+    public long getChunkLength(int bufferId) {
         return lengths[bufferId];
     }
     
@@ -144,7 +144,10 @@ public class ChunkBuffer {
         // TODO optimize to do less memory allocations
         long tempAddr = mem.allocate(length);
         long compressedLength = Snappy.rawCompress(addr, length, tempAddr);
-        // TODO finish this
-        mem.freeMemory(tempAddr, length);
+        if (compressedLength  > lengths[index]) { // If we do not have enough space, allocate more
+            reallocChunk(index, compressedLength);
+        }
+        mem.copyMemory(tempAddr, chunks[index], compressedLength); // Copy temporary packed data to final destination
+        mem.freeMemory(tempAddr, length); // Free temporary packing memory
     }
 }

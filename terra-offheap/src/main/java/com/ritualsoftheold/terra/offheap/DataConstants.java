@@ -32,4 +32,6 @@ public class DataConstants {
      */
     public static final int MATERIAL_LENGTH = 2;
     
+    public static final int CHUNK_UNCOMPRESSED = CHUNK_MAX_BLOCKS * MATERIAL_LENGTH;
+    
 }

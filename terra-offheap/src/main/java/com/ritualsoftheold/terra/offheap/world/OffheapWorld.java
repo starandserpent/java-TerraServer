@@ -81,5 +81,9 @@ public class OffheapWorld implements TerraWorld {
         }, storageExecutor);
         return future;
     }
+    
+    public CompletableFuture<Chunk> requestChunk(int index) {
+        return chunkStorage.requestChunk(index, getMaterialRegistry());
+    }
 
 }
