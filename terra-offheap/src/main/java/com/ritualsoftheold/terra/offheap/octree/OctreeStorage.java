@@ -2,11 +2,8 @@ package com.ritualsoftheold.terra.offheap.octree;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
-import java.util.function.LongConsumer;
 
-import com.ritualsoftheold.terra.offheap.DataConstants;
 import com.ritualsoftheold.terra.offheap.io.OctreeLoader;
-import com.ritualsoftheold.terra.offheap.node.OffheapOctree;
 
 import it.unimi.dsi.fastutil.bytes.Byte2LongArrayMap;
 import it.unimi.dsi.fastutil.bytes.Byte2LongMap;
@@ -66,8 +63,7 @@ public class OctreeStorage {
         long addr = groups.get(groupIndex);
         if (addr == -1) {
             CompletableFuture<Long> future = CompletableFuture.supplyAsync(() -> {
-                long newAddr = mem.allocate(blockSize);
-                loader.loadOctrees(groupIndex, newAddr);
+                long newAddr = loader.loadOctrees(groupIndex, -1);
                 return newAddr;
             }, loaderExecutor);
             return future;

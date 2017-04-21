@@ -115,7 +115,15 @@ public class ChunkBuffer {
             mem.copyMemory(chunkAddr, newAddr, chunkLen);
             chunks[i] = newAddr;
         }
-        
+    }
+    
+    /**
+     * Returns an iterator for this buffer. If amount of chunks
+     * changes, iterator will become invalid and unsafe to use.
+     * @return Chunk iterator.
+     */
+    public ChunkBufferIterator iterator() {
+        return new ChunkBufferIterator(chunks, lengths, freeIndex - 1);
     }
     
     public int getExtraAlloc() {
