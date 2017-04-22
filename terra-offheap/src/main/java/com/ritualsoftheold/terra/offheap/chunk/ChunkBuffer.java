@@ -103,9 +103,9 @@ public class ChunkBuffer {
     public void load(long addr) {
         // Read pointer data
         for (int i = 0; i < chunkCount; i++) {
-            long entry = mem.readLong(addr + i * DataConstants.CHUNK_POINTER_STORE);
-            long chunkAddr = addr + (entry >>> 32);
-            int chunkLen = (int) (entry >> 8 & 0xffffff);
+            long entry = mem.readLong(addr + i * DataConstants.CHUNK_POINTER_STORE) >>> 8;
+            long chunkAddr = addr + (entry >>> 24);
+            long chunkLen = (entry & 0xffffff);
             
             // Save the length
             lengths[i] = chunkLen + extraAlloc;
@@ -114,6 +114,38 @@ public class ChunkBuffer {
             long newAddr = mem.allocate(chunkLen + extraAlloc);
             mem.copyMemory(chunkAddr, newAddr, chunkLen);
             chunks[i] = newAddr;
+        }
+    }
+    
+    /**
+     * Gets how much space saving this buffer would take.
+     * @return Space required for saving.
+     */
+    public long getSaveSize() {
+        long size = 0;
+        for (long len : lengths) {
+            size += len;
+        }
+        return size;
+    }
+    
+    /**
+     * Saves chunks at given address. Make sure you have enough space!
+     * @param addr Memory address.
+     */
+    public void save(long addr) {
+        int saveOffset = 0;
+        for (int i = 0; i < chunkCount; i++) {
+            long chunkLen = lengths[i]; // Take length of chunk
+            
+            // Write chunk offset and length in save data
+            long curAddr = addr + i * DataConstants.CHUNK_POINTER_STORE;
+            mem.writeInt(curAddr, saveOffset); // Offset
+            mem.writeShort(curAddr + 4, (short) (chunkLen >>> 8)); // Length
+            mem.writeByte(curAddr + 5, (byte) (chunkLen & 0xff));
+            
+            mem.copyMemory(chunks[i], addr + saveOffset, chunkLen); // Copy data to save location
+            saveOffset += chunkLen; // Increase save offset for next chunk
         }
     }
     

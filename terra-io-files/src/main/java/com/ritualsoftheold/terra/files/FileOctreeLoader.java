@@ -36,9 +36,9 @@ public class FileOctreeLoader implements OctreeLoader {
     
     @Override
     public long loadOctrees(byte index, long address) {
-        Path file = dir.resolve(index + ".octree");
+        Path file = dir.resolve(index + ".terrao");
         if (!Files.exists(file)) { // Error handling
-            throw new IllegalArgumentException("cannot load non-existent octree");
+            throw new IllegalArgumentException("cannot load non-existent octrees");
         }
         
         try {
