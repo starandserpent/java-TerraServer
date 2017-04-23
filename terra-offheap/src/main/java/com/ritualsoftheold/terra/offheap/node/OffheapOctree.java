@@ -97,7 +97,8 @@ public class OffheapOctree implements Octree, OffheapNode {
 
     @Override
     public long l_getNodeAddr(int index) {
-        return address + DataConstants.OCTREE_NODE_SIZE * index;
+        // Address + metadata + size of node * index
+        return address + 1 + DataConstants.OCTREE_NODE_SIZE * index;
     }
 
     @Override

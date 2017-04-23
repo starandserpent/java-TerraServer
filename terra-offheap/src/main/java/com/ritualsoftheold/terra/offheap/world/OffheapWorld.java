@@ -1,8 +1,6 @@
 package com.ritualsoftheold.terra.offheap.world;
 
-import java.io.InterruptedIOException;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ForkJoinPool;
 
@@ -13,7 +11,6 @@ import com.ritualsoftheold.terra.offheap.DataConstants;
 import com.ritualsoftheold.terra.offheap.chunk.ChunkStorage;
 import com.ritualsoftheold.terra.offheap.io.ChunkLoader;
 import com.ritualsoftheold.terra.offheap.io.OctreeLoader;
-import com.ritualsoftheold.terra.offheap.node.OffheapChunk;
 import com.ritualsoftheold.terra.offheap.node.OffheapOctree;
 import com.ritualsoftheold.terra.offheap.octree.OctreeStorage;
 import com.ritualsoftheold.terra.world.TerraWorld;
@@ -84,6 +81,14 @@ public class OffheapWorld implements TerraWorld {
     
     public CompletableFuture<Chunk> requestChunk(int index) {
         return chunkStorage.requestChunk(index, getMaterialRegistry());
+    }
+    
+    public OctreeStorage getOctreeStorage() {
+        return octreeStorage;
+    }
+    
+    public ChunkStorage getChunkStorage() {
+        return chunkStorage;
     }
 
 }
