@@ -14,16 +14,33 @@ import net.openhft.chronicle.core.OS;
 
 /**
  * Naive mesher does culling, but doesn't try to merge same blocks into bigger faces.
+ * 
+ * Note: doesn't support multithreading. Please use one mesher per thread.
  *
  */
 public class NaiveMesher implements VoxelMesher {
     
     private static final Memory mem = OS.memory();
+    
+    private FloatList verts;
+    private IntList indices;
+    private FloatList texCoords;
+    
+    public NaiveMesher() {
+       verts = new FloatArrayList();
+       indices = new IntArrayList();
+       texCoords = new FloatArrayList();
+    }
 
     @Override
-    public long chunk(long addr, MaterialRegistry reg) {
+    public void chunk(long addr, MaterialRegistry reg) {
+        // Clear previous lists
+        verts.clear();
+        indices.clear();
+        texCoords.clear();
+        
         byte[] hidden = new byte[DataConstants.CHUNK_MAX_BLOCKS]; // Visibility mappings for cubes
-        Arrays.fill(hidden, (byte) 0);
+        //Arrays.fill(hidden, (byte) 0);
         
         // Generate mappings for culling
         for (int i = 0; i < DataConstants.CHUNK_MAX_BLOCKS; i += 8) {
@@ -56,22 +73,19 @@ public class NaiveMesher implements VoxelMesher {
             }
         }
         
-        // Initialize mesh data arrays (TODO optimize this to create less garbage)
-        FloatList verts = new FloatArrayList();
-        IntList indices = new IntArrayList();
-        FloatList texCoords = new FloatArrayList();
-        
         for (int i = 0; i < DataConstants.CHUNK_MAX_BLOCKS; i += 4) {
             long ids = mem.readLong(addr + i * 2); // Read 4 16 bit blocks
             
             for (int j = 0; j < 4; j++) { // Loop blocks from what we just read (TODO unroll loop and measure performance)
                 long id = ids >>> (48 - j * 16); // Get id for THIS block
                 byte faces = hidden[i + j]; // Read hidden faces of this block
-                if (id == 0 || faces == 0) // TODO better "is-air" check
+                if (id == 0 || faces == 0b00111111) // TODO better "is-air" check
                     continue; // AIR or all faceshidden
+                System.out.println("id: " + id);
                 
                 float scale = 0.125f;
-                if ((faces & 0b00100000) != 0) { // RIGHT
+                if ((faces & 0b00100000) == 0) { // RIGHT
+                    System.out.println("Draw RIGHT");
                     verts.add(-scale);
                     verts.add(-scale);
                     verts.add(-scale);
@@ -97,23 +111,156 @@ public class NaiveMesher implements VoxelMesher {
                     indices.add(0);
                     
                     // TODO implement textures
+                } if ((faces & 0b00010000) == 0) { // LEFT
+                    System.out.println("Draw LEFT");
+                    verts.add(scale);
+                    verts.add(-scale);
+                    verts.add(-scale);
+                    
+                    verts.add(scale);
+                    verts.add(scale);
+                    verts.add(-scale);
+                    
+                    verts.add(scale);
+                    verts.add(scale);
+                    verts.add(scale);
+                    
+                    verts.add(scale);
+                    verts.add(-scale);
+                    verts.add(scale);
+                    
+                    indices.add(2);
+                    indices.add(1);
+                    indices.add(0);
+                    
+                    indices.add(0);
+                    indices.add(3);
+                    indices.add(2);
+                } if ((faces & 0b00001000) == 0) { // UP
+                    System.out.println("Draw UP");
+                    verts.add(-scale);
+                    verts.add(scale);
+                    verts.add(-scale);
+                    
+                    verts.add(-scale);
+                    verts.add(scale);
+                    verts.add(scale);
+                    
+                    verts.add(scale);
+                    verts.add(scale);
+                    verts.add(scale);
+                    
+                    verts.add(scale);
+                    verts.add(scale);
+                    verts.add(-scale);
+                    
+                    indices.add(2);
+                    indices.add(1);
+                    indices.add(0);
+                    
+                    indices.add(0);
+                    indices.add(3);
+                    indices.add(2);
+                } if ((faces & 0b00000100) == 0) { // DOWN
+                    System.out.println("Draw DOWN");
+                    verts.add(-scale);
+                    verts.add(-scale);
+                    verts.add(scale);
+                    
+                    verts.add(-scale);
+                    verts.add(-scale);
+                    verts.add(-scale);
+                    
+                    verts.add(scale);
+                    verts.add(-scale);
+                    verts.add(-scale);
+                    
+                    verts.add(scale);
+                    verts.add(-scale);
+                    verts.add(scale);
+                    
+                    indices.add(2);
+                    indices.add(1);
+                    indices.add(0);
+                    
+                    indices.add(0);
+                    indices.add(3);
+                    indices.add(2);
+                } if ((faces & 0b00000010) == 0) { // BACK
+                    System.out.println("Draw BACK");
+                    verts.add(scale);
+                    verts.add(-scale);
+                    verts.add(scale);
+                    
+                    verts.add(scale);
+                    verts.add(scale);
+                    verts.add(scale);
+                    
+                    verts.add(-scale);
+                    verts.add(scale);
+                    verts.add(scale);
+                    
+                    verts.add(-scale);
+                    verts.add(-scale);
+                    verts.add(scale);
+                    
+                    indices.add(2);
+                    indices.add(1);
+                    indices.add(0);
+                    
+                    indices.add(0);
+                    indices.add(3);
+                    indices.add(2);
+                } if ((faces & 0b00000001) == 0) { // FRONT
+                    System.out.println("Draw FRONT");
+                    verts.add(-scale);
+                    verts.add(-scale);
+                    verts.add(-scale);
+                    
+                    verts.add(-scale);
+                    verts.add(scale);
+                    verts.add(-scale);
+                    
+                    verts.add(scale);
+                    verts.add(scale);
+                    verts.add(-scale);
+                    
+                    verts.add(scale);
+                    verts.add(-scale);
+                    verts.add(-scale);
+                    
+                    indices.add(2);
+                    indices.add(1);
+                    indices.add(0);
+                    
+                    indices.add(0);
+                    indices.add(3);
+                    indices.add(2);
                 }
             }
         }
-        
-        return 0; // TODO
     }
 
     @Override
-    public long octree(long addr, MaterialRegistry reg) {
-        // TODO Auto-generated method stub
-        return 0;
+    public void octree(long addr, MaterialRegistry reg) {
+        // TODO octree meshing (simple to do, probably)
     }
 
     @Override
-    public void release(long addr) {
-        // TODO Auto-generated method stub
-        
+    public FloatList getVertices() {
+        return verts;
     }
+
+    @Override
+    public IntList getIndices() {
+        return indices;
+    }
+
+    @Override
+    public FloatList getTextureCoords() {
+        return texCoords;
+    }
+    
+    
 
 }

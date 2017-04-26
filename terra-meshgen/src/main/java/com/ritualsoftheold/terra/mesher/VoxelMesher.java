@@ -2,6 +2,9 @@ package com.ritualsoftheold.terra.mesher;
 
 import com.ritualsoftheold.terra.material.MaterialRegistry;
 
+import it.unimi.dsi.fastutil.floats.FloatList;
+import it.unimi.dsi.fastutil.ints.IntList;
+
 /**
  * Creates a mesh based on Terra's voxel data.
  *
@@ -12,9 +15,8 @@ public interface VoxelMesher {
      * Creates a mesh for chunk at given address.
      * @param addr
      * @param reg
-     * @return Address for mesh data.
      */
-    long chunk(long addr, MaterialRegistry reg);
+    void chunk(long addr, MaterialRegistry reg);
     
     /**
      * Creates a mesh for octree at given address.
@@ -22,13 +24,11 @@ public interface VoxelMesher {
      * @param reg
      * @return Address for mesh data.
      */
-    long octree(long addr, MaterialRegistry reg);
+    void octree(long addr, MaterialRegistry reg);
     
-    /**
-     * Releases an address which methods in this mesher returned. This might
-     * not actually free the memory - re-using it might make sense
-     * concerning performance.
-     * @param addr Address for mesh data.
-     */
-    void release(long addr);
+    FloatList getVertices();
+    
+    IntList getIndices();
+    
+    FloatList getTextureCoords();
 }
