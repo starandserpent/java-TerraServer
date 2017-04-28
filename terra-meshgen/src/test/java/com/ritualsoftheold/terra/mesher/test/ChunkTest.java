@@ -29,7 +29,10 @@ public class ChunkTest extends SimpleApplication {
     public void simpleInitApp() {
         // Create chunk data
         long addr = mem.allocate(DataConstants.CHUNK_UNCOMPRESSED);
+        mem.setMemory(addr, DataConstants.CHUNK_UNCOMPRESSED, (byte) 0);
         mem.writeShort(addr, (short) 1); // Add some stuff to chunk
+        mem.writeShort(addr + 2, (short) 1);
+        System.out.println(Long.toBinaryString(mem.readLong(addr)));
         
         VoxelMesher mesher = new NaiveMesher(); // Create mesher
         mesher.chunk(addr, null); // TODO check back when material registry is done
@@ -44,7 +47,8 @@ public class ChunkTest extends SimpleApplication {
         Material mat = new Material(assetManager, "jme3test/texture/UnshadedArray.j3md");
         mat.getAdditionalRenderState().setWireframe(true);
         geom.setMaterial(mat);
-        geom.setLocalScale(20);
+        geom.setLocalScale(8);
         rootNode.attachChild(geom);
+        flyCam.setMoveSpeed(10);
     }
 }

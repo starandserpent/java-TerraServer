@@ -60,7 +60,7 @@ public class NaiveMesher implements VoxelMesher {
                     int upIndex = index + 64;
                     if (upIndex < DataConstants.CHUNK_MAX_BLOCKS)
                         hidden[upIndex] |= 0b00001000; // UP
-                    int downIndex = index + 64;
+                    int downIndex = index - 64;
                     if (downIndex > -1)
                         hidden[downIndex] |= 0b00000100; // DOWN
                     int backIndex = index + 4096;
@@ -73,170 +73,200 @@ public class NaiveMesher implements VoxelMesher {
             }
         }
         
+        int block = 0;
+        int vertIndex = 0;
         for (int i = 0; i < DataConstants.CHUNK_MAX_BLOCKS; i += 4) {
             long ids = mem.readLong(addr + i * 2); // Read 4 16 bit blocks
+            if (ids == 0) {
+                block += 4;
+                continue;
+            } else {
+                System.out.println(Long.toBinaryString(ids));
+            }
             
+            float scale = 0.125f;
             for (int j = 0; j < 4; j++) { // Loop blocks from what we just read (TODO unroll loop and measure performance)
-                long id = ids >>> (48 - j * 16); // Get id for THIS block
+                long id = ids >>> (48 - j * 16) & 0xffff; // Get id for THIS block
+                System.out.println(Long.toBinaryString(id));
                 byte faces = hidden[i + j]; // Read hidden faces of this block
-                if (id == 0 || faces == 0b00111111) // TODO better "is-air" check
-                    continue; // AIR or all faceshidden
-                System.out.println("id: " + id);
+                if (id == 0 || faces == 0b00111111) { // TODO better "is-air" check
+                    block++; // Goto next block
+                    continue; // AIR or all faces are hidden
+                }
+                System.out.println("id: " + id + ", block: " + block);
                 
-                float scale = 0.125f;
+                float z = block / 4096 * scale * 2;
+                float y = block / 64 * scale * 2;
+                float x = block % 64 * scale * 2;
+                System.out.println("x: " + x + ", y: " + y + ", z: " + z);
+                
                 if ((faces & 0b00100000) == 0) { // RIGHT
                     System.out.println("Draw RIGHT");
-                    verts.add(-scale);
-                    verts.add(-scale);
-                    verts.add(-scale);
+                    verts.add(x - scale);
+                    verts.add(y + scale);
+                    verts.add(z + scale);
                     
-                    verts.add(-scale);
-                    verts.add(scale);
-                    verts.add(-scale);
+                    verts.add(x - scale);
+                    verts.add(y + scale);
+                    verts.add(z - scale);
                     
-                    verts.add(-scale);
-                    verts.add(scale);
-                    verts.add(scale);
+                    verts.add(x - scale);
+                    verts.add(y - scale);
+                    verts.add(z - scale);
                     
-                    verts.add(-scale);
-                    verts.add(-scale);
-                    verts.add(scale);
+                    verts.add(x - scale);
+                    verts.add(y - scale);
+                    verts.add(z + scale);
                     
-                    indices.add(0);
-                    indices.add(1);
-                    indices.add(2);
+                    indices.add(vertIndex + 0);
+                    indices.add(vertIndex + 1);
+                    indices.add(vertIndex + 2);
                     
-                    indices.add(2);
-                    indices.add(3);
-                    indices.add(0);
+                    indices.add(vertIndex + 2);
+                    indices.add(vertIndex + 3);
+                    indices.add(vertIndex + 0);
+                    
+                    vertIndex += 4;
                     
                     // TODO implement textures
                 } if ((faces & 0b00010000) == 0) { // LEFT
                     System.out.println("Draw LEFT");
-                    verts.add(scale);
-                    verts.add(-scale);
-                    verts.add(-scale);
+                    verts.add(x + scale);
+                    verts.add(y - scale);
+                    verts.add(z - scale);
                     
-                    verts.add(scale);
-                    verts.add(scale);
-                    verts.add(-scale);
+                    verts.add(x + scale);
+                    verts.add(y + scale);
+                    verts.add(z - scale);
                     
-                    verts.add(scale);
-                    verts.add(scale);
-                    verts.add(scale);
+                    verts.add(x + scale);
+                    verts.add(x + scale);
+                    verts.add(x + scale);
                     
-                    verts.add(scale);
-                    verts.add(-scale);
-                    verts.add(scale);
+                    verts.add(x + scale);
+                    verts.add(y - scale);
+                    verts.add(z + scale);
                     
-                    indices.add(2);
-                    indices.add(1);
-                    indices.add(0);
+                    indices.add(vertIndex + 0);
+                    indices.add(vertIndex + 1);
+                    indices.add(vertIndex + 2);
                     
-                    indices.add(0);
-                    indices.add(3);
-                    indices.add(2);
+                    indices.add(vertIndex + 2);
+                    indices.add(vertIndex + 3);
+                    indices.add(vertIndex + 0);
+                    
+                    vertIndex += 4;
                 } if ((faces & 0b00001000) == 0) { // UP
                     System.out.println("Draw UP");
-                    verts.add(-scale);
-                    verts.add(scale);
-                    verts.add(-scale);
+                    verts.add(x - scale);
+                    verts.add(y + scale);
+                    verts.add(z - scale);
                     
-                    verts.add(-scale);
-                    verts.add(scale);
-                    verts.add(scale);
+                    verts.add(x - scale);
+                    verts.add(y + scale);
+                    verts.add(z + scale);
                     
-                    verts.add(scale);
-                    verts.add(scale);
-                    verts.add(scale);
+                    verts.add(x + scale);
+                    verts.add(y + scale);
+                    verts.add(z + scale);
                     
-                    verts.add(scale);
-                    verts.add(scale);
-                    verts.add(-scale);
+                    verts.add(x + scale);
+                    verts.add(y + scale);
+                    verts.add(z - scale);
                     
-                    indices.add(2);
-                    indices.add(1);
-                    indices.add(0);
+                    indices.add(vertIndex + 0);
+                    indices.add(vertIndex + 1);
+                    indices.add(vertIndex + 2);
                     
-                    indices.add(0);
-                    indices.add(3);
-                    indices.add(2);
+                    indices.add(vertIndex + 2);
+                    indices.add(vertIndex + 3);
+                    indices.add(vertIndex + 0);
+                    
+                    vertIndex += 4;
                 } if ((faces & 0b00000100) == 0) { // DOWN
                     System.out.println("Draw DOWN");
-                    verts.add(-scale);
-                    verts.add(-scale);
-                    verts.add(scale);
+                    verts.add(x - scale);
+                    verts.add(y - scale);
+                    verts.add(z + scale);
                     
-                    verts.add(-scale);
-                    verts.add(-scale);
-                    verts.add(-scale);
+                    verts.add(x - scale);
+                    verts.add(y - scale);
+                    verts.add(z - scale);
                     
-                    verts.add(scale);
-                    verts.add(-scale);
-                    verts.add(-scale);
+                    verts.add(x + scale);
+                    verts.add(y - scale);
+                    verts.add(z - scale);
                     
-                    verts.add(scale);
-                    verts.add(-scale);
-                    verts.add(scale);
+                    verts.add(x + scale);
+                    verts.add(y - scale);
+                    verts.add(z + scale);
                     
-                    indices.add(2);
-                    indices.add(1);
-                    indices.add(0);
+                    indices.add(vertIndex + 2);
+                    indices.add(vertIndex + 1);
+                    indices.add(vertIndex + 0);
                     
-                    indices.add(0);
-                    indices.add(3);
-                    indices.add(2);
+                    indices.add(vertIndex + 0);
+                    indices.add(vertIndex + 3);
+                    indices.add(vertIndex + 2);
+                    
+                    vertIndex += 4;
                 } if ((faces & 0b00000010) == 0) { // BACK
                     System.out.println("Draw BACK");
-                    verts.add(scale);
-                    verts.add(-scale);
-                    verts.add(scale);
+                    verts.add(x + scale);
+                    verts.add(y - scale);
+                    verts.add(z + scale);
                     
-                    verts.add(scale);
-                    verts.add(scale);
-                    verts.add(scale);
+                    verts.add(x + scale);
+                    verts.add(y + scale);
+                    verts.add(z + scale);
                     
-                    verts.add(-scale);
-                    verts.add(scale);
-                    verts.add(scale);
+                    verts.add(x - scale);
+                    verts.add(y + scale);
+                    verts.add(z + scale);
                     
-                    verts.add(-scale);
-                    verts.add(-scale);
-                    verts.add(scale);
+                    verts.add(x - scale);
+                    verts.add(y - scale);
+                    verts.add(z + scale);
                     
-                    indices.add(2);
-                    indices.add(1);
-                    indices.add(0);
+                    indices.add(vertIndex + 0);
+                    indices.add(vertIndex + 1);
+                    indices.add(vertIndex + 2);
                     
-                    indices.add(0);
-                    indices.add(3);
-                    indices.add(2);
+                    indices.add(vertIndex + 2);
+                    indices.add(vertIndex + 3);
+                    indices.add(vertIndex + 0);
+                    
+                    vertIndex += 4;
                 } if ((faces & 0b00000001) == 0) { // FRONT
                     System.out.println("Draw FRONT");
-                    verts.add(-scale);
-                    verts.add(-scale);
-                    verts.add(-scale);
+                    verts.add(x - scale);
+                    verts.add(y - scale);
+                    verts.add(z - scale);
                     
-                    verts.add(-scale);
-                    verts.add(scale);
-                    verts.add(-scale);
+                    verts.add(x - scale);
+                    verts.add(y + scale);
+                    verts.add(z - scale);
                     
-                    verts.add(scale);
-                    verts.add(scale);
-                    verts.add(-scale);
+                    verts.add(x + scale);
+                    verts.add(y + scale);
+                    verts.add(z - scale);
                     
-                    verts.add(scale);
-                    verts.add(-scale);
-                    verts.add(-scale);
+                    verts.add(x + scale);
+                    verts.add(y - scale);
+                    verts.add(z - scale);
                     
-                    indices.add(2);
-                    indices.add(1);
-                    indices.add(0);
+                    indices.add(vertIndex + 0);
+                    indices.add(vertIndex + 1);
+                    indices.add(vertIndex + 2);
                     
-                    indices.add(0);
-                    indices.add(3);
-                    indices.add(2);
+                    indices.add(vertIndex + 2);
+                    indices.add(vertIndex + 3);
+                    indices.add(vertIndex + 0);
+                    
+                    vertIndex += 4;
                 }
+                
+                block++; // Go to next block
             }
         }
     }
