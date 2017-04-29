@@ -34,7 +34,7 @@ public class ChunkTest extends SimpleApplication {
         mem.setMemory(addr, DataConstants.CHUNK_UNCOMPRESSED, (byte) 0);
         mem.writeShort(addr, (short) 1); // Add some stuff to chunk
         System.out.println("addr: " + addr);
-        for (int i = 2; i < 10; i += 2) {
+        for (int i = 2; i < 200; i += 2) {
             mem.writeShort(addr + i, (short) 0xffff);
         }
         System.out.println(Long.toBinaryString(mem.readLong(addr)));
@@ -55,7 +55,7 @@ public class ChunkTest extends SimpleApplication {
         mat.getAdditionalRenderState().setWireframe(true);
         //mat.getAdditionalRenderState().setFaceCullMode(FaceCullMode.Off);
         geom.setMaterial(mat);
-        geom.setLocalScale(8);
+        geom.setLocalScale(1);
         geom.setCullHint(CullHint.Never);
         rootNode.attachChild(geom);
         flyCam.setMoveSpeed(10);

@@ -53,18 +53,16 @@ public class NaiveMesher implements VoxelMesher {
                     int index = i + j;
                     
                     int rightIndex = index - 1;
-                    if (rightIndex > -1)
+                    if (rightIndex > -1 && rightIndex % 63 != 0)
                         hidden[rightIndex] |= 0b00010000; // RIGHT
                     int leftIndex = index + 1;
-                    if (leftIndex < DataConstants.CHUNK_MAX_BLOCKS) {
-                        System.out.println("Hide left for " + leftIndex);
+                    if (leftIndex < DataConstants.CHUNK_MAX_BLOCKS && leftIndex % 64 != 0)
                         hidden[leftIndex] |= 0b00100000; // LEFT
-                    }
-                    int upIndex = index + 64;
-                    if (upIndex < DataConstants.CHUNK_MAX_BLOCKS)
+                    int upIndex = index - 64;
+                    if (upIndex > -1)
                         hidden[upIndex] |= 0b00001000; // UP
-                    int downIndex = index - 64;
-                    if (downIndex > -1)
+                    int downIndex = index + 64;
+                    if (downIndex < DataConstants.CHUNK_MAX_BLOCKS)
                         hidden[downIndex] |= 0b00000100; // DOWN
                     int backIndex = index + 4096;
                     if (backIndex < DataConstants.CHUNK_MAX_BLOCKS)
