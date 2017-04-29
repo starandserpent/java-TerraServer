@@ -53,10 +53,10 @@ public class NaiveMesher implements VoxelMesher {
                     
                     int rightIndex = index - 1;
                     if (rightIndex > -1)
-                        hidden[rightIndex] |= 0b00100000; // RIGHT
+                        hidden[rightIndex] |= 0b00010000; // RIGHT
                     int leftIndex = index + 1;
                     if (leftIndex < DataConstants.CHUNK_MAX_BLOCKS)
-                        hidden[leftIndex] |= 0b00010000; // LEFT
+                        hidden[leftIndex] |= 0b00100000; // LEFT
                     int upIndex = index + 64;
                     if (upIndex < DataConstants.CHUNK_MAX_BLOCKS)
                         hidden[upIndex] |= 0b00001000; // UP
@@ -140,8 +140,8 @@ public class NaiveMesher implements VoxelMesher {
                     verts.add(z - scale);
                     
                     verts.add(x + scale);
-                    verts.add(x + scale);
-                    verts.add(x + scale);
+                    verts.add(y + scale);
+                    verts.add(z + scale);
                     
                     verts.add(x + scale);
                     verts.add(y - scale);
@@ -201,13 +201,13 @@ public class NaiveMesher implements VoxelMesher {
                     verts.add(y - scale);
                     verts.add(z + scale);
                     
-                    indices.add(vertIndex + 2);
+                    indices.add(vertIndex + 0);
                     indices.add(vertIndex + 1);
-                    indices.add(vertIndex + 0);
-                    
-                    indices.add(vertIndex + 0);
-                    indices.add(vertIndex + 3);
                     indices.add(vertIndex + 2);
+                    
+                    indices.add(vertIndex + 2);
+                    indices.add(vertIndex + 3);
+                    indices.add(vertIndex + 0);
                     
                     vertIndex += 4;
                 } if ((faces & 0b00000010) == 0) { // BACK
