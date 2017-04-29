@@ -33,7 +33,10 @@ public class ChunkTest extends SimpleApplication {
         long addr = mem.allocate(DataConstants.CHUNK_UNCOMPRESSED);
         mem.setMemory(addr, DataConstants.CHUNK_UNCOMPRESSED, (byte) 0);
         mem.writeShort(addr, (short) 1); // Add some stuff to chunk
-        mem.writeShort(addr + 2, (short) 1);
+        System.out.println("addr: " + addr);
+        for (int i = 2; i < 10; i += 2) {
+            mem.writeShort(addr + i, (short) 0xffff);
+        }
         System.out.println(Long.toBinaryString(mem.readLong(addr)));
         
         VoxelMesher mesher = new NaiveMesher(); // Create mesher

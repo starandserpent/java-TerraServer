@@ -43,11 +43,12 @@ public class NaiveMesher implements VoxelMesher {
         //Arrays.fill(hidden, (byte) 0);
         
         // Generate mappings for culling
-        for (int i = 0; i < DataConstants.CHUNK_MAX_BLOCKS; i += 8) {
-            long ids = mem.readLong(addr + i); // Read 4 16 bit blocks
+        for (int i = 0; i < DataConstants.CHUNK_MAX_BLOCKS; i += 4) {
+            long ids = mem.readLong(addr + i * 2); // Read 4 16 bit blocks
+            // BEWARE: it is LITTLE ENDIAN, not big endian as Java usually
             
             for (int j = 0; j < 4; j++) { // Loop blocks from what we just read (TODO unroll loop and measure performance)
-                long id = ids >>> (48 - j * 16); // Get id for THIS block
+                long id = ids >>> (j * 16); // Get id for THIS block
                 if (id != 0) { // TODO better "is-air" check
                     int index = i + j;
                     
@@ -55,8 +56,10 @@ public class NaiveMesher implements VoxelMesher {
                     if (rightIndex > -1)
                         hidden[rightIndex] |= 0b00010000; // RIGHT
                     int leftIndex = index + 1;
-                    if (leftIndex < DataConstants.CHUNK_MAX_BLOCKS)
+                    if (leftIndex < DataConstants.CHUNK_MAX_BLOCKS) {
+                        System.out.println("Hide left for " + leftIndex);
                         hidden[leftIndex] |= 0b00100000; // LEFT
+                    }
                     int upIndex = index + 64;
                     if (upIndex < DataConstants.CHUNK_MAX_BLOCKS)
                         hidden[upIndex] |= 0b00001000; // UP
@@ -77,19 +80,22 @@ public class NaiveMesher implements VoxelMesher {
         int vertIndex = 0;
         for (int i = 0; i < DataConstants.CHUNK_MAX_BLOCKS; i += 4) {
             long ids = mem.readLong(addr + i * 2); // Read 4 16 bit blocks
+            // BEWARE: it is LITTLE ENDIAN, not big endian as Java usually
             if (ids == 0) {
                 block += 4;
                 continue;
             } else {
-                System.out.println(Long.toBinaryString(ids));
+                System.out.println("read: " + (addr + i * 2));
+                System.out.println("non-air: " + Long.toBinaryString(ids));
             }
             
             float scale = 0.125f;
             for (int j = 0; j < 4; j++) { // Loop blocks from what we just read (TODO unroll loop and measure performance)
-                long id = ids >>> (48 - j * 16) & 0xffff; // Get id for THIS block
-                System.out.println(Long.toBinaryString(id));
+                long id = ids >>> (j * 16) & 0xffff; // Get id for THIS block
+                System.out.println((48 - j * 16) + ": " + Long.toBinaryString(id));
                 byte faces = hidden[i + j]; // Read hidden faces of this block
                 if (id == 0 || faces == 0b00111111) { // TODO better "is-air" check
+                    System.out.println("AIR");
                     block++; // Goto next block
                     continue; // AIR or all faces are hidden
                 }
