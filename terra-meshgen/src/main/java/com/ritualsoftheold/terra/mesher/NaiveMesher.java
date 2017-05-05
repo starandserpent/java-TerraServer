@@ -53,23 +53,23 @@ public class NaiveMesher implements VoxelMesher {
                     int index = i + j;
                     
                     int rightIndex = index - 1;
-                    if (rightIndex > -1 && rightIndex % 63 != 0)
+                    if (rightIndex > -1 && index % 64 != 0)
                         hidden[rightIndex] |= 0b00010000; // RIGHT
                     int leftIndex = index + 1;
                     if (leftIndex < DataConstants.CHUNK_MAX_BLOCKS && leftIndex % 64 != 0)
                         hidden[leftIndex] |= 0b00100000; // LEFT
                     int upIndex = index - 64;
-                    if (upIndex > -1)
+                    if (upIndex > -1 && upIndex - upIndex / 4032 * 4032 > 64)
                         hidden[upIndex] |= 0b00001000; // UP
                     int downIndex = index + 64;
-                    if (downIndex < DataConstants.CHUNK_MAX_BLOCKS)
+                    if (downIndex < DataConstants.CHUNK_MAX_BLOCKS && downIndex - downIndex / 4096 * 4096 > 64)
                         hidden[downIndex] |= 0b00000100; // DOWN
                     int backIndex = index + 4096;
                     if (backIndex < DataConstants.CHUNK_MAX_BLOCKS)
-                        hidden[backIndex] |= 0b00000010; // BACK
+                        hidden[backIndex] |= 0b00000001; // BACK
                     int frontIndex = index - 4096;
                     if (frontIndex > -1)
-                        hidden[frontIndex] |= 0b00000001; // FRONT
+                        hidden[frontIndex] |= 0b00000010; // FRONT
                 }
             }
         }
@@ -83,29 +83,30 @@ public class NaiveMesher implements VoxelMesher {
                 block += 4;
                 continue;
             } else {
-                System.out.println("read: " + (addr + i * 2));
-                System.out.println("non-air: " + Long.toBinaryString(ids));
+                //System.out.println("read: " + (addr + i * 2));
+                //System.out.println("non-air: " + Long.toBinaryString(ids));
             }
             
             float scale = 0.125f;
             for (int j = 0; j < 4; j++) { // Loop blocks from what we just read (TODO unroll loop and measure performance)
                 long id = ids >>> (j * 16) & 0xffff; // Get id for THIS block
-                System.out.println((48 - j * 16) + ": " + Long.toBinaryString(id));
+                //System.out.println((48 - j * 16) + ": " + Long.toBinaryString(id));
                 byte faces = hidden[i + j]; // Read hidden faces of this block
                 if (id == 0 || faces == 0b00111111) { // TODO better "is-air" check
-                    System.out.println("AIR");
+                    //System.out.println("AIR");
                     block++; // Goto next block
                     continue; // AIR or all faces are hidden
                 }
-                System.out.println("id: " + id + ", block: " + block);
+                //System.out.println("id: " + id + ", block: " + block);
                 
-                float z = block / 4096 * scale * 2;
-                float y = block / 64 * scale * 2;
+                float z0 = block / 4096;
+                float z = z0 * scale * 2;
+                float y = (block - 4096 * z0) / 64 * scale * 2;
                 float x = block % 64 * scale * 2;
-                System.out.println("x: " + x + ", y: " + y + ", z: " + z);
+                //System.out.println("x: " + x + ", y: " + y + ", z: " + z);
                 
                 if ((faces & 0b00100000) == 0) { // RIGHT
-                    System.out.println("Draw RIGHT");
+                    //System.out.println("Draw RIGHT");
                     verts.add(x - scale);
                     verts.add(y + scale);
                     verts.add(z + scale);
@@ -134,7 +135,7 @@ public class NaiveMesher implements VoxelMesher {
                     
                     // TODO implement textures
                 } if ((faces & 0b00010000) == 0) { // LEFT
-                    System.out.println("Draw LEFT");
+                    //System.out.println("Draw LEFT");
                     verts.add(x + scale);
                     verts.add(y - scale);
                     verts.add(z - scale);
@@ -161,7 +162,7 @@ public class NaiveMesher implements VoxelMesher {
                     
                     vertIndex += 4;
                 } if ((faces & 0b00001000) == 0) { // UP
-                    System.out.println("Draw UP");
+                    //System.out.println("Draw UP");
                     verts.add(x - scale);
                     verts.add(y + scale);
                     verts.add(z - scale);
@@ -188,7 +189,7 @@ public class NaiveMesher implements VoxelMesher {
                     
                     vertIndex += 4;
                 } if ((faces & 0b00000100) == 0) { // DOWN
-                    System.out.println("Draw DOWN");
+                    //System.out.println("Draw DOWN");
                     verts.add(x - scale);
                     verts.add(y - scale);
                     verts.add(z + scale);
@@ -215,7 +216,7 @@ public class NaiveMesher implements VoxelMesher {
                     
                     vertIndex += 4;
                 } if ((faces & 0b00000010) == 0) { // BACK
-                    System.out.println("Draw BACK");
+                    //System.out.println("Draw BACK");
                     verts.add(x + scale);
                     verts.add(y - scale);
                     verts.add(z + scale);
@@ -242,7 +243,7 @@ public class NaiveMesher implements VoxelMesher {
                     
                     vertIndex += 4;
                 } if ((faces & 0b00000001) == 0) { // FRONT
-                    System.out.println("Draw FRONT");
+                    //System.out.println("Draw FRONT");
                     verts.add(x - scale);
                     verts.add(y - scale);
                     verts.add(z - scale);

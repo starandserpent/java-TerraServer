@@ -33,8 +33,9 @@ public class ChunkTest extends SimpleApplication {
         long addr = mem.allocate(DataConstants.CHUNK_UNCOMPRESSED);
         mem.setMemory(addr, DataConstants.CHUNK_UNCOMPRESSED, (byte) 0);
         mem.writeShort(addr, (short) 1); // Add some stuff to chunk
+        //mem.writeShort(addr + 8192, (short) 0xffff);
         System.out.println("addr: " + addr);
-        for (int i = 2; i < 200; i += 2) {
+        for (int i = 2; i < 20000; i += 2) {
             mem.writeShort(addr + i, (short) 0xffff);
         }
         System.out.println(Long.toBinaryString(mem.readLong(addr)));
@@ -44,8 +45,8 @@ public class ChunkTest extends SimpleApplication {
         
         // Create mesh
         Mesh mesh = new Mesh();
-        System.out.println(mesher.getVertices());
-        System.out.println(mesher.getIndices());
+        //System.out.println(mesher.getVertices());
+        //System.out.println(mesher.getIndices());
         mesh.setBuffer(Type.Position, 3, BufferUtils.createFloatBuffer(mesher.getVertices().toFloatArray()));
         mesh.setBuffer(Type.Index, 3, BufferUtils.createIntBuffer(mesher.getIndices().toIntArray()));
         
@@ -55,7 +56,7 @@ public class ChunkTest extends SimpleApplication {
         mat.getAdditionalRenderState().setWireframe(true);
         //mat.getAdditionalRenderState().setFaceCullMode(FaceCullMode.Off);
         geom.setMaterial(mat);
-        geom.setLocalScale(1);
+        geom.setLocalScale(0.25f);
         geom.setCullHint(CullHint.Never);
         rootNode.attachChild(geom);
         flyCam.setMoveSpeed(10);
