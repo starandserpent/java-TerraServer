@@ -59,7 +59,7 @@ public class NaiveMesher implements VoxelMesher {
                     if (leftIndex < DataConstants.CHUNK_MAX_BLOCKS && leftIndex % 64 != 0)
                         hidden[leftIndex] |= 0b00100000; // LEFT
                     int upIndex = index - 64;
-                    if (upIndex > -1 && upIndex - upIndex / 4032 * 4032 > 64)
+                    if (upIndex > -1 && index - index / 4096 * 4096 > 64)
                         hidden[upIndex] |= 0b00001000; // UP
                     int downIndex = index + 64;
                     if (downIndex < DataConstants.CHUNK_MAX_BLOCKS && downIndex - downIndex / 4096 * 4096 > 64)
