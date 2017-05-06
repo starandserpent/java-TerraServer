@@ -133,7 +133,17 @@ public class NaiveMesher implements VoxelMesher {
                     
                     vertIndex += 4;
                     
-                    // TODO implement textures
+                    texCoords.add(1);
+                    texCoords.add(1);
+                    
+                    texCoords.add(0);
+                    texCoords.add(1);
+                    
+                    texCoords.add(0);
+                    texCoords.add(0);
+                    
+                    texCoords.add(1);
+                    texCoords.add(0);
                 } if ((faces & 0b00010000) == 0) { // LEFT
                     //System.out.println("Draw LEFT");
                     verts.add(x + scale);
@@ -161,6 +171,18 @@ public class NaiveMesher implements VoxelMesher {
                     indices.add(vertIndex + 0);
                     
                     vertIndex += 4;
+                    
+                    texCoords.add(0);
+                    texCoords.add(0);
+                    
+                    texCoords.add(0);
+                    texCoords.add(1);
+                    
+                    texCoords.add(1);
+                    texCoords.add(1);
+                    
+                    texCoords.add(1);
+                    texCoords.add(0);
                 } if ((faces & 0b00001000) == 0) { // UP
                     //System.out.println("Draw UP");
                     verts.add(x - scale);
@@ -188,6 +210,18 @@ public class NaiveMesher implements VoxelMesher {
                     indices.add(vertIndex + 0);
                     
                     vertIndex += 4;
+                    
+                    texCoords.add(0);
+                    texCoords.add(0);
+                    
+                    texCoords.add(0);
+                    texCoords.add(1);
+                    
+                    texCoords.add(1);
+                    texCoords.add(1);
+                    
+                    texCoords.add(1);
+                    texCoords.add(0);
                 } if ((faces & 0b00000100) == 0) { // DOWN
                     //System.out.println("Draw DOWN");
                     verts.add(x - scale);
@@ -215,6 +249,18 @@ public class NaiveMesher implements VoxelMesher {
                     indices.add(vertIndex + 0);
                     
                     vertIndex += 4;
+                    
+                    texCoords.add(0);
+                    texCoords.add(0);
+                    
+                    texCoords.add(0);
+                    texCoords.add(1);
+                    
+                    texCoords.add(1);
+                    texCoords.add(1);
+                    
+                    texCoords.add(1);
+                    texCoords.add(0);
                 } if ((faces & 0b00000010) == 0) { // BACK
                     //System.out.println("Draw BACK");
                     verts.add(x + scale);
@@ -242,6 +288,18 @@ public class NaiveMesher implements VoxelMesher {
                     indices.add(vertIndex + 0);
                     
                     vertIndex += 4;
+                    
+                    texCoords.add(0);
+                    texCoords.add(0);
+                    
+                    texCoords.add(0);
+                    texCoords.add(1);
+                    
+                    texCoords.add(1);
+                    texCoords.add(1);
+                    
+                    texCoords.add(1);
+                    texCoords.add(0);
                 } if ((faces & 0b00000001) == 0) { // FRONT
                     //System.out.println("Draw FRONT");
                     verts.add(x - scale);
@@ -269,6 +327,18 @@ public class NaiveMesher implements VoxelMesher {
                     indices.add(vertIndex + 0);
                     
                     vertIndex += 4;
+                    
+                    texCoords.add(0);
+                    texCoords.add(0);
+                    
+                    texCoords.add(0);
+                    texCoords.add(1);
+                    
+                    texCoords.add(1);
+                    texCoords.add(1);
+                    
+                    texCoords.add(1);
+                    texCoords.add(0);
                 }
                 
                 block++; // Go to next block
