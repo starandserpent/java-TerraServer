@@ -31,4 +31,12 @@ public interface TerraTexture {
      * @return Some sort of asset identifier, like file name.
      */
     String getAsset();
+    
+    void assignTexCoords(float x, float y, float z);
+    
+    float getTexCoordX();
+    
+    float getTexCoordY();
+    
+    float getTexCoordZ();
 }
