@@ -34,7 +34,7 @@ public class TerraModule {
     
     public void registerMaterials(MaterialRegistry reg) {
         for (TerraMaterial mat : materials) {
-            reg.registerMaterial(mat);
+            reg.registerMaterial(mat, this);
         }
     }
     
