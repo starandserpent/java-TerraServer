@@ -20,11 +20,13 @@ public class TerraMaterial {
     
     // Set by material registry
     private short worldId;
+    private String fullName;
     
     // Set by builder
     private TerraModule mod;
     private String name;
     
+    // Set by TextureManager (on client side)
     private TerraTexture texture;
     
     /**
@@ -37,6 +39,18 @@ public class TerraMaterial {
     
     void setWorldId(short id) {
         worldId = id;
+    }
+    
+    public String getName() {
+        return name;
+    }
+    
+    public String getFullName() {
+        return fullName;
+    }
+    
+    void setFullName(String name) {
+        fullName = name;
     }
     
     public TerraTexture getTexture() {

@@ -7,12 +7,14 @@ import java.util.List;
 import com.jme3.asset.AssetManager;
 import com.jme3.texture.Image;
 import com.jme3.texture.Image.Format;
+import com.jme3.texture.TextureArray;
 import com.ritualsoftheold.terra.material.MaterialRegistry;
 import com.ritualsoftheold.terra.material.TerraMaterial;
 import com.ritualsoftheold.terra.material.TerraTexture;
 
 import it.unimi.dsi.fastutil.ints.Int2ObjectArrayMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap.Entry;
 import it.unimi.dsi.fastutil.shorts.Short2ObjectArrayMap;
 import it.unimi.dsi.fastutil.shorts.Short2ObjectMap;
 
@@ -28,9 +30,19 @@ public class TextureManager {
     private Short2ObjectMap<TerraTexture> textures;
     private AssetManager assetManager;
     
+    private TextureArray array;
+    
     public TextureManager(AssetManager assetManager) {
         textures = new Short2ObjectArrayMap<>();
         this.assetManager = assetManager;
+    }
+    
+    /**
+     * Returns texture array used for ground texture.
+     * @return
+     */
+    public TextureArray getGroundTexture() {
+        return array;
     }
     
     public void loadMaterials(MaterialRegistry reg) {
@@ -55,7 +67,12 @@ public class TextureManager {
             resulutions.put(width, sameRes); // Re-put list if we actually only just created it
         }
         
-        // TODO
+        List<Image> atlases = new ArrayList<>(); // All texture atlases go here
+        for (Entry<List<TerraTexture>> e : resulutions.int2ObjectEntrySet()) {
+            generateAtlases(e.getValue(), e.getIntKey(), atlases); // Generate atlases...
+        }
+        
+        array = new TextureArray(atlases);
     }
     
     private void generateAtlases(List<TerraTexture> textures, int size, List<Image> atlases) {
