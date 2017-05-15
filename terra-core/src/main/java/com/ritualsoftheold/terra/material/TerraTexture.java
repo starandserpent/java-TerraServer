@@ -4,19 +4,38 @@ package com.ritualsoftheold.terra.material;
  * Represents a texture in texture atlas.
  *
  */
-public interface TerraTexture {
+public class TerraTexture {
+    
+    private int width;
+    private int height;
+    
+    private float scale;
+    
+    private String asset;
+    
+    private float texCoordX, texCoordY, texCoordZ;
+    
+    public TerraTexture(int width, int height, String asset) {
+        this.width = width;
+        this.height = height;
+        this.asset = asset;
+    }
     
     /**
      * Gets height of the texture.
      * @return Height of texture.
      */
-    int getWidth();
+    public int getWidth() {
+        return width;
+    }
     
     /**
      * Gets width of texture.
      * @return Width of texture.
      */
-    int getHeight();
+    public int getHeight() {
+        return height;
+    }
     
     /**
      * Gets scale of this texture. In the other words,
@@ -24,19 +43,33 @@ public interface TerraTexture {
      * Values fall in range of [0, 1[.
      * @return Scale of the texture.
      */
-    float getScale();
+    public float getScale() {
+        return scale;
+    }
     
     /**
      * Gets texture asset. What this means depends on implementation.
      * @return Some sort of asset identifier, like file name.
      */
-    String getAsset();
+    public String getAsset() {
+        return asset;
+    }
     
-    void assignTexCoords(float x, float y, float z);
+    public void assignTexCoords(float x, float y, float z) {
+        texCoordX = x;
+        texCoordY = y;
+        texCoordZ = z;
+    }
     
-    float getTexCoordX();
+    public float getTexCoordX() {
+        return texCoordX;
+    }
     
-    float getTexCoordY();
+    public float getTexCoordY() {
+        return texCoordY;
+    }
     
-    float getTexCoordZ();
+    public float getTexCoordZ() {
+        return texCoordZ;
+    }
 }

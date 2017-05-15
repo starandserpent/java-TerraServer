@@ -1,5 +1,6 @@
 package com.ritualsoftheold.terra.material;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -7,6 +8,8 @@ import java.util.List;
 import com.ritualsoftheold.terra.TerraModule;
 
 import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
+import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.shorts.Short2ObjectArrayMap;
 import it.unimi.dsi.fastutil.shorts.Short2ObjectMap;
 
 public class MaterialRegistry {
@@ -17,6 +20,16 @@ public class MaterialRegistry {
     private Short2ObjectMap<TerraMaterial> idToMaterial;
     private Object2ObjectMap<String, TerraMaterial> nameToMaterial;
     
+    public MaterialRegistry(List<String> preferredIds) {
+        this.preferredIds = new ArrayList<>(preferredIds);
+        idToMaterial = new Short2ObjectArrayMap<>(preferredIds.size());
+        nameToMaterial = new Object2ObjectOpenHashMap<>(preferredIds.size());
+    }
+    
+    public MaterialRegistry() {
+        this(new ArrayList<>());
+    }
+
     /**
      * Gets a material. If it doesn't exist, will return null.
      * @param mod Module for material.
@@ -70,5 +83,9 @@ public class MaterialRegistry {
     
     public Collection<TerraMaterial> getAllMaterials() {
         return Collections.unmodifiableCollection(idToMaterial.values()); // Just take the values, probably works well enough
+    }
+    
+    public List<String> getPreferredIds() {
+        return Collections.unmodifiableList(preferredIds);
     }
 }

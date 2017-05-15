@@ -95,7 +95,8 @@ public class TextureManager {
             ByteBuffer imgData = img.getData(0);
             for (int i = 0; i < size; i++) {
                 byte[] row = new byte[size]; // Create array for one row of image data
-                imgData.get(row, i * size, size); // Copy one row of data to array
+                imgData.position(i * size);
+                imgData.get(row, 0, size); // Copy one row of data to array
                 atlasBuf.position(y * size * ATLAS_SIZE + x * size + i * ATLAS_SIZE); // Travel to correct point in atlas data
                 atlasBuf.put(row); // Set a row of data to atlas
             }
