@@ -69,6 +69,7 @@ public class MaterialRegistry {
         // Put it to few other maps for ease of use
         nameToMaterial.put(fullName, material);
         idToMaterial.put((short) worldId, material);
+        System.out.println(fullName + ": " + worldId);
     }
     
     /**

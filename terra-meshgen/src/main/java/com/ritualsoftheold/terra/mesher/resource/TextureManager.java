@@ -2,11 +2,13 @@ package com.ritualsoftheold.terra.mesher.resource;
 
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import com.jme3.asset.AssetManager;
 import com.jme3.texture.Image;
 import com.jme3.texture.Image.Format;
+import com.jme3.texture.Texture;
 import com.jme3.texture.TextureArray;
 import com.ritualsoftheold.terra.material.MaterialRegistry;
 import com.ritualsoftheold.terra.material.TerraMaterial;
@@ -25,12 +27,17 @@ import it.unimi.dsi.fastutil.shorts.Short2ObjectMap;
 public class TextureManager {
     
     private static final int TEXTURE_MIN_RES = 2;
-    private static final int ATLAS_SIZE = 4096;
+    private static final int ATLAS_SIZE = 128;
+    private static final int BYTES_PER_PIXEL = 4;
+    private static final int ATLAS_SIZE_IMAGE = ATLAS_SIZE * BYTES_PER_PIXEL;
+    
+    private static final int IMAGE_UP_LEFT = ATLAS_SIZE * ATLAS_SIZE * BYTES_PER_PIXEL;
     
     private Short2ObjectMap<TerraTexture> textures;
     private AssetManager assetManager;
     
     private TextureArray array;
+    private List<Image> atlases;
     
     public TextureManager(AssetManager assetManager) {
         textures = new Short2ObjectArrayMap<>();
@@ -43,6 +50,14 @@ public class TextureManager {
      */
     public TextureArray getGroundTexture() {
         return array;
+    }
+    
+    public Image getAtlas(int index) {
+        return atlases.get(index);
+    }
+    
+    public TerraTexture getTexture(short worldId) {
+        return textures.get(worldId);
     }
     
     public void loadMaterials(MaterialRegistry reg) {
@@ -73,6 +88,7 @@ public class TextureManager {
         }
         
         array = new TextureArray(atlases);
+        this.atlases = atlases;
     }
     
     private void generateAtlases(List<TerraTexture> textures, int size, List<Image> atlases) {
@@ -80,7 +96,7 @@ public class TextureManager {
         
         int x = 0;
         int y = 0;
-        ByteBuffer atlasBuf = ByteBuffer.allocateDirect(ATLAS_SIZE * ATLAS_SIZE * 4); // 4 for alpha channel+colors, TODO configurable
+        ByteBuffer atlasBuf = ByteBuffer.allocateDirect(ATLAS_SIZE * ATLAS_SIZE * BYTES_PER_PIXEL); // 4 for alpha channel+colors, TODO configurable
         for (TerraTexture texture : textures) {
             Image img = assetManager.loadTexture(texture.getAsset()).getImage(); // Use asset manager to load
             if (x == texturesPerSide) { // Pick next row
@@ -89,25 +105,32 @@ public class TextureManager {
             } if (y == texturesPerSide) { // Out of y values... need next atlas
                 Image readyAtlas = new Image(Format.ABGR8, ATLAS_SIZE, ATLAS_SIZE, atlasBuf, null, com.jme3.texture.image.ColorSpace.sRGB);
                 atlases.add(readyAtlas);
-                atlasBuf = ByteBuffer.allocateDirect(ATLAS_SIZE * ATLAS_SIZE * 4);
+                atlasBuf = ByteBuffer.allocateDirect(ATLAS_SIZE * ATLAS_SIZE * BYTES_PER_PIXEL);
             }
+            
+            int atlasStart = x * size * BYTES_PER_PIXEL + y * size * ATLAS_SIZE_IMAGE;
+            System.out.println(atlasStart);
             
             ByteBuffer imgData = img.getData(0);
             for (int i = 0; i < size; i++) {
-                byte[] row = new byte[size]; // Create array for one row of image data
-                imgData.position(i * size);
-                imgData.get(row, 0, size); // Copy one row of data to array
-                atlasBuf.position(y * size * ATLAS_SIZE + x * size + i * ATLAS_SIZE); // Travel to correct point in atlas data
+                byte[] row = new byte[size * BYTES_PER_PIXEL]; // Create array for one row of image data
+                imgData.position(i * size * BYTES_PER_PIXEL);
+                imgData.get(row); // Copy one row of data to array
+                atlasBuf.position(atlasStart + IMAGE_UP_LEFT + (i - size) * ATLAS_SIZE_IMAGE); // Travel to correct point in atlas data
                 atlasBuf.put(row); // Set a row of data to atlas
             }
             
             // Set correct texture coordinates
             // X,Y=X and Y planes, Z=texture array index
             texture.assignTexCoords(x * 1.0f * size / ATLAS_SIZE, y * 1.0f * size / ATLAS_SIZE, atlases.size());
+            System.out.println("Assign texture coordinates: " + texture.getTexCoordX() + ", " + texture.getTexCoordY() + ", " + texture.getTexCoordZ() + " for " + texture.getAsset());
+            
+            x++;
         }
         
         // Not full atlas, but not empty either
         if (atlasBuf.position() != 0) {
+            System.out.println("Incomplete atlas");
             Image incompleteAtlas = new Image(Format.ABGR8, ATLAS_SIZE, ATLAS_SIZE, atlasBuf, null, com.jme3.texture.image.ColorSpace.sRGB);
             atlases.add(incompleteAtlas);
         }

@@ -3,6 +3,8 @@ package com.ritualsoftheold.terra.mesher;
 import java.util.Arrays;
 
 import com.ritualsoftheold.terra.material.MaterialRegistry;
+import com.ritualsoftheold.terra.material.TerraTexture;
+import com.ritualsoftheold.terra.mesher.resource.TextureManager;
 import com.ritualsoftheold.terra.offheap.DataConstants;
 
 import it.unimi.dsi.fastutil.floats.FloatArrayList;
@@ -33,7 +35,7 @@ public class NaiveMesher implements VoxelMesher {
     }
 
     @Override
-    public void chunk(long addr, MaterialRegistry reg) {
+    public void chunk(long addr, TextureManager textures) {
         // Clear previous lists
         verts.clear();
         indices.clear();
@@ -98,12 +100,23 @@ public class NaiveMesher implements VoxelMesher {
                     continue; // AIR or all faces are hidden
                 }
                 //System.out.println("id: " + id + ", block: " + block);
+                TerraTexture texture = textures.getTexture((short) id); // Get texture for id
+                if (texture == null) {
+                    block++;
+                    continue;
+                }
                 
                 float z0 = block / 4096;
                 float z = z0 * scale * 2;
                 float y = (block - 4096 * z0) / 64 * scale * 2;
                 float x = block % 64 * scale * 2;
                 //System.out.println("x: " + x + ", y: " + y + ", z: " + z);
+                
+                // Calculate texture coordinates...
+                float texMinX = texture.getTexCoordX();
+                float texMinY = texture.getTexCoordY();
+                float texMaxX = texture.getScale() * 0.25f * texture.getWidth();
+                float texMaxY = texture.getScale() * 0.25f * texture.getHeight();
                 
                 if ((faces & 0b00100000) == 0) { // RIGHT
                     //System.out.println("Draw RIGHT");
@@ -133,17 +146,17 @@ public class NaiveMesher implements VoxelMesher {
                     
                     vertIndex += 4;
                     
-                    texCoords.add(1);
-                    texCoords.add(1);
+                    texCoords.add(texMaxX);
+                    texCoords.add(texMaxY);
                     
-                    texCoords.add(0);
-                    texCoords.add(1);
+                    texCoords.add(texMinX);
+                    texCoords.add(texMaxY);
                     
-                    texCoords.add(0);
-                    texCoords.add(0);
+                    texCoords.add(texMinX);
+                    texCoords.add(texMinY);
                     
-                    texCoords.add(1);
-                    texCoords.add(0);
+                    texCoords.add(texMaxX);
+                    texCoords.add(texMinY);
                 } if ((faces & 0b00010000) == 0) { // LEFT
                     //System.out.println("Draw LEFT");
                     verts.add(x + scale);
@@ -172,17 +185,17 @@ public class NaiveMesher implements VoxelMesher {
                     
                     vertIndex += 4;
                     
-                    texCoords.add(0);
-                    texCoords.add(0);
+                    texCoords.add(texMinX);
+                    texCoords.add(texMinY);
                     
-                    texCoords.add(0);
-                    texCoords.add(1);
+                    texCoords.add(texMinX);
+                    texCoords.add(texMaxY);
                     
-                    texCoords.add(1);
-                    texCoords.add(1);
+                    texCoords.add(texMaxX);
+                    texCoords.add(texMaxY);
                     
-                    texCoords.add(1);
-                    texCoords.add(0);
+                    texCoords.add(texMaxX);
+                    texCoords.add(texMinY);
                 } if ((faces & 0b00001000) == 0) { // UP
                     //System.out.println("Draw UP");
                     verts.add(x - scale);
@@ -211,17 +224,17 @@ public class NaiveMesher implements VoxelMesher {
                     
                     vertIndex += 4;
                     
-                    texCoords.add(0);
-                    texCoords.add(0);
+                    texCoords.add(texMinX);
+                    texCoords.add(texMinY);
                     
-                    texCoords.add(0);
-                    texCoords.add(1);
+                    texCoords.add(texMinX);
+                    texCoords.add(texMaxY);
                     
-                    texCoords.add(1);
-                    texCoords.add(1);
+                    texCoords.add(texMaxX);
+                    texCoords.add(texMaxY);
                     
-                    texCoords.add(1);
-                    texCoords.add(0);
+                    texCoords.add(texMaxX);
+                    texCoords.add(texMinY);
                 } if ((faces & 0b00000100) == 0) { // DOWN
                     //System.out.println("Draw DOWN");
                     verts.add(x - scale);
@@ -250,17 +263,17 @@ public class NaiveMesher implements VoxelMesher {
                     
                     vertIndex += 4;
                     
-                    texCoords.add(0);
-                    texCoords.add(0);
+                    texCoords.add(texMinX);
+                    texCoords.add(texMinY);
                     
-                    texCoords.add(0);
-                    texCoords.add(1);
+                    texCoords.add(texMinX);
+                    texCoords.add(texMaxY);
                     
-                    texCoords.add(1);
-                    texCoords.add(1);
+                    texCoords.add(texMaxX);
+                    texCoords.add(texMaxY);
                     
-                    texCoords.add(1);
-                    texCoords.add(0);
+                    texCoords.add(texMaxX);
+                    texCoords.add(texMinY);
                 } if ((faces & 0b00000010) == 0) { // BACK
                     //System.out.println("Draw BACK");
                     verts.add(x + scale);
@@ -289,17 +302,17 @@ public class NaiveMesher implements VoxelMesher {
                     
                     vertIndex += 4;
                     
-                    texCoords.add(0);
-                    texCoords.add(0);
+                    texCoords.add(texMinX);
+                    texCoords.add(texMinY);
                     
-                    texCoords.add(0);
-                    texCoords.add(1);
+                    texCoords.add(texMinX);
+                    texCoords.add(texMaxY);
                     
-                    texCoords.add(1);
-                    texCoords.add(1);
+                    texCoords.add(texMaxX);
+                    texCoords.add(texMaxY);
                     
-                    texCoords.add(1);
-                    texCoords.add(0);
+                    texCoords.add(texMaxX);
+                    texCoords.add(texMinY);
                 } if ((faces & 0b00000001) == 0) { // FRONT
                     //System.out.println("Draw FRONT");
                     verts.add(x - scale);
@@ -328,17 +341,17 @@ public class NaiveMesher implements VoxelMesher {
                     
                     vertIndex += 4;
                     
-                    texCoords.add(0);
-                    texCoords.add(0);
+                    texCoords.add(texMinX);
+                    texCoords.add(texMinY);
                     
-                    texCoords.add(0);
-                    texCoords.add(1);
+                    texCoords.add(texMinX);
+                    texCoords.add(texMaxY);
                     
-                    texCoords.add(1);
-                    texCoords.add(1);
+                    texCoords.add(texMaxX);
+                    texCoords.add(texMaxY);
                     
-                    texCoords.add(1);
-                    texCoords.add(0);
+                    texCoords.add(texMaxX);
+                    texCoords.add(texMinY);
                 }
                 
                 block++; // Go to next block
