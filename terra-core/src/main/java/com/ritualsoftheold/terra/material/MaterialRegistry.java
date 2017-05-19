@@ -24,10 +24,19 @@ public class MaterialRegistry {
         this.preferredIds = new ArrayList<>(preferredIds);
         idToMaterial = new Short2ObjectArrayMap<>(preferredIds.size());
         nameToMaterial = new Object2ObjectOpenHashMap<>(preferredIds.size());
+        registerDefaultMaterials();
     }
     
     public MaterialRegistry() {
         this(new ArrayList<>());
+    }
+    
+    /**
+     * Registers materials which are mandatory for Terra to function.
+     */
+    private void registerDefaultMaterials() {
+        TerraModule mod = new TerraModule("base");
+        registerMaterial(mod.newMaterial().name("air").build(), mod);
     }
 
     /**

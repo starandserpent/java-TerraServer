@@ -8,6 +8,7 @@ import java.util.List;
 import com.jme3.asset.AssetManager;
 import com.jme3.texture.Image;
 import com.jme3.texture.Image.Format;
+import com.jme3.texture.Texture.MagFilter;
 import com.jme3.texture.Texture;
 import com.jme3.texture.TextureArray;
 import com.ritualsoftheold.terra.material.MaterialRegistry;
@@ -67,6 +68,9 @@ public class TextureManager {
         
         for (TerraMaterial mat : reg.getAllMaterials()) {
             TerraTexture texture = mat.getTexture();
+            if (texture == null) {
+                continue; // This material has no texture (e.g. air)
+            }
             textures.put(mat.getWorldId(), texture); // Put texture to map
             
             int width = texture.getWidth();
@@ -88,6 +92,7 @@ public class TextureManager {
         }
         
         array = new TextureArray(atlases);
+        array.setMagFilter(MagFilter.Nearest); // We want blocky style
         this.atlases = atlases;
     }
     
@@ -116,7 +121,7 @@ public class TextureManager {
                 byte[] row = new byte[size * BYTES_PER_PIXEL]; // Create array for one row of image data
                 imgData.position(i * size * BYTES_PER_PIXEL);
                 imgData.get(row); // Copy one row of data to array
-                atlasBuf.position(atlasStart + IMAGE_UP_LEFT + (i - size) * ATLAS_SIZE_IMAGE); // Travel to correct point in atlas data
+                atlasBuf.position(atlasStart + i * ATLAS_SIZE_IMAGE); // Travel to correct point in atlas data
                 atlasBuf.put(row); // Set a row of data to atlas
             }
             
@@ -134,6 +139,10 @@ public class TextureManager {
             Image incompleteAtlas = new Image(Format.ABGR8, ATLAS_SIZE, ATLAS_SIZE, atlasBuf, null, com.jme3.texture.image.ColorSpace.sRGB);
             atlases.add(incompleteAtlas);
         }
+    }
+
+    public float getAtlasSize() {
+        return ATLAS_SIZE;
     }
     
 }

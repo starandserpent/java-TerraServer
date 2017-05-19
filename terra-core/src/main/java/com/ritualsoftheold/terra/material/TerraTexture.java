@@ -6,6 +6,8 @@ package com.ritualsoftheold.terra.material;
  */
 public class TerraTexture {
     
+    private static final float DEFAULT_SCALE = 4;
+    
     private int width;
     private int height;
     
@@ -15,10 +17,15 @@ public class TerraTexture {
     
     private float texCoordX, texCoordY, texCoordZ;
     
-    public TerraTexture(int width, int height, String asset) {
+    public TerraTexture(int width, int height, float scale, String asset) {
         this.width = width;
         this.height = height;
         this.asset = asset;
+        this.scale = scale;
+    }
+    
+    public TerraTexture(int width, int height, String asset) {
+        this(width, height, DEFAULT_SCALE, asset);
     }
     
     /**
@@ -71,5 +78,10 @@ public class TerraTexture {
     
     public float getTexCoordZ() {
         return texCoordZ;
+    }
+    
+    @Override
+    public String toString() {
+        return "texture:" + asset;
     }
 }
