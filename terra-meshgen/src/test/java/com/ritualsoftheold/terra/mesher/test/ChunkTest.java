@@ -40,7 +40,7 @@ public class ChunkTest extends SimpleApplication {
         mem.writeShort(addr, (short) 2); // Add some stuff to chunk
         //mem.writeShort(addr + 8192, (short) 0xffff);
         System.out.println("addr: " + addr);
-        for (int i = 2; i < 20000; i += 2) {
+        for (int i = 2; i < 524288; i += 2) {
             if (Math.random() < 0.5)
                 mem.writeShort(addr + i, (short) 1);
             else

@@ -115,10 +115,10 @@ public class NaiveMesher implements VoxelMesher {
                 //System.out.println("x: " + x + ", y: " + y + ", z: " + z);
                 
                 // Calculate texture coordinates...
-                float texMinX = texture.getTexCoordX() / atlasSize;
-                float texMinY = texture.getTexCoordY() / atlasSize;
-                float texMaxX = texture.getScale() * 0.25f * texture.getWidth() / atlasSize;
-                float texMaxY = texture.getScale() * 0.25f * texture.getHeight() / atlasSize;
+                float texMinX = texture.getTexCoordX();
+                float texMinY = texture.getTexCoordY() ;
+                float texMaxX = texMinX + texture.getScale() * 0.25f * texture.getWidth() / atlasSize;
+                float texMaxY = texMinY + texture.getScale() * 0.25f * texture.getHeight() / atlasSize;
                 float texArray = texture.getTexCoordZ();
                 
                 System.out.println("texMinX: " + texMinX + ", texMinY: " + texMinY + ", texMaxX: " + texMaxX + ", texMaxY: " + texMaxY);
