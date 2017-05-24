@@ -3,6 +3,7 @@ package com.ritualsoftheold.terra.offheap.octree;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 
+import com.ritualsoftheold.terra.offheap.DataConstants;
 import com.ritualsoftheold.terra.offheap.io.OctreeLoader;
 
 import it.unimi.dsi.fastutil.bytes.Byte2LongArrayMap;
@@ -24,6 +25,17 @@ public class OctreeStorage {
      * All addresses have same amount of memory allocated after them.
      */
     private Byte2LongMap groups;
+    
+    /**
+     * Group where new octrees should be added.
+     */
+    private byte freeGroup;
+    
+    /**
+     * Free index in the {@link #freeGroup}. You should insert new octree at
+     * this position, then increment this by one.
+     */
+    private int freeIndex;
     
     /**
      * Size of storage groups.
@@ -93,5 +105,43 @@ public class OctreeStorage {
             });
             return future;
         }
+    }
+    
+    public int newOctree() {
+        int index = freeGroup << 24 | freeIndex; // Get next free index (includes group and octree indexes)
+        freeIndex++;
+        if (freeIndex * DataConstants.OCTREE_SIZE == blockSize) { // This group just became full
+            freeGroup++; // Take next group
+            freeIndex = 0; // ... and zero index
+        }
+        return index;
+    }
+    
+    public int splitOctree(int index, int node) {
+        byte groupIndex = (byte) (index >>> 24);
+        int octreeIndex = index & 0xffffff;
+        
+        // Grab all necessary addresses
+        long groupAddr = getGroup(groupIndex);
+        long addr = groupAddr + index * DataConstants.OCTREE_SIZE;
+        long nodeAddr = addr + 1 + node * DataConstants.OCTREE_NODE_SIZE;
+        
+        int blockData = mem.readInt(nodeAddr); // Copy old block data
+        
+        // Gather new indexes and addresses
+        int newIndex = newOctree(); // Get an index for new octree
+        long newGroupAddr = getGroup((byte) (newIndex >>> 24)); // Get address for the new group
+        long newAddr = newGroupAddr + (newIndex & 0xffffff) * DataConstants.OCTREE_NODE_SIZE;
+        
+        mem.writeByte(newAddr, (byte) 0); // New octree has single nodes only
+        for (int i = 0; i < 8; i++) { // Copy old data to EVERY new node
+            mem.writeInt(newAddr + i * DataConstants.OCTREE_NODE_SIZE, blockData);
+        }
+        
+        // Now update old octree to properly point into it's no longer single child node
+        mem.writeByte(addr, (byte) (mem.readByte(addr) | (1 << node))); // Update flags
+        mem.writeInt(nodeAddr, newIndex); // ... and actual index
+        
+        return newIndex; // Finally return new index, as this is ready to be used
     }
 }
