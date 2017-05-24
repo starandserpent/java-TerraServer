@@ -64,12 +64,22 @@ public class OctreeStorage {
         if (addr == -1) {
             CompletableFuture<Long> future = CompletableFuture.supplyAsync(() -> {
                 long newAddr = loader.loadOctrees(groupIndex, -1);
+                groups.put(groupIndex, newAddr);
                 return newAddr;
             }, loaderExecutor);
             return future;
         } else {
             return CompletableFuture.completedFuture(groups.get(groupIndex));
         }
+    }
+    
+    public long getGroup(byte groupIndex) {
+        long addr = groups.get(groupIndex);
+        if (addr == -1) {
+            loader.loadOctrees(groupIndex, -1);
+            groups.put(groupIndex, addr);
+        }
+        return addr;
     }
     
     public CompletableFuture<Long> saveGroup(byte groupIndex) {

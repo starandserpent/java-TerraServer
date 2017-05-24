@@ -25,5 +25,5 @@ public interface WorldGenerator {
      * @param scale Scale of the chunk.
      * @return If generating the chunk was successful.
      */
-    boolean generate(char[] data, float x, float y, float z, float scale);
+    boolean generate(short[] data, float x, float y, float z, float scale);
 }

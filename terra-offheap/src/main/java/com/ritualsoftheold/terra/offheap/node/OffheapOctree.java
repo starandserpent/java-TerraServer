@@ -12,7 +12,7 @@ import com.ritualsoftheold.terra.offheap.world.OffheapWorld;
 import net.openhft.chronicle.core.Memory;
 import net.openhft.chronicle.core.OS;
 
-// TODO need some API changes for callback stuff
+// TODO just need to do more stuff
 public class OffheapOctree implements Octree, OffheapNode {
     
     private static Memory mem = OS.memory();

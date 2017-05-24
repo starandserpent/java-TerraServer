@@ -81,6 +81,16 @@ public class ChunkStorage {
         }
     }
     
+    public ChunkBuffer getBuffer(short bufferId) {
+        ChunkBuffer buf = buffers.get(bufferId);
+        if (buf == null) { // Oops we need to load this
+            buf = new ChunkBuffer(chunksPerBuffer, extraAlloc); // Create buffer
+            loader.loadChunks(bufferId, buf);
+            buffers.put(bufferId, buf);
+        }
+        return buf;
+    }
+    
     public CompletableFuture<ChunkBuffer> saveBuffer(short bufferId, Consumer<ChunkBuffer> callback) {
         ChunkBuffer buf = buffers.get(bufferId);
         if (buf != null) {
@@ -100,8 +110,13 @@ public class ChunkStorage {
             CompletableFuture<ChunkBuffer> bufFuture = requestBuffer(bufferId);
             CompletableFuture<Chunk> chunkFuture = CompletableFuture.supplyAsync(() -> {
                 long addr = mem.allocate(DataConstants.CHUNK_UNCOMPRESSED);
+                ChunkBuffer buf = bufFuture.join(); // Wait for the other future
+                
+                // Check if this chunk was generated...
+                // TODO
+                
                 try {
-                    bufFuture.join().unpack(index, addr); // Unpack data
+                    buf.unpack(index, addr); // Unpack data
                 } catch (IOException e) {
                     e.printStackTrace();
                     // TODO handle these rare errors
@@ -116,6 +131,32 @@ public class ChunkStorage {
         } else { // Cache found!
             return CompletableFuture.completedFuture(chunk);
         }
+    }
+    
+    public Chunk getChunk(int chunkId, MaterialRegistry registry) {
+        OffheapChunk chunk = chunkCache.get(chunkId);
+        if (chunk == null) { // Not in cache...
+            // TODO optimize memory allocations here
+            // We have static-sized cache, why not recycle memory?
+            short bufferId = (short) (chunkId >>> 16);
+            int index = chunkId & 0xffff;
+            ChunkBuffer buf = getBuffer(bufferId);
+            long addr = mem.allocate(DataConstants.CHUNK_UNCOMPRESSED);
+            
+            // Check if this chunk was generated...
+            // TODO
+            
+            try {
+                buf.unpack(index, addr); // Unpack data
+            } catch (IOException e) {
+                e.printStackTrace();
+                // TODO handle these rare errors
+            }
+            chunk = new OffheapChunk(registry);
+            chunk.memoryAddress(addr); // Set memory address to point to data
+            chunkCache.put(chunkId, chunk); // Cache what we just loaded
+        }
+        return chunk;
     }
     
 }
