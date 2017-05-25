@@ -168,6 +168,15 @@ public class OffheapWorld implements TerraWorld {
         return future;
     }
     
+    public void handleGenerate(float x, float y, float z, int chunkId) {
+        generatorExecutor.execute(() -> {
+            short[] data = new short[DataConstants.CHUNK_MAX_BLOCKS];
+            generator.generate(data, x, y, z, DataConstants.CHUNK_SCALE);
+            
+            // TODO now do something with all this data
+        });
+    }
+    
     @Override
     public CompletableFuture<Chunk> requestChunk(int index) {
         return chunkStorage.requestChunk(index, getMaterialRegistry());

@@ -123,7 +123,7 @@ public class OctreeStorage {
         
         // Grab all necessary addresses
         long groupAddr = getGroup(groupIndex);
-        long addr = groupAddr + index * DataConstants.OCTREE_SIZE;
+        long addr = groupAddr + octreeIndex * DataConstants.OCTREE_SIZE;
         long nodeAddr = addr + 1 + node * DataConstants.OCTREE_NODE_SIZE;
         
         int blockData = mem.readInt(nodeAddr); // Copy old block data
