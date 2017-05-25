@@ -50,6 +50,8 @@ public class ChunkStorage {
      */
     private Int2ObjectMap<OffheapChunk> chunkCache;
     
+    private ChunkBuffer freeBuffer;
+    
     /**
      * Initializes new chunk storage. Usually this should be done once per world.
      * @param loader Chunk loader, responsible for loading and optionally saving chunks.
@@ -157,6 +159,32 @@ public class ChunkStorage {
             chunkCache.put(chunkId, chunk); // Cache what we just loaded
         }
         return chunk;
+    }
+    
+    private ChunkBuffer findFreeBuffer() {
+        for (ChunkBuffer buf : buffers.values()) {
+            if (buf.hasSpace()) {
+                return buf;
+            }
+        }
+        
+        // Still no buffer? Create one and store
+        short nextId = (short) buffers.size();
+        freeBuffer = new ChunkBuffer(chunksPerBuffer, extraAlloc);
+        buffers.put(nextId, freeBuffer);
+        return freeBuffer;
+    }
+    
+    public OffheapChunk addChunk(long addr) {
+        ChunkBuffer buf = freeBuffer;
+        if (!buf.hasSpace()) {
+            buf = findFreeBuffer();
+            freeBuffer = buf;
+        }
+        
+        // TODO compression? ouch...
+        
+        return null;
     }
     
 }
