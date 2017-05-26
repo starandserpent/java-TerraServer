@@ -174,13 +174,12 @@ public class ChunkBuffer {
      * Unpacks specific chunk to given address.
      * @param index
      * @param addr
-     * @throws IOException 
      */
-    public void unpack(int index, long addr) throws IOException {
+    public void unpack(int index, long addr) {
         RunLengthCompressor.compress(chunks[index], addr);
     }
     
-    public void pack(int index, long addr, int length) throws IOException {
+    public void pack(int index, long addr, int length) {
         // TODO optimize to do less memory allocations
         long tempAddr = mem.allocate(length);
         long compressedLength = RunLengthCompressor.compress(addr, tempAddr);
@@ -189,5 +188,14 @@ public class ChunkBuffer {
         }
         mem.copyMemory(tempAddr, chunks[index], compressedLength); // Copy temporary packed data to final destination
         mem.freeMemory(tempAddr, length); // Free temporary packing memory
+    }
+
+    public int putChunk(long addr) {
+        long tempAddr = mem.allocate(DataConstants.CHUNK_UNCOMPRESSED); // TODO optimize to allocate less memory
+        int compressedLength = RunLengthCompressor.compress(addr, tempAddr);
+        
+        int bufferId = createChunk(compressedLength);
+        mem.copyMemory(tempAddr, getChunkAddress(bufferId), compressedLength);
+        return bufferId;
     }
 }

@@ -51,6 +51,7 @@ public class ChunkStorage {
     private Int2ObjectMap<OffheapChunk> chunkCache;
     
     private ChunkBuffer freeBuffer;
+    private short freeBufferId;
     
     /**
      * Initializes new chunk storage. Usually this should be done once per world.
@@ -117,12 +118,7 @@ public class ChunkStorage {
                 // Check if this chunk was generated...
                 // TODO
                 
-                try {
-                    buf.unpack(index, addr); // Unpack data
-                } catch (IOException e) {
-                    e.printStackTrace();
-                    // TODO handle these rare errors
-                }
+                buf.unpack(index, addr); // Unpack data
                 OffheapChunk loadedChunk = new OffheapChunk(registry);
                 loadedChunk.memoryAddress(addr); // Set memory address to point to data
                 chunkCache.put(chunkId, loadedChunk); // Cache what we just loaded
@@ -148,12 +144,7 @@ public class ChunkStorage {
             // Check if this chunk was generated...
             // TODO
             
-            try {
-                buf.unpack(index, addr); // Unpack data
-            } catch (IOException e) {
-                e.printStackTrace();
-                // TODO handle these rare errors
-            }
+            buf.unpack(index, addr); // Unpack data
             chunk = new OffheapChunk(registry);
             chunk.memoryAddress(addr); // Set memory address to point to data
             chunkCache.put(chunkId, chunk); // Cache what we just loaded
@@ -162,8 +153,11 @@ public class ChunkStorage {
     }
     
     private ChunkBuffer findFreeBuffer() {
-        for (ChunkBuffer buf : buffers.values()) {
+        for (Short2ObjectMap.Entry<ChunkBuffer> entry : buffers.short2ObjectEntrySet()) {
+            ChunkBuffer buf = entry.getValue();
             if (buf.hasSpace()) {
+                freeBuffer = buf;
+                freeBufferId = entry.getShortKey();
                 return buf;
             }
         }
@@ -171,20 +165,26 @@ public class ChunkStorage {
         // Still no buffer? Create one and store
         short nextId = (short) buffers.size();
         freeBuffer = new ChunkBuffer(chunksPerBuffer, extraAlloc);
+        freeBufferId = nextId;
         buffers.put(nextId, freeBuffer);
         return freeBuffer;
     }
     
-    public OffheapChunk addChunk(long addr) {
+    public OffheapChunk addChunk(long addr, MaterialRegistry reg) {
         ChunkBuffer buf = freeBuffer;
         if (!buf.hasSpace()) {
             buf = findFreeBuffer();
-            freeBuffer = buf;
         }
         
-        // TODO compression? ouch...
+        // Put chunk to buffer
+        int bufferId = buf.putChunk(addr);
         
-        return null;
+        // Create on-heap wrapper plus put this to cache
+        OffheapChunk chunk = new OffheapChunk(reg);
+        chunk.memoryAddress(addr);
+        chunkCache.put(freeBufferId << 16 | bufferId, chunk);
+        
+        return chunk;
     }
     
 }
