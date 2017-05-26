@@ -177,13 +177,13 @@ public class ChunkBuffer {
      * @throws IOException 
      */
     public void unpack(int index, long addr) throws IOException {
-        Snappy.rawUncompress(chunks[index], lengths[index], addr);
+        RunLengthCompressor.compress(chunks[index], addr);
     }
     
     public void pack(int index, long addr, int length) throws IOException {
         // TODO optimize to do less memory allocations
         long tempAddr = mem.allocate(length);
-        long compressedLength = Snappy.rawCompress(addr, length, tempAddr);
+        long compressedLength = RunLengthCompressor.compress(addr, tempAddr);
         if (compressedLength  > lengths[index]) { // If we do not have enough space, allocate more
             reallocChunk(index, compressedLength);
         }
