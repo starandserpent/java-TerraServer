@@ -170,7 +170,7 @@ public class ChunkStorage {
         return freeBuffer;
     }
     
-    public OffheapChunk addChunk(long addr, MaterialRegistry reg) {
+    public int addChunk(long addr, MaterialRegistry reg) {
         ChunkBuffer buf = freeBuffer;
         if (!buf.hasSpace()) {
             buf = findFreeBuffer();
@@ -179,12 +179,7 @@ public class ChunkStorage {
         // Put chunk to buffer
         int bufferId = buf.putChunk(addr);
         
-        // Create on-heap wrapper plus put this to cache
-        OffheapChunk chunk = new OffheapChunk(reg);
-        chunk.memoryAddress(addr);
-        chunkCache.put(freeBufferId << 16 | bufferId, chunk);
-        
-        return chunk;
+        return freeBufferId << 16 | bufferId;
     }
     
 }

@@ -34,7 +34,7 @@ public class OctreeTest {
     
     @Test
     public void octreeTest() {
-        OffheapWorld world = new OffheapWorld(null, null);
+        OffheapWorld world = new OffheapWorld(null, null, null);
         long addr = mem.allocate(DataConstants.OCTREE_SIZE * 8192); // Allocate memory
         mem.writeInt(addr + 1 + 6 * DataConstants.OCTREE_NODE_SIZE, 5); // Write one sample there
         

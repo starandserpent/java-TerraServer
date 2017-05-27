@@ -43,7 +43,9 @@ public class OffheapWorld implements TerraWorld {
     private WorldGenerator generator;
     private Executor generatorExecutor;
     
-    public OffheapWorld(ChunkLoader chunkLoader, OctreeLoader octreeLoader) {
+    private MaterialRegistry registry;
+    
+    public OffheapWorld(ChunkLoader chunkLoader, OctreeLoader octreeLoader, MaterialRegistry registry) {
         this.chunkLoader = chunkLoader;
         this.octreeLoader = octreeLoader;
         
@@ -52,7 +54,7 @@ public class OffheapWorld implements TerraWorld {
         this.chunkStorage = new ChunkStorage(chunkLoader, storageExecutor, 64, 1024); // TODO settings
         this.octreeStorage = new OctreeStorage(8192, octreeLoader, storageExecutor);
         
-        // Caching...
+        this.registry = registry;
     }
 
     @Override
@@ -62,12 +64,23 @@ public class OffheapWorld implements TerraWorld {
 
     @Override
     public MaterialRegistry getMaterialRegistry() {
-        // TODO Auto-generated method stub
-        return null;
+        return registry;
     }
 
     @Override
     public Chunk getChunk(float x, float y, float z) {
+        return null; // TODO
+    }
+    
+    /**
+     * Attempts to get an id for smallest node at given coordinates.
+     * @param x X coordinate.
+     * @param y Y coordinate.
+     * @param z Z coordinate.
+     * @return 32 least significant bits represent the actual id. 33th
+     * tells if the id refers to chunk (1) or octree (2).
+     */
+    private long getNodeId(float x, float y, float z) {
         long addr = masterOctree.memoryAddress(); // Get starting memory address
         float scale = masterScale; // Starting scale
         
@@ -134,17 +147,27 @@ public class OffheapWorld implements TerraWorld {
             }
             
             int entry = mem.readInt(addr + 1 + index); // Read octree entry
+            boolean isOctree = mem.readByte(addr) >>> index == 1; // Get flags, check this index against them
             scale *= 0.5f; // Halve the scale, we are moving to child node
             
             if (scale < DataConstants.CHUNK_SCALE + 1) { // Found a chunk
-                return chunkStorage.getChunk(entry, getMaterialRegistry());
+                if (isOctree && entry == 0) { // Chunk-null: needs to be created
+                    entry = handleGenerate(x, y, z); // World gen here
+                    mem.writeInt(addr + 1 + index, entry);
+                }
+                
+                return 1 << 32 | entry;
             } else { // Just octree or single block here
-                boolean isOctree = mem.readByte(addr) >>> index == 1; // Get flags, check this index against them
+                if (isOctree && entry == 0) { // Octree-null: needs to be created
+                    entry = octreeStorage.newOctree();
+                    mem.writeInt(addr + 1 + index, entry);
+                }
+                
                 if (isOctree) {
                     long groupAddr = octreeStorage.getGroup((byte) (entry >>> 24));
                     addr = groupAddr + (index & 0xffffff) * DataConstants.OCTREE_SIZE; // Update address to point to new octree
                 } else {
-                    // TODO wait a second, we can't get a chunk this way
+                    return entry;
                 }
             }
         }
@@ -168,13 +191,19 @@ public class OffheapWorld implements TerraWorld {
         return future;
     }
     
-    public void handleGenerate(float x, float y, float z, int chunkId) {
-        generatorExecutor.execute(() -> {
-            short[] data = new short[DataConstants.CHUNK_MAX_BLOCKS];
-            generator.generate(data, x, y, z, DataConstants.CHUNK_SCALE);
-            
-            // TODO now do something with all this data
-        });
+    public int handleGenerate(float x, float y, float z) {
+        short[] data = new short[DataConstants.CHUNK_MAX_BLOCKS];
+        generator.generate(data, x, y, z, DataConstants.CHUNK_SCALE);
+        
+        long tempAddr = mem.allocate(DataConstants.CHUNK_UNCOMPRESSED);
+        
+        // TODO memory copy is faster (but not as safe)
+        for (int i = 0; i < data.length; i++) {
+            mem.writeShort(tempAddr + i * 2, data[i]);
+        }
+        
+        int chunkId = chunkStorage.addChunk(tempAddr, registry);
+        return chunkId;
     }
     
     @Override
