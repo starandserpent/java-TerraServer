@@ -37,4 +37,6 @@ public interface TerraWorld {
     CompletableFuture<Octree> requestOctree(int index);
 
     CompletableFuture<Chunk> requestChunk(int index);
+    
+    void addLoadMarker(LoadMarker marker);
 }
