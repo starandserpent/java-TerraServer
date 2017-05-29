@@ -16,6 +16,8 @@ public class LoadMarker {
     
     private float softRadius;
     
+    private boolean hasMoved;
+    
     public LoadMarker(float x, float y, float z, float hardRadius, float softRadius) {
         this.x = x;
         this.y = y;
@@ -40,6 +42,8 @@ public class LoadMarker {
         this.x = x;
         this.y = y;
         this.z = z;
+        
+        this.hasMoved = true;
     }
     
     /**
@@ -58,5 +62,20 @@ public class LoadMarker {
      */
     public float getSoftRadius() {
         return softRadius;
+    }
+    
+    /**
+     * Tells if this marker has been moved since last update.
+     * @return Has this marker moved.
+     */
+    public boolean hasMoved() {
+        return hasMoved;
+    }
+    
+    /**
+     * Marks this load marker as updated.
+     */
+    public void markUpdated() {
+        hasMoved = false;
     }
 }

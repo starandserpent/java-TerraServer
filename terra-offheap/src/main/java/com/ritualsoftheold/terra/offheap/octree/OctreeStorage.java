@@ -3,8 +3,11 @@ package com.ritualsoftheold.terra.offheap.octree;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 
+import com.ritualsoftheold.terra.node.Octree;
 import com.ritualsoftheold.terra.offheap.DataConstants;
 import com.ritualsoftheold.terra.offheap.io.OctreeLoader;
+import com.ritualsoftheold.terra.offheap.node.OffheapOctree;
+import com.ritualsoftheold.terra.offheap.world.OffheapWorld;
 
 import it.unimi.dsi.fastutil.bytes.Byte2LongArrayMap;
 import it.unimi.dsi.fastutil.bytes.Byte2LongMap;
@@ -143,5 +146,18 @@ public class OctreeStorage {
         mem.writeInt(nodeAddr, newIndex); // ... and actual index
         
         return newIndex; // Finally return new index, as this is ready to be used
+    }
+    
+    public OffheapOctree getOctree(int index, OffheapWorld world) {
+        byte groupIndex = (byte) (index >>> 24);
+        int octreeIndex = index & 0xffffff;
+        long groupAddr = getGroup(groupIndex);
+        // This future will block on groupFuture.get()... hopefully
+        long addr = groupAddr + octreeIndex * DataConstants.OCTREE_SIZE;
+        
+        OffheapOctree octree = new OffheapOctree(world, 0f); // TODO scale, somehow
+        octree.memoryAddress(addr); // Validate octree with memory address!
+        
+        return octree;
     }
 }

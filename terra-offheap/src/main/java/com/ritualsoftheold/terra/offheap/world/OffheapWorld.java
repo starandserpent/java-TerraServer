@@ -7,6 +7,7 @@ import java.util.concurrent.ForkJoinPool;
 
 import com.ritualsoftheold.terra.material.MaterialRegistry;
 import com.ritualsoftheold.terra.node.Chunk;
+import com.ritualsoftheold.terra.node.Node;
 import com.ritualsoftheold.terra.node.Octree;
 import com.ritualsoftheold.terra.offheap.DataConstants;
 import com.ritualsoftheold.terra.offheap.chunk.ChunkStorage;
@@ -70,6 +71,18 @@ public class OffheapWorld implements TerraWorld {
     @Override
     public MaterialRegistry getMaterialRegistry() {
         return registry;
+    }
+    
+    public Node getNode(float x, float y, float z) {
+        long nodeData = getNodeId(x, y, z);
+        boolean isChunk = nodeData >>> 32 == 1;
+        int nodeId = (int) (nodeData & 0xffffff);
+        
+        if (isChunk) {
+            return chunkStorage.getChunk(nodeId, registry);
+        } else {
+            return octreeStorage.getOctree(nodeId, this);
+        }
     }
 
     @Override
@@ -159,6 +172,8 @@ public class OffheapWorld implements TerraWorld {
                 if (isOctree && entry == 0) { // Chunk-null: needs to be created
                     entry = handleGenerate(x, y, z); // World gen here
                     mem.writeInt(addr + 1 + index, entry);
+                } else {
+                    chunkStorage.ensureLoaded(entry);
                 }
                 
                 return 1 << 32 | entry;
@@ -300,7 +315,7 @@ public class OffheapWorld implements TerraWorld {
      * Loads all children of given octree index.
      * @param index
      */
-    public void loadAll(int index, float scale, float x, float y, float z) {
+    private void loadAll(int index, float scale, float x, float y, float z) {
         long groupAddr = octreeStorage.getGroup((byte) (index >>> 24));
         long addr = groupAddr + (index & 0xffffff) * DataConstants.OCTREE_SIZE; // Update address to point to new octree
         
@@ -431,8 +446,27 @@ public class OffheapWorld implements TerraWorld {
 
     @Override
     public void addLoadMarker(LoadMarker marker) {
-        // TODO Auto-generated method stub
-        
+        loadMarkers.add(marker);
+    }
+
+    @Override
+    public void updateLoadMarkers() {
+        // Delegate updating to async code, this might be costly
+        for (LoadMarker marker : loadMarkers) {
+            if (marker.hasMoved()) { // Update only marker that has been moved
+                // When player moves a little, DO NOT, I repeat, DO NOT just blindly move load marker.
+                // Move it when player moves few meters or so!
+                storageExecutor.execute(() -> updateLoadMarker(marker));
+            }
+        }
+    }
+    
+    /**
+     * Updates given load marker no matter what. Only used internally.
+     * @param marker Load marker to update.
+     */
+    private void updateLoadMarker(LoadMarker marker) {
+        loadArea(marker.getX(), marker.getY(), marker.getZ(), marker.getHardRadius());
     }
 
 }

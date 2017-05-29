@@ -4,6 +4,7 @@ import java.util.concurrent.CompletableFuture;
 
 import com.ritualsoftheold.terra.material.MaterialRegistry;
 import com.ritualsoftheold.terra.node.Chunk;
+import com.ritualsoftheold.terra.node.Node;
 import com.ritualsoftheold.terra.node.Octree;
 
 /**
@@ -25,6 +26,8 @@ public interface TerraWorld {
      */
     MaterialRegistry getMaterialRegistry();
     
+    Node getNode(float x, float y, float z);
+    
     /**
      * Gets chunk at given location.
      * @param x X coordinate inside chunk.
@@ -39,4 +42,6 @@ public interface TerraWorld {
     CompletableFuture<Chunk> requestChunk(int index);
     
     void addLoadMarker(LoadMarker marker);
+    
+    void updateLoadMarkers();
 }
