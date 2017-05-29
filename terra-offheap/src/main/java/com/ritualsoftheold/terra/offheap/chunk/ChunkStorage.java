@@ -115,9 +115,6 @@ public class ChunkStorage {
                 long addr = mem.allocate(DataConstants.CHUNK_UNCOMPRESSED);
                 ChunkBuffer buf = bufFuture.join(); // Wait for the other future
                 
-                // Check if this chunk was generated...
-                // TODO
-                
                 buf.unpack(index, addr); // Unpack data
                 OffheapChunk loadedChunk = new OffheapChunk(registry);
                 loadedChunk.memoryAddress(addr); // Set memory address to point to data
@@ -140,9 +137,6 @@ public class ChunkStorage {
             int index = chunkId & 0xffff;
             ChunkBuffer buf = getBuffer(bufferId);
             long addr = mem.allocate(DataConstants.CHUNK_UNCOMPRESSED);
-            
-            // Check if this chunk was generated...
-            // TODO
             
             buf.unpack(index, addr); // Unpack data
             chunk = new OffheapChunk(registry);
@@ -180,6 +174,14 @@ public class ChunkStorage {
         int bufferId = buf.putChunk(addr);
         
         return freeBufferId << 16 | bufferId;
+    }
+    
+    /**
+     * Ensures that a chunk with given id is loaded when this method returns.
+     * @param id Full chunk id.
+     */
+    public void ensureLoaded(int id) {
+        getBuffer((short) (id >>> 16));
     }
     
 }

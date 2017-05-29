@@ -268,6 +268,8 @@ public class OffheapWorld implements TerraWorld {
                 if (isOctree && entry == 0) { // Chunk-null: needs to be created
                     entry = handleGenerate(x, y, z); // World gen here
                     mem.writeInt(addr + 1 + index * DataConstants.OCTREE_NODE_SIZE, entry);
+                } else {
+                    chunkStorage.ensureLoaded(entry);
                 }
                 
                 break;
@@ -314,8 +316,8 @@ public class OffheapWorld implements TerraWorld {
                     if (entry == 0) { // Ooops, need to generate a chunk now
                         entry = handleGenerate(x, y, z); // World gen here
                         mem.writeInt(addr + 1 + index * DataConstants.OCTREE_NODE_SIZE, entry);
-                    } else {
-                        // TODO ensure that chunk is loaded
+                    } else { // Make sure previously generated chunk is loaded
+                        chunkStorage.ensureLoaded(entry);
                     }
                 }
             }
