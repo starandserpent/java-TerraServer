@@ -37,16 +37,10 @@ public class ChunkTest extends SimpleApplication {
         // Create chunk data
         long addr = mem.allocate(DataConstants.CHUNK_UNCOMPRESSED);
         mem.setMemory(addr, DataConstants.CHUNK_UNCOMPRESSED, (byte) 0);
-        mem.writeShort(addr, (short) 2); // Add some stuff to chunk
-        //mem.writeShort(addr + 8192, (short) 0xffff);
-        System.out.println("addr: " + addr);
-        for (int i = 2; i < 524288; i += 2) {
-            if (Math.random() < 0.5)
-                mem.writeShort(addr + i, (short) 1);
-            else
-                mem.writeShort(addr + i, (short) 2);
-        }
-        System.out.println(Long.toBinaryString(mem.readLong(addr)));
+        mem.writeByte(addr, (byte) 0); // Chunk type here
+        mem.writeShort(addr + 1, (short) 2); // Add some stuff to chunk
+        mem.writeShort(addr + 3, (short) 30);
+        //System.out.println(Long.toBinaryString(mem.readLong(addr)));
         
         // Register materials
         TextureManager manager = new TextureManager(assetManager); // jME provides asset manager

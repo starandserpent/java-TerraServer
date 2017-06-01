@@ -6,6 +6,7 @@ import com.ritualsoftheold.terra.material.MaterialRegistry;
 import com.ritualsoftheold.terra.material.TerraTexture;
 import com.ritualsoftheold.terra.mesher.resource.TextureManager;
 import com.ritualsoftheold.terra.offheap.DataConstants;
+import com.ritualsoftheold.terra.offheap.chunk.iterator.ChunkIterator;
 
 import it.unimi.dsi.fastutil.floats.FloatArrayList;
 import it.unimi.dsi.fastutil.floats.FloatList;
@@ -44,67 +45,66 @@ public class NaiveMesher implements VoxelMesher {
         byte[] hidden = new byte[DataConstants.CHUNK_MAX_BLOCKS]; // Visibility mappings for cubes
         //Arrays.fill(hidden, (byte) 0);
         
+        // Create iterator
+        ChunkIterator it = ChunkIterator.forChunk(addr + DataConstants.CHUNK_DATA_OFFSET, mem.readByte(addr));
+        
         // Generate mappings for culling
-        for (int i = 0; i < DataConstants.CHUNK_MAX_BLOCKS; i += 4) {
-            long ids = mem.readLong(addr + i * 2); // Read 4 16 bit blocks
-            // BEWARE: it is LITTLE ENDIAN, not big endian as Java usually
+        while (!it.isDone()) {
+            int begin = it.getOffset();
+            short blockId = it.nextMaterial();
+            if (blockId == 0) { // TODO better AIR check
+                continue;
+            }
             
-            for (int j = 0; j < 4; j++) { // Loop blocks from what we just read (TODO unroll loop and measure performance)
-                long id = ids >>> (j * 16); // Get id for THIS block
-                if (id != 0) { // TODO better "is-air" check
-                    int index = i + j;
+            for (int i = 0; i < it.getCount(); i++) { // Loop blocks from what we just read
+                int index = begin + i;
                     
-                    int rightIndex = index - 1;
-                    if (rightIndex > -1 && index % 64 != 0)
-                        hidden[rightIndex] |= 0b00010000; // RIGHT
-                    int leftIndex = index + 1;
-                    if (leftIndex < DataConstants.CHUNK_MAX_BLOCKS && leftIndex % 64 != 0)
-                        hidden[leftIndex] |= 0b00100000; // LEFT
-                    int upIndex = index - 64;
-                    if (upIndex > -1 && index - index / 4096 * 4096 > 64)
-                        hidden[upIndex] |= 0b00001000; // UP
-                    int downIndex = index + 64;
-                    if (downIndex < DataConstants.CHUNK_MAX_BLOCKS && downIndex - downIndex / 4096 * 4096 > 64)
-                        hidden[downIndex] |= 0b00000100; // DOWN
-                    int backIndex = index + 4096;
-                    if (backIndex < DataConstants.CHUNK_MAX_BLOCKS)
-                        hidden[backIndex] |= 0b00000001; // BACK
-                    int frontIndex = index - 4096;
-                    if (frontIndex > -1)
-                        hidden[frontIndex] |= 0b00000010; // FRONT
-                }
+                int rightIndex = index - 1;
+                if (rightIndex > -1 && index % 64 != 0)
+                    hidden[rightIndex] |= 0b00010000; // RIGHT
+                int leftIndex = index + 1;
+                if (leftIndex < DataConstants.CHUNK_MAX_BLOCKS && leftIndex % 64 != 0)
+                    hidden[leftIndex] |= 0b00100000; // LEFT
+                int upIndex = index - 64;
+                if (upIndex > -1 && index - index / 4096 * 4096 > 64)
+                    hidden[upIndex] |= 0b00001000; // UP
+                int downIndex = index + 64;
+                if (downIndex < DataConstants.CHUNK_MAX_BLOCKS && downIndex - downIndex / 4096 * 4096 > 64)
+                    hidden[downIndex] |= 0b00000100; // DOWN
+                int backIndex = index + 4096;
+                if (backIndex < DataConstants.CHUNK_MAX_BLOCKS)
+                    hidden[backIndex] |= 0b00000001; // BACK
+                int frontIndex = index - 4096;
+                if (frontIndex > -1)
+                    hidden[frontIndex] |= 0b00000010; // FRONT
             }
         }
+        
+        // Reset iterator to starting position
+        it.reset();
         
         float atlasSize = textures.getAtlasSize();
         
         int block = 0;
         int vertIndex = 0;
-        for (int i = 0; i < DataConstants.CHUNK_MAX_BLOCKS; i += 4) {
-            long ids = mem.readLong(addr + i * 2); // Read 4 16 bit blocks
-            // BEWARE: it is LITTLE ENDIAN, not big endian as Java usually
-            if (ids == 0) {
-                block += 4;
+        while (!it.isDone()) {
+            int begin = it.getOffset();
+            short blockId = it.nextMaterial();
+            if (blockId == 0) { // TODO better AIR check
                 continue;
-            } else {
-                //System.out.println("read: " + (addr + i * 2));
-                //System.out.println("non-air: " + Long.toBinaryString(ids));
             }
+            System.out.println(blockId);
             
             float scale = 0.125f;
-            for (int j = 0; j < 4; j++) { // Loop blocks from what we just read (TODO unroll loop and measure performance)
-                long id = ids >>> (j * 16) & 0xffff; // Get id for THIS block
+            for (int i = 0; i < it.getCount(); i++) { // Loop blocks from what we just read
                 //System.out.println((48 - j * 16) + ": " + Long.toBinaryString(id));
-                byte faces = hidden[i + j]; // Read hidden faces of this block
-                if (id == 0 || faces == 0b00111111) { // TODO better "is-air" check
-                    //System.out.println("AIR");
-                    block++; // Goto next block
+                byte faces = hidden[begin + i]; // Read hidden faces of this block
+                if (blockId == 0 || faces == 0b00111111) { // TODO better "is-air" check
                     continue; // AIR or all faces are hidden
                 }
                 //System.out.println("id: " + id + ", block: " + block);
-                TerraTexture texture = textures.getTexture((short) id); // Get texture for id
+                TerraTexture texture = textures.getTexture(blockId); // Get texture for id
                 if (texture == null) {
-                    block++;
                     continue;
                 }
                 

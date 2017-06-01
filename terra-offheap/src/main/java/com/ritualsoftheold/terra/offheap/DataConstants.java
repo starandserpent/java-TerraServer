@@ -21,8 +21,6 @@ public class DataConstants {
     
     public static final int BLOCK_SIZE_DATA = 4096 / 4;
     
-    public static final int MATERIAL_ATLAS = 256 * 3;
-    
     public static final int CHUNK_MAX_BLOCKS = DataConstants.CHUNK_SCALE * DataConstants.CHUNK_SCALE * DataConstants.CHUNK_SCALE * 64;
     
     public static final int CHUNK_MIN_BLOCKS = DataConstants.CHUNK_SCALE * DataConstants.CHUNK_SCALE * DataConstants.CHUNK_SCALE;
@@ -33,5 +31,7 @@ public class DataConstants {
     public static final int MATERIAL_LENGTH = 2;
     
     public static final int CHUNK_UNCOMPRESSED = CHUNK_MAX_BLOCKS * MATERIAL_LENGTH;
+    
+    public static final int CHUNK_DATA_OFFSET = 1;
     
 }
