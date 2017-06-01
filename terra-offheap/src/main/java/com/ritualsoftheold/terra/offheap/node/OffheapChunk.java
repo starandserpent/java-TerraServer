@@ -69,7 +69,7 @@ public class OffheapChunk implements Chunk, OffheapNode {
         int z0 = (int) (z * 0.25f);
         
         // Multiply offsets by coordinate multiplers (x=1, y=16, z=16²)
-        return address + x0 * DataConstants.CHUNK_COORD_X + y0 * DataConstants.CHUNK_COORD_Y + z0 * DataConstants.CHUNK_COORD_Z;
+        return address + DataConstants.CHUNK_DATA_OFFSET + x0 * DataConstants.CHUNK_COORD_X + y0 * DataConstants.CHUNK_COORD_Y + z0 * DataConstants.CHUNK_COORD_Z;
     }
     
     @Override
@@ -101,12 +101,12 @@ public class OffheapChunk implements Chunk, OffheapNode {
 
     @Override
     public void getData(short[] data) {
-        // OOOPS - might need to use raw Unsafe here...
+        // TODO OOOPS - might need to use raw Unsafe here... Chronicle Core plays TOO safe
     }
 
     @Override
     public void setData(short[] data) {
-        // TODO Auto-generated method stub
+        // TODO 
     }
 
 }
