@@ -91,6 +91,10 @@ public class ChunkStorage {
             loader.loadChunks(bufferId, buf);
             buffers.put(bufferId, buf);
         }
+        
+        // We "needed" this buffer right now
+        buf.setLastNeeded(System.currentTimeMillis());
+        
         return buf;
     }
     
@@ -169,6 +173,9 @@ public class ChunkStorage {
         if (!buf.hasSpace()) {
             buf = findFreeBuffer();
         }
+        
+        // Mark that we needed the buffer
+        buf.setLastNeeded(System.currentTimeMillis());
         
         // Put chunk to buffer
         int bufferId = buf.putChunk(addr);

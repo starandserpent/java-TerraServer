@@ -38,6 +38,11 @@ public class ChunkBuffer {
     private int freeIndex;
     
     /**
+     * When this was last needed.
+     */
+    private long neededTime;
+    
+    /**
      * Every time memory is allocated, the amount of it to be allocated is
      * increased by this value. This is to avoid constant and pointless
      * reallocations.
@@ -197,5 +202,17 @@ public class ChunkBuffer {
         int bufferId = createChunk(compressedLength);
         mem.copyMemory(tempAddr, getChunkAddress(bufferId), compressedLength);
         return bufferId;
+    }
+    
+    /**
+     * Sets when this buffer was last needed.
+     * @param time Time in milliseconds.
+     */
+    public void setLastNeeded(long time) {
+        neededTime = time;
+    }
+    
+    public long getLastNeeded() {
+        return neededTime;
     }
 }

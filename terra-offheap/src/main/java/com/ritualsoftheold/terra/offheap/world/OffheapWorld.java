@@ -1,7 +1,10 @@
 package com.ritualsoftheold.terra.offheap.world;
 
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ForkJoinPool;
 
@@ -50,6 +53,8 @@ public class OffheapWorld implements TerraWorld {
     
     // Load markers
     private Set<LoadMarker> loadMarkers;
+    private Set<Byte> lockedOctrees;
+    private Set<Short> lockedChunks;
     
     public OffheapWorld(ChunkLoader chunkLoader, OctreeLoader octreeLoader, MaterialRegistry registry) {
         this.chunkLoader = chunkLoader;
@@ -59,6 +64,10 @@ public class OffheapWorld implements TerraWorld {
         this.storageExecutor = new ForkJoinPool();
         this.chunkStorage = new ChunkStorage(chunkLoader, storageExecutor, 64, 1024); // TODO settings
         this.octreeStorage = new OctreeStorage(8192, octreeLoader, storageExecutor);
+        
+        this.loadMarkers = new HashSet<>();
+        this.lockedOctrees = Collections.newSetFromMap(new ConcurrentHashMap<>());
+        this.lockedChunks = Collections.newSetFromMap(new ConcurrentHashMap<>());;
         
         this.registry = registry;
     }
@@ -275,26 +284,24 @@ public class OffheapWorld implements TerraWorld {
                 }
             }
             
-            entry = mem.readInt(addr + 1 + index * DataConstants.OCTREE_NODE_SIZE); // Read octree entry
-            isOctree = (mem.readByte(addr) >>> index & 1) == 1; // Get flags, check this index against them
+            // I hope volatile is enough to avoid race conditions
+            isOctree = (mem.readVolatileByte(addr) >>> index & 1) == 1; // Get flags, check this index against them
             scale *= 0.5f; // Halve the scale, we are moving to child node
             
             if (scale < DataConstants.CHUNK_SCALE + 1) { // Found a chunk
-                if (isOctree && entry == 0) { // Chunk-null: needs to be created
-                    entry = handleGenerate(x, y, z); // World gen here
-                    mem.writeInt(addr + 1 + index * DataConstants.OCTREE_NODE_SIZE, entry);
-                } else {
+                // Check if there is a chunk; if not, generate one
+                boolean generated = mem.compareAndSwapInt(addr + 1 + index * DataConstants.OCTREE_NODE_SIZE, 0, handleGenerate(x, y, z));
+                if (!generated) {
                     chunkStorage.ensureLoaded(entry);
                 }
                 
                 break;
             } else { // Just octree or single block here
-                if (isOctree && entry == 0) { // Octree-null: needs to be created
-                    entry = octreeStorage.newOctree();
-                    mem.writeInt(addr + 1 + index * DataConstants.OCTREE_NODE_SIZE, entry);
-                }
                 
                 if (isOctree) {
+                    // Check if there is an octree; if not, create one
+                    mem.compareAndSwapInt(addr + 1 + index * DataConstants.OCTREE_NODE_SIZE, 0, octreeStorage.newOctree());
+                    
                     long groupAddr = octreeStorage.getGroup((byte) (entry >>> 24));
                     addr = groupAddr + (index & 0xffffff) * DataConstants.OCTREE_SIZE; // Update address to point to new octree
                 } else {
@@ -308,11 +315,18 @@ public class OffheapWorld implements TerraWorld {
             return;
         }
         
-        loadAll(entry, scale, x, y, z);
+        // Prepare for async loadAll call
+        final int fEntry = entry;
+        final float fScale = scale;
+        final float fX = x;
+        final float fY = y;
+        final float fZ = z;
+        storageExecutor.execute(() -> loadAll(fEntry, fScale, fX, fY, fZ));
     }
     
     /**
-     * Loads all children of given octree index.
+     * Starts loading all children of given octree index. Usually
+     * returns before they're all loaded for efficiency.
      * @param index
      */
     private void loadAll(int index, float scale, float x, float y, float z) {
@@ -325,24 +339,26 @@ public class OffheapWorld implements TerraWorld {
         // TODO check if I need to modify this to be a tail call manually (does the stack overflow?)
         if (childScale == DataConstants.CHUNK_SCALE) { // Nodes might be chunks
             for (int i = 0; i < 8; i++) {
-                if ((flags >>> i & 1) == 1) { // Octree, we need to make sure it is loaded
-                    int entry = mem.readInt(addr + 1 + i * DataConstants.OCTREE_NODE_SIZE);
-                    
-                    if (entry == 0) { // Ooops, need to generate a chunk now
-                        entry = handleGenerate(x, y, z); // World gen here
-                        mem.writeInt(addr + 1 + index * DataConstants.OCTREE_NODE_SIZE, entry);
-                    } else { // Make sure previously generated chunk is loaded
-                        chunkStorage.ensureLoaded(entry);
-                    }
+                if ((flags >>> i & 1) == 1) { // Chunk, we need to make sure it is loaded
+                    generatorExecutor.execute(() -> { // Schedule world gen to be done async
+                        boolean generated = mem.compareAndSwapInt(addr + 1 + index * DataConstants.OCTREE_NODE_SIZE, 0, handleGenerate(x, y, z));
+                        if (!generated) {
+                            chunkStorage.ensureLoaded(0); // TODO get entry somehow
+                        }
+                    });
                 }
+                
+                // Single octree nodes are loaded already
             }
         } else { // Nodes might be octrees
+            // TODO fix potential race conditions
             float posMod = 0.25f * scale;
             for (int i = 0; i < 8; i++) {
                 if ((flags >>> i & 1) == 1) { // Octree, we need to make sure it is loaded
                     int entry = mem.readInt(addr + 1 + i * DataConstants.OCTREE_NODE_SIZE);
                     
                     if (entry == 0) { // Oops, it doesn't exist. Create it!
+                        // Don't do async call, initializing an octree is really fast
                         entry = octreeStorage.newOctree();
                         mem.writeInt(addr + 1 + index * DataConstants.OCTREE_NODE_SIZE, entry);
                     }
@@ -392,7 +408,12 @@ public class OffheapWorld implements TerraWorld {
                         break;
                     }
                     
-                    loadAll(entry, childScale, x2, y2, z2); // Recursively load that too
+                    // Process children in another thread
+                    final int fEntry = entry;
+                    final float fX = x2;
+                    final float fY = y2;
+                    final float fZ = z2;
+                    storageExecutor.execute(() -> loadAll(fEntry, childScale, fX, fY, fZ));
                 }
             }
         }

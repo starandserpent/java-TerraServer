@@ -3,7 +3,6 @@ package com.ritualsoftheold.terra.offheap.octree;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 
-import com.ritualsoftheold.terra.node.Octree;
 import com.ritualsoftheold.terra.offheap.DataConstants;
 import com.ritualsoftheold.terra.offheap.io.OctreeLoader;
 import com.ritualsoftheold.terra.offheap.node.OffheapOctree;
@@ -20,7 +19,7 @@ import net.openhft.chronicle.core.OS;
  */
 public class OctreeStorage {
     
-    private static Memory mem = OS.memory();
+    private static final Memory mem = OS.memory();
     
     /**
      * Map of octree storage positions in memory.
@@ -28,6 +27,11 @@ public class OctreeStorage {
      * All addresses have same amount of memory allocated after them.
      */
     private Byte2LongMap groups;
+    
+    /**
+     * When octree groups were last needed.
+     */
+    private Byte2LongMap lastNeeded;
     
     /**
      * Group where new octrees should be added.
@@ -48,6 +52,8 @@ public class OctreeStorage {
     private OctreeLoader loader;
     
     private Executor loaderExecutor;
+
+    private int lastCreated;
     
     public OctreeStorage(int blockSize, OctreeLoader loader, Executor executor) {
         this.loader = loader;
@@ -94,6 +100,10 @@ public class OctreeStorage {
             loader.loadOctrees(groupIndex, -1);
             groups.put(groupIndex, addr);
         }
+        
+        // Mark that we needed the group
+        lastNeeded.put(groupIndex, System.currentTimeMillis());
+        
         return addr;
     }
     
@@ -112,12 +122,22 @@ public class OctreeStorage {
     
     public int newOctree() {
         int index = freeGroup << 24 | freeIndex; // Get next free index (includes group and octree indexes)
+        
+        // We just used the group, so mark it in map
+        lastNeeded.put(freeGroup, System.currentTimeMillis());
+        
         freeIndex++;
         if (freeIndex * DataConstants.OCTREE_SIZE == blockSize) { // This group just became full
             freeGroup++; // Take next group
             freeIndex = 0; // ... and zero index
         }
+        
+        lastCreated = index; // Store this as last created octree
         return index;
+    }
+    
+    public int getLastOctree() {
+        return lastCreated;
     }
     
     public int splitOctree(int index, int node) {
@@ -159,5 +179,9 @@ public class OctreeStorage {
         octree.memoryAddress(addr); // Validate octree with memory address!
         
         return octree;
+    }
+    
+    public long getLastNeeded(byte groupId) {
+        return lastNeeded.get(groupId);
     }
 }
