@@ -113,7 +113,7 @@ public class ChunkStorage {
         OffheapChunk chunk = chunkCache.get(chunkId);
         if (chunk == null) { // Not in cache...
             // TODO optimize memory allocations here
-            // We have static-sized cache, why not recycle memory?
+            // We have static-sized cache, why not recycle memory? (answer: thread safety, but still...)
             short bufferId = (short) (chunkId >>> 16);
             int index = chunkId & 0xffff;
             CompletableFuture<ChunkBuffer> bufFuture = requestBuffer(bufferId);
@@ -138,7 +138,7 @@ public class ChunkStorage {
         OffheapChunk chunk = chunkCache.get(chunkId);
         if (chunk == null) { // Not in cache...
             // TODO optimize memory allocations here
-            // We have static-sized cache, why not recycle memory?
+            // We have static-sized cache, why not recycle memory? (answer: thread safety, but still...)
             short bufferId = (short) (chunkId >>> 16);
             int index = chunkId & 0xffff;
             ChunkBuffer buf = getBuffer(bufferId);
@@ -153,11 +153,11 @@ public class ChunkStorage {
     }
     
     private ChunkBuffer findFreeBuffer() {
-        for (Short2ObjectMap.Entry<ChunkBuffer> entry : buffers.short2ObjectEntrySet()) {
+        for (Map.Entry<Short, ChunkBuffer> entry : buffers.entrySet()) {
             ChunkBuffer buf = entry.getValue();
             if (buf.hasSpace()) {
                 freeBuffer = buf;
-                freeBufferId = entry.getShortKey();
+                freeBufferId = entry.getKey();
                 return buf;
             }
         }

@@ -1,6 +1,7 @@
 package com.ritualsoftheold.terra.offheap.chunk;
 
 import java.io.IOException;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.xerial.snappy.Snappy;
 
@@ -35,12 +36,12 @@ public class ChunkBuffer {
     /**
      * Index of first free chunk slot in this buffer.
      */
-    private int freeIndex;
+    private AtomicInteger freeIndex;
     
     /**
      * When this was last needed.
      */
-    private long neededTime;
+    private volatile long neededTime;
     
     /**
      * Every time memory is allocated, the amount of it to be allocated is
@@ -54,7 +55,7 @@ public class ChunkBuffer {
         
         chunks = new long[chunkCount];
         lengths = new long[chunkCount];
-        freeIndex = 0;
+        freeIndex = new AtomicInteger(0);
         this.extraAlloc = extraAlloc;
     }
     
@@ -63,7 +64,7 @@ public class ChunkBuffer {
      * @return If one more chunk can be added.
      */
     public boolean hasSpace() {
-        return chunkCount > freeIndex;
+        return chunkCount > freeIndex.get();
     }
     
     /**
@@ -73,9 +74,14 @@ public class ChunkBuffer {
      * @return Chunk index in this buffer.
      */
     public int createChunk(int firstLength) {
-        // Take index, adjust freeIndex
-        int index = freeIndex;
-        freeIndex++;
+        // Take index, then adjust freeIndex
+        int index = freeIndex.getAndIncrement();
+        /*
+         * Thread safe, I guess? First we get index+increment it in atomic
+         * operation. It is not possible to enter actual creation code
+         * until BOTH are done, so you can't (hopefully) overwrite existing
+         * data with race conditions.
+         */
         
         long addr = mem.allocate(firstLength + extraAlloc);
         chunks[index] = addr;
