@@ -2,6 +2,7 @@ package com.ritualsoftheold.terra.offheap.octree;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import com.ritualsoftheold.terra.offheap.DataConstants;
 import com.ritualsoftheold.terra.offheap.io.OctreeLoader;
@@ -35,13 +36,13 @@ public class OctreeStorage {
     /**
      * Group where new octrees should be added.
      */
-    private byte freeGroup;
+    private AtomicInteger freeGroup;
     
     /**
      * Free index in the {@link #freeGroup}. You should insert new octree at
      * this position, then increment this by one.
      */
-    private int freeIndex;
+    private AtomicInteger freeIndex;
     
     /**
      * Size of storage groups.
@@ -51,12 +52,12 @@ public class OctreeStorage {
     private OctreeLoader loader;
     
     private Executor loaderExecutor;
-
-    private int lastCreated;
     
     public OctreeStorage(int blockSize, OctreeLoader loader, Executor executor) {
         this.loader = loader;
         this.loaderExecutor = executor;
+        this.freeGroup = new AtomicInteger();
+        this.freeIndex = new AtomicInteger();
         this.blockSize = blockSize;
         this.groups = mem.allocate(256 * 8); // 256 longs at most
         this.lastNeeded = mem.allocate(256 * 8);
@@ -114,30 +115,22 @@ public class OctreeStorage {
         }
     }
     
-    public int newOctree(int index) {
+    public int newOctree() {
+        int octreeIndex = freeIndex.getAndIncrement(); // Get octree index (not group) and increment it by one
         // We just used the group, so mark it in map
         //lastNeeded.put(freeGroup, System.currentTimeMillis());
         
-        freeIndex++;
-        if (freeIndex * DataConstants.OCTREE_SIZE == blockSize) { // This group just became full
-            freeGroup++; // Take next group
-            freeIndex = 0; // ... and zero index
+        int groupIndex = freeGroup.get(); // TODO I hope this is safe
+        if (freeIndex.get() * DataConstants.OCTREE_SIZE == blockSize) { // This group just became full
+            freeGroup.compareAndSet(groupIndex, groupIndex + 1); // Take next group if someone didn't do yet do it
+            freeIndex.compareAndSet(blockSize, 0); // ... and zero index if someone didn't yet do it
         }
         
-        lastCreated = index; // Store this as last created octree
-        return index;
-    }
-    
-    public int newOctree() {
-        return newOctree(getNextIndex());
+        return groupIndex << 24 | octreeIndex;
     }
     
     public int getNextIndex() {
-        return freeGroup << 24 | freeIndex; // Get next free index (includes group and octree indexes)
-    }
-    
-    public int getLastOctree() {
-        return lastCreated;
+        return freeGroup.get() << 24 | freeIndex.get(); // Get next free index (includes group and octree indexes)
     }
     
     public int splitOctree(int index, int node) {

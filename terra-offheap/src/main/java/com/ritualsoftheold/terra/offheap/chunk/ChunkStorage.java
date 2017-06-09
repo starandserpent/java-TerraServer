@@ -1,7 +1,9 @@
 package com.ritualsoftheold.terra.offheap.chunk;
 
 import java.io.IOException;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executor;
 import java.util.function.Consumer;
 
@@ -29,7 +31,7 @@ public class ChunkStorage {
     /**
      * Chunk buffers.
      */
-    private Short2ObjectMap<ChunkBuffer> buffers;
+    private Map<Short,ChunkBuffer> buffers;
     
     /**
      * How many chunks there can be per buffer?
@@ -48,7 +50,7 @@ public class ChunkStorage {
     /**
      * Cache of chunks, which are NOT compressed.
      */
-    private Int2ObjectMap<OffheapChunk> chunkCache;
+    private Map<Integer,OffheapChunk> chunkCache;
     
     private ChunkBuffer freeBuffer;
     private short freeBufferId;
@@ -67,9 +69,9 @@ public class ChunkStorage {
         this.chunksPerBuffer = chunksPerBuffer;
         this.extraAlloc = extraAlloc;
         
-        chunkCache = new Int2ObjectOpenHashMap<>();
+        chunkCache = new ConcurrentHashMap<>();
         
-        this.buffers = new Short2ObjectArrayMap<>();
+        this.buffers = new ConcurrentHashMap<>(); // TODO need primitive concurrent map, can't find any library for it
     }
     
     public CompletableFuture<ChunkBuffer> requestBuffer(short bufferId) {
