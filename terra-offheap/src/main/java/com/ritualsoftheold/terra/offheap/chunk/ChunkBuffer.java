@@ -166,7 +166,7 @@ public class ChunkBuffer {
      * @return Chunk iterator.
      */
     public ChunkBufferIterator iterator() {
-        return new ChunkBufferIterator(chunks, lengths, freeIndex - 1);
+        return new ChunkBufferIterator(chunks, lengths, freeIndex.get() - 1);
     }
     
     public int getExtraAlloc() {
