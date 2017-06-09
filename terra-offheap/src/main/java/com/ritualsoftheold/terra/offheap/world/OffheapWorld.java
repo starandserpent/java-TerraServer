@@ -53,8 +53,6 @@ public class OffheapWorld implements TerraWorld {
     
     // Load markers
     private Set<LoadMarker> loadMarkers;
-    private Set<Byte> lockedOctrees;
-    private Set<Short> lockedChunks;
     
     public OffheapWorld(ChunkLoader chunkLoader, OctreeLoader octreeLoader, MaterialRegistry registry) {
         this.chunkLoader = chunkLoader;
@@ -66,8 +64,6 @@ public class OffheapWorld implements TerraWorld {
         this.octreeStorage = new OctreeStorage(8192, octreeLoader, storageExecutor);
         
         this.loadMarkers = new HashSet<>();
-        this.lockedOctrees = Collections.newSetFromMap(new ConcurrentHashMap<>());
-        this.lockedChunks = Collections.newSetFromMap(new ConcurrentHashMap<>());;
         
         this.registry = registry;
     }
@@ -288,21 +284,25 @@ public class OffheapWorld implements TerraWorld {
             isOctree = (mem.readVolatileByte(addr) >>> index & 1) == 1; // Get flags, check this index against them
             scale *= 0.5f; // Halve the scale, we are moving to child node
             
+            long nodeAddr = addr + 1 + index * DataConstants.OCTREE_NODE_SIZE; // Get address of the node
+            
             if (scale < DataConstants.CHUNK_SCALE + 1) { // Found a chunk
                 // Check if there is a chunk; if not, generate one
-                boolean generated = mem.compareAndSwapInt(addr + 1 + index * DataConstants.OCTREE_NODE_SIZE, 0, handleGenerate(x, y, z));
-                if (!generated) {
-                    chunkStorage.ensureLoaded(entry);
+                if (mem.readVolatileInt(nodeAddr) == 0) {
+                    // TODO
                 }
                 
                 break;
             } else { // Just octree or single block here
-                
-                if (isOctree) {
+                if (isOctree) {                    
                     // Check if there is an octree; if not, create one
-                    mem.compareAndSwapInt(addr + 1 + index * DataConstants.OCTREE_NODE_SIZE, 0, octreeStorage.newOctree());
+                    if (mem.readVolatileInt(nodeAddr) == 0) {
+                        int octreeIndex = octreeStorage.newOctree(); // Allocate new octree
+                        mem.compareAndSwapInt(nodeAddr, 0, octreeIndex); // if no one else allocated it yet, save index
+                        // This creates empty octrees, but probably not often
+                    }
+                    long groupAddr = octreeStorage.getGroup(mem.readVolatileByte(nodeAddr));
                     
-                    long groupAddr = octreeStorage.getGroup((byte) (entry >>> 24));
                     addr = groupAddr + (index & 0xffffff) * DataConstants.OCTREE_SIZE; // Update address to point to new octree
                 } else {
                     break;

@@ -28,8 +28,8 @@ public class OctreeTest {
         storage.addOctrees((byte) 0, addr); // Add to storage
         storage.addOctrees((byte) 1, addr2);
         
-        assertEquals(addr, storage.requestGroup((byte) 0).join().longValue());
-        assertEquals(addr2, storage.requestGroup((byte) 1).join().longValue());
+        assertEquals(addr, storage.getGroup((byte) 0));
+        assertEquals(addr2, storage.getGroup((byte) 1));
     }
     
     @Test
