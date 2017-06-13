@@ -1,10 +1,12 @@
 package com.ritualsoftheold.terra.offheap.chunk;
 
-import java.io.IOException;
+import java.util.Deque;
 import java.util.Map;
+import java.util.Queue;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executor;
+import java.util.concurrent.locks.StampedLock;
 import java.util.function.Consumer;
 
 import com.ritualsoftheold.terra.material.MaterialRegistry;
@@ -13,10 +15,6 @@ import com.ritualsoftheold.terra.offheap.DataConstants;
 import com.ritualsoftheold.terra.offheap.io.ChunkLoader;
 import com.ritualsoftheold.terra.offheap.node.OffheapChunk;
 
-import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
-import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
-import it.unimi.dsi.fastutil.shorts.Short2ObjectArrayMap;
-import it.unimi.dsi.fastutil.shorts.Short2ObjectMap;
 import net.openhft.chronicle.core.Memory;
 import net.openhft.chronicle.core.OS;
 
@@ -52,8 +50,21 @@ public class ChunkStorage {
      */
     private Map<Integer,OffheapChunk> chunkCache;
     
+    /**
+     * A buffer which currently has space.
+     */
     private ChunkBuffer freeBuffer;
+    
+    /**
+     * An id for buffer which currently has space.
+     */
     private short freeBufferId;
+    
+    /**
+     * Thread-safe deque which will supply free buffers
+     * for new chunks which are allocated.
+     */
+    private Deque<ChunkBuffer> freeBuffers;
     
     /**
      * Initializes new chunk storage. Usually this should be done once per world.
@@ -171,8 +182,13 @@ public class ChunkStorage {
     }
     
     public int addChunk(long addr, MaterialRegistry reg) {
-        ChunkBuffer buf = freeBuffer;
-        if (!buf.hasSpace()) {
+        ChunkBuffer buf;
+        if (!freeBuffers.isEmpty()) {
+            buf = freeBuffers.pollFirst(); // Take first element
+            if (buf == null) { // Thread safety
+                buf = findFreeBuffer();
+            }
+        } else {
             buf = findFreeBuffer();
         }
         
@@ -181,7 +197,11 @@ public class ChunkStorage {
         
         // Put chunk to buffer
         int bufferId = buf.putChunk(addr);
+        if (buf.hasSpace()) { // Resubmit this buffer to start
+            freeBuffers.addFirst(buf);
+        }
         
+        // TODO update this
         return freeBufferId << 16 | bufferId;
     }
     
