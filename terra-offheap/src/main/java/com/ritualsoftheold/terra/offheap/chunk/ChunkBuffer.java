@@ -11,7 +11,7 @@ import net.openhft.chronicle.core.Memory;
 import net.openhft.chronicle.core.OS;
 
 /**
- * Represents a buffer or "block" of chunks.
+ * Contains some chunks in memory.
  *
  */
 public class ChunkBuffer {
@@ -50,13 +50,24 @@ public class ChunkBuffer {
      */
     private int extraAlloc;
     
-    public ChunkBuffer(int chunkCount, int extraAlloc) {
+    /**
+     * Buffer id for storage that contains this.
+     * TODO what if a buffer is in multiple storages? is that allowed, actually?
+     */
+    private short bufferId;
+    
+    public ChunkBuffer(int chunkCount, int extraAlloc, short bufferId) {
         this.chunkCount = chunkCount;
         
         chunks = new long[chunkCount];
         lengths = new long[chunkCount];
         freeIndex = new AtomicInteger(0);
         this.extraAlloc = extraAlloc;
+        this.bufferId = bufferId;
+    }
+    
+    public short getId() {
+        return bufferId;
     }
     
     /**

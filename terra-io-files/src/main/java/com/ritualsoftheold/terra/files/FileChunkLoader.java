@@ -55,4 +55,9 @@ public class FileChunkLoader implements ChunkLoader {
         return buf;
     }
 
+    @Override
+    public int countBuffers() {
+        return 0; // TODO implement this; need to have metadata or loop all files
+    }
+
 }

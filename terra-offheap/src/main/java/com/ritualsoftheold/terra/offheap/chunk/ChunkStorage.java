@@ -5,7 +5,9 @@ import java.util.Map;
 import java.util.Queue;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.Executor;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.StampedLock;
 import java.util.function.Consumer;
 
@@ -24,7 +26,7 @@ import net.openhft.chronicle.core.OS;
  */
 public class ChunkStorage {
     
-    private static Memory mem = OS.memory();
+    private static final Memory mem = OS.memory();
     
     /**
      * Chunk buffers.
@@ -51,14 +53,9 @@ public class ChunkStorage {
     private Map<Integer,OffheapChunk> chunkCache;
     
     /**
-     * A buffer which currently has space.
-     */
-    private ChunkBuffer freeBuffer;
-    
-    /**
      * An id for buffer which currently has space.
      */
-    private short freeBufferId;
+    private AtomicInteger freeBufferId;
     
     /**
      * Thread-safe deque which will supply free buffers
@@ -80,15 +77,16 @@ public class ChunkStorage {
         this.chunksPerBuffer = chunksPerBuffer;
         this.extraAlloc = extraAlloc;
         
-        chunkCache = new ConcurrentHashMap<>();
-        
+        this.chunkCache = new ConcurrentHashMap<>();
+        this.freeBufferId = new AtomicInteger(loader.countBuffers()); // Free index=count of buffers (0-based)
+        this.freeBuffers = new ConcurrentLinkedDeque<>();
         this.buffers = new ConcurrentHashMap<>(); // TODO need primitive concurrent map, can't find any library for it
     }
     
     public CompletableFuture<ChunkBuffer> requestBuffer(short bufferId) {
         ChunkBuffer buf = buffers.get(bufferId);
         if (buf == null) { // Oops we need to load this
-            ChunkBuffer newBuf = new ChunkBuffer(chunksPerBuffer, extraAlloc); // Create buffer
+            ChunkBuffer newBuf = new ChunkBuffer(chunksPerBuffer, extraAlloc, (short) freeBufferId.getAndIncrement()); // Create buffer
             CompletableFuture<ChunkBuffer> future = CompletableFuture.supplyAsync(() -> loader.loadChunks(bufferId, newBuf), loaderExecutor);
             future.thenAccept((loadedBuffer) -> buffers.put(bufferId, loadedBuffer));
             return future;
@@ -100,7 +98,7 @@ public class ChunkStorage {
     public ChunkBuffer getBuffer(short bufferId) {
         ChunkBuffer buf = buffers.get(bufferId);
         if (buf == null) { // Oops we need to load this
-            buf = new ChunkBuffer(chunksPerBuffer, extraAlloc); // Create buffer
+            buf = new ChunkBuffer(chunksPerBuffer, extraAlloc, (short) freeBufferId.getAndIncrement()); // Create buffer
             loader.loadChunks(bufferId, buf);
             buffers.put(bufferId, buf);
         }
@@ -163,22 +161,34 @@ public class ChunkStorage {
         return chunk;
     }
     
+    /**
+     * Finds or creates a buffer which has space. Note that this does NOT
+     * put it to deque of buffers; usually addChunk does it automatically.
+     * @return A buffer which has space for at least one chunk.
+     */
     private ChunkBuffer findFreeBuffer() {
         for (Map.Entry<Short, ChunkBuffer> entry : buffers.entrySet()) {
             ChunkBuffer buf = entry.getValue();
             if (buf.hasSpace()) {
-                freeBuffer = buf;
-                freeBufferId = entry.getKey();
                 return buf;
             }
         }
         
+        // Hmm, loaded buffers do not have space
+        for (short i = 0; i < freeBufferId.get(); i++) {
+            if (!buffers.containsKey(i)) { // We didn't process this yet
+                ChunkBuffer buf = getBuffer(i);
+                if (buf.hasSpace()) {
+                    return buf;
+                }
+            }
+        }
+        
         // Still no buffer? Create one and store
-        short nextId = (short) buffers.size();
-        freeBuffer = new ChunkBuffer(chunksPerBuffer, extraAlloc);
-        freeBufferId = nextId;
-        buffers.put(nextId, freeBuffer);
-        return freeBuffer;
+        short nextId = (short) freeBufferId.getAndIncrement();
+        ChunkBuffer freeBuf = new ChunkBuffer(chunksPerBuffer, extraAlloc, nextId);
+        buffers.put(nextId, freeBuf);
+        return freeBuf;
     }
     
     public int addChunk(long addr, MaterialRegistry reg) {
@@ -201,8 +211,7 @@ public class ChunkStorage {
             freeBuffers.addFirst(buf);
         }
         
-        // TODO update this
-        return freeBufferId << 16 | bufferId;
+        return buf.getId() << 16 | bufferId;
     }
     
     /**
