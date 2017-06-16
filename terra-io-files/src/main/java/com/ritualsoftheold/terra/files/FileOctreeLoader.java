@@ -24,7 +24,7 @@ import net.openhft.chronicle.core.io.IORuntimeException;
  */
 public class FileOctreeLoader implements OctreeLoader {
     
-    private Memory mem = OS.memory();
+    private static final Memory mem = OS.memory();
 
     private Path dir;
     private long fileSize;

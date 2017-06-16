@@ -9,8 +9,6 @@ import com.ritualsoftheold.terra.offheap.io.OctreeLoader;
 import com.ritualsoftheold.terra.offheap.node.OffheapOctree;
 import com.ritualsoftheold.terra.offheap.world.OffheapWorld;
 
-import it.unimi.dsi.fastutil.bytes.Byte2LongArrayMap;
-import it.unimi.dsi.fastutil.bytes.Byte2LongMap;
 import net.openhft.chronicle.core.Memory;
 import net.openhft.chronicle.core.OS;
 

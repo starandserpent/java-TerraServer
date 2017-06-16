@@ -22,4 +22,6 @@ public interface OctreeLoader {
      * @param addr
      */
     void saveOctrees(byte index, long addr);
+    
+    int countGroups();
 }

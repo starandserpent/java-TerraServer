@@ -1,9 +1,6 @@
 package com.ritualsoftheold.terra.offheap.chunk;
 
-import java.io.IOException;
 import java.util.concurrent.atomic.AtomicInteger;
-
-import org.xerial.snappy.Snappy;
 
 import com.ritualsoftheold.terra.offheap.DataConstants;
 
@@ -16,7 +13,7 @@ import net.openhft.chronicle.core.OS;
  */
 public class ChunkBuffer {
     
-    private static Memory mem = OS.memory();
+    private static final Memory mem = OS.memory();
     
     /**
      * Maximum chunk count in this buffer.
@@ -119,12 +116,15 @@ public class ChunkBuffer {
     }
     
     /**
-     * Loads chunk buffer from given memory address
+     * Loads chunk buffer from given memory address which contains given amount
+     * of chunks. Note that this is not allowed to exceed the amount given
+     * when this buffer was created!
      * @param addr
+     * @param count
      */
-    public void load(long addr) {
+    public void load(long addr, int count) {
         // Read pointer data
-        for (int i = 0; i < chunkCount; i++) {
+        for (int i = 0; i < count; i++) {
             long entry = mem.readLong(addr + i * DataConstants.CHUNK_POINTER_STORE) >>> 8;
             long chunkAddr = addr + (entry >>> 24);
             long chunkLen = (entry & 0xffffff);
@@ -137,6 +137,7 @@ public class ChunkBuffer {
             mem.copyMemory(chunkAddr, newAddr, chunkLen);
             chunks[i] = newAddr;
         }
+        freeIndex.set(count);
     }
     
     /**
@@ -155,9 +156,11 @@ public class ChunkBuffer {
      * Saves chunks at given address. Make sure you have enough space!
      * @param addr Memory address.
      */
-    public void save(long addr) {
+    public int save(long addr) {
+        int chunksLoaded = freeIndex.get(); // How many chunks this actually contains
+        
         int saveOffset = 0;
-        for (int i = 0; i < chunkCount; i++) {
+        for (int i = 0; i < chunksLoaded; i++) {
             long chunkLen = lengths[i]; // Take length of chunk
             
             // Write chunk offset and length in save data
@@ -169,6 +172,8 @@ public class ChunkBuffer {
             mem.copyMemory(chunks[i], addr + saveOffset, chunkLen); // Copy data to save location
             saveOffset += chunkLen; // Increase save offset for next chunk
         }
+        
+        return chunksLoaded;
     }
     
     /**
@@ -231,5 +236,9 @@ public class ChunkBuffer {
     
     public long getLastNeeded() {
         return neededTime;
+    }
+    
+    public int getChunkCount() {
+        return freeIndex.get();
     }
 }

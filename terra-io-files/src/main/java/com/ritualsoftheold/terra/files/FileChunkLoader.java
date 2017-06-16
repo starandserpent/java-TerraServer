@@ -10,11 +10,19 @@ import java.nio.file.StandardOpenOption;
 import com.ritualsoftheold.terra.offheap.chunk.ChunkBuffer;
 import com.ritualsoftheold.terra.offheap.io.ChunkLoader;
 
+import net.openhft.chronicle.core.Memory;
 import net.openhft.chronicle.core.OS;
 import net.openhft.chronicle.core.io.IORuntimeException;
 
-// TODO waiting for ChunkBuffer improvements
 public class FileChunkLoader implements ChunkLoader {
+    
+    private static final Memory mem = OS.memory();
+    
+    /**
+     * How much extra stuff we can throw at beginning. Increasing this
+     * will probably corrupt existing saves, so have a bit extra.
+     */
+    public static final int FILE_META_LENGTH = 16;
 
     private Path dir;
     
@@ -31,7 +39,8 @@ public class FileChunkLoader implements ChunkLoader {
         try {
             long len = Files.size(file);
             long addr = OS.map(FileChannel.open(file, StandardOpenOption.READ), MapMode.PRIVATE, 0, len); // Map to memory
-            buf.load(addr); // Load chunks
+            int chunkCount = mem.readInt(addr); // Write chunk count to metadata
+            buf.load(addr + FILE_META_LENGTH, chunkCount); // Load chunks
             OS.unmap(addr, len); // Unmap data after it is not needed
         } catch (IOException e) {
             throw new IORuntimeException(e);
@@ -45,8 +54,9 @@ public class FileChunkLoader implements ChunkLoader {
         Path file = dir.resolve(index + ".terrac");
         try {
             long len = buf.getSaveSize();
-            long addr = OS.map(FileChannel.open(file, StandardOpenOption.WRITE, StandardOpenOption.CREATE), MapMode.READ_WRITE, 0, len); // Map to memory
-            buf.save(addr); // Save to memory mapped region
+            long addr = OS.map(FileChannel.open(file, StandardOpenOption.WRITE, StandardOpenOption.CREATE), MapMode.READ_WRITE, 0, FILE_META_LENGTH + len); // Map to memory
+            mem.writeInt(addr, buf.getChunkCount()); // Write chunk count to metadata
+            buf.save(addr + FILE_META_LENGTH); // Save to memory mapped region
             OS.unmap(addr, len); // Unmap data after it is not needed
         } catch (IOException e) {
             throw new IORuntimeException(e);
