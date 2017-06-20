@@ -124,6 +124,8 @@ public class OctreeStorage {
             freeIndex.compareAndSet(blockSize, 0); // ... and zero index if someone didn't yet do it
         }
         
+        System.out.println("Octree created: " + octreeIndex);
+        
         return groupIndex << 24 | octreeIndex;
     }
     

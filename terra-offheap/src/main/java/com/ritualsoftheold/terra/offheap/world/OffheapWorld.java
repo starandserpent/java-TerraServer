@@ -58,10 +58,17 @@ public class OffheapWorld implements TerraWorld {
         this.chunkLoader = chunkLoader;
         this.octreeLoader = octreeLoader;
         
-        // Init storages
+        // Initialize storages
         this.storageExecutor = new ForkJoinPool();
         this.chunkStorage = new ChunkStorage(chunkLoader, storageExecutor, 64, 1024); // TODO settings
         this.octreeStorage = new OctreeStorage(8192, octreeLoader, storageExecutor);
+        
+        // Initialize master octree
+        masterOctree = octreeStorage.getOctree(0, this);
+        mem.writeByte(masterOctree.memoryAddress(), (byte) 0xff);
+        
+        // Master scale, TODO
+        masterScale = 1024;
         
         this.loadMarkers = new HashSet<>();
         
@@ -206,8 +213,9 @@ public class OffheapWorld implements TerraWorld {
      * @param z
      * @param radius
      */
-    private void loadArea(float x, float y, float z, float radius) {
+    public void loadArea(float x, float y, float z, float radius) {
         long addr = masterOctree.memoryAddress(); // Get starting memory address
+        System.out.println("addr: " + addr);
         
         float scale = masterScale; // Starting scale
         int entry = 0; // Chunk or octree id
@@ -290,6 +298,7 @@ public class OffheapWorld implements TerraWorld {
                 // Check if there is a chunk; if not, generate one
                 if (mem.readVolatileInt(nodeAddr) == 0) {
                     // TODO
+                    System.out.println("TODO here!");
                 }
                 
                 break;
@@ -351,16 +360,16 @@ public class OffheapWorld implements TerraWorld {
                 // Single octree nodes are loaded already
             }
         } else { // Nodes might be octrees
-            // TODO fix potential race conditions
             float posMod = 0.25f * scale;
             for (int i = 0; i < 8; i++) {
                 if ((flags >>> i & 1) == 1) { // Octree, we need to make sure it is loaded
-                    int entry = mem.readInt(addr + 1 + i * DataConstants.OCTREE_NODE_SIZE);
+                    long nodeAddr = addr + 1 + i * DataConstants.OCTREE_NODE_SIZE;
                     
-                    if (entry == 0) { // Oops, it doesn't exist. Create it!
-                        // Don't do async call, initializing an octree is really fast
-                        entry = octreeStorage.newOctree();
-                        mem.writeInt(addr + 1 + index * DataConstants.OCTREE_NODE_SIZE, entry);
+                    // Check if there is an octree; if not, create one
+                    if (mem.readVolatileInt(nodeAddr) == 0) {
+                        int octreeIndex = octreeStorage.newOctree(); // Allocate new octree
+                        mem.compareAndSwapInt(nodeAddr, 0, octreeIndex); // if no one else allocated it yet, save index
+                        // This creates empty octrees, but probably not often
                     }
                     
                     // Create positions for subnodes
@@ -409,7 +418,7 @@ public class OffheapWorld implements TerraWorld {
                     }
                     
                     // Process children in another thread
-                    final int fEntry = entry;
+                    final int fEntry = mem.readVolatileInt(nodeAddr);
                     final float fX = x2;
                     final float fY = y2;
                     final float fZ = z2;
