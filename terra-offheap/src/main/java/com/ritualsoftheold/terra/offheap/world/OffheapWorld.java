@@ -289,11 +289,13 @@ public class OffheapWorld implements TerraWorld {
             }
             
             // I hope volatile is enough to avoid race conditions
+            System.out.println("Read flags: " + addr);
             isOctree = (mem.readVolatileByte(addr) >>> index & 1) == 1; // Get flags, check this index against them
             scale *= 0.5f; // Halve the scale, we are moving to child node
             
             long nodeAddr = addr + 1 + index * DataConstants.OCTREE_NODE_SIZE; // Get address of the node
             
+            System.out.println("nodeAddr: " + nodeAddr);
             if (scale < DataConstants.CHUNK_SCALE + 1) { // Found a chunk
                 // Check if there is a chunk; if not, generate one
                 if (mem.readVolatileInt(nodeAddr) == 0) {
@@ -303,7 +305,8 @@ public class OffheapWorld implements TerraWorld {
                 
                 break;
             } else { // Just octree or single block here
-                if (isOctree) {                    
+                if (isOctree) {
+                    System.out.println("Octree found");
                     // Check if there is an octree; if not, create one
                     if (mem.readVolatileInt(nodeAddr) == 0) {
                         int octreeIndex = octreeStorage.newOctree(); // Allocate new octree
@@ -311,6 +314,7 @@ public class OffheapWorld implements TerraWorld {
                         // This creates empty octrees, but probably not often
                     }
                     long groupAddr = octreeStorage.getGroup(mem.readVolatileByte(nodeAddr));
+                    System.out.println("groupAddr: " + groupAddr);
                     
                     addr = groupAddr + (index & 0xffffff) * DataConstants.OCTREE_SIZE; // Update address to point to new octree
                 } else {

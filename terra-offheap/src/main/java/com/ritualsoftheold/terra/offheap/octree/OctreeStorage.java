@@ -58,7 +58,9 @@ public class OctreeStorage {
         this.freeIndex = new AtomicInteger();
         this.blockSize = blockSize;
         this.groups = mem.allocate(256 * 8); // 256 longs at most
+        mem.setMemory(groups, 256 * 8, (byte) 0);
         this.lastNeeded = mem.allocate(256 * 8);
+        mem.setMemory(lastNeeded, 256 * 8, (byte) 0);
     }
     
     private long getGroupsAddr(byte index) {
@@ -89,8 +91,8 @@ public class OctreeStorage {
     
     public long getGroup(byte groupIndex) {
         long addr = mem.readVolatileLong(getGroupsAddr(groupIndex));
-        if (addr == -1) {
-            loader.loadOctrees(groupIndex, -1);
+        if (addr == 0) {
+            addr = loader.loadOctrees(groupIndex, -1);
             mem.writeVolatileLong(getGroupsAddr(groupIndex), addr);
         }
         
