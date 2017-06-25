@@ -225,6 +225,7 @@ public class OffheapWorld implements TerraWorld {
         while (true) {
             if (radius > scale * scale) {
                 // We found small enough unit... load everything inside it!
+                System.out.println("Radius limit hit");
                 break;
             }
             
@@ -295,7 +296,6 @@ public class OffheapWorld implements TerraWorld {
             
             long nodeAddr = addr + 1 + index * DataConstants.OCTREE_NODE_SIZE; // Get address of the node
             
-            System.out.println("nodeAddr: " + nodeAddr);
             if (scale < DataConstants.CHUNK_SCALE + 1) { // Found a chunk
                 // Check if there is a chunk; if not, generate one
                 if (mem.readVolatileInt(nodeAddr) == 0) {
@@ -306,18 +306,21 @@ public class OffheapWorld implements TerraWorld {
                 break;
             } else { // Just octree or single block here
                 if (isOctree) {
-                    System.out.println("Octree found");
                     // Check if there is an octree; if not, create one
+                    System.out.println("Octree: " + mem.readVolatileInt(nodeAddr));
                     if (mem.readVolatileInt(nodeAddr) == 0) {
                         int octreeIndex = octreeStorage.newOctree(); // Allocate new octree
-                        mem.compareAndSwapInt(nodeAddr, 0, octreeIndex); // if no one else allocated it yet, save index
+                        System.out.println("CAS octree: " + (octreeIndex >>> 24));
+                        boolean success = mem.compareAndSwapInt(nodeAddr, 0, octreeIndex); // if no one else allocated it yet, save index
+                        System.out.println("CAS result: " + success);
                         // This creates empty octrees, but probably not often
                     }
-                    long groupAddr = octreeStorage.getGroup(mem.readVolatileByte(nodeAddr));
-                    System.out.println("groupAddr: " + groupAddr);
+                    long groupAddr = octreeStorage.getGroup(mem.readVolatileByte(nodeAddr)); // First byte of octree node is group addr!
+                    System.out.println("groupIndex: " + mem.readVolatileByte(nodeAddr) + ", groupAddr: " + groupAddr);
                     
-                    addr = groupAddr + (index & 0xffffff) * DataConstants.OCTREE_SIZE; // Update address to point to new octree
+                    addr = groupAddr + (mem.readVolatileInt(nodeAddr) >>> 8) * DataConstants.OCTREE_SIZE; // Update address to point to new octree
                 } else {
+                    System.out.println("Single node: " + scale);
                     break;
                 }
             }
