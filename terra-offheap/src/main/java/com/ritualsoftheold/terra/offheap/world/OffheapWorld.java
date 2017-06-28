@@ -54,7 +54,7 @@ public class OffheapWorld implements TerraWorld {
     // Load markers
     private Set<LoadMarker> loadMarkers;
     
-    public OffheapWorld(ChunkLoader chunkLoader, OctreeLoader octreeLoader, MaterialRegistry registry) {
+    public OffheapWorld(ChunkLoader chunkLoader, OctreeLoader octreeLoader, MaterialRegistry registry, WorldGenerator generator) {
         this.chunkLoader = chunkLoader;
         this.octreeLoader = octreeLoader;
         
@@ -73,6 +73,9 @@ public class OffheapWorld implements TerraWorld {
         this.loadMarkers = new HashSet<>();
         
         this.registry = registry;
+        
+        this.generatorExecutor = new ForkJoinPool();
+        this.generator = generator;
     }
 
     @Override
@@ -223,7 +226,7 @@ public class OffheapWorld implements TerraWorld {
         
         float octreeX = 0, octreeY = 0, octreeZ = 0;
         while (true) {
-            if (radius > scale * scale) {
+            if (radius > scale * 2) {
                 // We found small enough unit... load everything inside it!
                 System.out.println("Radius limit hit");
                 break;
@@ -331,37 +334,34 @@ public class OffheapWorld implements TerraWorld {
             return;
         }
         
-        // Prepare for async loadAll call
-        final int fEntry = entry;
-        final float fScale = scale;
-        final float fX = x;
-        final float fY = y;
-        final float fZ = z;
-        storageExecutor.execute(() -> loadAll(fEntry, fScale, fX, fY, fZ));
+        // Prepare for async loadAll call (async TODO)
+        loadAll(addr, scale, x, y, z);
     }
     
     /**
      * Starts loading all children of given octree index. Usually
      * returns before they're all loaded for efficiency.
-     * @param index
      */
-    private void loadAll(int index, float scale, float x, float y, float z) {
-        long groupAddr = octreeStorage.getGroup((byte) (index >>> 24));
-        long addr = groupAddr + (index & 0xffffff) * DataConstants.OCTREE_SIZE; // Update address to point to new octree
-        
-        byte flags = mem.readByte(addr);
+    private void loadAll(long addr, float scale, float x, float y, float z) {
+        System.out.println("Read flags from: " + addr);
+        byte flags = mem.readVolatileByte(addr);
         float childScale = scale * 0.5f;
         
+        System.out.println("scale: " + scale);
         // TODO check if I need to modify this to be a tail call manually (does the stack overflow?)
         if (childScale == DataConstants.CHUNK_SCALE) { // Nodes might be chunks
             for (int i = 0; i < 8; i++) {
                 if ((flags >>> i & 1) == 1) { // Chunk, we need to make sure it is loaded
-                    generatorExecutor.execute(() -> { // Schedule world gen to be done async
-                        boolean generated = mem.compareAndSwapInt(addr + 1 + index * DataConstants.OCTREE_NODE_SIZE, 0, handleGenerate(x, y, z));
-                        if (!generated) {
-                            chunkStorage.ensureLoaded(0); // TODO get entry somehow
-                        }
-                    });
+                    long nodeAddr = addr + 1 + i * DataConstants.OCTREE_NODE_SIZE;
+                    int node = mem.readVolatileInt(nodeAddr);
+                    if (node == 0) {
+                        generatorExecutor.execute(() -> { // Schedule world gen to be done async
+                            mem.compareAndSwapInt(nodeAddr, 0, handleGenerate(x, y, z));
+                            // TODO clear garbage produced by race conditions somehow
+                        });
+                    } else {
+                        chunkStorage.ensureLoaded(node);
+                    }
                 }
                 
                 // Single octree nodes are loaded already
@@ -424,12 +424,10 @@ public class OffheapWorld implements TerraWorld {
                         break;
                     }
                     
-                    // Process children in another thread
-                    final int fEntry = mem.readVolatileInt(nodeAddr);
-                    final float fX = x2;
-                    final float fY = y2;
-                    final float fZ = z2;
-                    storageExecutor.execute(() -> loadAll(fEntry, childScale, fX, fY, fZ));
+                    long groupAddr = octreeStorage.getGroup(mem.readVolatileByte(nodeAddr));
+                    loadAll(groupAddr + (mem.readVolatileInt(nodeAddr) >>> 8) * DataConstants.OCTREE_SIZE, childScale, x2, y2, z2);
+                } else {
+                    System.out.println("Single node, scale: " + scale);
                 }
             }
         }
@@ -454,6 +452,7 @@ public class OffheapWorld implements TerraWorld {
     }
     
     public int handleGenerate(float x, float y, float z) {
+        System.out.println("Handle generation...");
         short[] data = new short[DataConstants.CHUNK_MAX_BLOCKS];
         generator.generate(data, x, y, z, DataConstants.CHUNK_SCALE);
         

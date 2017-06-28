@@ -130,9 +130,9 @@ public class OctreeStorage {
         
         // Write 1 to flags, so child nodes are NULL, not air
         long addr = getGroup((byte) groupIndex) + octreeIndex * DataConstants.OCTREE_SIZE; // TODO benchmark
-        mem.writeByte(addr, (byte) 1);
+        mem.writeByte(addr, (byte) 0xff);
         System.out.println("groupIndex: " + groupIndex + ", groupAddr: " + getGroup((byte) groupIndex));
-        System.out.println("Write 1 at " + addr);
+        System.out.println("Write 0xff at " + addr);
         
         return octreeIndex << 8 | groupIndex;
     }

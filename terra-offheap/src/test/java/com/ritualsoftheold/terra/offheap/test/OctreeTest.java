@@ -10,6 +10,7 @@ import com.ritualsoftheold.terra.offheap.DataConstants;
 import com.ritualsoftheold.terra.offheap.node.OffheapOctree;
 import com.ritualsoftheold.terra.offheap.octree.OctreeStorage;
 import com.ritualsoftheold.terra.offheap.world.OffheapWorld;
+import com.ritualsoftheold.terra.world.gen.EmptyWorldGenerator;
 
 import net.openhft.chronicle.core.Memory;
 import net.openhft.chronicle.core.OS;
@@ -34,7 +35,7 @@ public class OctreeTest {
     
     @Test
     public void octreeTest() {
-        OffheapWorld world = new OffheapWorld(null, null, null);
+        OffheapWorld world = new OffheapWorld(null, null, null, new EmptyWorldGenerator());
         long addr = mem.allocate(DataConstants.OCTREE_SIZE * 8192); // Allocate memory
         mem.writeInt(addr + 1 + 6 * DataConstants.OCTREE_NODE_SIZE, 5); // Write one sample there
         
