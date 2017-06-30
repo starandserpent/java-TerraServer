@@ -34,4 +34,9 @@ public class DataConstants {
     
     public static final int CHUNK_DATA_OFFSET = 1;
     
+    /**
+     * Octree group metadata length.
+     */
+    public static final int OCTREE_GROUP_META = 16;
+    
 }

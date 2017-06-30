@@ -36,7 +36,7 @@ public class FileOctreeLoader implements OctreeLoader {
     
     @Override
     public long loadOctrees(byte index, long address) {
-        Path file = dir.resolve(index + ".terrao");
+        Path file = dir.resolve(index + ".terra");
         if (!Files.exists(file)) { // Error handling
             throw new IllegalArgumentException("cannot load non-existent octrees");
         }
@@ -51,7 +51,7 @@ public class FileOctreeLoader implements OctreeLoader {
 
     @Override
     public void saveOctrees(byte index, long addr) {
-        Path file = dir.resolve(index + ".octree");
+        Path file = dir.resolve(index + ".terra");
         try {
             long mappedAddr = OS.map(FileChannel.open(file, StandardOpenOption.WRITE, StandardOpenOption.CREATE), MapMode.READ_WRITE, 0, fileSize);
             mem.copyMemory(addr, mappedAddr, fileSize); // Copy data to file
@@ -59,6 +59,19 @@ public class FileOctreeLoader implements OctreeLoader {
         } catch (IOException e) {
             throw new IORuntimeException(e);
         }
+    }
+
+    @Override
+    public int countGroups() {
+        int count = 0;
+        try {
+            for (Path file : Files.newDirectoryStream(dir)) {
+                count++;
+            }
+        } catch (IOException e) {
+            throw new IORuntimeException(e);
+        }
+        return count;
     }
 
 }

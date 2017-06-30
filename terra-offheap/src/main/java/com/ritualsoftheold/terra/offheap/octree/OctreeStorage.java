@@ -54,13 +54,15 @@ public class OctreeStorage {
     public OctreeStorage(int blockSize, OctreeLoader loader, Executor executor) {
         this.loader = loader;
         this.loaderExecutor = executor;
-        this.freeGroup = new AtomicInteger(1);
-        this.freeIndex = new AtomicInteger(1);
         this.blockSize = blockSize;
         this.groups = mem.allocate(256 * 8); // 256 longs at most
         mem.setMemory(groups, 256 * 8, (byte) 0);
         this.lastNeeded = mem.allocate(256 * 8);
         mem.setMemory(lastNeeded, 256 * 8, (byte) 0);
+        
+        // Setup free group and index
+        this.freeGroup = new AtomicInteger(loader.countGroups());
+        this.freeIndex = new AtomicInteger(mem.readInt(getGroupMeta((byte) freeGroup.get())));
     }
     
     private long getGroupsAddr(byte index) {
@@ -86,7 +88,7 @@ public class OctreeStorage {
      * @param index Octree group index.
      */
     public void removeOctrees(byte index) {
-        mem.freeMemory(mem.readVolatileLong(getGroupsAddr(index)), blockSize);
+        mem.freeMemory(mem.readVolatileLong(getGroupsAddr(index)), blockSize + DataConstants.OCTREE_GROUP_META);
     }
     
     public long getGroup(byte groupIndex) {
@@ -99,7 +101,11 @@ public class OctreeStorage {
         // Mark that we needed the group
         mem.writeVolatileLong(getTimestampAddr(groupIndex), System.currentTimeMillis());
         
-        return addr;
+        return addr + DataConstants.OCTREE_GROUP_META;
+    }
+    
+    public long getGroupMeta(byte groupIndex) {
+        return getGroup(groupIndex) - DataConstants.OCTREE_GROUP_META;
     }
     
     public CompletableFuture<Long> saveGroup(byte groupIndex) {
@@ -129,10 +135,14 @@ public class OctreeStorage {
         System.out.println("Octree created: " + octreeIndex);
         
         // Write 1 to flags, so child nodes are NULL, not air
-        long addr = getGroup((byte) groupIndex) + octreeIndex * DataConstants.OCTREE_SIZE; // TODO benchmark
+        long groupAddr = getGroup((byte) groupIndex);
+        long addr = groupAddr + octreeIndex * DataConstants.OCTREE_SIZE; // TODO benchmark
         mem.writeByte(addr, (byte) 0xff);
         System.out.println("groupIndex: " + groupIndex + ", groupAddr: " + getGroup((byte) groupIndex));
         System.out.println("Write 0xff at " + addr);
+        
+        // Increment group's free position (this is saved to disk, but usually NOT used)
+        mem.addInt(groupAddr - DataConstants.OCTREE_GROUP_META, 1);
         
         return octreeIndex << 8 | groupIndex;
     }

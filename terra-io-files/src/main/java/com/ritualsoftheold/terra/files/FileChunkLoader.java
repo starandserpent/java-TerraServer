@@ -67,7 +67,15 @@ public class FileChunkLoader implements ChunkLoader {
 
     @Override
     public int countBuffers() {
-        return 0; // TODO implement this; need to have metadata or loop all files
+        int count = 0;
+        try {
+            for (Path file : Files.newDirectoryStream(dir)) {
+                count++;
+            }
+        } catch (IOException e) {
+            throw new IORuntimeException(e);
+        }
+        return count;
     }
 
 }
