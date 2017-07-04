@@ -3,9 +3,11 @@ package com.ritualsoftheold.terra.test;
 import java.nio.file.Paths;
 
 import com.jme3.app.SimpleApplication;
+import com.ritualsoftheold.terra.TerraModule;
 import com.ritualsoftheold.terra.files.FileChunkLoader;
 import com.ritualsoftheold.terra.files.FileOctreeLoader;
 import com.ritualsoftheold.terra.material.MaterialRegistry;
+import com.ritualsoftheold.terra.material.TerraTexture;
 import com.ritualsoftheold.terra.offheap.world.OffheapWorld;
 import com.ritualsoftheold.terra.world.gen.EmptyWorldGenerator;
 
@@ -19,9 +21,13 @@ public class TestGameApp extends SimpleApplication {
     
     @Override
     public void simpleInitApp() {
+        TerraModule mod = new TerraModule("testgame");
+        mod.newMaterial().name("dirt").texture(new TerraTexture(256, 256, "NorthenForestDirt256px.png"));
+        MaterialRegistry reg = new MaterialRegistry();
+        mod.registerMaterials(reg);
         
         world = new OffheapWorld(new FileChunkLoader(Paths.get("chunks")), new FileOctreeLoader(Paths.get("octrees"), 8192),
-                new MaterialRegistry(), new EmptyWorldGenerator());
+                reg, new TestWorldGenerator());
         
         // TODO: Test plan...
         /* 1. Finish changes to support meshing in OffheapWorld (loadArea/loadAll "mesher callbacks")
@@ -37,6 +43,11 @@ public class TestGameApp extends SimpleApplication {
          * 
          * Then? Networking.
          */
+    }
+    
+    @Override
+    public void simpleUpdate(float tpf) {
+        world.updateLoadMarkers();
     }
 
 }
