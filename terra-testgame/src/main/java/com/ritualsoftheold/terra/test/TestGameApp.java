@@ -47,7 +47,7 @@ public class TestGameApp extends SimpleApplication {
     
     @Override
     public void simpleUpdate(float tpf) {
-        world.updateLoadMarkers();
+        world.updateLoadMarkers(); // Update load markers (TODO do this less often)
     }
 
 }

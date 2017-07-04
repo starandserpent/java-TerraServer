@@ -53,6 +53,7 @@ public class OffheapWorld implements TerraWorld {
     
     // Load markers
     private Set<LoadMarker> loadMarkers;
+    private WorldLoadListener loadListener;
     
     public OffheapWorld(ChunkLoader chunkLoader, OctreeLoader octreeLoader, MaterialRegistry registry, WorldGenerator generator) {
         this.chunkLoader = chunkLoader;
@@ -215,8 +216,9 @@ public class OffheapWorld implements TerraWorld {
      * @param y
      * @param z
      * @param radius
+     * @param callback
      */
-    public void loadArea(float x, float y, float z, float radius) {
+    public void loadArea(float x, float y, float z, float radius, WorldLoadListener listener) {
         long addr = masterOctree.memoryAddress(); // Get starting memory address
         System.out.println("addr: " + addr);
         
@@ -335,14 +337,14 @@ public class OffheapWorld implements TerraWorld {
         }
         
         // Prepare for async loadAll call (async TODO)
-        loadAll(addr, scale, x, y, z);
+        loadAll(addr, scale, x, y, z, listener);
     }
     
     /**
      * Starts loading all children of given octree index. Usually
      * returns before they're all loaded for efficiency.
      */
-    private void loadAll(long addr, float scale, float x, float y, float z) {
+    private void loadAll(long addr, float scale, float x, float y, float z, WorldLoadListener listener) {
         System.out.println("Read flags from: " + addr);
         byte flags = mem.readVolatileByte(addr);
         float childScale = scale * 0.5f;
@@ -362,6 +364,8 @@ public class OffheapWorld implements TerraWorld {
                     } else {
                         chunkStorage.ensureLoaded(node);
                     }
+                    
+                    listener.chunkLoaded(nodeAddr, childScale);
                 }
                 
                 // Single octree nodes are loaded already
@@ -378,6 +382,8 @@ public class OffheapWorld implements TerraWorld {
                         mem.compareAndSwapInt(nodeAddr, 0, octreeIndex); // if no one else allocated it yet, save index
                         // This creates empty octrees, but probably not often
                     }
+                    
+                    listener.octreeLoaded(nodeAddr, x, y, z, childScale);
                     
                     // Create positions for subnodes
                     float x2 = x, y2 = y, z2 = z;
@@ -425,7 +431,7 @@ public class OffheapWorld implements TerraWorld {
                     }
                     
                     long groupAddr = octreeStorage.getGroup(mem.readVolatileByte(nodeAddr));
-                    loadAll(groupAddr + (mem.readVolatileInt(nodeAddr) >>> 8) * DataConstants.OCTREE_SIZE, childScale, x2, y2, z2);
+                    loadAll(groupAddr + (mem.readVolatileInt(nodeAddr) >>> 8) * DataConstants.OCTREE_SIZE, childScale, x2, y2, z2, listener);
                 } else {
                     System.out.println("Single node, scale: " + scale);
                 }
@@ -502,7 +508,8 @@ public class OffheapWorld implements TerraWorld {
      * @param marker Load marker to update.
      */
     private void updateLoadMarker(LoadMarker marker) {
-        loadArea(marker.getX(), marker.getY(), marker.getZ(), marker.getHardRadius());
+        loadArea(marker.getX(), marker.getY(), marker.getZ(), marker.getHardRadius(), loadListener);
+        marker.markUpdated(); // Tell it we updated it
     }
 
 }
