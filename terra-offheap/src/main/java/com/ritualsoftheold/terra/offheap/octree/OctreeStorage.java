@@ -61,7 +61,7 @@ public class OctreeStorage {
         mem.setMemory(lastNeeded, 256 * 8, (byte) 0);
         
         // Setup free group and index
-        this.freeGroup = new AtomicInteger(loader.countGroups());
+        this.freeGroup = new AtomicInteger(loader.countGroups() - 1);
         this.freeIndex = new AtomicInteger(mem.readInt(getGroupMeta((byte) freeGroup.get())));
     }
     
