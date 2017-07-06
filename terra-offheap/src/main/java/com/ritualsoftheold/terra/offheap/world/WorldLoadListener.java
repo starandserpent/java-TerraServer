@@ -10,7 +10,5 @@ public interface WorldLoadListener {
     
     void octreeLoaded(long addr, float x, float y, float z, float scale);
     
-    void chunkLoaded(long addr, float scale);
-    
-    // TODO args
+    void chunkLoaded(long addr, float x, float y, float z);
 }

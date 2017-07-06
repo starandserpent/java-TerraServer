@@ -1,5 +1,7 @@
 package com.ritualsoftheold.terra.test;
 
+import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Paths;
 
 import com.jme3.app.SimpleApplication;
@@ -9,11 +11,15 @@ import com.ritualsoftheold.terra.files.FileOctreeLoader;
 import com.ritualsoftheold.terra.material.MaterialRegistry;
 import com.ritualsoftheold.terra.material.TerraTexture;
 import com.ritualsoftheold.terra.offheap.world.OffheapWorld;
-import com.ritualsoftheold.terra.world.gen.EmptyWorldGenerator;
+import com.ritualsoftheold.terra.offheap.world.WorldLoadListener;
+import com.ritualsoftheold.terra.world.LoadMarker;
+
+import net.openhft.chronicle.core.io.IORuntimeException;
 
 public class TestGameApp extends SimpleApplication {
     
     private OffheapWorld world;
+    private LoadMarker player;
     
     public static void main(String... args) {
         new TestGameApp().start();
@@ -26,8 +32,27 @@ public class TestGameApp extends SimpleApplication {
         MaterialRegistry reg = new MaterialRegistry();
         mod.registerMaterials(reg);
         
-        world = new OffheapWorld(new FileChunkLoader(Paths.get("chunks")), new FileOctreeLoader(Paths.get("octrees"), 8192),
-                reg, new TestWorldGenerator());
+        try {
+            world = new OffheapWorld(new FileChunkLoader(Files.createDirectories(Paths.get("chunks"))), new FileOctreeLoader(Files.createDirectories(Paths.get("octrees")), 8192),
+                    reg, new TestWorldGenerator());
+        } catch (IOException e) {
+            throw new IORuntimeException(e);
+        }
+        player = new LoadMarker(0, 0, 0, 100, 200);
+        world.addLoadMarker(player);
+        
+        world.setLoadListener(new WorldLoadListener() {
+            
+            @Override
+            public void octreeLoaded(long addr, float x, float y, float z, float scale) {
+                // For now, just ignore octrees
+            }
+            
+            @Override
+            public void chunkLoaded(long addr, float x, float y, float z) {
+                
+            }
+        });
         
         // TODO: Test plan...
         /* 1. Finish changes to support meshing in OffheapWorld (loadArea/loadAll "mesher callbacks")

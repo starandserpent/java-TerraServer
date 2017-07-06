@@ -33,12 +33,10 @@ public class FileChunkLoader implements ChunkLoader {
     @Override
     public ChunkBuffer loadChunks(short index, ChunkBuffer buf) {
         Path file = dir.resolve(index + ".terrac");
-        if (!Files.exists(file)) { // Error handling
-            throw new IllegalArgumentException("cannot load non-existent chunks");
-        }
+
         try {
             long len = Files.size(file);
-            long addr = OS.map(FileChannel.open(file, StandardOpenOption.READ), MapMode.PRIVATE, 0, len); // Map to memory
+            long addr = OS.map(FileChannel.open(file, StandardOpenOption.READ, StandardOpenOption.CREATE), MapMode.PRIVATE, 0, len); // Map to memory
             int chunkCount = mem.readInt(addr); // Write chunk count to metadata
             buf.load(addr + FILE_META_LENGTH, chunkCount); // Load chunks
             OS.unmap(addr, len); // Unmap data after it is not needed

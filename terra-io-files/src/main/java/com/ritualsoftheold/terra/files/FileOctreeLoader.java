@@ -1,11 +1,14 @@
 package com.ritualsoftheold.terra.files;
 
 import java.io.IOException;
+import java.io.RandomAccessFile;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileChannel.MapMode;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
+import java.nio.file.attribute.PosixFileAttributes;
+import java.util.concurrent.locks.LockSupport;
 
 import com.ritualsoftheold.terra.offheap.io.OctreeLoader;
 
@@ -37,13 +40,17 @@ public class FileOctreeLoader implements OctreeLoader {
     @Override
     public long loadOctrees(byte index, long address) {
         Path file = dir.resolve(index + ".terra");
-        if (!Files.exists(file)) { // Error handling
-            throw new IllegalArgumentException("cannot load non-existent octrees");
-        }
         
         try {
-            // TODO implement a way to unload previous stuff we have mapped if loadOctrees method is misused
-            return OS.map(FileChannel.open(file, StandardOpenOption.READ), MapMode.PRIVATE, 0, fileSize);
+            if (!Files.exists(file)) { // Create new file if necessary
+                RandomAccessFile f = new RandomAccessFile(file.toFile(), "rwd");
+                f.setLength(fileSize);
+                f.close();
+            }
+            long dataAddr = OS.map(FileChannel.open(file, StandardOpenOption.READ), MapMode.PRIVATE, 0, fileSize);
+            long addr = mem.allocate(fileSize);
+            mem.copyMemory(dataAddr, addr, fileSize);
+            return addr;
         } catch (IOException e) {
             throw new IORuntimeException(e);
         }

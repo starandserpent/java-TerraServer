@@ -351,8 +351,54 @@ public class OffheapWorld implements TerraWorld {
         
         System.out.println("scale: " + scale);
         // TODO check if I need to modify this to be a tail call manually (does the stack overflow?)
+        float posMod = 0.25f * scale;
         if (childScale == DataConstants.CHUNK_SCALE) { // Nodes might be chunks
             for (int i = 0; i < 8; i++) {
+                // Create positions for subnodes
+                float x2 = x, y2 = y, z2 = z;
+                switch (i) {
+                case 0:
+                    x2 -= posMod;
+                    y2 -= posMod;
+                    z2 -= posMod;
+                    break;
+                case 1:
+                    x2 += posMod;
+                    y2 -= posMod;
+                    z2 -= posMod;
+                    break;
+                case 2:
+                    x2 -= posMod;
+                    y2 += posMod;
+                    z2 -= posMod;
+                    break;
+                case 3:
+                    x2 += posMod;
+                    y2 += posMod;
+                    z2 -= posMod;
+                    break;
+                case 4:
+                    x2 -= posMod;
+                    y2 -= posMod;
+                    z2 += posMod;
+                    break;
+                case 5:
+                    x2 += posMod;
+                    y2 -= posMod;
+                    z2 += posMod;
+                    break;
+                case 6:
+                    x2 -= posMod;
+                    y2 += posMod;
+                    z2 += posMod;
+                    break;
+                case 7:
+                    x2 += posMod;
+                    y2 += posMod;
+                    z2 += posMod;
+                    break;
+                }
+                
                 if ((flags >>> i & 1) == 1) { // Chunk, we need to make sure it is loaded
                     long nodeAddr = addr + 1 + i * DataConstants.OCTREE_NODE_SIZE;
                     int node = mem.readVolatileInt(nodeAddr);
@@ -365,13 +411,12 @@ public class OffheapWorld implements TerraWorld {
                         chunkStorage.ensureLoaded(node);
                     }
                     
-                    listener.chunkLoaded(nodeAddr, childScale);
+                    listener.chunkLoaded(nodeAddr, x2, y2, z2);
                 }
                 
                 // Single octree nodes are loaded already
             }
         } else { // Nodes might be octrees
-            float posMod = 0.25f * scale;
             for (int i = 0; i < 8; i++) {
                 if ((flags >>> i & 1) == 1) { // Octree, we need to make sure it is loaded
                     long nodeAddr = addr + 1 + i * DataConstants.OCTREE_NODE_SIZE;
@@ -382,8 +427,6 @@ public class OffheapWorld implements TerraWorld {
                         mem.compareAndSwapInt(nodeAddr, 0, octreeIndex); // if no one else allocated it yet, save index
                         // This creates empty octrees, but probably not often
                     }
-                    
-                    listener.octreeLoaded(nodeAddr, x, y, z, childScale);
                     
                     // Create positions for subnodes
                     float x2 = x, y2 = y, z2 = z;
@@ -429,6 +472,8 @@ public class OffheapWorld implements TerraWorld {
                         z2 += posMod;
                         break;
                     }
+                    
+                    listener.octreeLoaded(nodeAddr, x2, y2, z2, childScale);
                     
                     long groupAddr = octreeStorage.getGroup(mem.readVolatileByte(nodeAddr));
                     loadAll(groupAddr + (mem.readVolatileInt(nodeAddr) >>> 8) * DataConstants.OCTREE_SIZE, childScale, x2, y2, z2, listener);
@@ -510,6 +555,10 @@ public class OffheapWorld implements TerraWorld {
     private void updateLoadMarker(LoadMarker marker) {
         loadArea(marker.getX(), marker.getY(), marker.getZ(), marker.getHardRadius(), loadListener);
         marker.markUpdated(); // Tell it we updated it
+    }
+    
+    public void setLoadListener(WorldLoadListener listener) {
+        this.loadListener = listener;
     }
 
 }

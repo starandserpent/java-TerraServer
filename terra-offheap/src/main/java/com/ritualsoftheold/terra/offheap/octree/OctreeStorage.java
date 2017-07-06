@@ -183,7 +183,6 @@ public class OctreeStorage {
         byte groupIndex = (byte) (index >>> 24);
         int octreeIndex = index & 0xffffff;
         long groupAddr = getGroup(groupIndex);
-        // This future will block on groupFuture.get()... hopefully
         long addr = groupAddr + octreeIndex * DataConstants.OCTREE_SIZE;
         
         OffheapOctree octree = new OffheapOctree(world, 0f); // TODO scale, somehow
