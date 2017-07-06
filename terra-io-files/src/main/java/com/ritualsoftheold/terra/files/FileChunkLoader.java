@@ -37,7 +37,12 @@ public class FileChunkLoader implements ChunkLoader {
         try {
             long len = Files.size(file);
             long addr = OS.map(FileChannel.open(file, StandardOpenOption.READ, StandardOpenOption.CREATE), MapMode.PRIVATE, 0, len); // Map to memory
-            int chunkCount = mem.readInt(addr); // Write chunk count to metadata
+            int chunkCount;
+            if (len < FILE_META_LENGTH) {
+                chunkCount = 0; // Hey, new file
+            } else {
+                chunkCount = mem.readInt(addr);
+            }
             buf.load(addr + FILE_META_LENGTH, chunkCount); // Load chunks
             OS.unmap(addr, len); // Unmap data after it is not needed
         } catch (IOException e) {

@@ -50,7 +50,7 @@ public class TestGameApp extends SimpleApplication {
             
             @Override
             public void chunkLoaded(long addr, float x, float y, float z) {
-                
+                System.out.println("Loaded chunk!");
             }
         });
         
@@ -68,11 +68,12 @@ public class TestGameApp extends SimpleApplication {
          * 
          * Then? Networking.
          */
+        world.updateLoadMarkers();
     }
     
     @Override
     public void simpleUpdate(float tpf) {
-        world.updateLoadMarkers(); // Update load markers (TODO do this less often)
+        //world.updateLoadMarkers(); // Update load markers (TODO do this less often)
     }
 
 }

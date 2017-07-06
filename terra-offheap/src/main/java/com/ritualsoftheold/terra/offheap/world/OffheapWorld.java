@@ -543,7 +543,8 @@ public class OffheapWorld implements TerraWorld {
             if (marker.hasMoved()) { // Update only marker that has been moved
                 // When player moves a little, DO NOT, I repeat, DO NOT just blindly move load marker.
                 // Move it when player moves few meters or so!
-                storageExecutor.execute(() -> updateLoadMarker(marker));
+                // TODO async
+                updateLoadMarker(marker);
             }
         }
     }

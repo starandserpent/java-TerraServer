@@ -19,9 +19,7 @@ public class LoadMarker {
     private boolean hasMoved;
     
     public LoadMarker(float x, float y, float z, float hardRadius, float softRadius) {
-        this.x = x;
-        this.y = y;
-        this.z = z;
+        move(x, y, z);
         this.hardRadius = hardRadius;
         this.softRadius = softRadius;
     }
