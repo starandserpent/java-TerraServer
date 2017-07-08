@@ -35,8 +35,12 @@ public class FileChunkLoader implements ChunkLoader {
         Path file = dir.resolve(index + ".terrac");
 
         try {
+            if (Files.exists(file)) { // Create file if it does not exist
+                Files.createFile(file);
+            }
+            
             long len = Files.size(file);
-            long addr = OS.map(FileChannel.open(file, StandardOpenOption.READ, StandardOpenOption.CREATE), MapMode.PRIVATE, 0, len); // Map to memory
+            long addr = OS.map(FileChannel.open(file, StandardOpenOption.READ), MapMode.PRIVATE, 0, len); // Map to memory
             int chunkCount;
             if (len < FILE_META_LENGTH) {
                 chunkCount = 0; // Hey, new file
@@ -72,7 +76,7 @@ public class FileChunkLoader implements ChunkLoader {
     public int countBuffers() {
         int count = 0;
         try {
-            for (Path file : Files.newDirectoryStream(dir)) {
+            for (@SuppressWarnings("unused") Path file : Files.newDirectoryStream(dir)) {
                 count++;
             }
         } catch (IOException e) {

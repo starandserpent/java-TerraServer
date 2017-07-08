@@ -222,7 +222,9 @@ public class ChunkBuffer {
         int compressedLength = RunLengthCompressor.compress(addr, tempAddr);
         
         int bufferId = createChunk(compressedLength);
-        mem.copyMemory(tempAddr, getChunkAddress(bufferId), compressedLength);
+        long bufAddr = getChunkAddress(bufferId);
+        mem.writeByte(bufAddr, (byte) 0);
+        mem.copyMemory(tempAddr, bufAddr + 1, compressedLength);
         return bufferId;
     }
     
