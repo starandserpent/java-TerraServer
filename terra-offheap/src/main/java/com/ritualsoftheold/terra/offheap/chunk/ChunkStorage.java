@@ -218,8 +218,9 @@ public class ChunkStorage {
      * Ensures that a chunk with given id is loaded when this method returns.
      * @param id Full chunk id.
      */
-    public void ensureLoaded(int id) {
-        getBuffer((short) (id >>> 16));
+    public long ensureLoaded(int id) {
+        ChunkBuffer buf = getBuffer((short) (id >>> 16));
+        return buf.getChunkAddress(id & 0xffff);
     }
     
 }

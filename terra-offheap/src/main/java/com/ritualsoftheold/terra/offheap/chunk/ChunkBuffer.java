@@ -223,6 +223,7 @@ public class ChunkBuffer {
         
         int bufferId = createChunk(compressedLength);
         long bufAddr = getChunkAddress(bufferId);
+        System.out.println("Write 0 to " + bufAddr);
         mem.writeByte(bufAddr, (byte) 0);
         mem.copyMemory(tempAddr, bufAddr + 1, compressedLength);
         return bufferId;

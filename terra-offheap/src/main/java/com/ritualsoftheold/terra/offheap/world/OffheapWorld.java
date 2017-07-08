@@ -403,15 +403,18 @@ public class OffheapWorld implements TerraWorld {
                     long nodeAddr = addr + 1 + i * DataConstants.OCTREE_NODE_SIZE;
                     int node = mem.readVolatileInt(nodeAddr);
                     if (node == 0) {
+                        float fX = x2;
+                        float fY = y2;
+                        float fZ = z2;
                         generatorExecutor.execute(() -> { // Schedule world gen to be done async
-                            mem.compareAndSwapInt(nodeAddr, 0, handleGenerate(x, y, z));
+                            int newNode = handleGenerate(fX, fY, fZ);
+                            mem.compareAndSwapInt(nodeAddr, 0, newNode);
                             // TODO clear garbage produced by race conditions somehow
+                            listener.chunkLoaded(chunkStorage.ensureLoaded(newNode), fX, fY, fZ);
                         });
                     } else {
-                        chunkStorage.ensureLoaded(node);
-                    }
-                    
-                    listener.chunkLoaded(nodeAddr, x2, y2, z2);
+                        listener.chunkLoaded(chunkStorage.ensureLoaded(node), x2, y2, z2);
+                    }                    
                 }
                 
                 // Single octree nodes are loaded already

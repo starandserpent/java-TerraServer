@@ -10,6 +10,9 @@ import com.ritualsoftheold.terra.files.FileChunkLoader;
 import com.ritualsoftheold.terra.files.FileOctreeLoader;
 import com.ritualsoftheold.terra.material.MaterialRegistry;
 import com.ritualsoftheold.terra.material.TerraTexture;
+import com.ritualsoftheold.terra.mesher.NaiveMesher;
+import com.ritualsoftheold.terra.mesher.VoxelMesher;
+import com.ritualsoftheold.terra.mesher.resource.TextureManager;
 import com.ritualsoftheold.terra.offheap.world.OffheapWorld;
 import com.ritualsoftheold.terra.offheap.world.WorldLoadListener;
 import com.ritualsoftheold.terra.world.LoadMarker;
@@ -41,6 +44,9 @@ public class TestGameApp extends SimpleApplication {
         player = new LoadMarker(0, 0, 0, 100, 200);
         world.addLoadMarker(player);
         
+        TextureManager texManager = new TextureManager(assetManager); // Initialize texture atlas/array manager
+        texManager.loadMaterials(reg); // And make it load material registry
+        
         world.setLoadListener(new WorldLoadListener() {
             
             @Override
@@ -50,7 +56,9 @@ public class TestGameApp extends SimpleApplication {
             
             @Override
             public void chunkLoaded(long addr, float x, float y, float z) {
-                System.out.println("Loaded chunk!");
+                System.out.println("Loaded chunk: " + addr);
+                VoxelMesher mesher = new NaiveMesher(); // Not thread safe, but this is still performance hog!
+                mesher.chunk(addr, texManager);
             }
         });
         
