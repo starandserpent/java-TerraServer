@@ -60,11 +60,11 @@ public class NaiveMesher implements VoxelMesher {
                 int index = begin + i;
                     
                 int rightIndex = index - 1;
-//                if (rightIndex > -1 && index % 64 != 0)
-//                    hidden[rightIndex] |= 0b00010000; // RIGHT
+                if (rightIndex > -1 && index % 64 != 0)
+                    hidden[rightIndex] |= 0b00010000; // LEFT
                 int leftIndex = index + 1;
 //                if (leftIndex < DataConstants.CHUNK_MAX_BLOCKS && leftIndex % 64 != 0)
-//                    hidden[leftIndex] |= 0b00100000; // LEFT
+//                    hidden[leftIndex] |= 0b00100000; // RIGHT
                 int upIndex = index - 64;
 //                if (upIndex > -1 && index - index / 4096 * 4096 > 64)
 //                    hidden[upIndex] |= 0b00001000; // UP

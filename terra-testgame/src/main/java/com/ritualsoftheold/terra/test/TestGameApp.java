@@ -83,7 +83,7 @@ public class TestGameApp extends SimpleApplication {
                 // Create geometry
                 Geometry geom = new Geometry("chunk:" + x + "," + y + "," + z, mesh);
                 Material mat = new Material(assetManager, "jme3test/texture/UnshadedArray.j3md");
-                //mat.getAdditionalRenderState().setWireframe(true);
+                mat.getAdditionalRenderState().setWireframe(true);
                 //mat.getAdditionalRenderState().setFaceCullMode(FaceCullMode.Off);
                 mat.setTexture("ColorMap", texManager.getGroundTexture());
                 mat.setParam("SeparateTexCoord", VarType.Boolean, true);
