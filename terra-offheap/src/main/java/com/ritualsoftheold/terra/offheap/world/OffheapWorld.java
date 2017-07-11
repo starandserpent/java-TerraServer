@@ -7,6 +7,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.locks.LockSupport;
 
 import com.ritualsoftheold.terra.material.MaterialRegistry;
 import com.ritualsoftheold.terra.node.Chunk;
@@ -69,7 +70,7 @@ public class OffheapWorld implements TerraWorld {
         mem.writeByte(masterOctree.memoryAddress(), (byte) 0xff);
         
         // Master scale, TODO
-        masterScale = 1024;
+        masterScale = 32;
         
         this.loadMarkers = new HashSet<>();
         
@@ -226,11 +227,21 @@ public class OffheapWorld implements TerraWorld {
         int entry = 0; // Chunk or octree id
         boolean isOctree = true; // If the final entry is chunk or octree
         
+        // Store original values. We're going to need them
+        float originX = x;
+        float originY = y;
+        float originZ = z;
+        
         float octreeX = 0, octreeY = 0, octreeZ = 0;
         while (true) {
-            if (radius > scale * 2) {
+            float farthestPoint = 0.5f * scale; // Farthest point from center 
+            if (originX + radius > x + farthestPoint || originX - radius < x - farthestPoint
+                    || originY + radius > y + farthestPoint || originY - radius < y - farthestPoint
+                    || originZ + radius > z + farthestPoint || originZ - radius < z - farthestPoint) {
                 // We found small enough unit... load everything inside it!
-                System.out.println("Radius limit hit");
+                System.out.println("Radius limit hit...");
+                System.out.println("coords: " + x + ", " + y + ", " + z);
+                System.out.println("scale: " + scale);
                 break;
             }
             
@@ -406,12 +417,12 @@ public class OffheapWorld implements TerraWorld {
                         float fX = x2;
                         float fY = y2;
                         float fZ = z2;
-                        generatorExecutor.execute(() -> { // Schedule world gen to be done async
+                        //generatorExecutor.execute(() -> { // Schedule world gen to be done async
                             int newNode = handleGenerate(fX, fY, fZ);
                             mem.compareAndSwapInt(nodeAddr, 0, newNode);
                             // TODO clear garbage produced by race conditions somehow
                             listener.chunkLoaded(chunkStorage.ensureLoaded(newNode), fX, fY, fZ);
-                        });
+                        //});
                     } else {
                         listener.chunkLoaded(chunkStorage.ensureLoaded(node), x2, y2, z2);
                     }                    
@@ -518,6 +529,7 @@ public class OffheapWorld implements TerraWorld {
         }
         
         int chunkId = chunkStorage.addChunk(tempAddr, registry);
+        mem.freeMemory(tempAddr, DataConstants.CHUNK_UNCOMPRESSED);
         return chunkId;
     }
     

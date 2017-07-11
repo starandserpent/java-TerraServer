@@ -35,7 +35,7 @@ public class FileChunkLoader implements ChunkLoader {
         Path file = dir.resolve(index + ".terrac");
 
         try {
-            if (Files.exists(file)) { // Create file if it does not exist
+            if (!Files.exists(file)) { // Create file if it does not exist
                 Files.createFile(file);
             }
             

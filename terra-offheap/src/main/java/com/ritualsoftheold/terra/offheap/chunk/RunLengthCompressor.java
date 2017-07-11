@@ -20,7 +20,7 @@ public class RunLengthCompressor {
         
         for (int i = 0; i < DataConstants.CHUNK_UNCOMPRESSED; i += 2) {
             short newId = mem.readShort(in + i);
-            if (previous != newId || count == Character.MAX_VALUE) { // Write what we had here
+            if (previous != newId || count == Short.MAX_VALUE) { // Write what we had here
                 mem.writeInt(out + outIndex, previous << 16 | count);
                 outIndex += 4; // Increase outIndex to point to next data slot
                 count = 1; // We got ONE new block already so reset count to one
