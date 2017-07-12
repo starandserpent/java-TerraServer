@@ -1,8 +1,11 @@
 package com.ritualsoftheold.terra.offheap.test;
 
+import static org.junit.Assert.*;
+
 import org.junit.Test;
 
 import com.ritualsoftheold.terra.offheap.DataConstants;
+import com.ritualsoftheold.terra.offheap.chunk.RunLengthCompressor;
 
 import net.openhft.chronicle.core.Memory;
 import net.openhft.chronicle.core.OS;
@@ -18,6 +21,17 @@ public class RLETest {
     @Test
     public void deAndCompressTest() {
         long origin = mem.allocate(DataConstants.CHUNK_UNCOMPRESSED);
-        // TODO
+        mem.setMemory(origin, DataConstants.CHUNK_UNCOMPRESSED, (byte) 0xff);
+        
+        long compressed = mem.allocate(DataConstants.CHUNK_UNCOMPRESSED);
+        int len = RunLengthCompressor.compress(origin, compressed);
+        System.out.println("len: " + len);
+        
+        long newData = mem.allocate(DataConstants.CHUNK_UNCOMPRESSED);
+        RunLengthCompressor.decompress(compressed, newData);
+        
+        for (int i = 0; i < DataConstants.CHUNK_UNCOMPRESSED; i++) {
+            assertEquals(mem.readByte(origin + i), mem.readByte(newData + i));
+        }
     }
 }

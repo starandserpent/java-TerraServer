@@ -12,6 +12,7 @@ import net.openhft.chronicle.core.OS;
 public class RunLengthCompressor {
     
     private static final Memory mem = OS.memory();
+    private static final int MAX_COUNT = Character.MAX_VALUE + 1;
     
     public static int compress(long in, long out) {
         short previous = mem.readShort(in); // Read first block in
@@ -20,7 +21,7 @@ public class RunLengthCompressor {
         
         for (int i = 0; i < DataConstants.CHUNK_UNCOMPRESSED; i += 2) {
             short newId = mem.readShort(in + i);
-            if (previous != newId || count == Short.MAX_VALUE) { // Write what we had here
+            if (previous != newId || count == MAX_COUNT) { // Write what we had here
                 mem.writeInt(out + outIndex, previous << 16 | count);
                 outIndex += 4; // Increase outIndex to point to next data slot
                 count = 1; // We got ONE new block already so reset count to one
@@ -29,17 +30,21 @@ public class RunLengthCompressor {
                 count++; // Stay with same block type
             }
         }
+        if (count != 0) {
+            mem.writeInt(out + outIndex, previous << 16 | count);
+            outIndex += 4; // Increase outIndex to point to next data slot
+        }
         
-        return outIndex + 1;
+        return outIndex;
     }
     
     public static void decompress(long in, long out) {
         int outIndex = 0;
         
-        for (int i = 0; outIndex < DataConstants.CHUNK_UNCOMPRESSED; i += 4) {
+        for (int i = 0; outIndex <= DataConstants.CHUNK_UNCOMPRESSED; i += 4) {
             int entry = mem.readInt(in + i); // Read entry (2 bytes id+2 bytes length)
-            short id = (short) (entry >>> 16);
-            int count = entry & 0xffff;
+            short id = (short) (entry & 0xffff);
+            int count = entry >>> 16; // I hate endianness issues
             
             for (int j = 0; j < count; j++) {
                 mem.writeShort(out + outIndex + j * 2, id);
