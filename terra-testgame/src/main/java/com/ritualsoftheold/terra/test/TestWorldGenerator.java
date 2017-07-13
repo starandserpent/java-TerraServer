@@ -15,9 +15,9 @@ public class TestWorldGenerator implements WorldGenerator {
     @Override
     public boolean generate(short[] data, float x, float y, float z, float scale) {
         System.out.println("chunk: " + x + "," + y + "," + z);
-        if (y > 0 && y < 32) {
+        //if (y > 0 && y < 32) {
             Arrays.fill(data, (short) 1);
-        }
+        //}
         
         return true;
     }

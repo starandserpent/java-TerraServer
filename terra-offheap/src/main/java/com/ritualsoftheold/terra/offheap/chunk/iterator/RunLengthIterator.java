@@ -28,8 +28,8 @@ public class RunLengthIterator implements ChunkIterator {
     
     @Override
     public short nextMaterial() {
-        material = mem.readShort(addr + offset); // TODO improve performance by reading one value
-        count = Short.toUnsignedInt(mem.readShort(addr + offset + 2)) + 1; // .. without having little/big endian mess, please
+        material = mem.readShort(addr + offset + 2); // TODO improve performance by reading one value
+        count = Short.toUnsignedInt(mem.readShort(addr + offset)) + 1; // .. without having little/big endian mess, please
         blocksDone += count;
         
         // Increase offset AFTER we used it
@@ -56,6 +56,7 @@ public class RunLengthIterator implements ChunkIterator {
     public void reset() {
         offset = 0;
         done = false;
+        blocksDone = 0;
     }
 
     @Override
