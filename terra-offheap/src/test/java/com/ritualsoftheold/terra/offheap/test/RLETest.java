@@ -25,13 +25,12 @@ public class RLETest {
         
         long compressed = mem.allocate(DataConstants.CHUNK_UNCOMPRESSED);
         int len = RunLengthCompressor.compress(origin, compressed);
-        System.out.println("len: " + len);
         
         long newData = mem.allocate(DataConstants.CHUNK_UNCOMPRESSED);
         RunLengthCompressor.decompress(compressed, newData);
         
         for (int i = 0; i < DataConstants.CHUNK_UNCOMPRESSED; i++) {
-            assertEquals(mem.readByte(origin + i), mem.readByte(newData + i));
+            assertEquals("byte: " + i, mem.readByte(origin + i), mem.readByte(newData + i));
         }
     }
 }
