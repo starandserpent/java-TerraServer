@@ -29,13 +29,13 @@ public class RunLengthIterator implements ChunkIterator {
     @Override
     public short nextMaterial() {
         material = mem.readShort(addr + offset); // TODO improve performance by reading one value
-        count = mem.readShort(addr + offset + 2); // .. without having little/big endian mess, please
+        count = Short.toUnsignedInt(mem.readShort(addr + offset + 2)) + 1; // .. without having little/big endian mess, please
         blocksDone += count;
         
         // Increase offset AFTER we used it
         offset += 4;
         
-        if (blocksDone == DataConstants.CHUNK_MAX_BLOCKS || count == 0) {
+        if (blocksDone == DataConstants.CHUNK_MAX_BLOCKS || count == 1) {
             done = true;
         }
         

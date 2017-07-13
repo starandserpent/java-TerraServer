@@ -39,7 +39,13 @@ public class ChunkTest extends SimpleApplication {
         mem.setMemory(addr, DataConstants.CHUNK_UNCOMPRESSED, (byte) 0);
         mem.writeByte(addr, (byte) 0); // Chunk type here
         mem.writeShort(addr + 1, (short) 2); // Add some stuff to chunk
-        mem.writeShort(addr + 3, (short) 30);
+        mem.writeShort(addr + 3, (short) 0xffff);
+        mem.writeShort(addr + 5, (short) 2);
+        mem.writeShort(addr + 7, (short) 0xffff);
+        mem.writeShort(addr + 9, (short) 2);
+        mem.writeShort(addr + 11, (short) 0xffff);
+        mem.writeShort(addr + 13, (short) 2);
+        mem.writeShort(addr + 15, (short) 0xffff);
         //System.out.println(Long.toBinaryString(mem.readLong(addr)));
         
         // Register materials
