@@ -63,23 +63,21 @@ public class NaiveMesher implements VoxelMesher {
                 int rightIndex = index - 1;
                 if (rightIndex > -1 && index % 64 != 0)
                     hidden[rightIndex] |= 0b00010000; // RIGHT
-                else
-                    System.out.println("index: " + index + "; mod: " + index % 64 + "; mat: " + blockId);
-//                int leftIndex = index + 1;
-//                if (leftIndex < DataConstants.CHUNK_MAX_BLOCKS && leftIndex % 64 != 0)
-//                    hidden[leftIndex] |= 0b00100000; // LEFT
-//                int upIndex = index - 64;
-//                if (upIndex > -1 && index - index / 4096 * 4096 > 64)
-//                    hidden[upIndex] |= 0b00001000; // UP
-//                int downIndex = index + 64;
-//                if (downIndex < DataConstants.CHUNK_MAX_BLOCKS && downIndex - downIndex / 4096 * 4096 > 64)
-//                    hidden[downIndex] |= 0b00000100; // DOWN
-//                int backIndex = index + 4096;
-//                if (backIndex < DataConstants.CHUNK_MAX_BLOCKS)
-//                    hidden[backIndex] |= 0b00000001; // BACK
-//                int frontIndex = index - 4096;
-//                if (frontIndex > -1)
-//                    hidden[frontIndex] |= 0b00000010; // FRONT
+                int leftIndex = index + 1;
+                if (leftIndex < DataConstants.CHUNK_MAX_BLOCKS && leftIndex % 64 != 0)
+                    hidden[leftIndex] |= 0b00100000; // LEFT
+                int upIndex = index - 64;
+                if (upIndex > -1 && index - index / 4096 * 4096 > 64)
+                    hidden[upIndex] |= 0b00001000; // UP
+                int downIndex = index + 64;
+                if (downIndex < DataConstants.CHUNK_MAX_BLOCKS && downIndex - downIndex / 4096 * 4096 > 64)
+                    hidden[downIndex] |= 0b00000100; // DOWN
+                int backIndex = index + 4096;
+                if (backIndex < DataConstants.CHUNK_MAX_BLOCKS)
+                    hidden[backIndex] |= 0b00000001; // BACK
+                int frontIndex = index - 4096;
+                if (frontIndex > -1)
+                    hidden[frontIndex] |= 0b00000010; // FRONT
             }
         }
         
@@ -103,11 +101,13 @@ public class NaiveMesher implements VoxelMesher {
                 //System.out.println((48 - j * 16) + ": " + Long.toBinaryString(id));
                 byte faces = hidden[begin + i]; // Read hidden faces of this block
                 if (blockId == 0 || faces == 0b00111111) { // TODO better "is-air" check
+                    block++; // To next block!
                     continue; // AIR or all faces are hidden
                 }
                 //System.out.println("id: " + id + ", block: " + block);
                 TerraTexture texture = textures.getTexture(blockId); // Get texture for id
                 if (texture == null) {
+                    block++; // To next block!
                     continue;
                 }
                 
