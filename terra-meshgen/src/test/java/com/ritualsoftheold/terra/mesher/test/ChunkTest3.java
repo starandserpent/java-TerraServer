@@ -11,6 +11,7 @@ import com.jme3.shader.VarType;
 import com.jme3.util.BufferUtils;
 import com.ritualsoftheold.terra.TerraModule;
 import com.ritualsoftheold.terra.material.MaterialRegistry;
+import com.ritualsoftheold.terra.material.TerraMaterial;
 import com.ritualsoftheold.terra.material.TerraTexture;
 import com.ritualsoftheold.terra.mesher.NaiveMesher;
 import com.ritualsoftheold.terra.mesher.VoxelMesher;
@@ -34,29 +35,29 @@ public class ChunkTest3 extends SimpleApplication {
 
     @Override
     public void simpleInitApp() {
-        // Create chunk data
-        long addr = mem.allocate(DataConstants.CHUNK_UNCOMPRESSED);
-        mem.setMemory(addr, DataConstants.CHUNK_UNCOMPRESSED, (byte) 0);
-        mem.writeByte(addr, (byte) 0); // Chunk type here
-        mem.writeShort(addr + 1, (short) 2); // Add some stuff to chunk
-        mem.writeShort(addr + 3, (short) 0xffff);
-        mem.writeShort(addr + 5, (short) 2);
-        mem.writeShort(addr + 7, (short) 0xffff);
-        mem.writeShort(addr + 9, (short) 2);
-        mem.writeShort(addr + 11, (short) 0xffff);
-        mem.writeShort(addr + 13, (short) 2);
-        mem.writeShort(addr + 15, (short) 0xffff);
-        //System.out.println(Long.toBinaryString(mem.readLong(addr)));
-        
         // Register materials
         TextureManager manager = new TextureManager(assetManager); // jME provides asset manager
         MaterialRegistry registry = new MaterialRegistry();
         
         TerraModule mod = new TerraModule("test");
-        mod.newMaterial().name("grass").texture(new TerraTexture(32, 32, "grass.png"));
-        mod.newMaterial().name("dirt").texture(new TerraTexture(32, 32, "dirt.png"));
+        TerraMaterial grass = mod.newMaterial().name("grass").texture(new TerraTexture(32, 32, "grass.png")).build();
+        TerraMaterial dirt = mod.newMaterial().name("dirt").texture(new TerraTexture(32, 32, "dirt.png")).build();
         //mod.newMaterial().name("dirt-256").texture(new TerraTexture(32, 32, "NorthenForestDirt256px.png"));
         mod.registerMaterials(registry);
+        
+        // Create chunk data
+        long addr = mem.allocate(DataConstants.CHUNK_UNCOMPRESSED);
+        mem.setMemory(addr, DataConstants.CHUNK_UNCOMPRESSED, (byte) 0);
+        mem.writeByte(addr, (byte) 0); // Chunk type here
+        mem.writeShort(addr + 1, grass.getWorldId()); // Add some stuff to chunk
+        mem.writeShort(addr + 3, (short) 0xfff);
+        mem.writeShort(addr + 5, dirt.getWorldId());
+        mem.writeShort(addr + 7, (short) 0xffa);
+//        mem.writeShort(addr + 9, (short) 2);
+//        mem.writeShort(addr + 11, (short) 0xffff);
+//        mem.writeShort(addr + 13, (short) 2);
+//        mem.writeShort(addr + 15, (short) 0xffff);
+        //System.out.println(Long.toBinaryString(mem.readLong(addr)));
         
         manager.loadMaterials(registry);
         

@@ -61,6 +61,6 @@ public class RunLengthIterator implements ChunkIterator {
 
     @Override
     public int getOffset() {
-        return offset;
+        return blocksDone;
     }
 }
