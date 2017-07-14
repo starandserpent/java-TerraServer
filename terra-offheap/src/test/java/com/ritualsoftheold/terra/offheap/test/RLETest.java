@@ -21,10 +21,10 @@ public class RLETest {
     @Test
     public void deAndCompressTest() {
         long origin = mem.allocate(DataConstants.CHUNK_UNCOMPRESSED);
-        mem.setMemory(origin, DataConstants.CHUNK_UNCOMPRESSED, (byte) 0xff);
+        mem.setMemory(origin, DataConstants.CHUNK_UNCOMPRESSED, (byte) 0xf);
         
         long compressed = mem.allocate(DataConstants.CHUNK_UNCOMPRESSED);
-        int len = RunLengthCompressor.compress(origin, compressed);
+        RunLengthCompressor.compress(origin, compressed);
         
         long newData = mem.allocate(DataConstants.CHUNK_UNCOMPRESSED);
         RunLengthCompressor.decompress(compressed, newData);
