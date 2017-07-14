@@ -26,6 +26,7 @@ import com.ritualsoftheold.terra.offheap.io.dummy.DummyChunkLoader;
 import com.ritualsoftheold.terra.offheap.world.OffheapWorld;
 import com.ritualsoftheold.terra.offheap.world.WorldLoadListener;
 import com.ritualsoftheold.terra.world.LoadMarker;
+import com.ritualsoftheold.terra.world.gen.WorldGenerator;
 
 import net.openhft.chronicle.core.io.IORuntimeException;
 
@@ -44,12 +45,15 @@ public class TestGameApp extends SimpleApplication {
     public void simpleInitApp() {
         TerraModule mod = new TerraModule("testgame");
         mod.newMaterial().name("dirt").texture(new TerraTexture(256, 256, "NorthenForestDirt256px.png"));
+        mod.newMaterial().name("grass").texture(new TerraTexture(256, 256, "NorthenForestGrass256px.png"));
         MaterialRegistry reg = new MaterialRegistry();
         mod.registerMaterials(reg);
         
         try {
+            WorldGenerator gen = new TestWorldGenerator();
+            gen.initialize(0, reg);
             world = new OffheapWorld(new DummyChunkLoader(), new FileOctreeLoader(Files.createDirectories(Paths.get("octrees")), 8192),
-                    reg, new TestWorldGenerator());
+                    reg, gen);
         } catch (IOException e) {
             throw new IORuntimeException(e);
         }
@@ -88,7 +92,7 @@ public class TestGameApp extends SimpleApplication {
                 mat.setTexture("ColorMap", texManager.getGroundTexture());
                 mat.setParam("SeparateTexCoord", VarType.Boolean, true);
                 geom.setMaterial(mat);
-                geom.setLocalScale(0.5f);
+                //geom.setLocalScale(0.5f);
                 geom.setLocalTranslation(x, y, z);
                 geom.setCullHint(CullHint.Never);
                 
