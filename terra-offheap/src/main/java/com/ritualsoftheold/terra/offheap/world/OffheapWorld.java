@@ -1,13 +1,16 @@
 package com.ritualsoftheold.terra.offheap.world;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.locks.LockSupport;
+import java.util.concurrent.locks.StampedLock;
 
 import com.ritualsoftheold.terra.material.MaterialRegistry;
 import com.ritualsoftheold.terra.node.Chunk;
@@ -55,6 +58,12 @@ public class OffheapWorld implements TerraWorld {
     // Load markers
     private Set<LoadMarker> loadMarkers;
     private WorldLoadListener loadListener;
+    
+    /**
+     * A lock for enter() and leave().
+     */
+    private StampedLock lock;
+    private StampedLock exclusivePending;
     
     public OffheapWorld(ChunkLoader chunkLoader, OctreeLoader octreeLoader, MaterialRegistry registry, WorldGenerator generator) {
         this.chunkLoader = chunkLoader;
@@ -347,15 +356,18 @@ public class OffheapWorld implements TerraWorld {
             return;
         }
         
-        // Prepare for async loadAll call (async TODO)
-        loadAll(addr, scale, x, y, z, listener);
+        // Prepare to loadAll, then join all remaining futures here
+        List<CompletableFuture<Void>> futures = new ArrayList<>((int) (scale / 16 * scale / 16 * scale / 16) + 10); // Assume size of coming futures
+        loadAll(addr, scale, x, y, z, listener, futures);
+        for (CompletableFuture<Void> future : futures) { // Join all futures now
+            future.join();
+        }
     }
     
     /**
-     * Starts loading all children of given octree index. Usually
-     * returns before they're all loaded for efficiency.
+     * Starts loading all children of given octree index.
      */
-    private void loadAll(long addr, float scale, float x, float y, float z, WorldLoadListener listener) {
+    private void loadAll(long addr, float scale, float x, float y, float z, WorldLoadListener listener, List<CompletableFuture<Void>> futures) {
         System.out.println("Read flags from: " + addr);
         byte flags = mem.readVolatileByte(addr);
         float childScale = scale * 0.5f;
@@ -417,12 +429,14 @@ public class OffheapWorld implements TerraWorld {
                         float fX = x2;
                         float fY = y2;
                         float fZ = z2;
-                        //generatorExecutor.execute(() -> { // Schedule world gen to be done async
+                        CompletableFuture<Void> future = CompletableFuture.runAsync(() -> { // Schedule world gen to be done async
                             int newNode = handleGenerate(fX, fY, fZ);
                             mem.compareAndSwapInt(nodeAddr, 0, newNode);
                             // TODO clear garbage produced by race conditions somehow
                             listener.chunkLoaded(chunkStorage.ensureLoaded(newNode), fX, fY, fZ);
-                        //});
+                        });
+                        // Put joinable future to list of them, if caller wants to make sure they're all done
+                        futures.add(future);
                     } else {
                         listener.chunkLoaded(chunkStorage.ensureLoaded(node), x2, y2, z2);
                     }                    
@@ -490,7 +504,7 @@ public class OffheapWorld implements TerraWorld {
                     listener.octreeLoaded(nodeAddr, x2, y2, z2, childScale);
                     
                     long groupAddr = octreeStorage.getGroup(mem.readVolatileByte(nodeAddr));
-                    loadAll(groupAddr + (mem.readVolatileInt(nodeAddr) >>> 8) * DataConstants.OCTREE_SIZE, childScale, x2, y2, z2, listener);
+                    loadAll(groupAddr + (mem.readVolatileInt(nodeAddr) >>> 8) * DataConstants.OCTREE_SIZE, childScale, x2, y2, z2, listener, futures);
                 } else {
                     System.out.println("Single node, scale: " + scale);
                 }
@@ -553,14 +567,19 @@ public class OffheapWorld implements TerraWorld {
 
     @Override
     public void updateLoadMarkers() {
+        List<CompletableFuture<Void>> pendingMarkers = new ArrayList<>(loadMarkers.size());
         // Delegate updating to async code, this might be costly
         for (LoadMarker marker : loadMarkers) {
             if (marker.hasMoved()) { // Update only marker that has been moved
                 // When player moves a little, DO NOT, I repeat, DO NOT just blindly move load marker.
-                // Move it when player moves few meters or so!
-                // TODO async
-                updateLoadMarker(marker);
+                // Move it when player has moved a few meters or so!
+                pendingMarkers.add(CompletableFuture.runAsync(() -> updateLoadMarker(marker), storageExecutor));
             }
+        }
+        
+        // We need to check that markers are actually processed... Otherwise exclusive access might break everything
+        for (CompletableFuture<Void> marker : pendingMarkers) {
+            marker.join(); // Make sure we're done
         }
     }
     
@@ -575,6 +594,44 @@ public class OffheapWorld implements TerraWorld {
     
     public void setLoadListener(WorldLoadListener listener) {
         this.loadListener = listener;
+    }
+    
+    /**
+     * Waits for pending exclusive locks.
+     */
+    private void waitForExclusive() {
+        long stamp = exclusivePending.readLock();
+        exclusivePending.unlockRead(stamp);
+    }
+
+    @Override
+    public long enter() {
+        waitForExclusive();
+        return enterNow();
+    }
+
+    @Override
+    public long enterNow() {
+        return lock.readLock(); // Just get read lock
+    }
+
+    @Override
+    public void leave(long stamp) {
+        lock.unlockRead(stamp); // Just release read access
+    }
+    
+    public long enterExclusive() {
+        // Request that no further enter() will get accepted until we're done; enterNow() will work
+        long pendingStamp = exclusivePending.writeLock();
+        long stamp = lock.writeLock(); // Try acquire write lock; this will succeed once readers have left
+        exclusivePending.unlockWrite(pendingStamp); // We have exclusive access, unlock pending lock
+        // All threads which were blocking on exclusivePending will block on lock now
+        
+        return stamp; // Just return the stamp. User better be careful with it!
+    }
+    
+    public void leaveExclusive(long stamp) {
+        lock.unlockWrite(stamp);
     }
 
 }
