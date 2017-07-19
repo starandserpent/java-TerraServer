@@ -3,9 +3,13 @@ package com.ritualsoftheold.terra.world;
 /**
  * Load markers are used by some world implementations to figure out
  * which parts to generate and keep loaded.
+ * 
+ * Implements comparable to allow sorting based on priority. Uses
+ * {@link Integer#compare(int, int)} where first value is priority of this
+ * and second is priority of the one that this is compared against.
  *
  */
-public class LoadMarker {
+public class LoadMarker implements Comparable<LoadMarker> {
     
     /**
      * Coordinates for this marker.
@@ -18,10 +22,13 @@ public class LoadMarker {
     
     private boolean hasMoved;
     
-    public LoadMarker(float x, float y, float z, float hardRadius, float softRadius) {
+    private int priority;
+    
+    public LoadMarker(float x, float y, float z, float hardRadius, float softRadius, int priority) {
         move(x, y, z);
         this.hardRadius = hardRadius;
         this.softRadius = softRadius;
+        this.priority = priority;
     }
 
     public float getX() {
@@ -75,5 +82,18 @@ public class LoadMarker {
      */
     public void markUpdated() {
         hasMoved = false;
+    }
+    
+    /**
+     * Gets priority of this load marker. Higher means more important.
+     * @return Priority.
+     */
+    public int getPriority() {
+        return priority;
+    }
+
+    @Override
+    public int compareTo(LoadMarker o) {
+        return Integer.compare(priority, o.priority);
     }
 }

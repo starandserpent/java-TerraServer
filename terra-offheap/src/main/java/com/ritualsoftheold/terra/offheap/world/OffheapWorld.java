@@ -2,6 +2,7 @@ package com.ritualsoftheold.terra.offheap.world;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -56,7 +57,7 @@ public class OffheapWorld implements TerraWorld {
     private MaterialRegistry registry;
     
     // Load markers
-    private Set<LoadMarker> loadMarkers;
+    private List<LoadMarker> loadMarkers;
     private WorldLoadListener loadListener;
     
     /**
@@ -81,7 +82,7 @@ public class OffheapWorld implements TerraWorld {
         // Master scale, TODO
         masterScale = 32;
         
-        this.loadMarkers = new HashSet<>();
+        this.loadMarkers = new ArrayList<>();
         
         this.registry = registry;
         
@@ -563,6 +564,7 @@ public class OffheapWorld implements TerraWorld {
     @Override
     public void addLoadMarker(LoadMarker marker) {
         loadMarkers.add(marker);
+        loadMarkers.sort(Comparator.reverseOrder()); // Sort most important first
     }
 
     @Override

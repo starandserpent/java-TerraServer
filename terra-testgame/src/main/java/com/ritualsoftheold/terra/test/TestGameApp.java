@@ -57,7 +57,7 @@ public class TestGameApp extends SimpleApplication {
         } catch (IOException e) {
             throw new IORuntimeException(e);
         }
-        player = new LoadMarker(0, 0, 0, 32, 200);
+        player = new LoadMarker(0, 0, 0, 32, 200, 0);
         world.addLoadMarker(player);
         
         TextureManager texManager = new TextureManager(assetManager); // Initialize texture atlas/array manager

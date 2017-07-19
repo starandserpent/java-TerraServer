@@ -22,6 +22,7 @@ public interface TerraWorld {
     
     /**
      * Gets material registry that is used with this world.
+     * This method can be called without entering world.
      * @return Material registry.
      */
     MaterialRegistry getMaterialRegistry();
@@ -41,8 +42,17 @@ public interface TerraWorld {
 
     CompletableFuture<Chunk> requestChunk(int index);
     
+    /**
+     * Adds load marker. User should make sure that
+     * {@link #updateLoadMarkers()} is not in progress.
+     * @param marker Load marker.
+     */
     void addLoadMarker(LoadMarker marker);
     
+    /**
+     * Requests load markers to be updated. This will block current thread
+     * for a while.
+     */
     void updateLoadMarkers();
     
     /**
