@@ -227,9 +227,10 @@ public class OffheapWorld implements TerraWorld {
      * @param y
      * @param z
      * @param radius
+     * @param noGenerate
      * @param callback
      */
-    public void loadArea(float x, float y, float z, float radius, WorldLoadListener listener) {
+    public void loadArea(float x, float y, float z, float radius, WorldLoadListener listener, boolean noGenerate) {
         long addr = masterOctree.memoryAddress(); // Get starting memory address
         System.out.println("addr: " + addr);
         
@@ -241,6 +242,8 @@ public class OffheapWorld implements TerraWorld {
         float originX = x;
         float originY = y;
         float originZ = z;
+        
+        long groupAddr = 0;
         
         float octreeX = 0, octreeY = 0, octreeZ = 0;
         while (true) {
@@ -331,7 +334,7 @@ public class OffheapWorld implements TerraWorld {
                 
                 break;
             } else { // Just octree or single block here
-                if (isOctree) {
+                if (isOctree && !noGenerate) {
                     // Check if there is an octree; if not, create one
                     System.out.println("Octree: " + mem.readVolatileInt(nodeAddr));
                     if (mem.readVolatileInt(nodeAddr) == 0) {
@@ -341,10 +344,12 @@ public class OffheapWorld implements TerraWorld {
                         System.out.println("CAS result: " + success);
                         // This creates empty octrees, but probably not often
                     }
-                    long groupAddr = octreeStorage.getGroup(mem.readVolatileByte(nodeAddr)); // First byte of octree node is group addr!
+                    groupAddr = octreeStorage.getGroup(mem.readVolatileByte(nodeAddr)); // First byte of octree node is group addr!
                     System.out.println("groupIndex: " + mem.readVolatileByte(nodeAddr) + ", groupAddr: " + groupAddr);
                     
                     addr = groupAddr + (mem.readVolatileInt(nodeAddr) >>> 8) * DataConstants.OCTREE_SIZE; // Update address to point to new octree
+                    
+                    listener.octreeLoaded(addr, groupAddr, x, y, z, scale);
                 } else {
                     System.out.println("Single node: " + scale);
                     break;
@@ -359,7 +364,7 @@ public class OffheapWorld implements TerraWorld {
         
         // Prepare to loadAll, then join all remaining futures here
         List<CompletableFuture<Void>> futures = new ArrayList<>((int) (scale / 16 * scale / 16 * scale / 16) + 10); // Assume size of coming futures
-        loadAll(addr, scale, x, y, z, listener, futures);
+        loadAll(groupAddr, addr, scale, x, y, z, listener, futures, noGenerate);
         for (CompletableFuture<Void> future : futures) { // Join all futures now
             future.join();
         }
@@ -368,7 +373,8 @@ public class OffheapWorld implements TerraWorld {
     /**
      * Starts loading all children of given octree index.
      */
-    private void loadAll(long addr, float scale, float x, float y, float z, WorldLoadListener listener, List<CompletableFuture<Void>> futures) {
+    private void loadAll(long groupAddr, long addr, float scale, float x, float y, float z, WorldLoadListener listener,
+            List<CompletableFuture<Void>> futures, boolean noGenerate) {
         System.out.println("Read flags from: " + addr);
         byte flags = mem.readVolatileByte(addr);
         float childScale = scale * 0.5f;
@@ -426,7 +432,7 @@ public class OffheapWorld implements TerraWorld {
                 if ((flags >>> i & 1) == 1) { // Chunk, we need to make sure it is loaded
                     long nodeAddr = addr + 1 + i * DataConstants.OCTREE_NODE_SIZE;
                     int node = mem.readVolatileInt(nodeAddr);
-                    if (node == 0) {
+                    if (node == 0 && !noGenerate) {
                         float fX = x2;
                         float fY = y2;
                         float fZ = z2;
@@ -434,12 +440,14 @@ public class OffheapWorld implements TerraWorld {
                             int newNode = handleGenerate(fX, fY, fZ);
                             mem.compareAndSwapInt(nodeAddr, 0, newNode);
                             // TODO clear garbage produced by race conditions somehow
-                            listener.chunkLoaded(chunkStorage.ensureLoaded(newNode), fX, fY, fZ);
+                            // TODO fix null
+                            listener.chunkLoaded(chunkStorage.ensureLoaded(newNode), null, fX, fY, fZ);
                         });
                         // Put joinable future to list of them, if caller wants to make sure they're all done
                         futures.add(future);
                     } else {
-                        listener.chunkLoaded(chunkStorage.ensureLoaded(node), x2, y2, z2);
+                        // TODO fix null
+                        listener.chunkLoaded(chunkStorage.ensureLoaded(node), null, x2, y2, z2);
                     }                    
                 }
                 
@@ -452,9 +460,13 @@ public class OffheapWorld implements TerraWorld {
                     
                     // Check if there is an octree; if not, create one
                     if (mem.readVolatileInt(nodeAddr) == 0) {
-                        int octreeIndex = octreeStorage.newOctree(); // Allocate new octree
-                        mem.compareAndSwapInt(nodeAddr, 0, octreeIndex); // if no one else allocated it yet, save index
-                        // This creates empty octrees, but probably not often
+                        if (noGenerate) { // If generation is disallowed, ignore this
+                            continue;
+                        } else { // Else create octree
+                            int octreeIndex = octreeStorage.newOctree(); // Allocate new octree
+                            mem.compareAndSwapInt(nodeAddr, 0, octreeIndex); // if no one else allocated it yet, save index
+                            // This creates empty octrees, but probably not often
+                        }
                     }
                     
                     // Create positions for subnodes
@@ -502,14 +514,15 @@ public class OffheapWorld implements TerraWorld {
                         break;
                     }
                     
-                    listener.octreeLoaded(nodeAddr, x2, y2, z2, childScale);
-                    
-                    long groupAddr = octreeStorage.getGroup(mem.readVolatileByte(nodeAddr));
-                    loadAll(groupAddr + (mem.readVolatileInt(nodeAddr) >>> 8) * DataConstants.OCTREE_SIZE, childScale, x2, y2, z2, listener, futures);
+                    long newGroupAddr = octreeStorage.getGroup(mem.readVolatileByte(nodeAddr));
+                    loadAll(newGroupAddr, groupAddr + (mem.readVolatileInt(nodeAddr) >>> 8) * DataConstants.OCTREE_SIZE, childScale, x2, y2, z2, listener, futures, noGenerate);
                 } else {
                     System.out.println("Single node, scale: " + scale);
                 }
             }
+            
+            // Fire octree loaded once it is completely (or if noGenerate was passed, somewhat) generated
+            listener.octreeLoaded(addr, groupAddr, x, y, z, scale);
         }
     }
     
@@ -568,29 +581,42 @@ public class OffheapWorld implements TerraWorld {
     }
 
     @Override
-    public void updateLoadMarkers() {
+    public List<CompletableFuture<Void>> updateLoadMarkers() {
         List<CompletableFuture<Void>> pendingMarkers = new ArrayList<>(loadMarkers.size());
         // Delegate updating to async code, this might be costly
         for (LoadMarker marker : loadMarkers) {
             if (marker.hasMoved()) { // Update only marker that has been moved
                 // When player moves a little, DO NOT, I repeat, DO NOT just blindly move load marker.
                 // Move it when player has moved a few meters or so!
-                pendingMarkers.add(CompletableFuture.runAsync(() -> updateLoadMarker(marker), storageExecutor));
+                pendingMarkers.add(CompletableFuture.runAsync(() -> updateLoadMarker(marker, loadListener, false), storageExecutor));
             }
         }
         
-        // We need to check that markers are actually processed... Otherwise exclusive access might break everything
-        for (CompletableFuture<Void> marker : pendingMarkers) {
-            marker.join(); // Make sure we're done
+        return pendingMarkers;
+    }
+    
+    public List<CompletableFuture<Void>> updateLoadMarkers(WorldLoadListener listener, boolean soft) {
+        List<CompletableFuture<Void>> pendingMarkers = new ArrayList<>(loadMarkers.size());
+        // Delegate updating to async code, this might be costly
+        for (LoadMarker marker : loadMarkers) {
+            if (marker.hasMoved()) { // Update only marker that has been moved
+                // When player moves a little, DO NOT, I repeat, DO NOT just blindly move load marker.
+                // Move it when player has moved a few meters or so!
+                pendingMarkers.add(CompletableFuture.runAsync(() -> updateLoadMarker(marker, listener, soft), storageExecutor));
+            }
         }
+        
+        return pendingMarkers;
     }
     
     /**
      * Updates given load marker no matter what. Only used internally.
      * @param marker Load marker to update.
+     * @param listener Load listener.
+     * @param soft If soft radius should be used.
      */
-    private void updateLoadMarker(LoadMarker marker) {
-        loadArea(marker.getX(), marker.getY(), marker.getZ(), marker.getHardRadius(), loadListener);
+    private void updateLoadMarker(LoadMarker marker, WorldLoadListener listener, boolean soft) {
+        loadArea(marker.getX(), marker.getY(), marker.getZ(), soft ? marker.getSoftRadius() : marker.getHardRadius(), listener, true);
         marker.markUpdated(); // Tell it we updated it
     }
     

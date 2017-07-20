@@ -1,5 +1,6 @@
 package com.ritualsoftheold.terra.world;
 
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 import com.ritualsoftheold.terra.material.MaterialRegistry;
@@ -52,8 +53,9 @@ public interface TerraWorld {
     /**
      * Requests load markers to be updated. This will block current thread
      * for a while.
+     * @return 
      */
-    void updateLoadMarkers();
+    List<CompletableFuture<Void>> updateLoadMarkers();
     
     /**
      * Enters the world, thus allowing you to use non-exclusive methods.

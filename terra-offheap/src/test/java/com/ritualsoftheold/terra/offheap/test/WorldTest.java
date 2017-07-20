@@ -36,6 +36,6 @@ public class WorldTest {
             public void chunkLoaded(long addr, float x, float y, float z) {
                 
             }
-        });
+        }, false);
     }
 }

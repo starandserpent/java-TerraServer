@@ -194,4 +194,8 @@ public class OctreeStorage {
     public long getLastNeeded(byte groupId) {
         return mem.readVolatileLong(getTimestampAddr(groupId));
     }
+
+    public long getGroups() {
+        return groups;
+    }
 }
