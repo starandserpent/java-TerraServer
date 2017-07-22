@@ -1,8 +1,8 @@
 package com.ritualsoftheold.terra.offheap.world;
 
 import java.util.Set;
-
 import com.ritualsoftheold.terra.node.Chunk;
+import com.ritualsoftheold.terra.offheap.DataConstants;
 import com.ritualsoftheold.terra.offheap.chunk.ChunkBuffer;
 
 import it.unimi.dsi.fastutil.longs.LongArrayList;
@@ -10,12 +10,16 @@ import it.unimi.dsi.fastutil.longs.LongArraySet;
 import it.unimi.dsi.fastutil.longs.LongList;
 import it.unimi.dsi.fastutil.longs.LongSet;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
+import net.openhft.chronicle.core.Memory;
+import net.openhft.chronicle.core.OS;
 
 /**
  * Manages offheap memory.
  *
  */
 public class MemoryManager {
+    
+    private static final Memory mem = OS.memory();
     
     private OffheapWorld world;
     
@@ -57,6 +61,24 @@ public class MemoryManager {
         }, true);
         
         // Mark octrees to unload
+        
+        //
         long groups = world.getOctreeStorage().getGroups();
+        for (int i = 0; i < 256; i += 8) {
+            long groupAddr = mem.readLong(groups + i);
+            
+        }
+    }
+    
+    /**
+     * Performs actual unloading in world exclusive access.
+     * @param goal
+     * @param usedOctreeGroups
+     * @param usedChunkBuffers
+     */
+    private void unloadCritical(long goal, LongSet usedOctreeGroups, Set<ChunkBuffer> usedChunkBuffers) {
+        long stamp = world.enterExclusive();
+        
+        world.leaveExclusive(stamp);
     }
 }

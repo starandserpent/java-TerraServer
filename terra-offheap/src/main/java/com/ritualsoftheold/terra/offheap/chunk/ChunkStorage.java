@@ -95,6 +95,12 @@ public class ChunkStorage {
         }
     }
     
+    /**
+     * Gets a chunk buffer with given id. If it is not loaded or does not exist,
+     * it will be loaded or created and this method might block caller thread.
+     * @param bufferId Buffer id.
+     * @return Chunk buffer object.
+     */
     public ChunkBuffer getBuffer(short bufferId) {
         ChunkBuffer buf = buffers.get(bufferId);
         if (buf == null) { // Oops we need to load this
@@ -107,6 +113,16 @@ public class ChunkStorage {
         buf.setLastNeeded(System.currentTimeMillis());
         
         return buf;
+    }
+    
+    /**
+     * Directly retrieves chunk buffer that is certainly loaded.
+     * If it is not loaded, bad things will happen.
+     * @param bufferId Buffer id.
+     * @return Chunk buffer object - hopefully.
+     */
+    public ChunkBuffer getBufferUnsafe(short bufferId) {
+        return buffers.get(bufferId);
     }
     
     public CompletableFuture<ChunkBuffer> saveBuffer(short bufferId, Consumer<ChunkBuffer> callback) {
@@ -143,6 +159,15 @@ public class ChunkStorage {
         }
     }
     
+    /**
+     * Gets a chunk with given id (consists of buffer and chunk id) and
+     * creates "safe" wrapper for it. Note that this method might block
+     * if buffer containing the chunk is not loaded.
+     * @param chunkId Chunk id, which consists of buffer id and id inside
+     * that buffer.
+     * @param registry To resolve materials, if one does not use world ids.
+     * @return Chunk wrapper.
+     */
     public Chunk getChunk(int chunkId, MaterialRegistry registry) {
         OffheapChunk chunk = chunkCache.get(chunkId);
         if (chunk == null) { // Not in cache...
