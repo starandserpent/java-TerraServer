@@ -1,8 +1,12 @@
 package com.ritualsoftheold.terra.offheap.chunk;
 
+import java.util.Collection;
+import java.util.Collections;
 import java.util.Deque;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Queue;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedDeque;
@@ -125,7 +129,7 @@ public class ChunkStorage {
         return buffers.get(bufferId);
     }
     
-    public CompletableFuture<ChunkBuffer> saveBuffer(short bufferId, Consumer<ChunkBuffer> callback) {
+    public CompletableFuture<ChunkBuffer> saveBuffer(short bufferId) {
         ChunkBuffer buf = buffers.get(bufferId);
         if (buf != null) {
             return CompletableFuture.supplyAsync(() -> loader.saveChunks(bufferId, buf), loaderExecutor);
@@ -246,6 +250,24 @@ public class ChunkStorage {
     public long ensureLoaded(int id) {
         ChunkBuffer buf = getBuffer((short) (id >>> 16));
         return buf.getChunkAddress(id & 0xffff);
+    }
+    
+    /**
+     * Gets all available chunk buffers at the moment it was called.
+     * @return Copy of available chunk buffers collection.
+     */
+    public Collection<ChunkBuffer> getAllBuffers() {
+        return new HashSet<>(buffers.values());
+    }
+    
+    /**
+     * Unloads buffer given as parameter. Make sure it is not in use!
+     * @param id Buffer id.
+     */
+    public void unloadBuffer(short id) {
+        ChunkBuffer buf = buffers.get(id);
+        buf.unloadAll();
+        buffers.remove(id);
     }
     
 }

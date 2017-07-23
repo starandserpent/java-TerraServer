@@ -198,4 +198,8 @@ public class OctreeStorage {
     public long getGroups() {
         return groups;
     }
+    
+    public int getGroupSize() {
+        return blockSize + DataConstants.OCTREE_GROUP_META;
+    }
 }

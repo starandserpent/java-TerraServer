@@ -73,7 +73,7 @@ public class OffheapWorld implements TerraWorld {
         // Initialize storages
         this.storageExecutor = new ForkJoinPool();
         this.chunkStorage = new ChunkStorage(chunkLoader, storageExecutor, 64, 1024); // TODO settings
-        this.octreeStorage = new OctreeStorage(8192, octreeLoader, storageExecutor);
+        this.octreeStorage = new OctreeStorage(8192 * DataConstants.OCTREE_SIZE, octreeLoader, storageExecutor);
         
         // Initialize master octree
         masterOctree = octreeStorage.getOctree(0, this);

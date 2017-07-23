@@ -248,4 +248,28 @@ public class ChunkBuffer {
     public int getChunkCount() {
         return freeIndex.get();
     }
+
+    public void unloadAll() {
+        for (int i = 0; i < chunks.length; i++) {
+            mem.freeMemory(chunks[i], lengths[i]);
+        }
+    }
+    
+    @Override
+    public int hashCode() {
+        return bufferId; // bufferId is unique, use it as hash code
+    }
+
+    /**
+     * Calculates how much offheap memory this takes.
+     * @return Offheap memory used.
+     */
+    public long calculateSize() {
+        long size = 0;
+        for (long len : lengths) {
+            size += len;
+        }
+        
+        return size;
+    }
 }
