@@ -1,13 +1,17 @@
-package com.ritualsoftheold.terra.offheap.world;
+package com.ritualsoftheold.terra.offheap.memory;
 
 import java.util.Collection;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.locks.LockSupport;
 
 import com.ritualsoftheold.terra.node.Chunk;
 import com.ritualsoftheold.terra.offheap.DataConstants;
 import com.ritualsoftheold.terra.offheap.chunk.ChunkBuffer;
-import com.ritualsoftheold.terra.offheap.world.MemoryPanicHandler.PanicResult;
+import com.ritualsoftheold.terra.offheap.memory.MemoryPanicHandler.PanicResult;
+import com.ritualsoftheold.terra.offheap.world.OffheapWorld;
+import com.ritualsoftheold.terra.offheap.world.WorldLoadListener;
 
 import it.unimi.dsi.fastutil.bytes.ByteArraySet;
 import it.unimi.dsi.fastutil.bytes.ByteSet;
@@ -40,11 +44,101 @@ public class MemoryManager {
      */
     private long maxSize;
     
-    public MemoryManager(OffheapWorld world, long preferred, long max) {
+    /**
+     * Currently used offheap memory.
+     */
+    private long usedSize;
+    
+    /**
+     * User specified memory panic handler.
+     */
+    private MemoryPanicHandler userPanicHandler;
+    
+    /**
+     * The thread which is used for memory manager actions.
+     */
+    private Thread managerThread;
+    
+    /**
+     * Controls when manager thread runs.
+     */
+    private CountDownLatch managerLatch;
+    
+    private class ManagerThread extends Thread {
+        
+        @Override
+        public void run() {
+            try {
+                managerLatch.await();
+            } catch (InterruptedException e) {
+                // If waiting is interrupted, we should just continue NOW
+                // At least it is better than quitting and getting OS OOM kill us later
+            }
+            if (usedSize > maxSize) { // Too much memory used already, free or panic!
+                unload(usedSize - preferredSize, criticalPanicHandler);
+            } else if (usedSize > preferredSize) { // Used memory is ok, but less would be better
+                unload(usedSize - preferredSize, userPanicHandler);
+            }
+        }
+    }
+    
+    /**
+     * Controls what happens when unloading does not fully succeed and used
+     * memory before it exceeded maximum allowed amount.
+     */
+    private CriticalPanicHandler criticalPanicHandler;
+    
+    private class CriticalPanicHandler implements MemoryPanicHandler {
+
+        @Override
+        public PanicResult goalNotMet(long goal, long possible) {
+            if (usedSize - possible < maxSize) {
+                // We can't meet goal, but won't still get out of memory
+                return userPanicHandler.goalNotMet(goal, possible);
+            } else {
+                // Ouch, we're out of memory even after this unload
+                return userPanicHandler.outOfMemory(maxSize, usedSize, possible);
+            }
+        }
+
+        @Override
+        public PanicResult outOfMemory(long max, long used, long possible) {
+            throw new UnsupportedOperationException("misuse of critical panic handler");
+        }
+
+        @Override
+        public boolean handleFreeze(long stamp) {
+            return userPanicHandler.handleFreeze(stamp);
+        }
+        
+    }
+    
+    /**
+     * Initializes new instance of the memory manager.
+     * @param world World which will use this.
+     * @param preferred
+     * @param max
+     * @param panicHandler
+     */
+    public MemoryManager(OffheapWorld world, long preferred, long max, MemoryPanicHandler panicHandler) {
         this.world = world;
         this.preferredSize = preferred;
         this.maxSize = max;
+        this.userPanicHandler = panicHandler;
+        
+        this.managerLatch = new CountDownLatch(1); // TODO latch is not right answer here... :(
+        this.managerThread = new ManagerThread();
+        this.managerThread.start();
+        this.criticalPanicHandler = new CriticalPanicHandler();
     }
+    
+    /**
+     * Queue unloading of unused resources to happen as soon as possible.
+     */
+    public void queueUnload() {
+        
+    }
+    
     
     /**
      * Attempts to unload chunks and octrees until specific amount of memory
@@ -124,6 +218,7 @@ public class MemoryManager {
                 return;
             } else if (result == PanicResult.FREEZE) { // EVERYONE, STOP RIGHT NOW!
                 doFreeze(panicHandler);
+                return;
             }
         }
         

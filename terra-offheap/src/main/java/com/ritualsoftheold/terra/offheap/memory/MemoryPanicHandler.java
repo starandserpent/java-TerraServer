@@ -1,4 +1,4 @@
-package com.ritualsoftheold.terra.offheap.world;
+package com.ritualsoftheold.terra.offheap.memory;
 
 /**
  * When memory manager notices that too much memory is used or enough
@@ -21,9 +21,10 @@ public interface MemoryPanicHandler {
      * amount assigned for it.
      * @param max Maximum amount.
      * @param used Used amount.
+     * @param possible How much could be collected, if this error is ignored.
      * @return What the memory manager should do.
      */
-    PanicResult outOfMemory(long max, long used);
+    PanicResult outOfMemory(long max, long used, long possible);
     
     /**
      * When this panic handler returns {@link PanicResult#FREEZE}, this
