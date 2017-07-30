@@ -4,12 +4,15 @@ import java.util.Collection;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.LockSupport;
 
 import com.ritualsoftheold.terra.node.Chunk;
 import com.ritualsoftheold.terra.offheap.DataConstants;
 import com.ritualsoftheold.terra.offheap.chunk.ChunkBuffer;
+import com.ritualsoftheold.terra.offheap.chunk.ChunkStorage;
 import com.ritualsoftheold.terra.offheap.memory.MemoryPanicHandler.PanicResult;
+import com.ritualsoftheold.terra.offheap.octree.OctreeStorage;
 import com.ritualsoftheold.terra.offheap.world.OffheapWorld;
 import com.ritualsoftheold.terra.offheap.world.WorldLoadListener;
 
@@ -27,11 +30,13 @@ import net.openhft.chronicle.core.OS;
  * Manages offheap memory.
  *
  */
-public class MemoryManager {
+public class MemoryManager implements MemoryUseListener {
     
     private static final Memory mem = OS.memory();
     
     private OffheapWorld world;
+    private OctreeStorage octreeStorage;
+    private ChunkStorage chunkStorage;
     
     /**
      * Preferred memory size. As long as it is below this, no need to act.
@@ -47,7 +52,7 @@ public class MemoryManager {
     /**
      * Currently used offheap memory.
      */
-    private long usedSize;
+    private AtomicLong usedSize;
     
     /**
      * User specified memory panic handler.
@@ -74,11 +79,15 @@ public class MemoryManager {
                 // If waiting is interrupted, we should just continue NOW
                 // At least it is better than quitting and getting OS OOM kill us later
             }
-            if (usedSize > maxSize) { // Too much memory used already, free or panic!
-                unload(usedSize - preferredSize, criticalPanicHandler);
-            } else if (usedSize > preferredSize) { // Used memory is ok, but less would be better
-                unload(usedSize - preferredSize, userPanicHandler);
+            long usedSizeVal = usedSize.get();
+            if (usedSizeVal > maxSize) { // Too much memory used already, free or panic!
+                unload(usedSizeVal - preferredSize, criticalPanicHandler);
+            } else if (usedSizeVal > preferredSize) { // Used memory is ok, but less would be better
+                unload(usedSizeVal - preferredSize, userPanicHandler);
             }
+            
+            // Replace the old latch
+            managerLatch = new CountDownLatch(1);
         }
     }
     
@@ -92,12 +101,12 @@ public class MemoryManager {
 
         @Override
         public PanicResult goalNotMet(long goal, long possible) {
-            if (usedSize - possible < maxSize) {
+            if (usedSize.get() - possible < maxSize) {
                 // We can't meet goal, but won't still get out of memory
                 return userPanicHandler.goalNotMet(goal, possible);
             } else {
                 // Ouch, we're out of memory even after this unload
-                return userPanicHandler.outOfMemory(maxSize, usedSize, possible);
+                return userPanicHandler.outOfMemory(maxSize, usedSize.get(), possible);
             }
         }
 
@@ -122,11 +131,13 @@ public class MemoryManager {
      */
     public MemoryManager(OffheapWorld world, long preferred, long max, MemoryPanicHandler panicHandler) {
         this.world = world;
+        this.octreeStorage = world.getOctreeStorage();
+        this.chunkStorage = world.getChunkStorage();
         this.preferredSize = preferred;
         this.maxSize = max;
         this.userPanicHandler = panicHandler;
         
-        this.managerLatch = new CountDownLatch(1); // TODO latch is not right answer here... :(
+        this.managerLatch = new CountDownLatch(1);
         this.managerThread = new ManagerThread();
         this.managerThread.start();
         this.criticalPanicHandler = new CriticalPanicHandler();
@@ -134,9 +145,10 @@ public class MemoryManager {
     
     /**
      * Queue unloading of unused resources to happen as soon as possible.
+     * If it is currently in progress, nothing will happen.
      */
     public void queueUnload() {
-        
+        managerLatch.countDown();
     }
     
     
@@ -176,7 +188,7 @@ public class MemoryManager {
             long groupAddr = mem.readLong(groups + i * 8);
             if (!usedOctreeGroups.contains(groupAddr)) { // Need to unload this group
                 unusedGroups.add((byte) i);
-                groupSavePending.add(world.getOctreeStorage().saveGroup((byte) i));
+                groupSavePending.add(octreeStorage.saveGroup((byte) i));
                 
                 freed += world.getOctreeStorage().getGroupSize();
                 if (freed >= goal) { // Hey, we can now release enough
@@ -193,7 +205,7 @@ public class MemoryManager {
             for (ChunkBuffer buf : allBuffers) {
                 if (!usedChunkBufs.contains(buf)) { // If not used, mark for unloading
                     unusedBuffers.add(buf);
-                    savePending.add(world.getChunkStorage().saveBuffer(buf.getId()));
+                    savePending.add(chunkStorage.saveBuffer(buf.getId()));
                     
                     freed += buf.calculateSize();
                     if (freed >= goal) { // Hey, we can now release enough
@@ -260,5 +272,17 @@ public class MemoryManager {
         if (shouldLeave) {
             world.leaveExclusive(stamp);
         }
+    }
+    
+    // Manage usedSize from information that comes from octree/chunk storages
+    
+    @Override
+    public void onAllocate(long amount) {
+        usedSize.addAndGet(amount);
+    }
+
+    @Override
+    public void onFree(long amount) {
+        usedSize.addAndGet(-amount);
     }
 }

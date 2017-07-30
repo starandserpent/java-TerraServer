@@ -3,6 +3,7 @@ package com.ritualsoftheold.terra.offheap.chunk;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import com.ritualsoftheold.terra.offheap.DataConstants;
+import com.ritualsoftheold.terra.offheap.memory.MemoryUseListener;
 
 import net.openhft.chronicle.core.Memory;
 import net.openhft.chronicle.core.OS;
@@ -53,7 +54,9 @@ public class ChunkBuffer {
      */
     private short bufferId;
     
-    public ChunkBuffer(int chunkCount, int extraAlloc, short bufferId) {
+    private MemoryUseListener memListener;
+    
+    public ChunkBuffer(int chunkCount, int extraAlloc, short bufferId, MemoryUseListener memListener) {
         this.chunkCount = chunkCount;
         
         chunks = new long[chunkCount];
@@ -91,9 +94,11 @@ public class ChunkBuffer {
          * data with race conditions.
          */
         
-        long addr = mem.allocate(firstLength + extraAlloc);
+        long amount = firstLength + extraAlloc;
+        long addr = mem.allocate(amount);
         chunks[index] = addr;
-        lengths[index] = firstLength + extraAlloc;
+        lengths[index] = amount;
+        memListener.onAllocate(amount);
         
         // And finally return the index
         return index;
@@ -107,10 +112,12 @@ public class ChunkBuffer {
      * @return New memory address. Remember to free the old one!
      */
     public long reallocChunk(int index, long newLength) {
-        long addr = mem.allocate(newLength + extraAlloc);
+        long amount = newLength + extraAlloc;
+        long addr = mem.allocate(amount);
         
         chunks[index] = addr;
-        lengths[index] = newLength + extraAlloc;
+        lengths[index] = amount;
+        memListener.onAllocate(amount);
         
         return addr;
     }
@@ -123,6 +130,7 @@ public class ChunkBuffer {
      * @param count
      */
     public void load(long addr, int count) {
+        long allocated = 0; // Count this
         // Read pointer data
         for (int i = 0; i < count; i++) {
             long entry = mem.readLong(addr + i * DataConstants.CHUNK_POINTER_STORE) >>> 8;
@@ -133,11 +141,15 @@ public class ChunkBuffer {
             lengths[i] = chunkLen + extraAlloc;
             
             // Allocate memory, then copy data
-            long newAddr = mem.allocate(chunkLen + extraAlloc);
+            long amount = chunkLen + extraAlloc;
+            long newAddr = mem.allocate(amount);
             mem.copyMemory(chunkAddr, newAddr, chunkLen);
             chunks[i] = newAddr;
+            allocated += amount;
         }
         freeIndex.set(count);
+        
+        memListener.onAllocate(allocated);
     }
     
     /**
@@ -250,9 +262,12 @@ public class ChunkBuffer {
     }
 
     public void unloadAll() {
+        long freed = 0;
         for (int i = 0; i < chunks.length; i++) {
             mem.freeMemory(chunks[i], lengths[i]);
+            freed += lengths[i];
         }
+        memListener.onFree(freed);
     }
     
     @Override

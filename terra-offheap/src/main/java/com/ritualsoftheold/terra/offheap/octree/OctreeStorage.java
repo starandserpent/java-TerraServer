@@ -6,6 +6,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import com.ritualsoftheold.terra.offheap.DataConstants;
 import com.ritualsoftheold.terra.offheap.io.OctreeLoader;
+import com.ritualsoftheold.terra.offheap.memory.MemoryUseListener;
 import com.ritualsoftheold.terra.offheap.node.OffheapOctree;
 import com.ritualsoftheold.terra.offheap.world.OffheapWorld;
 
@@ -51,7 +52,9 @@ public class OctreeStorage {
     
     private Executor loaderExecutor;
     
-    public OctreeStorage(int blockSize, OctreeLoader loader, Executor executor) {
+    private MemoryUseListener memListener;
+    
+    public OctreeStorage(int blockSize, OctreeLoader loader, Executor executor, MemoryUseListener memListener) {
         this.loader = loader;
         this.loaderExecutor = executor;
         this.blockSize = blockSize;
@@ -63,12 +66,19 @@ public class OctreeStorage {
         // Setup free group and index
         this.freeGroup = new AtomicInteger(loader.countGroups());
         this.freeIndex = new AtomicInteger(mem.readInt(getGroupMeta((byte) freeGroup.get())));
+        
+        this.memListener = memListener;
     }
     
     private long getGroupsAddr(byte index) {
         return groups + index * 8;
     }
     
+    /**
+     * Gets address where a timestamp for last access of given octree is stored.
+     * @param index Group index.
+     * @return Memory address.
+     */
     private long getTimestampAddr(byte index) {
         return lastNeeded + index * 8;
     }
@@ -76,11 +86,15 @@ public class OctreeStorage {
     /**
      * Adds octrees with given index from given address. After this has been
      * done, do NOT touch the data following the memory address.
+     * 
+     * This will be considered as you had allocated for one group. Notifying
+     * memory use listener before calling this is bad idea.
      * @param index Octree group index.
      * @param addr Memory address for data.
      */
     public void addOctrees(byte index, long addr) {
         mem.writeVolatileLong(getGroupsAddr(index), addr);
+        memListener.onAllocate(DataConstants.OCTREE_NODE_SIZE);
     }
     
     /**
@@ -88,7 +102,9 @@ public class OctreeStorage {
      * @param index Octree group index.
      */
     public void removeOctrees(byte index) {
-        mem.freeMemory(mem.readVolatileLong(getGroupsAddr(index)), blockSize + DataConstants.OCTREE_GROUP_META);
+        long amount = mem.readVolatileLong(getGroupsAddr(index));
+        mem.freeMemory(amount, blockSize + DataConstants.OCTREE_GROUP_META);
+        memListener.onFree(amount);
     }
     
     public long getGroup(byte groupIndex) {

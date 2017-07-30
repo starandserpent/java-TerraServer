@@ -21,6 +21,8 @@ import com.ritualsoftheold.terra.offheap.DataConstants;
 import com.ritualsoftheold.terra.offheap.chunk.ChunkStorage;
 import com.ritualsoftheold.terra.offheap.io.ChunkLoader;
 import com.ritualsoftheold.terra.offheap.io.OctreeLoader;
+import com.ritualsoftheold.terra.offheap.memory.MemoryManager;
+import com.ritualsoftheold.terra.offheap.memory.MemoryPanicHandler;
 import com.ritualsoftheold.terra.offheap.node.OffheapOctree;
 import com.ritualsoftheold.terra.offheap.octree.OctreeStorage;
 import com.ritualsoftheold.terra.world.LoadMarker;
@@ -60,20 +62,24 @@ public class OffheapWorld implements TerraWorld {
     private List<LoadMarker> loadMarkers;
     private WorldLoadListener loadListener;
     
+    // Memory management
+    private MemoryManager memManager;
+    
     /**
      * A lock for enter() and leave().
      */
     private StampedLock lock;
     private StampedLock exclusivePending;
     
-    public OffheapWorld(ChunkLoader chunkLoader, OctreeLoader octreeLoader, MaterialRegistry registry, WorldGenerator generator) {
+    public OffheapWorld(ChunkLoader chunkLoader, OctreeLoader octreeLoader, MaterialRegistry registry, WorldGenerator generator,
+            long preferredMem, long maxMem, MemoryPanicHandler panicHandler) {
         this.chunkLoader = chunkLoader;
         this.octreeLoader = octreeLoader;
         
         // Initialize storages
         this.storageExecutor = new ForkJoinPool();
-        this.chunkStorage = new ChunkStorage(chunkLoader, storageExecutor, 64, 1024); // TODO settings
-        this.octreeStorage = new OctreeStorage(8192 * DataConstants.OCTREE_SIZE, octreeLoader, storageExecutor);
+        this.chunkStorage = new ChunkStorage(chunkLoader, storageExecutor, 64, 1024, memManager); // TODO settings for sizes of storages
+        this.octreeStorage = new OctreeStorage(8192 * DataConstants.OCTREE_SIZE, octreeLoader, storageExecutor, memManager);
         
         // Initialize master octree
         masterOctree = octreeStorage.getOctree(0, this);
@@ -88,6 +94,8 @@ public class OffheapWorld implements TerraWorld {
         
         this.generatorExecutor = new ForkJoinPool();
         this.generator = generator;
+        
+        this.memManager = new MemoryManager(this, preferredMem, maxMem, panicHandler);
     }
 
     @Override

@@ -19,6 +19,7 @@ import com.ritualsoftheold.terra.material.MaterialRegistry;
 import com.ritualsoftheold.terra.node.Chunk;
 import com.ritualsoftheold.terra.offheap.DataConstants;
 import com.ritualsoftheold.terra.offheap.io.ChunkLoader;
+import com.ritualsoftheold.terra.offheap.memory.MemoryUseListener;
 import com.ritualsoftheold.terra.offheap.node.OffheapChunk;
 
 import net.openhft.chronicle.core.Memory;
@@ -67,6 +68,8 @@ public class ChunkStorage {
      */
     private Deque<ChunkBuffer> freeBuffers;
     
+    private MemoryUseListener memListener;
+    
     /**
      * Initializes new chunk storage. Usually this should be done once per world.
      * @param loader Chunk loader, responsible for loading and optionally saving chunks.
@@ -74,8 +77,9 @@ public class ChunkStorage {
      * @param chunksPerBuffer Maximum amount of chunks per chunk buffer.
      * @param extraAlloc How many bytes to allocate at end of each chunk
      * in all chunk buffers.
+     * @param memListener Listens to memory-related events.
      */
-    public ChunkStorage(ChunkLoader loader, Executor executor, int chunksPerBuffer, int extraAlloc) {
+    public ChunkStorage(ChunkLoader loader, Executor executor, int chunksPerBuffer, int extraAlloc, MemoryUseListener memListener) {
         this.loader = loader;
         loaderExecutor = executor;
         this.chunksPerBuffer = chunksPerBuffer;
@@ -85,12 +89,14 @@ public class ChunkStorage {
         this.freeBufferId = new AtomicInteger(loader.countBuffers()); // Free index=count of buffers (0-based)
         this.freeBuffers = new ConcurrentLinkedDeque<>();
         this.buffers = new ConcurrentHashMap<>(); // TODO need primitive concurrent map, can't find any library for it
+        
+        this.memListener = memListener;
     }
     
     public CompletableFuture<ChunkBuffer> requestBuffer(short bufferId) {
         ChunkBuffer buf = buffers.get(bufferId);
         if (buf == null) { // Oops we need to load this
-            ChunkBuffer newBuf = new ChunkBuffer(chunksPerBuffer, extraAlloc, (short) freeBufferId.getAndIncrement()); // Create buffer
+            ChunkBuffer newBuf = new ChunkBuffer(chunksPerBuffer, extraAlloc, (short) freeBufferId.getAndIncrement(), memListener); // Create buffer
             CompletableFuture<ChunkBuffer> future = CompletableFuture.supplyAsync(() -> loader.loadChunks(bufferId, newBuf), loaderExecutor);
             future.thenAccept((loadedBuffer) -> buffers.put(bufferId, loadedBuffer));
             return future;
@@ -108,7 +114,7 @@ public class ChunkStorage {
     public ChunkBuffer getBuffer(short bufferId) {
         ChunkBuffer buf = buffers.get(bufferId);
         if (buf == null) { // Oops we need to load this
-            buf = new ChunkBuffer(chunksPerBuffer, extraAlloc, (short) freeBufferId.getAndIncrement()); // Create buffer
+            buf = new ChunkBuffer(chunksPerBuffer, extraAlloc, (short) freeBufferId.getAndIncrement(), memListener); // Create buffer
             loader.loadChunks(bufferId, buf);
             buffers.put(bufferId, buf);
         }
@@ -215,7 +221,7 @@ public class ChunkStorage {
         
         // Still no buffer? Create one and store
         short nextId = (short) freeBufferId.getAndIncrement();
-        ChunkBuffer freeBuf = new ChunkBuffer(chunksPerBuffer, extraAlloc, nextId);
+        ChunkBuffer freeBuf = new ChunkBuffer(chunksPerBuffer, extraAlloc, nextId, memListener);
         buffers.put(nextId, freeBuf);
         return freeBuf;
     }
