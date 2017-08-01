@@ -77,9 +77,8 @@ public class ChunkStorage {
      * @param chunksPerBuffer Maximum amount of chunks per chunk buffer.
      * @param extraAlloc How many bytes to allocate at end of each chunk
      * in all chunk buffers.
-     * @param memListener Listens to memory-related events.
      */
-    public ChunkStorage(ChunkLoader loader, Executor executor, int chunksPerBuffer, int extraAlloc, MemoryUseListener memListener) {
+    public ChunkStorage(ChunkLoader loader, Executor executor, int chunksPerBuffer, int extraAlloc) {
         this.loader = loader;
         loaderExecutor = executor;
         this.chunksPerBuffer = chunksPerBuffer;
@@ -89,8 +88,10 @@ public class ChunkStorage {
         this.freeBufferId = new AtomicInteger(loader.countBuffers()); // Free index=count of buffers (0-based)
         this.freeBuffers = new ConcurrentLinkedDeque<>();
         this.buffers = new ConcurrentHashMap<>(); // TODO need primitive concurrent map, can't find any library for it
-        
-        this.memListener = memListener;
+    }
+    
+    public void setMemListener(MemoryUseListener listener) {
+        this.memListener = listener;
     }
     
     public CompletableFuture<ChunkBuffer> requestBuffer(short bufferId) {

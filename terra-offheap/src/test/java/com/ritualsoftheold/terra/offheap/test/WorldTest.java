@@ -7,6 +7,8 @@ import com.ritualsoftheold.terra.material.MaterialRegistry;
 import com.ritualsoftheold.terra.offheap.chunk.ChunkBuffer;
 import com.ritualsoftheold.terra.offheap.io.dummy.DummyChunkLoader;
 import com.ritualsoftheold.terra.offheap.io.dummy.DummyOctreeLoader;
+import com.ritualsoftheold.terra.offheap.memory.MemoryPanicHandler;
+import com.ritualsoftheold.terra.offheap.memory.MemoryPanicHandler.PanicResult;
 import com.ritualsoftheold.terra.offheap.world.OffheapWorld;
 import com.ritualsoftheold.terra.offheap.world.WorldLoadListener;
 import com.ritualsoftheold.terra.world.gen.EmptyWorldGenerator;
@@ -22,6 +24,24 @@ public class WorldTest {
     @Before
     public void init() {
         world = new OffheapWorld(new DummyChunkLoader(), new DummyOctreeLoader(8192), new MaterialRegistry(), new EmptyWorldGenerator());
+        
+        world.setMemorySettings(0, 0, new MemoryPanicHandler() {
+            
+            @Override
+            public PanicResult outOfMemory(long max, long used, long possible) {
+                return null;
+            }
+            
+            @Override
+            public boolean handleFreeze(long stamp) {
+                return false;
+            }
+            
+            @Override
+            public PanicResult goalNotMet(long goal, long possible) {
+                return null;
+            }
+        });
     }
     
     @Test

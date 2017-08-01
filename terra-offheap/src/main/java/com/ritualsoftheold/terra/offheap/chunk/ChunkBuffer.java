@@ -64,6 +64,7 @@ public class ChunkBuffer {
         freeIndex = new AtomicInteger(0);
         this.extraAlloc = extraAlloc;
         this.bufferId = bufferId;
+        this.memListener = memListener;
     }
     
     public short getId() {

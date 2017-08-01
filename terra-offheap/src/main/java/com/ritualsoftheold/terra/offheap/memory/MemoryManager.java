@@ -79,6 +79,7 @@ public class MemoryManager implements MemoryUseListener {
                 // If waiting is interrupted, we should just continue NOW
                 // At least it is better than quitting and getting OS OOM kill us later
             }
+            System.out.println("Begin unload, usedSize: " + usedSize);
             long usedSizeVal = usedSize.get();
             if (usedSizeVal > maxSize) { // Too much memory used already, free or panic!
                 unload(usedSizeVal - preferredSize, criticalPanicHandler);
@@ -135,6 +136,7 @@ public class MemoryManager implements MemoryUseListener {
         this.chunkStorage = world.getChunkStorage();
         this.preferredSize = preferred;
         this.maxSize = max;
+        this.usedSize = new AtomicLong();
         this.userPanicHandler = panicHandler;
         
         this.managerLatch = new CountDownLatch(1);
@@ -148,6 +150,7 @@ public class MemoryManager implements MemoryUseListener {
      * If it is currently in progress, nothing will happen.
      */
     public void queueUnload() {
+        System.out.println("Queue unload");
         managerLatch.countDown();
     }
     
@@ -163,19 +166,23 @@ public class MemoryManager implements MemoryUseListener {
         Set<ChunkBuffer> usedChunkBufs = new ObjectOpenHashSet<>();
         
         // Populate sets with addresses
+        System.out.println("Begin with updateLoadMarkers");
         world.updateLoadMarkers(new WorldLoadListener() {
             
             @Override
             public void octreeLoaded(long addr, long groupAddr, float x, float y, float z,
                     float scale) {
+                System.out.println("Used group: " + groupAddr);
                 usedOctreeGroups.add(groupAddr);
             }
             
             @Override
             public void chunkLoaded(long addr, ChunkBuffer buf, float x, float y, float z) {
-                
+                System.out.println("Used buffer: " + buf);
+                usedChunkBufs.add(buf);
             }
-        }, true);
+        }, true, true).forEach((f) -> f.join()); // Need to complete all futures returned by updateLoadMarkers
+        System.out.println("Futures completed");
         
         // Track how much we'd actually free memory
         long freed = 0;
@@ -184,7 +191,7 @@ public class MemoryManager implements MemoryUseListener {
         long groups = world.getOctreeStorage().getGroups();
         ByteSet unusedGroups = new ByteArraySet();
         Set<CompletableFuture<Long>> groupSavePending = new ObjectOpenHashSet<>();
-        for (int i = 0; i < 256; i++) {
+        for (int i = 1; i < octreeStorage.getNextIndex(); i++) { // Begin from 1. Group 1 is not to be unloaded EVER!
             long groupAddr = mem.readLong(groups + i * 8);
             if (!usedOctreeGroups.contains(groupAddr)) { // Need to unload this group
                 unusedGroups.add((byte) i);
@@ -196,6 +203,7 @@ public class MemoryManager implements MemoryUseListener {
                 }
             }
         }
+        System.out.println("Octrees to free: " + freed);
         
         // Mark which chunks to unload
         Collection<ChunkBuffer> allBuffers = world.getChunkStorage().getAllBuffers();
@@ -222,6 +230,7 @@ public class MemoryManager implements MemoryUseListener {
         for (CompletableFuture<ChunkBuffer> future : savePending) {
             future.join();
         }
+        System.out.println("Could free: " + freed);
         
         // Ok, everything saved and so on... Can we save enough?
         if (freed < goal) { // Nope, and that could be bad
@@ -278,6 +287,7 @@ public class MemoryManager implements MemoryUseListener {
     
     @Override
     public void onAllocate(long amount) {
+        System.out.println("On allocate... " + amount);
         usedSize.addAndGet(amount);
     }
 

@@ -51,9 +51,9 @@ public interface TerraWorld {
     void addLoadMarker(LoadMarker marker);
     
     /**
-     * Requests load markers to be updated. This will block current thread
-     * for a while.
-     * @return 
+     * Requests load markers to be updated.
+     * @return List of completable futures which need to be completed
+     * before everything is loaded.
      */
     List<CompletableFuture<Void>> updateLoadMarkers();
     

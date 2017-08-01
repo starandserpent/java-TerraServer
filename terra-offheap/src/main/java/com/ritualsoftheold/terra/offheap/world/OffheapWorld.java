@@ -23,6 +23,7 @@ import com.ritualsoftheold.terra.offheap.io.ChunkLoader;
 import com.ritualsoftheold.terra.offheap.io.OctreeLoader;
 import com.ritualsoftheold.terra.offheap.memory.MemoryManager;
 import com.ritualsoftheold.terra.offheap.memory.MemoryPanicHandler;
+import com.ritualsoftheold.terra.offheap.memory.MemoryUseListener;
 import com.ritualsoftheold.terra.offheap.node.OffheapOctree;
 import com.ritualsoftheold.terra.offheap.octree.OctreeStorage;
 import com.ritualsoftheold.terra.world.LoadMarker;
@@ -71,19 +72,16 @@ public class OffheapWorld implements TerraWorld {
     private StampedLock lock;
     private StampedLock exclusivePending;
     
-    public OffheapWorld(ChunkLoader chunkLoader, OctreeLoader octreeLoader, MaterialRegistry registry, WorldGenerator generator,
-            long preferredMem, long maxMem, MemoryPanicHandler panicHandler) {
+    public OffheapWorld(ChunkLoader chunkLoader, OctreeLoader octreeLoader, MaterialRegistry registry, WorldGenerator generator) {
         this.chunkLoader = chunkLoader;
         this.octreeLoader = octreeLoader;
         
         // Initialize storages
         this.storageExecutor = new ForkJoinPool();
-        this.chunkStorage = new ChunkStorage(chunkLoader, storageExecutor, 64, 1024, memManager); // TODO settings for sizes of storages
-        this.octreeStorage = new OctreeStorage(8192 * DataConstants.OCTREE_SIZE, octreeLoader, storageExecutor, memManager);
+        this.chunkStorage = new ChunkStorage(chunkLoader, storageExecutor, 64, 1024); // TODO settings for sizes of storages
+        this.octreeStorage = new OctreeStorage(8192 * DataConstants.OCTREE_SIZE, octreeLoader, storageExecutor);
         
-        // Initialize master octree
-        masterOctree = octreeStorage.getOctree(0, this);
-        mem.writeByte(masterOctree.memoryAddress(), (byte) 0xff);
+        // Initialize master octree only after memory manager is present
         
         // Master scale, TODO
         masterScale = 32;
@@ -95,7 +93,9 @@ public class OffheapWorld implements TerraWorld {
         this.generatorExecutor = new ForkJoinPool();
         this.generator = generator;
         
-        this.memManager = new MemoryManager(this, preferredMem, maxMem, panicHandler);
+        // Initialize access locks
+        this.lock = new StampedLock();
+        this.exclusivePending = new StampedLock();
     }
 
     @Override
@@ -342,10 +342,10 @@ public class OffheapWorld implements TerraWorld {
                 
                 break;
             } else { // Just octree or single block here
-                if (isOctree && !noGenerate) {
+                if (isOctree) {
                     // Check if there is an octree; if not, create one
                     System.out.println("Octree: " + mem.readVolatileInt(nodeAddr));
-                    if (mem.readVolatileInt(nodeAddr) == 0) {
+                    if (mem.readVolatileInt(nodeAddr) == 0 && !noGenerate) {
                         int octreeIndex = octreeStorage.newOctree(); // Allocate new octree
                         System.out.println("CAS octree: " + (octreeIndex >>> 24));
                         boolean success = mem.compareAndSwapInt(nodeAddr, 0, octreeIndex); // if no one else allocated it yet, save index
@@ -385,6 +385,7 @@ public class OffheapWorld implements TerraWorld {
             List<CompletableFuture<Void>> futures, boolean noGenerate) {
         System.out.println("Read flags from: " + addr);
         byte flags = mem.readVolatileByte(addr);
+        System.out.println(Integer.toBinaryString(flags));
         float childScale = scale * 0.5f;
         
         System.out.println("scale: " + scale);
@@ -601,11 +602,11 @@ public class OffheapWorld implements TerraWorld {
         return pendingMarkers;
     }
     
-    public List<CompletableFuture<Void>> updateLoadMarkers(WorldLoadListener listener, boolean soft) {
+    public List<CompletableFuture<Void>> updateLoadMarkers(WorldLoadListener listener, boolean soft, boolean ignoreMoved) {
         List<CompletableFuture<Void>> pendingMarkers = new ArrayList<>(loadMarkers.size());
         // Delegate updating to async code, this might be costly
         for (LoadMarker marker : loadMarkers) {
-            if (marker.hasMoved()) { // Update only marker that has been moved
+            if (ignoreMoved || marker.hasMoved()) { // Update only marker that has been moved
                 // When player moves a little, DO NOT, I repeat, DO NOT just blindly move load marker.
                 // Move it when player has moved a few meters or so!
                 pendingMarkers.add(CompletableFuture.runAsync(() -> updateLoadMarker(marker, listener, soft), storageExecutor));
@@ -622,6 +623,7 @@ public class OffheapWorld implements TerraWorld {
      * @param soft If soft radius should be used.
      */
     private void updateLoadMarker(LoadMarker marker, WorldLoadListener listener, boolean soft) {
+        System.out.println("Update load marker...");
         loadArea(marker.getX(), marker.getY(), marker.getZ(), soft ? marker.getSoftRadius() : marker.getHardRadius(), listener, true);
         marker.markUpdated(); // Tell it we updated it
     }
@@ -666,6 +668,20 @@ public class OffheapWorld implements TerraWorld {
     
     public void leaveExclusive(long stamp) {
         lock.unlockWrite(stamp);
+    }
+    
+    public void requestUnload() {
+        memManager.queueUnload();
+    }
+    
+    public void setMemorySettings(long preferred, long max, MemoryPanicHandler panicHandler) {
+        this.memManager = new MemoryManager(this, preferred, max, panicHandler);
+        octreeStorage.setMemListener(memManager);
+        chunkStorage.setMemListener(memManager);
+        
+        masterOctree = octreeStorage.getOctree(0, this);
+        mem.writeByte(masterOctree.memoryAddress(), (byte) 0xff);
+        System.out.println("Write flags to " + masterOctree.memoryAddress());
     }
 
 }

@@ -54,7 +54,7 @@ public class OctreeStorage {
     
     private MemoryUseListener memListener;
     
-    public OctreeStorage(int blockSize, OctreeLoader loader, Executor executor, MemoryUseListener memListener) {
+    public OctreeStorage(int blockSize, OctreeLoader loader, Executor executor) {
         this.loader = loader;
         this.loaderExecutor = executor;
         this.blockSize = blockSize;
@@ -65,9 +65,11 @@ public class OctreeStorage {
         
         // Setup free group and index
         this.freeGroup = new AtomicInteger(loader.countGroups());
+    }
+    
+    public void setMemListener(MemoryUseListener listener) {
+        this.memListener = listener;
         this.freeIndex = new AtomicInteger(mem.readInt(getGroupMeta((byte) freeGroup.get())));
-        
-        this.memListener = memListener;
     }
     
     private long getGroupsAddr(byte index) {
@@ -94,7 +96,7 @@ public class OctreeStorage {
      */
     public void addOctrees(byte index, long addr) {
         mem.writeVolatileLong(getGroupsAddr(index), addr);
-        memListener.onAllocate(DataConstants.OCTREE_NODE_SIZE);
+        memListener.onAllocate(blockSize);
     }
     
     /**
@@ -112,6 +114,7 @@ public class OctreeStorage {
         if (addr == 0) {
             addr = loader.loadOctrees(groupIndex, -1);
             mem.writeVolatileLong(getGroupsAddr(groupIndex), addr);
+            memListener.onAllocate(blockSize);
         }
         
         // Mark that we needed the group
