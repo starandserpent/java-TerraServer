@@ -170,6 +170,14 @@ public class OctreeStorage {
         return freeGroup.get() << 24 | freeIndex.get(); // Get next free index (includes group and octree indexes)
     }
     
+    /**
+     * Gets amount of groups currently in use.
+     * @return Group count.
+     */
+    public int getGroupCount() {
+        return freeGroup.get() + 1;
+    }
+    
     public int splitOctree(int index, int node) {
         byte groupIndex = (byte) (index >>> 24);
         int octreeIndex = index & 0xffffff;

@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
@@ -241,6 +242,7 @@ public class OffheapWorld implements TerraWorld {
     public void loadArea(float x, float y, float z, float radius, WorldLoadListener listener, boolean noGenerate) {
         long addr = masterOctree.memoryAddress(); // Get starting memory address
         System.out.println("addr: " + addr);
+        listener.octreeLoaded(addr, octreeStorage.getGroup((byte) 0), x, y, z, masterScale);
         
         float scale = masterScale; // Starting scale
         int entry = 0; // Chunk or octree id
@@ -585,6 +587,19 @@ public class OffheapWorld implements TerraWorld {
     public void addLoadMarker(LoadMarker marker) {
         loadMarkers.add(marker);
         loadMarkers.sort(Comparator.reverseOrder()); // Sort most important first
+    }
+    
+
+    @Override
+    public void removeLoadMarker(LoadMarker marker) {
+        Iterator<LoadMarker> it = loadMarkers.iterator();
+        while (it.hasNext()) {
+            LoadMarker m = it.next();
+            if (m == marker) {
+                it.remove();
+                return;
+            }
+        }
     }
 
     @Override

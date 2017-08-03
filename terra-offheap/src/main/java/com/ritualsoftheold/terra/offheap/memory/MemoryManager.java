@@ -191,8 +191,9 @@ public class MemoryManager implements MemoryUseListener {
         long groups = world.getOctreeStorage().getGroups();
         ByteSet unusedGroups = new ByteArraySet();
         Set<CompletableFuture<Long>> groupSavePending = new ObjectOpenHashSet<>();
-        for (int i = 1; i < octreeStorage.getNextIndex(); i++) { // Begin from 1. Group 1 is not to be unloaded EVER!
-            long groupAddr = mem.readLong(groups + i * 8);
+        System.out.println("octree count: " + octreeStorage.getNextIndex());
+        for (int i = 0; i < octreeStorage.getGroupCount(); i++) {
+            long groupAddr = mem.readLong(groups + i * 8) + DataConstants.OCTREE_GROUP_META; // Group begins after meta for user code INCLUDING our listener
             if (!usedOctreeGroups.contains(groupAddr)) { // Need to unload this group
                 unusedGroups.add((byte) i);
                 groupSavePending.add(octreeStorage.saveGroup((byte) i));

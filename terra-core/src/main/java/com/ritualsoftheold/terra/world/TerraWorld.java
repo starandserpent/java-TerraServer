@@ -50,6 +50,8 @@ public interface TerraWorld {
      */
     void addLoadMarker(LoadMarker marker);
     
+    void removeLoadMarker(LoadMarker marker);
+    
     /**
      * Requests load markers to be updated.
      * @return List of completable futures which need to be completed
@@ -88,4 +90,5 @@ public interface TerraWorld {
      * @param stamp Stamp which you got when entering.
      */
     void leave(long stamp);
+
 }
