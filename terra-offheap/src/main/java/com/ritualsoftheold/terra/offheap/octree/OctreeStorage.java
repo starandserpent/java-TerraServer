@@ -62,14 +62,19 @@ public class OctreeStorage {
         mem.setMemory(groups, 256 * 8, (byte) 0);
         this.lastNeeded = mem.allocate(256 * 8);
         mem.setMemory(lastNeeded, 256 * 8, (byte) 0);
-        
-        // Setup free group and index
-        this.freeGroup = new AtomicInteger(loader.countGroups());
     }
     
     public void setMemListener(MemoryUseListener listener) {
         this.memListener = listener;
-        this.freeIndex = new AtomicInteger(mem.readInt(getGroupMeta((byte) freeGroup.get())));
+        
+        // Begin from 1, so master octree group will never be "free"
+        for (byte i = 1; i < 256; i++) {
+            int used = mem.readInt(getGroupMeta(i));
+            if (used < blockSize / DataConstants.OCTREE_SIZE) {
+                freeGroup = new AtomicInteger(i);
+                freeIndex = new AtomicInteger(used);
+            }
+        }
     }
     
     private long getGroupsAddr(byte index) {
