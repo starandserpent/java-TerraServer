@@ -22,7 +22,10 @@ import com.ritualsoftheold.terra.material.TerraTexture;
 import com.ritualsoftheold.terra.mesher.NaiveMesher;
 import com.ritualsoftheold.terra.mesher.VoxelMesher;
 import com.ritualsoftheold.terra.mesher.resource.TextureManager;
+import com.ritualsoftheold.terra.offheap.chunk.ChunkBuffer;
 import com.ritualsoftheold.terra.offheap.io.dummy.DummyChunkLoader;
+import com.ritualsoftheold.terra.offheap.memory.MemoryPanicHandler;
+import com.ritualsoftheold.terra.offheap.memory.MemoryPanicHandler.PanicResult;
 import com.ritualsoftheold.terra.offheap.world.OffheapWorld;
 import com.ritualsoftheold.terra.offheap.world.WorldLoadListener;
 import com.ritualsoftheold.terra.world.LoadMarker;
@@ -54,6 +57,23 @@ public class TestGameApp extends SimpleApplication {
             gen.initialize(0, reg);
             world = new OffheapWorld(new DummyChunkLoader(), new FileOctreeLoader(Files.createDirectories(Paths.get("octrees")), 8192),
                     reg, gen);
+            world.setMemorySettings(100000, 1000000, new MemoryPanicHandler() {
+                
+                @Override
+                public PanicResult outOfMemory(long max, long used, long possible) {
+                    return PanicResult.CONTINUE;
+                }
+                
+                @Override
+                public boolean handleFreeze(long stamp) {
+                    return true;
+                }
+                
+                @Override
+                public PanicResult goalNotMet(long goal, long possible) {
+                    return PanicResult.CONTINUE;
+                }
+            });
         } catch (IOException e) {
             throw new IORuntimeException(e);
         }
@@ -66,12 +86,12 @@ public class TestGameApp extends SimpleApplication {
         world.setLoadListener(new WorldLoadListener() {
             
             @Override
-            public void octreeLoaded(long addr, float x, float y, float z, float scale) {
+            public void octreeLoaded(long addr, long groupAddr, float x, float y, float z, float scale) {
                 // For now, just ignore octrees
             }
             
             @Override
-            public void chunkLoaded(long addr, float x, float y, float z) {
+            public void chunkLoaded(long addr, ChunkBuffer buf, float x, float y, float z) {
                 System.out.println("Loaded chunk: " + addr);
                 VoxelMesher mesher = new NaiveMesher(); // Not thread safe, but this is still performance hog!
                 mesher.chunk(addr, texManager);

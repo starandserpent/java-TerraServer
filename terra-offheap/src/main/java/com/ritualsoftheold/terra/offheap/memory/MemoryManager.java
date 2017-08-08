@@ -288,7 +288,6 @@ public class MemoryManager implements MemoryUseListener {
     
     @Override
     public void onAllocate(long amount) {
-        System.out.println("On allocate... " + amount);
         usedSize.addAndGet(amount);
     }
 

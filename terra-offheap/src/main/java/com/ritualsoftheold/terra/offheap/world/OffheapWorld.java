@@ -84,9 +84,6 @@ public class OffheapWorld implements TerraWorld {
         
         // Initialize master octree only after memory manager is present
         
-        // Master scale, TODO
-        masterScale = 32;
-        
         this.loadMarkers = new ArrayList<>();
         
         this.registry = registry;
@@ -236,8 +233,8 @@ public class OffheapWorld implements TerraWorld {
      * @param y
      * @param z
      * @param radius
+     * @param listener
      * @param noGenerate
-     * @param callback
      */
     public void loadArea(float x, float y, float z, float radius, WorldLoadListener listener, boolean noGenerate) {
         long addr = masterOctree.memoryAddress(); // Get starting memory address
@@ -639,7 +636,7 @@ public class OffheapWorld implements TerraWorld {
      */
     private void updateLoadMarker(LoadMarker marker, WorldLoadListener listener, boolean soft) {
         System.out.println("Update load marker...");
-        loadArea(marker.getX(), marker.getY(), marker.getZ(), soft ? marker.getSoftRadius() : marker.getHardRadius(), listener, true);
+        loadArea(marker.getX(), marker.getY(), marker.getZ(), soft ? marker.getSoftRadius() : marker.getHardRadius(), listener, soft);
         marker.markUpdated(); // Tell it we updated it
     }
     
@@ -694,9 +691,14 @@ public class OffheapWorld implements TerraWorld {
         octreeStorage.setMemListener(memManager);
         chunkStorage.setMemListener(memManager);
         
-        masterOctree = octreeStorage.getOctree(0, this);
-        mem.writeByte(masterOctree.memoryAddress(), (byte) 0xff);
+        updateMasterOctree();
         System.out.println("Write flags to " + masterOctree.memoryAddress());
+    }
+    
+    public void updateMasterOctree() {
+        masterOctree = octreeStorage.getOctree(octreeStorage.getMasterIndex(), this);
+        masterScale = octreeStorage.getMasterScale(32); // TODO need to have this CONFIGURABLE!
+        mem.writeByte(masterOctree.memoryAddress(), (byte) 0xff); // Just in case, master octree has no single nodes
     }
 
 }

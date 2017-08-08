@@ -73,6 +73,7 @@ public class OctreeStorage {
             if (used < blockSize / DataConstants.OCTREE_SIZE) {
                 freeGroup = new AtomicInteger(i);
                 freeIndex = new AtomicInteger(used);
+                break;
             }
         }
     }
@@ -233,5 +234,28 @@ public class OctreeStorage {
     
     public int getGroupSize() {
         return blockSize + DataConstants.OCTREE_GROUP_META;
+    }
+
+    /**
+     * Retrieves master octree full index. Usually it has group 0.
+     * @return Octree index for master octree.
+     */
+    public int getMasterIndex() {
+        return mem.readInt(getGroupMeta((byte) 0) + 4);
+    }
+    
+    /**
+     * Gets current scale of master octree.
+     * @param def If scale is not available, will be set to this.
+     * @return Current scale.
+     */
+    public float getMasterScale(float def) {
+        long addr = getGroupMeta((byte) 0) + 8;
+        float val = mem.readFloat(addr);
+        if (val == 0) {
+            mem.writeFloat(addr, def);
+            return def;
+        }
+        return val;
     }
 }
