@@ -259,6 +259,13 @@ public class OffheapWorld implements TerraWorld {
         float originY = y;
         float originZ = z;
         
+        float farX = radius + x;
+        float farY = radius + y;
+        float farZ = radius + z;
+        float nearX = radius - x;
+        float nearY = radius - y;
+        float nearZ = radius - y;
+        
         long groupAddr = 0;
         
         float octreeX = 0, octreeY = 0, octreeZ = 0;
@@ -338,6 +345,26 @@ public class OffheapWorld implements TerraWorld {
                         index = 7;
                     }
                 }
+            }
+            
+            // TODO to which direction we might need to enlarge master octree
+            if (farX > octreeX + posMod) {
+                
+            }
+            if (farY > octreeY + posMod) {
+                
+            }
+            if (farZ > octreeZ + posMod) {
+                
+            }
+            if (nearX < octreeX - posMod) {
+                
+            }
+            if (nearY < octreeY - posMod) {
+                
+            }
+            if (nearZ < octreeZ - posMod) {
+                
             }
             
             // I hope volatile is enough to avoid race conditions
