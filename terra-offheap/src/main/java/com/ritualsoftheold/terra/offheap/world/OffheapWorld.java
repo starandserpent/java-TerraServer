@@ -71,7 +71,14 @@ public class OffheapWorld implements TerraWorld {
      * A lock for enter() and leave().
      */
     private StampedLock lock;
+    
+    /**
+     * A lock for pending exclusive operations which block all but
+     * enterNow() calls.
+     */
     private StampedLock exclusivePending;
+    
+    private WorldSizeManager sizeManager;
     
     public OffheapWorld(ChunkLoader chunkLoader, OctreeLoader octreeLoader, MaterialRegistry registry, WorldGenerator generator) {
         this.chunkLoader = chunkLoader;
@@ -94,6 +101,8 @@ public class OffheapWorld implements TerraWorld {
         // Initialize access locks
         this.lock = new StampedLock();
         this.exclusivePending = new StampedLock();
+        
+        this.sizeManager = new WorldSizeManager(this);
     }
 
     @Override
@@ -262,6 +271,12 @@ public class OffheapWorld implements TerraWorld {
                 System.out.println("Radius limit hit...");
                 System.out.println("coords: " + x + ", " + y + ", " + z);
                 System.out.println("scale: " + scale);
+                
+                // Ooops the world will need to be enlarged
+                if (scale == masterScale) {
+                    sizeManager.enlarge(scale, 0); // TODO figure out oldIndex
+                }
+                
                 break;
             }
             
@@ -699,6 +714,10 @@ public class OffheapWorld implements TerraWorld {
         masterOctree = octreeStorage.getOctree(octreeStorage.getMasterIndex(), this);
         masterScale = octreeStorage.getMasterScale(32); // TODO need to have this CONFIGURABLE!
         mem.writeByte(masterOctree.memoryAddress(), (byte) 0xff); // Just in case, master octree has no single nodes
+    }
+
+    public float getMasterScale() {
+        return masterScale;
     }
 
 }

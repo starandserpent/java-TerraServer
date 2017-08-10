@@ -213,15 +213,19 @@ public class OctreeStorage {
     }
     
     public OffheapOctree getOctree(int index, OffheapWorld world) {
-        byte groupIndex = (byte) (index >>> 24);
-        int octreeIndex = index & 0xffffff;
-        long groupAddr = getGroup(groupIndex);
-        long addr = groupAddr + octreeIndex * DataConstants.OCTREE_SIZE;
+        long addr = getOctreeAddr(index);
         
         OffheapOctree octree = new OffheapOctree(world, 0f); // TODO scale, somehow
         octree.memoryAddress(addr); // Validate octree with memory address!
         
         return octree;
+    }
+    
+    public long getOctreeAddr(int index) {
+        byte groupIndex = (byte) (index >>> 24);
+        int octreeIndex = index & 0xffffff;
+        long groupAddr = getGroup(groupIndex);
+        return groupAddr + octreeIndex * DataConstants.OCTREE_SIZE;
     }
     
     public long getLastNeeded(byte groupId) {
