@@ -57,13 +57,15 @@ public class WorldSizeManager {
         long stamp = world.enterExclusive();
         
         int oldId = storage.getMasterIndex();
+        System.out.println("Old master octree: " + oldId);
         
         // Create new master octree
         int newId = oldId + 1;
+        System.out.println("New master octree: " + newId);
         long newAddr = storage.getOctreeAddr(newId);
         
         // Get metadata addr for group 0 and update it
-        long metaAddr = storage.getGroup((byte) 0);
+        long metaAddr = storage.getGroupMeta((byte) 0);
         mem.writeInt(metaAddr + 4, newId); // Id
         mem.writeFloat(metaAddr + 8, scale); // New scale
         

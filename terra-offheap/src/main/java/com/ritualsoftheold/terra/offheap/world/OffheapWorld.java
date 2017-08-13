@@ -585,7 +585,7 @@ public class OffheapWorld implements TerraWorld {
                     }
                     
                     long newGroupAddr = octreeStorage.getGroup(mem.readVolatileByte(nodeAddr));
-                    loadAll(newGroupAddr, groupAddr + (mem.readVolatileInt(nodeAddr) >>> 8) * DataConstants.OCTREE_SIZE, childScale, x2, y2, z2, listener, futures, noGenerate);
+                    loadAll(newGroupAddr, newGroupAddr + (mem.readVolatileInt(nodeAddr) >>> 8) * DataConstants.OCTREE_SIZE, childScale, x2, y2, z2, listener, futures, noGenerate);
                 } else {
                     System.out.println("Single node, scale: " + scale);
                 }
@@ -760,6 +760,7 @@ public class OffheapWorld implements TerraWorld {
     }
     
     public void updateMasterOctree() {
+        System.out.println("masterIndex: " + octreeStorage.getMasterIndex());
         masterOctree = octreeStorage.getOctree(octreeStorage.getMasterIndex(), this);
         masterScale = octreeStorage.getMasterScale(32); // TODO need to have this CONFIGURABLE!
         mem.writeByte(masterOctree.memoryAddress(), (byte) 0xff); // Just in case, master octree has no single nodes
