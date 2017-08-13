@@ -262,4 +262,8 @@ public class OctreeStorage {
         }
         return val;
     }
+
+    public long getMasterGroupAddr() {
+        return mem.readVolatileLong(getGroupsAddr((byte) 0));
+    }
 }

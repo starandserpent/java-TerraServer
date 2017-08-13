@@ -47,6 +47,8 @@ public class WorldSizeManager {
     });
     
     public WorldSizeManager(OffheapWorld world) {
+        assert world != null;
+        
         this.world = world;
         this.storage = world.getOctreeStorage();
         this.queue = new ArrayBlockingQueue<>(100, true);

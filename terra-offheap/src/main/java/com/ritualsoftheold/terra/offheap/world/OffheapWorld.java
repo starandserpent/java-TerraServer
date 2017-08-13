@@ -246,6 +246,10 @@ public class OffheapWorld implements TerraWorld {
      * @param noGenerate
      */
     public void loadArea(float x, float y, float z, float radius, WorldLoadListener listener, boolean noGenerate) {
+        // Sanity checks for debugging
+        assert radius != 0;
+        assert listener != null;
+        
         long addr = masterOctree.memoryAddress(); // Get starting memory address
         System.out.println("addr: " + addr);
         listener.octreeLoaded(addr, octreeStorage.getGroup((byte) 0), x, y, z, masterScale);
@@ -304,7 +308,7 @@ public class OffheapWorld implements TerraWorld {
             }
         }
         
-        long groupAddr = 0;
+        long groupAddr = octreeStorage.getMasterGroupAddr();
         
         float octreeX = 0, octreeY = 0, octreeZ = 0;
         while (true) {
@@ -444,6 +448,13 @@ public class OffheapWorld implements TerraWorld {
      */
     private void loadAll(long groupAddr, long addr, float scale, float x, float y, float z, WorldLoadListener listener,
             List<CompletableFuture<Void>> futures, boolean noGenerate) {
+        // Sanity checks (for debugging)
+        assert groupAddr != 0;
+        assert addr != 0;
+        assert scale != 0;
+        assert listener != null;
+        assert futures != null;
+        
         System.out.println("Read flags from: " + addr);
         byte flags = mem.readVolatileByte(addr);
         System.out.println(Integer.toBinaryString(flags));
