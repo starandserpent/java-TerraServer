@@ -97,6 +97,7 @@ public class ChunkBuffer {
         
         long amount = firstLength + extraAlloc;
         long addr = mem.allocate(amount);
+        mem.setMemory(addr, amount, (byte) 0);
         chunks[index] = addr;
         lengths[index] = amount;
         memListener.onAllocate(amount);
@@ -115,6 +116,7 @@ public class ChunkBuffer {
     public long reallocChunk(int index, long newLength) {
         long amount = newLength + extraAlloc;
         long addr = mem.allocate(amount);
+        mem.setMemory(addr, amount, (byte) 0);
         
         chunks[index] = addr;
         lengths[index] = amount;

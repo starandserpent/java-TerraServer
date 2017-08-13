@@ -266,34 +266,55 @@ public class OffheapWorld implements TerraWorld {
         float nearY = radius - y;
         float nearZ = radius - y;
         
+        float posMod = 0.25f * scale;
+        byte extend = (byte) 0b11111111;
+        
+        if (farX > x + posMod) { // RIGHT
+            extend &= 0b10101010;
+        }
+        if (farY > y + posMod) { // UP
+            extend &= 0b11001100;
+        }
+        if (farZ > z + posMod) { // BACK
+            extend &= 0b11110000;
+        }
+        if (nearX < x - posMod) { // LEFT
+            extend &= 0b01010101;
+        }
+        if (nearY < y - posMod) { // DOWN
+            extend &= 0b00110011;
+        }
+        if (nearZ < z - posMod) { // FRONT
+            extend &= 0b00001111;
+        }
+        
+        if (extend != 0b11111111) { // We need to enlarge the world
+            System.out.println("Need to enlarge master octree: " + Integer.toBinaryString(extend));
+            if (extend == 0) { // oops, no direction satisfies, panic mode
+                // TODO do something sensible here instead of just throwing zero
+                sizeManager.queueEnlarge(2 * scale, 0);
+            } else {
+                for (int i = 7; i >= 0; i--) {
+                    if ((extend >>> i & 1) == 1) {
+                        System.out.println("Queue enlarge for " + i);
+                        sizeManager.queueEnlarge(2 * scale, i);
+                        break;
+                    }
+                }
+            }
+        }
+        
         long groupAddr = 0;
         
         float octreeX = 0, octreeY = 0, octreeZ = 0;
         while (true) {
-            float farthestPoint = 0.5f * scale; // Farthest point from center 
-            if (originX + radius > x + farthestPoint || originX - radius < x - farthestPoint
-                    || originY + radius > y + farthestPoint || originY - radius < y - farthestPoint
-                    || originZ + radius > z + farthestPoint || originZ - radius < z - farthestPoint) {
-                // We found small enough unit... load everything inside it!
-                System.out.println("Radius limit hit...");
-                System.out.println("coords: " + x + ", " + y + ", " + z);
-                System.out.println("scale: " + scale);
-                
-                // Ooops the world will need to be enlarged
-                if (scale == masterScale) {
-                    sizeManager.enlarge(scale, 0); // TODO figure out oldIndex
-                }
-                
-                break;
-            }
-            
             // Adjust the coordinates to be relative to current octree
             x -= octreeX;
             y -= octreeY;
             z -= octreeZ;
             
             // We octree position this much to get center of new octree
-            float posMod = 0.25f * scale;
+            posMod = 0.25f * scale;
             
             // Octree index, determined by lookup table below
             int index = 0;
@@ -347,24 +368,23 @@ public class OffheapWorld implements TerraWorld {
                 }
             }
             
-            // TODO to which direction we might need to enlarge master octree
-            if (farX > octreeX + posMod) {
-                
+            if (farX > octreeX + posMod) { // RIGHT
+                break;
             }
-            if (farY > octreeY + posMod) {
-                
+            if (farY > octreeY + posMod) { // UP
+                break;
             }
-            if (farZ > octreeZ + posMod) {
-                
+            if (farZ > octreeZ + posMod) { // BACK
+                break;
             }
-            if (nearX < octreeX - posMod) {
-                
+            if (nearX < octreeX - posMod) { // LEFT
+                break;
             }
-            if (nearY < octreeY - posMod) {
-                
+            if (nearY < octreeY - posMod) { // DOWN
+                break;
             }
-            if (nearZ < octreeZ - posMod) {
-                
+            if (nearZ < octreeZ - posMod) { // FRONT
+                break;
             }
             
             // I hope volatile is enough to avoid race conditions
@@ -482,20 +502,22 @@ public class OffheapWorld implements TerraWorld {
                 if ((flags >>> i & 1) == 1) { // Chunk, we need to make sure it is loaded
                     long nodeAddr = addr + 1 + i * DataConstants.OCTREE_NODE_SIZE;
                     int node = mem.readVolatileInt(nodeAddr);
+                    System.err.println("nodeAddr: " + nodeAddr + ", node: " + (node >>> 16) + ", buf: " + (node & 0xffff));
                     if (node == 0 && !noGenerate) {
                         float fX = x2;
                         float fY = y2;
                         float fZ = z2;
-                        CompletableFuture<Void> future = CompletableFuture.runAsync(() -> { // Schedule world gen to be done async
+                        //CompletableFuture<Void> future = CompletableFuture.runAsync(() -> { // Schedule world gen to be done async
                             int newNode = handleGenerate(fX, fY, fZ);
                             mem.compareAndSwapInt(nodeAddr, 0, newNode);
+                            System.err.println("gen node: " + (newNode >>> 16) + ", buf: " + (newNode & 0xffff));
                             // TODO clear garbage produced by race conditions somehow
-                            listener.chunkLoaded(chunkStorage.ensureLoaded(newNode), chunkStorage.getBufferUnsafe((short) (node >>> 16)), fX, fY, fZ);
-                        });
+                            listener.chunkLoaded(chunkStorage.ensureLoaded(newNode), chunkStorage.getBufferUnsafe((short) (node & 0xffff)), fX, fY, fZ);
+                        //});
                         // Put joinable future to list of them, if caller wants to make sure they're all done
-                        futures.add(future);
+                        //futures.add(future);
                     } else {
-                        listener.chunkLoaded(chunkStorage.ensureLoaded(node), chunkStorage.getBufferUnsafe((short) (node >>> 16)), x2, y2, z2);
+                        listener.chunkLoaded(chunkStorage.ensureLoaded(node), chunkStorage.getBufferUnsafe((short) (node & 0xffff)), x2, y2, z2);
                     }                    
                 }
                 
