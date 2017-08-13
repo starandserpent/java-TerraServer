@@ -37,6 +37,8 @@ public class EnlargeWorldTest {
             
         });
         
+        long stamp = world.enter();
         world.loadArea(0, 10, 0, 40, new DummyLoadListener(), false);
+        world.leave(stamp);
     }
 }
