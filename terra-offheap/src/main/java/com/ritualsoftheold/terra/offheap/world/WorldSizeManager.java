@@ -71,6 +71,59 @@ public class WorldSizeManager {
         mem.writeInt(metaAddr + 4, newId); // Id
         mem.writeFloat(metaAddr + 8, scale); // New scale
         
+        // Calculate new center point (inverted lookup table from usual)
+        float posMod = 0.25f * scale;
+        float x = mem.readFloat(metaAddr + 12);
+        float y = mem.readFloat(metaAddr + 16);
+        float z = mem.readFloat(metaAddr + 20);
+        switch (oldIndex) {
+            case 0:
+                x += posMod;
+                y += posMod;
+                z += posMod;
+                break;
+            case 1:
+                x -= posMod;
+                y += posMod;
+                z += posMod;
+                break;
+            case 2:
+                x += posMod;
+                y -= posMod;
+                z += posMod;
+                break;
+            case 3:
+                x -= posMod;
+                y -= posMod;
+                z += posMod;
+                break;
+            case 4:
+                x += posMod;
+                y += posMod;
+                z -= posMod;
+                break;
+            case 5:
+                x -= posMod;
+                y += posMod;
+                z -= posMod;
+                break;
+            case 6:
+                x += posMod;
+                y -= posMod;
+                z -= posMod;
+                break;
+            case 7:
+                x -= posMod;
+                y -= posMod;
+                z -= posMod;
+                break;
+        }
+        
+        // Write new center coords
+        mem.writeFloat(metaAddr + 12, x);
+        mem.writeFloat(metaAddr + 16, y);
+        mem.writeFloat(metaAddr + 20, z);
+        
         // Place the old master octree at oldIndex pos in new octree
         mem.writeInt(newAddr + 1 + oldIndex * 4, oldId);
         

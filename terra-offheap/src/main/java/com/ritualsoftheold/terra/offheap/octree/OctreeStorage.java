@@ -266,4 +266,9 @@ public class OctreeStorage {
     public long getMasterGroupAddr() {
         return mem.readVolatileLong(getGroupsAddr((byte) 0));
     }
+
+    public float getCenterPoint(int type) {
+        long addr = getGroupMeta((byte) 0) + 12 + type * 4;
+        return mem.readFloat(addr);
+    }
 }

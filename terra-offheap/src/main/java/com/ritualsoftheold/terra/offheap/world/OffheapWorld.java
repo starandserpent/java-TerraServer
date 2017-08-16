@@ -80,6 +80,10 @@ public class OffheapWorld implements TerraWorld {
     
     private WorldSizeManager sizeManager;
     
+    private float centerX;
+    private float centerY;
+    private float centerZ;
+    
     public OffheapWorld(ChunkLoader chunkLoader, OctreeLoader octreeLoader, MaterialRegistry registry, WorldGenerator generator) {
         this.chunkLoader = chunkLoader;
         this.octreeLoader = octreeLoader;
@@ -521,14 +525,14 @@ public class OffheapWorld implements TerraWorld {
                         //CompletableFuture<Void> future = CompletableFuture.runAsync(() -> { // Schedule world gen to be done async
                             int newNode = handleGenerate(fX, fY, fZ);
                             mem.compareAndSwapInt(nodeAddr, 0, newNode);
-                            System.err.println("gen node: " + (newNode >>> 16) + ", buf: " + (newNode & 0xffff));
+                            System.err.println("gen node: " + (newNode & 0xffff) + ", buf: " + (newNode >>> 16));
                             // TODO clear garbage produced by race conditions somehow
-                            listener.chunkLoaded(chunkStorage.ensureLoaded(newNode), chunkStorage.getBufferUnsafe((short) (node & 0xffff)), fX, fY, fZ);
+                            listener.chunkLoaded(chunkStorage.ensureLoaded(newNode), chunkStorage.getBufferUnsafe((short) (node >>> 16)), fX, fY, fZ);
                         //});
                         // Put joinable future to list of them, if caller wants to make sure they're all done
                         //futures.add(future);
                     } else {
-                        listener.chunkLoaded(chunkStorage.ensureLoaded(node), chunkStorage.getBufferUnsafe((short) (node & 0xffff)), x2, y2, z2);
+                        listener.chunkLoaded(chunkStorage.ensureLoaded(node), chunkStorage.getBufferUnsafe((short) (node >>> 16)), x2, y2, z2);
                     }                    
                 }
                 
@@ -774,6 +778,9 @@ public class OffheapWorld implements TerraWorld {
         System.out.println("masterIndex: " + octreeStorage.getMasterIndex());
         masterOctree = octreeStorage.getOctree(octreeStorage.getMasterIndex(), this);
         masterScale = octreeStorage.getMasterScale(32); // TODO need to have this CONFIGURABLE!
+        centerX = octreeStorage.getCenterPoint(0);
+        centerY = octreeStorage.getCenterPoint(1);
+        centerZ = octreeStorage.getCenterPoint(2);
         mem.writeByte(masterOctree.memoryAddress(), (byte) 0xff); // Just in case, master octree has no single nodes
     }
 

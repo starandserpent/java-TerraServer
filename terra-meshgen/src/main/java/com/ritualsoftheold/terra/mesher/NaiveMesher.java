@@ -37,6 +37,9 @@ public class NaiveMesher implements VoxelMesher {
 
     @Override
     public void chunk(long addr, TextureManager textures) {
+        assert addr != 0;
+        assert textures != null;
+        
         // Clear previous lists
         verts.clear();
         indices.clear();

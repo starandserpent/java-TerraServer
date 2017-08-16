@@ -37,6 +37,6 @@ public class DataConstants {
     /**
      * Octree group metadata length.
      */
-    public static final int OCTREE_GROUP_META = 16;
+    public static final int OCTREE_GROUP_META = 24;
     
 }

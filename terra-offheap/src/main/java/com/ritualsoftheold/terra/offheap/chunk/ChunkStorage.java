@@ -255,9 +255,9 @@ public class ChunkStorage {
      * @param id Full chunk id.
      */
     public long ensureLoaded(int id) {
-        ChunkBuffer buf = getBuffer((short) (id & 0xffff));
+        ChunkBuffer buf = getBuffer((short) (id >>> 16));
         System.err.println("buf: " + buf.getId());
-        return buf.getChunkAddress(id >>> 16);
+        return buf.getChunkAddress(id & 0xffff);
     }
     
     /**

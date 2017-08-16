@@ -5,9 +5,11 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.CompletableFuture;
 
 import com.jme3.app.SimpleApplication;
 import com.jme3.material.Material;
+import com.jme3.math.Vector3f;
 import com.jme3.scene.Geometry;
 import com.jme3.scene.Mesh;
 import com.jme3.scene.Spatial.CullHint;
@@ -39,6 +41,8 @@ public class TestGameApp extends SimpleApplication {
     private LoadMarker player;
     
     private BlockingQueue<Geometry> geomCreateQueue = new ArrayBlockingQueue<>(10000);
+    
+    private float loadMarkersUpdated;
     
     public static void main(String... args) {
         new TestGameApp().start();
@@ -139,12 +143,26 @@ public class TestGameApp extends SimpleApplication {
          * 
          * Then? Networking.
          */
+        long stamp = world.enter();
         world.updateLoadMarkers();
+        world.leave(stamp);
     }
     
     @Override
     public void simpleUpdate(float tpf) {
-        //world.updateLoadMarkers(); // Update load markers (TODO schedule this)
+        loadMarkersUpdated += tpf;
+        if (loadMarkersUpdated > 1) {
+            loadMarkersUpdated = 0;
+            Vector3f camLoc = cam.getLocation();
+            System.out.println(camLoc);
+            player.move(camLoc.getX(), camLoc.getY(), camLoc.getZ());
+            CompletableFuture.runAsync(() -> {
+                long stamp = world.enter();
+                world.updateLoadMarkers(); // Update load markers
+                world.leave(stamp);
+            });
+        }
+            
         while (!geomCreateQueue.isEmpty()) {
             Geometry geom = geomCreateQueue.poll();
             System.out.println("create geom: " + geom.getLocalTranslation());
