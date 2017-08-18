@@ -259,14 +259,9 @@ public class OffheapWorld implements TerraWorld {
         listener.octreeLoaded(addr, octreeStorage.getGroup((byte) 0), x, y, z, masterScale);
         
         float scale = masterScale; // Starting scale
-        int entry = 0; // Chunk or octree id
         boolean isOctree = true; // If the final entry is chunk or octree
         
-        // Store original values. We're going to need them
-        float originX = x;
-        float originY = y;
-        float originZ = z;
-        
+        // Max/min coordinates    
         float farX = radius + x;
         float farY = radius + y;
         float farZ = radius + z;
@@ -277,22 +272,22 @@ public class OffheapWorld implements TerraWorld {
         float posMod = 0.25f * scale;
         byte extend = (byte) 0b11111111;
         
-        if (farX > x + posMod) { // RIGHT
+        if (farX > centerX + posMod) { // RIGHT
             extend &= 0b10101010;
         }
-        if (farY > y + posMod) { // UP
+        if (farY > centerY + posMod) { // UP
             extend &= 0b11001100;
         }
-        if (farZ > z + posMod) { // BACK
+        if (farZ > centerY + posMod) { // BACK
             extend &= 0b11110000;
         }
-        if (nearX < x - posMod) { // LEFT
+        if (nearX < centerX - posMod) { // LEFT
             extend &= 0b01010101;
         }
-        if (nearY < y - posMod) { // DOWN
+        if (nearY < centerY - posMod) { // DOWN
             extend &= 0b00110011;
         }
-        if (nearZ < z - posMod) { // FRONT
+        if (nearZ < centerZ - posMod) { // FRONT
             extend &= 0b00001111;
         }
         
@@ -314,7 +309,7 @@ public class OffheapWorld implements TerraWorld {
         
         long groupAddr = octreeStorage.getMasterGroupAddr();
         
-        float octreeX = 0, octreeY = 0, octreeZ = 0;
+        float octreeX = centerX, octreeY = centerY, octreeZ = centerZ;
         while (true) {
             // Adjust the coordinates to be relative to current octree
             x -= octreeX;
@@ -441,7 +436,7 @@ public class OffheapWorld implements TerraWorld {
         
         // Prepare to loadAll, then join all remaining futures here
         List<CompletableFuture<Void>> futures = new ArrayList<>((int) (scale / 16 * scale / 16 * scale / 16) + 10); // Assume size of coming futures
-        loadAll(groupAddr, addr, scale, x, y, z, listener, futures, noGenerate);
+        loadAll(groupAddr, addr, scale, octreeX, octreeY, octreeZ, listener, futures, noGenerate);
         for (CompletableFuture<Void> future : futures) { // Join all futures now
             future.join();
         }
@@ -517,7 +512,7 @@ public class OffheapWorld implements TerraWorld {
                 if ((flags >>> i & 1) == 1) { // Chunk, we need to make sure it is loaded
                     long nodeAddr = addr + 1 + i * DataConstants.OCTREE_NODE_SIZE;
                     int node = mem.readVolatileInt(nodeAddr);
-                    System.err.println("nodeAddr: " + nodeAddr + ", node: " + (node >>> 16) + ", buf: " + (node & 0xffff));
+                    System.err.println("nodeAddr: " + nodeAddr + ", node: " + (node & 0xffff) + ", buf: " + (node >>> 16));
                     if (node == 0 && !noGenerate) {
                         float fX = x2;
                         float fY = y2;
