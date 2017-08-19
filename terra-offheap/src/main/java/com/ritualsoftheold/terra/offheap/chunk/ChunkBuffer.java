@@ -238,10 +238,10 @@ public class ChunkBuffer {
         
         int bufferId = createChunk(compressedLength);
         long bufAddr = getChunkAddress(bufferId);
-        System.out.println("Write 0 to " + bufAddr);
-        System.out.println("first block: " + mem.readShort(addr));
-        System.out.println("compressed: " + Integer.toBinaryString(mem.readInt(tempAddr + 12)));
-        System.out.println("compressedLength: " + compressedLength);
+//        System.out.println("Write 0 to " + bufAddr);
+//        System.out.println("first block: " + mem.readShort(addr));
+//        System.out.println("compressed: " + Integer.toBinaryString(mem.readInt(tempAddr + 12)));
+//        System.out.println("compressedLength: " + compressedLength);
         mem.writeByte(bufAddr, (byte) 0);
         mem.copyMemory(tempAddr, bufAddr + 1, compressedLength);
         mem.freeMemory(tempAddr, DataConstants.CHUNK_UNCOMPRESSED);

@@ -265,9 +265,9 @@ public class OffheapWorld implements TerraWorld {
         float farX = radius + x;
         float farY = radius + y;
         float farZ = radius + z;
-        float nearX = radius - x;
-        float nearY = radius - y;
-        float nearZ = radius - y;
+        float nearX = x - radius;
+        float nearY = y - radius;
+        float nearZ = z - radius;
         
         float posMod = 0.25f * scale;
         byte extend = (byte) 0b11111111;
@@ -310,124 +310,126 @@ public class OffheapWorld implements TerraWorld {
         long groupAddr = octreeStorage.getMasterGroupAddr();
         
         float octreeX = centerX, octreeY = centerY, octreeZ = centerZ;
-        while (true) {
-            // Adjust the coordinates to be relative to current octree
-            x -= octreeX;
-            y -= octreeY;
-            z -= octreeZ;
-            
-            // We octree position this much to get center of new octree
-            posMod = 0.25f * scale;
-            
-            // Octree index, determined by lookup table below
-            int index = 0;
-            if (x < 0) {
-                octreeX -= posMod;
-                
-                if (y < 0) {
-                    octreeY -= posMod;
-                    
-                    if (z < 0) {
-                        octreeZ -= posMod;
-                        index = 0;
-                    } else {
-                        octreeZ += posMod;
-                        index = 4;
-                    }
-                } else {
-                    octreeY += posMod;
-                    
-                    if (z < 0) {
-                        octreeZ -= posMod;
-                        index = 2;
-                    } else {
-                        octreeZ += posMod;
-                        index = 6;
-                    }
-                }
-            } else {
-                octreeX += posMod;
-                
-                if (y < 0) {
-                    octreeY -= posMod;
-                    
-                    if (z < 0) {
-                        octreeZ -= posMod;
-                        index = 1;
-                    } else {
-                        octreeZ += posMod;
-                        index = 5;
-                    }
-                } else {
-                    octreeY += posMod;
-                    
-                    if (z < 0) {
-                        octreeZ -= posMod;
-                        index = 3;
-                    } else {
-                        octreeZ += posMod;
-                        index = 7;
-                    }
-                }
-            }
-            
-            if (farX > octreeX + posMod) { // RIGHT
-                break;
-            }
-            if (farY > octreeY + posMod) { // UP
-                break;
-            }
-            if (farZ > octreeZ + posMod) { // BACK
-                break;
-            }
-            if (nearX < octreeX - posMod) { // LEFT
-                break;
-            }
-            if (nearY < octreeY - posMod) { // DOWN
-                break;
-            }
-            if (nearZ < octreeZ - posMod) { // FRONT
-                break;
-            }
-            
-            // I hope volatile is enough to avoid race conditions
-            System.out.println("Read flags: " + addr);
-            isOctree = (mem.readVolatileByte(addr) >>> index & 1) == 1; // Get flags, check this index against them
-            scale *= 0.5f; // Halve the scale, we are moving to child node
-            
-            long nodeAddr = addr + 1 + index * DataConstants.OCTREE_NODE_SIZE; // Get address of the node
-            
-            if (scale < DataConstants.CHUNK_SCALE + 1) { // Found a chunk
-                // Check if there is a chunk; if not, generate one
-                if (mem.readVolatileInt(nodeAddr) == 0) {
-                    // TODO
-                    System.out.println("TODO here!");
-                }
-                
-                break;
-            } else { // Just octree or single block here
-                if (isOctree) {
-                    // Check if there is an octree; if not, create one
-                    System.out.println("Octree: " + mem.readVolatileInt(nodeAddr));
-                    if (mem.readVolatileInt(nodeAddr) == 0 && !noGenerate) {
-                        int octreeIndex = octreeStorage.newOctree(); // Allocate new octree
-                        System.out.println("CAS octree: " + (octreeIndex >>> 24));
-                        boolean success = mem.compareAndSwapInt(nodeAddr, 0, octreeIndex); // if no one else allocated it yet, save index
-                        System.out.println("CAS result: " + success);
-                        // This creates empty octrees, but probably not often
-                    }
-                    groupAddr = octreeStorage.getGroup(mem.readVolatileByte(nodeAddr)); // First byte of octree node is group addr!
-                    System.out.println("groupIndex: " + mem.readVolatileByte(nodeAddr) + ", groupAddr: " + groupAddr);
-                    
-                    addr = groupAddr + (mem.readVolatileInt(nodeAddr) >>> 8) * DataConstants.OCTREE_SIZE; // Update address to point to new octree
-                    
-                    listener.octreeLoaded(addr, groupAddr, x, y, z, scale);
-                } else {
-                    System.out.println("Single node: " + scale);
-                    break;
-                }
-            }
-        }
+        
+        // Bugged, TODO fix it
+//        while (true) {
+//            // Adjust the coordinates to be relative to current octree
+//            x -= octreeX;
+//            y -= octreeY;
+//            z -= octreeZ;
+//            
+//            // We octree position this much to get center of new octree
+//            posMod = 0.25f * scale;
+//            
+//            // Octree index, determined by lookup table below
+//            int index = 0;
+//            if (x < 0) {
+//                octreeX -= posMod;
+//                
+//                if (y < 0) {
+//                    octreeY -= posMod;
+//                    
+//                    if (z < 0) {
+//                        octreeZ -= posMod;
+//                        index = 0;
+//                    } else {
+//                        octreeZ += posMod;
+//                        index = 4;
+//                    }
+//                } else {
+//                    octreeY += posMod;
+//                    
+//                    if (z < 0) {
+//                        octreeZ -= posMod;
+//                        index = 2;
+//                    } else {
+//                        octreeZ += posMod;
+//                        index = 6;
+//                    }
+//                }
+//            } else {
+//                octreeX += posMod;
+//                
+//                if (y < 0) {
+//                    octreeY -= posMod;
+//                    
+//                    if (z < 0) {
+//                        octreeZ -= posMod;
+//                        index = 1;
+//                    } else {
+//                        octreeZ += posMod;
+//                        index = 5;
+//                    }
+//                } else {
+//                    octreeY += posMod;
+//                    
+//                    if (z < 0) {
+//                        octreeZ -= posMod;
+//                        index = 3;
+//                    } else {
+//                        octreeZ += posMod;
+//                        index = 7;
+//                    }
+//                }
+//            }
+//            
+//            if (farX > octreeX + posMod) { // RIGHT
+//                break;
+//            }
+//            if (farY > octreeY + posMod) { // UP
+//                break;
+//            }
+//            if (farZ > octreeZ + posMod) { // BACK
+//                break;
+//            }
+//            if (nearX < octreeX - posMod) { // LEFT
+//                break;
+//            }
+//            if (nearY < octreeY - posMod) { // DOWN
+//                break;
+//            }
+//            if (nearZ < octreeZ - posMod) { // FRONT
+//                break;
+//            }
+//            
+//            // I hope volatile is enough to avoid race conditions
+//            System.out.println("Read flags: " + addr);
+//            isOctree = (mem.readVolatileByte(addr) >>> index & 1) == 1; // Get flags, check this index against them
+//            scale *= 0.5f; // Halve the scale, we are moving to child node
+//            
+//            long nodeAddr = addr + 1 + index * DataConstants.OCTREE_NODE_SIZE; // Get address of the node
+//            
+//            if (scale < DataConstants.CHUNK_SCALE + 1) { // Found a chunk
+//                // Check if there is a chunk; if not, generate one
+//                if (mem.readVolatileInt(nodeAddr) == 0) {
+//                    // TODO
+//                    System.out.println("TODO here!");
+//                }
+//                
+//                break;
+//            } else { // Just octree or single block here
+//                if (isOctree) {
+//                    // Check if there is an octree; if not, create one
+//                    System.out.println("Octree: " + mem.readVolatileInt(nodeAddr));
+//                    if (mem.readVolatileInt(nodeAddr) == 0 && !noGenerate) {
+//                        int octreeIndex = octreeStorage.newOctree(); // Allocate new octree
+//                        System.out.println("CAS octree: " + (octreeIndex >>> 24));
+//                        boolean success = mem.compareAndSwapInt(nodeAddr, 0, octreeIndex); // if no one else allocated it yet, save index
+//                        System.out.println("CAS result: " + success);
+//                        // This creates empty octrees, but probably not often
+//                    }
+//                    groupAddr = octreeStorage.getGroup(mem.readVolatileByte(nodeAddr)); // First byte of octree node is group addr!
+//                    System.out.println("groupIndex: " + mem.readVolatileByte(nodeAddr) + ", groupAddr: " + groupAddr);
+//                    
+//                    addr = groupAddr + (mem.readVolatileInt(nodeAddr) >>> 8) * DataConstants.OCTREE_SIZE; // Update address to point to new octree
+//                    
+//                    listener.octreeLoaded(addr, groupAddr, octreeX, octreeY, octreeZ, scale);
+//                } else {
+//                    System.out.println("Single node: " + scale);
+//                    break;
+//                }
+//            }
+//        }
         
         // If we needed to only load one chunk, that is done already
         if (!isOctree) {
@@ -776,6 +778,7 @@ public class OffheapWorld implements TerraWorld {
         centerX = octreeStorage.getCenterPoint(0);
         centerY = octreeStorage.getCenterPoint(1);
         centerZ = octreeStorage.getCenterPoint(2);
+        System.out.println("world center: " + centerX + ", " + centerY + ", " + centerZ + ", scale: " + masterScale);
         mem.writeByte(masterOctree.memoryAddress(), (byte) 0xff); // Just in case, master octree has no single nodes
     }
 

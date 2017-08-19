@@ -59,7 +59,7 @@ public class NaiveMesher implements VoxelMesher {
                 continue;
             }
             
-            System.out.println("begin: " + begin);
+            //System.out.println("begin: " + begin);
             for (int i = 0; i < it.getCount(); i++) { // Loop blocks from what we just read
                 int index = begin + i;
                     

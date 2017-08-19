@@ -15,6 +15,7 @@ import com.jme3.material.Material;
 import com.jme3.math.Vector3f;
 import com.jme3.scene.Geometry;
 import com.jme3.scene.Mesh;
+import com.jme3.scene.Spatial;
 import com.jme3.scene.Spatial.CullHint;
 import com.jme3.scene.VertexBuffer.Type;
 import com.jme3.shader.VarType;
@@ -179,6 +180,7 @@ public class TestGameApp extends SimpleApplication implements ActionListener {
     @Override
     public void onAction(String name, boolean isPressed, float tpf) {
         if (name == "RELOAD" && isPressed) {
+            //rootNode.detachAllChildren();
             long stamp = world.enter();
             world.updateLoadMarkers();
             world.leave(stamp);
