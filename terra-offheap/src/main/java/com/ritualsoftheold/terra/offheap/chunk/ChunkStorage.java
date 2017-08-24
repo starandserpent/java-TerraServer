@@ -15,6 +15,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.StampedLock;
 import java.util.function.Consumer;
 
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
 import com.ritualsoftheold.terra.material.MaterialRegistry;
 import com.ritualsoftheold.terra.node.Chunk;
 import com.ritualsoftheold.terra.offheap.DataConstants;
@@ -55,7 +57,7 @@ public class ChunkStorage {
     /**
      * Cache of chunks, which are NOT compressed.
      */
-    private Map<Integer,OffheapChunk> chunkCache;
+    private Cache<Integer, OffheapChunk> chunkCache;
     
     /**
      * An id for buffer which currently has space.
@@ -84,7 +86,11 @@ public class ChunkStorage {
         this.chunksPerBuffer = chunksPerBuffer;
         this.extraAlloc = extraAlloc;
         
-        this.chunkCache = new ConcurrentHashMap<>();
+        this.chunkCache = Caffeine.newBuilder()
+                .maximumWeight(10000000)
+                .weigher(new ChunkWeighter())
+                .removalListener(new UnloadingRemovalListener())
+                .build();
         this.freeBufferId = new AtomicInteger(loader.countBuffers()); // Free index=count of buffers (0-based)
         this.freeBuffers = new ConcurrentLinkedDeque<>();
         this.buffers = new ConcurrentHashMap<>(); // TODO need primitive concurrent map, can't find any library for it
@@ -146,7 +152,7 @@ public class ChunkStorage {
     }
     
     public CompletableFuture<Chunk> requestChunk(int chunkId, MaterialRegistry registry) {
-        OffheapChunk chunk = chunkCache.get(chunkId);
+        OffheapChunk chunk = chunkCache.getIfPresent(chunkId);
         if (chunk == null) { // Not in cache...
             // TODO optimize memory allocations here
             // We have static-sized cache, why not recycle memory? (answer: thread safety, but still...)
@@ -180,7 +186,7 @@ public class ChunkStorage {
      * @return Chunk wrapper.
      */
     public Chunk getChunk(int chunkId, MaterialRegistry registry) {
-        OffheapChunk chunk = chunkCache.get(chunkId);
+        OffheapChunk chunk = chunkCache.getIfPresent(chunkId);
         if (chunk == null) { // Not in cache...
             // TODO optimize memory allocations here
             // We have static-sized cache, why not recycle memory? (answer: thread safety, but still...)

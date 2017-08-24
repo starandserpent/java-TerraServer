@@ -3,6 +3,7 @@ package com.ritualsoftheold.terra.test;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.List;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CompletableFuture;
@@ -118,7 +119,7 @@ public class TestGameApp extends SimpleApplication implements ActionListener {
                 //mat.getAdditionalRenderState().setWireframe(true);
                 //mat.getAdditionalRenderState().setFaceCullMode(FaceCullMode.Off);
                 mat.setTexture("ColorMap", texManager.getGroundTexture());
-                mat.setParam("SeparateTexCoord", VarType.Boolean, true);
+                //mat.setParam("SeparateTexCoord", VarType.Boolean, true);
                 geom.setMaterial(mat);
                 //geom.setLocalScale(0.5f);
                 geom.setLocalTranslation(x, y, z);
@@ -148,7 +149,10 @@ public class TestGameApp extends SimpleApplication implements ActionListener {
          * Then? Networking.
          */
         long stamp = world.enter();
-        world.updateLoadMarkers();
+        List<CompletableFuture<Void>> markers = world.updateLoadMarkers();
+//        markers.forEach((f) -> {
+//            f.join();
+//        });
         world.leave(stamp);
         
         inputManager.addMapping("RELOAD", new KeyTrigger(KeyInput.KEY_G));

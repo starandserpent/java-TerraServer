@@ -51,7 +51,7 @@ public class NaiveMesher implements VoxelMesher {
         // Create iterator
         ChunkIterator it = ChunkIterator.forChunk(addr + DataConstants.CHUNK_DATA_OFFSET, mem.readByte(addr));
         
-        // Generate mappings for culling TODO fix and enable
+        // Generate mappings for culling
         while (!it.isDone()) {
             int begin = it.getOffset();
             short blockId = it.nextMaterial();

@@ -221,6 +221,7 @@ public class ChunkBuffer {
         RunLengthCompressor.compress(chunks[index], addr);
     }
     
+    // TODO might be broken but is unused, check for memory leaks later
     public void pack(int index, long addr, int length) {
         // TODO optimize to do less memory allocations
         long tempAddr = mem.allocate(length);
