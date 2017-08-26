@@ -36,7 +36,6 @@ void main(){
 
     #ifdef HAS_COLORMAP
         int arrIndex = texCoord1;
-        if (m_TexCoords[arrIndex] > 0.1)
         color *= texture2DArray(m_ColorMap, vec3(m_TexCoords[arrIndex], m_TexCoords[arrIndex + 1], m_TexCoords[arrIndex + 2]));
     #endif
 
