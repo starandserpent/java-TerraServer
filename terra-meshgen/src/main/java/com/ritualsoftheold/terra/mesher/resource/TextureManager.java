@@ -15,6 +15,8 @@ import com.ritualsoftheold.terra.material.MaterialRegistry;
 import com.ritualsoftheold.terra.material.TerraMaterial;
 import com.ritualsoftheold.terra.material.TerraTexture;
 
+import it.unimi.dsi.fastutil.floats.FloatArrayList;
+import it.unimi.dsi.fastutil.floats.FloatList;
 import it.unimi.dsi.fastutil.ints.Int2ObjectArrayMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap.Entry;
@@ -28,7 +30,7 @@ import it.unimi.dsi.fastutil.shorts.Short2ObjectMap;
 public class TextureManager {
     
     private static final int TEXTURE_MIN_RES = 2;
-    private static final int ATLAS_SIZE = 4096;
+    private static final int ATLAS_SIZE = 64;
     private static final int BYTES_PER_PIXEL = 4;
     private static final int ATLAS_SIZE_IMAGE = ATLAS_SIZE * BYTES_PER_PIXEL;
     
@@ -39,9 +41,11 @@ public class TextureManager {
     
     private TextureArray array;
     private List<Image> atlases;
+    private FloatList texCoords;
     
     public TextureManager(AssetManager assetManager) {
         textures = new Short2ObjectArrayMap<>();
+        texCoords = new FloatArrayList();
         this.assetManager = assetManager;
     }
     
@@ -130,6 +134,36 @@ public class TextureManager {
             texture.assignTexCoords(x * 1.0f * size / ATLAS_SIZE, y * 1.0f * size / ATLAS_SIZE, atlases.size());
             System.out.println("Assign texture coordinates: " + texture.getTexCoordX() + ", " + texture.getTexCoordY() + ", " + texture.getTexCoordZ() + " for " + texture.getAsset());
             
+            // Assign shader texture coordinate indices (this saves some RAM with mesh generation)
+            texture.setTexCoordIndex(texCoords.size());
+            float texMinX = texture.getTexCoordX(); // 0,0
+            float texMinY = texture.getTexCoordY();
+            
+            float texMaxX = texMinX + texture.getScale() * 0.25f * texture.getWidth() / ATLAS_SIZE; // 1,1
+            float texMaxY = texMinY + texture.getScale() * 0.25f * texture.getHeight() / ATLAS_SIZE;
+            
+            float texArray = texture.getTexCoordZ();
+            
+            // 0,0
+            texCoords.add(texMinX);
+            texCoords.add(texMinY);
+            texCoords.add(texArray);
+            
+            // 0,1
+            texCoords.add(texMinX);
+            texCoords.add(texMaxY);
+            texCoords.add(texArray);
+            
+            // 1,1
+            texCoords.add(texMaxX);
+            texCoords.add(texMaxY);
+            texCoords.add(texArray);
+            
+            // 1,0
+            texCoords.add(texMaxX);
+            texCoords.add(texMinY);
+            texCoords.add(texArray);
+            
             x++;
         }
         
@@ -143,6 +177,10 @@ public class TextureManager {
 
     public float getAtlasSize() {
         return ATLAS_SIZE;
+    }
+    
+    public FloatList getTexCoords() {
+        return new FloatArrayList(texCoords);
     }
     
 }
