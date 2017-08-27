@@ -1,5 +1,3 @@
-#extension GL_EXT_gpu_shader4 : enable
-
 uniform mat4 g_WorldViewProjectionMatrix;
 attribute vec3 inPosition;
 
@@ -8,8 +6,8 @@ attribute vec3 inPosition;
 #endif
 
 #ifdef NEED_TEXCOORD1
-    attribute int inTexCoord;
-    flat varying int texCoord1;
+    attribute vec3 inTexCoord;
+    varying vec3 texCoord1;
 #endif
 
 #ifdef SEPARATE_TEXCOORD

@@ -17,8 +17,6 @@ public class TerraTexture {
     
     private float texCoordX, texCoordY, texCoordZ;
     
-    private int texCoordIndex;
-    
     public TerraTexture(int width, int height, float scale, String asset) {
         this.width = width;
         this.height = height;
@@ -85,13 +83,5 @@ public class TerraTexture {
     @Override
     public String toString() {
         return "texture:" + asset;
-    }
-
-    public int getTexCoordIndex() {
-        return texCoordIndex;
-    }
-
-    public void setTexCoordIndex(int texCoordIndex) {
-        this.texCoordIndex = texCoordIndex;
     }
 }

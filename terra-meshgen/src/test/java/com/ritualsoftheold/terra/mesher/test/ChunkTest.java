@@ -38,14 +38,14 @@ public class ChunkTest extends SimpleApplication {
         long addr = mem.allocate(DataConstants.CHUNK_UNCOMPRESSED);
         mem.setMemory(addr, DataConstants.CHUNK_UNCOMPRESSED, (byte) 0);
         mem.writeByte(addr, (byte) 0); // Chunk type here
-        mem.writeShort(addr + 1, (short) 1); // Add some stuff to chunk
-//        mem.writeShort(addr + 3, (short) 0xffff);
-//        mem.writeShort(addr + 5, (short) 2);
-//        mem.writeShort(addr + 7, (short) 0xffff);
-//        mem.writeShort(addr + 9, (short) 2);
-//        mem.writeShort(addr + 11, (short) 0xffff);
-//        mem.writeShort(addr + 13, (short) 2);
-//        mem.writeShort(addr + 15, (short) 0xffff);
+        mem.writeShort(addr + 1, (short) 2); // Add some stuff to chunk
+        mem.writeShort(addr + 3, (short) 0xffff);
+        mem.writeShort(addr + 5, (short) 2);
+        mem.writeShort(addr + 7, (short) 0xffff);
+        mem.writeShort(addr + 9, (short) 2);
+        mem.writeShort(addr + 11, (short) 0xffff);
+        mem.writeShort(addr + 13, (short) 2);
+        mem.writeShort(addr + 15, (short) 0xffff);
         //System.out.println(Long.toBinaryString(mem.readLong(addr)));
         
         // Register materials
@@ -69,8 +69,7 @@ public class ChunkTest extends SimpleApplication {
         //System.out.println(mesher.getIndices());
         mesh.setBuffer(Type.Position, 3, BufferUtils.createFloatBuffer(mesher.getVertices().toFloatArray()));
         mesh.setBuffer(Type.Index, 3, BufferUtils.createIntBuffer(mesher.getIndices().toIntArray()));
-        System.out.println(mesher.getTextureCoords());
-        mesh.setBuffer(Type.TexCoord, 1, BufferUtils.createIntBuffer(mesher.getTextureCoords().toIntArray()));
+        mesh.setBuffer(Type.TexCoord, 3, BufferUtils.createFloatBuffer(mesher.getTextureCoords().toFloatArray()));
         
         // Create geometry
         Geometry geom = new Geometry("test_chunk", mesh);
@@ -78,9 +77,7 @@ public class ChunkTest extends SimpleApplication {
         //mat.getAdditionalRenderState().setWireframe(true);
         //mat.getAdditionalRenderState().setFaceCullMode(FaceCullMode.Off);
         mat.setTexture("ColorMap", manager.getGroundTexture());
-        System.out.println(manager.getTexCoords());
-        mat.setParam("TexCoords", VarType.FloatArray, manager.getTexCoords().toFloatArray(new float[1000]));
-        //mat.setParam("SeparateTexCoord", VarType.Boolean, true);
+        mat.setParam("SeparateTexCoord", VarType.Boolean, true);
         geom.setMaterial(mat);
         geom.setLocalScale(0.5f);
         geom.setCullHint(CullHint.Never);

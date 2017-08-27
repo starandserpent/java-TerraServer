@@ -111,12 +111,11 @@ public class TestGameApp extends SimpleApplication implements ActionListener {
                 //System.out.println(mesher.getIndices());
                 mesh.setBuffer(Type.Position, 3, BufferUtils.createFloatBuffer(mesher.getVertices().toFloatArray()));
                 mesh.setBuffer(Type.Index, 3, BufferUtils.createIntBuffer(mesher.getIndices().toIntArray()));
-                mesh.setBuffer(Type.TexCoord, 1, BufferUtils.createIntBuffer(mesher.getTextureCoords().toIntArray()));
+                mesh.setBuffer(Type.TexCoord, 3, BufferUtils.createFloatBuffer(mesher.getTextureCoords().toFloatArray()));
                 
                 // Create geometry
                 Geometry geom = new Geometry("chunk:" + x + "," + y + "," + z, mesh);
                 Material mat = new Material(assetManager, "jme3test/texture/UnshadedArray.j3md");
-                mat.setParam("TexCoords", VarType.FloatArray, texManager.getTexCoords().toFloatArray());
                 //mat.getAdditionalRenderState().setWireframe(true);
                 //mat.getAdditionalRenderState().setFaceCullMode(FaceCullMode.Off);
                 mat.setTexture("ColorMap", texManager.getGroundTexture());

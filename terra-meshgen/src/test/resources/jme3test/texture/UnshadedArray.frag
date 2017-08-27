@@ -1,8 +1,7 @@
 #extension GL_EXT_texture_array : enable
-#extension GL_EXT_gpu_shader4 : enable
+// #extension GL_EXT_gpu_shader4 : enable
 
 uniform vec4 m_Color;
-uniform float m_TexCoords[1000];
 
 #if defined(HAS_GLOWMAP) || defined(HAS_COLORMAP) || (defined(HAS_LIGHTMAP) && !defined(SEPARATE_TEXCOORD))
     #define NEED_TEXCOORD1
@@ -17,7 +16,7 @@ uniform float m_TexCoords[1000];
 #endif
 
 #ifdef NEED_TEXCOORD1
-    flat varying int texCoord1;
+    varying vec3 texCoord1;
 #endif
 
 #ifdef HAS_LIGHTMAP
@@ -35,9 +34,7 @@ void main(){
     vec4 color = vec4(1.0);
 
     #ifdef HAS_COLORMAP
-        int arrIndex = texCoord1;
-        if (m_TexCoords[arrIndex] > 0.1)
-        color *= texture2DArray(m_ColorMap, vec3(m_TexCoords[arrIndex], m_TexCoords[arrIndex + 1], m_TexCoords[arrIndex + 2]));
+        color *= texture2DArray(m_ColorMap, texCoord1);
     #endif
 
     #ifdef HAS_VERTEXCOLOR
