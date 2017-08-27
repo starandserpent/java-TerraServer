@@ -6,6 +6,7 @@ import com.jme3.light.Light;
 import com.jme3.light.PointLight;
 import com.jme3.material.Material;
 import com.jme3.material.RenderState.FaceCullMode;
+import com.jme3.renderer.RenderManager;
 import com.jme3.scene.Geometry;
 import com.jme3.scene.Mesh;
 import com.jme3.scene.Spatial.CullHint;
@@ -47,9 +48,9 @@ public class ChunkTest extends SimpleApplication {
         mem.writeShort(addr + 3, (short) 0xffff);
         mem.writeShort(addr + 5, (short) 1);
         mem.writeShort(addr + 7, (short) 0xffff);
-        mem.writeShort(addr + 9, (short) 2);
+        mem.writeShort(addr + 9, (short) 1);
         mem.writeShort(addr + 11, (short) 0xffff);
-        mem.writeShort(addr + 13, (short) 2);
+        mem.writeShort(addr + 13, (short) 1);
         mem.writeShort(addr + 15, (short) 0xffff);
         //System.out.println(Long.toBinaryString(mem.readLong(addr)));
         
