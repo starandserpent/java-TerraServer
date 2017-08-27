@@ -1,6 +1,9 @@
 package com.ritualsoftheold.terra.mesher.test;
 
 import com.jme3.app.SimpleApplication;
+import com.jme3.light.AmbientLight;
+import com.jme3.light.Light;
+import com.jme3.light.PointLight;
 import com.jme3.material.Material;
 import com.jme3.material.RenderState.FaceCullMode;
 import com.jme3.scene.Geometry;
@@ -31,6 +34,8 @@ public class ChunkTest extends SimpleApplication {
     public static void main(String... args) {
         new ChunkTest().start();
     }
+    
+    private PointLight light;
 
     @Override
     public void simpleInitApp() {
@@ -40,7 +45,7 @@ public class ChunkTest extends SimpleApplication {
         mem.writeByte(addr, (byte) 0); // Chunk type here
         mem.writeShort(addr + 1, (short) 2); // Add some stuff to chunk
         mem.writeShort(addr + 3, (short) 0xffff);
-        mem.writeShort(addr + 5, (short) 2);
+        mem.writeShort(addr + 5, (short) 1);
         mem.writeShort(addr + 7, (short) 0xffff);
         mem.writeShort(addr + 9, (short) 2);
         mem.writeShort(addr + 11, (short) 0xffff);
@@ -73,16 +78,25 @@ public class ChunkTest extends SimpleApplication {
         
         // Create geometry
         Geometry geom = new Geometry("test_chunk", mesh);
-        Material mat = new Material(assetManager, "jme3test/texture/UnshadedArray.j3md");
+        Material mat = new Material(assetManager, "terra/shader/TerraArray.j3md");
         //mat.getAdditionalRenderState().setWireframe(true);
         //mat.getAdditionalRenderState().setFaceCullMode(FaceCullMode.Off);
-        mat.setTexture("ColorMap", manager.getGroundTexture());
-        mat.setParam("SeparateTexCoord", VarType.Boolean, true);
+        mat.setTexture("DiffuseMap", manager.getGroundTexture());
+        //mat.setParam("SeparateTexCoord", VarType.Boolean, true);
         geom.setMaterial(mat);
         geom.setLocalScale(0.5f);
         geom.setCullHint(CullHint.Never);
         rootNode.attachChild(geom);
         flyCam.setMoveSpeed(10);
         rootNode.setCullHint(CullHint.Never);
+        
+        light = new PointLight();
+        light.setRadius(40);
+        rootNode.addLight(light);
+    }
+    
+    @Override
+    public void simpleUpdate(float tpf) {
+        light.setPosition(cam.getLocation());
     }
 }

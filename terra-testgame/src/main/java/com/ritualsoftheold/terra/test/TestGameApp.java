@@ -92,6 +92,12 @@ public class TestGameApp extends SimpleApplication implements ActionListener {
         TextureManager texManager = new TextureManager(assetManager); // Initialize texture atlas/array manager
         texManager.loadMaterials(reg); // And make it load material registry
         
+        // Create material
+        Material mat = new Material(assetManager, "jme3test/texture/UnshadedArray.j3md");
+        //mat.getAdditionalRenderState().setWireframe(true);
+        //mat.getAdditionalRenderState().setFaceCullMode(FaceCullMode.Off);
+        mat.setTexture("ColorMap", texManager.getGroundTexture());
+        
         world.setLoadListener(new WorldLoadListener() {
             
             @Override
@@ -115,10 +121,6 @@ public class TestGameApp extends SimpleApplication implements ActionListener {
                 
                 // Create geometry
                 Geometry geom = new Geometry("chunk:" + x + "," + y + "," + z, mesh);
-                Material mat = new Material(assetManager, "jme3test/texture/UnshadedArray.j3md");
-                //mat.getAdditionalRenderState().setWireframe(true);
-                //mat.getAdditionalRenderState().setFaceCullMode(FaceCullMode.Off);
-                mat.setTexture("ColorMap", texManager.getGroundTexture());
                 //mat.setParam("SeparateTexCoord", VarType.Boolean, true);
                 geom.setMaterial(mat);
                 //geom.setLocalScale(0.5f);
