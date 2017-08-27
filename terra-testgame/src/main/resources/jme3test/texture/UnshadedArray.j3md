@@ -6,7 +6,6 @@ MaterialDef Unshaded {
         Color Color (Color)
         Boolean VertexColor
         Boolean SeparateTexCoord
-        Vector3Array TexCoords
 
         // Texture of the glowing parts of the material
         Texture2D GlowMap

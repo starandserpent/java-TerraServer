@@ -8,8 +8,8 @@ attribute vec3 inPosition;
 #endif
 
 #ifdef NEED_TEXCOORD1
-    attribute uint inTexCoord;
-    flat varying uint texCoord1;
+    attribute vec3 inTexCoord;
+    varying vec3 texCoord1;
 #endif
 
 #ifdef SEPARATE_TEXCOORD
