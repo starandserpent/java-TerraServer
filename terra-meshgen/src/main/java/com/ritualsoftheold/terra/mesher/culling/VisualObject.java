@@ -29,4 +29,12 @@ public class VisualObject {
      * Pointer to data.
      */
     public long addr;
+    
+    /**
+     * Position modifier for this object to get to the edges. Usually this is
+     * 0.5 * scale of the object.
+     */
+    public float posMod;
+    
+    public float posX, posY, posZ;
 }

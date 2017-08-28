@@ -15,10 +15,13 @@ import static org.lwjgl.opengl.GL12.*;
 import static org.lwjgl.opengl.GL15.*;
 import static org.lwjgl.opengl.GL30.*;
 
+import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 import java.util.Collection;
+import java.util.List;
 
 import org.lwjgl.BufferUtils;
+import org.lwjgl.system.MemoryStack;
 
 /**
  * Uses OpenGL hardware occlusion queries to potentially reduce amount of
@@ -29,15 +32,15 @@ import org.lwjgl.BufferUtils;
  */
 public class OcclusionQueryProcessor implements SceneProcessor {
     
-    private Collection<VisualObject> objs;
+    private List<VisualObject> objs;
     private Object2IntMap<VisualObject> queries;
     
     /**
      * Constructs a new occlusion query scene processor.
-     * Be sure to not modify parameter collection asynchronously!
-     * @param objs Mutable collection of visual objects.
+     * Be sure to not modify parameter list asynchronously!
+     * @param objs Mutable list of visual objects.
      */
-    public OcclusionQueryProcessor(Collection<VisualObject> objs) {
+    public OcclusionQueryProcessor(List<VisualObject> objs) {
         this.objs = objs;
         this.queries = new Object2IntOpenHashMap<>();
     }
@@ -59,17 +62,8 @@ public class OcclusionQueryProcessor implements SceneProcessor {
 
     @Override
     public void preFrame(float tpf) {
-        // All the hard work is done here
-        
-        // Make sure that our query objects are not actually rendered
-        glColorMask(false, false, false, false); // This also increases performance
-        glDepthMask(false);
-        
-        int vbo = glGenBuffers();
-        glBindBuffer(GL_ARRAY_BUFFER, vbo);
-        glBufferData(GL_ARRAY_BUFFER, BufferUtils.createFloatBuffer(100), GL_STATIC_DRAW);
-        
-        // First iteration: use the queries from previous frame
+        // Mark objects which are not to be rendered according to queries
+
         for (VisualObject obj : objs) {
             int queryId = queries.getInt(obj);
             if (glGetQueryObjecti(queryId, GL_QUERY_RESULT_AVAILABLE) != GL_FALSE) {
@@ -81,23 +75,6 @@ public class OcclusionQueryProcessor implements SceneProcessor {
                 obj.linkedGeom.setCullHint(CullHint.Never);
             }
         }
-        
-
-        // Second iteration: do queries for next frame
-        for (VisualObject obj : objs) {
-            int queryId = glGenQueries();
-            
-            glBeginQuery(GL_SAMPLES_PASSED, queryId);
-            
-            glDrawArrays(GL_TRIANGLES, 0, 36);
-            
-            glEndQuery(GL_SAMPLES_PASSED);
-            queries.put(obj, queryId);
-        }
-        
-        // Re-enable normal rendering
-        glColorMask(true, true, true, true);
-        glDepthMask(true);
     }
 
     @Override
@@ -107,7 +84,64 @@ public class OcclusionQueryProcessor implements SceneProcessor {
 
     @Override
     public void postFrame(FrameBuffer out) {
-        // It is rendered, no use for culling anymore
+        // Do queries for next frame
+        
+        // Make sure that our query objects are not actually rendered
+        glColorMask(false, false, false, false); // This also increases performance
+        glDepthMask(false);
+        
+        try (MemoryStack stack = MemoryStack.stackPush()) {
+            FloatBuffer vertices = stack.mallocFloat(36 * objs.size());
+            
+            int i = 0; // Use separate counter as objs could be LinkedList (get is slow, iterating fast)
+            for (VisualObject obj : objs) {
+                float posX = obj.posX;
+                float posY = obj.posY;
+                float posZ = obj.posZ;
+                float posMod = obj.posMod;
+                
+                // LEFT
+                vertices.put(posX - posMod).put(posY - posMod).put(posZ - posMod)
+                .put(posX - posMod).put(posY + posMod).put(posZ - posMod)
+                .put(posX - posMod).put(posY + posMod).put(posZ + posMod)
+                
+                .put(posX - posMod).put(posY + posMod).put(posZ + posMod)
+                .put(posX - posMod).put(posY - posMod).put(posZ + posMod)
+                .put(posX - posMod).put(posY - posMod).put(posZ - posMod);
+                
+                // RIGHT
+                vertices.put(posX + posMod).put(posY + posMod).put(posZ + posMod)
+                .put(posX + posMod).put(posY + posMod).put(posZ - posMod)
+                .put(posX + posMod).put(posY - posMod).put(posZ - posMod)
+                
+                .put(posX + posMod).put(posY - posMod).put(posZ - posMod)
+                .put(posX + posMod).put(posY - posMod).put(posZ + posMod)
+                .put(posX + posMod).put(posY + posMod).put(posZ + posMod);
+                
+                // TODO rest of vertices
+                
+                
+            }
+            vertices.flip(); // Needed by LWJGL to not crash horribly
+            
+            i = 0; // Reset the counter
+            for (VisualObject obj : objs) {
+                int queryId = glGenQueries();
+                
+                glBeginQuery(GL_SAMPLES_PASSED, queryId);
+                
+                glDrawArrays(GL_TRIANGLES, 36 * i, 36);
+                
+                glEndQuery(GL_SAMPLES_PASSED);
+                queries.put(obj, queryId);
+                
+                i++;
+            }
+        }
+        
+        // Re-enable normal rendering
+        glColorMask(true, true, true, true);
+        glDepthMask(true);
     }
 
     @Override
