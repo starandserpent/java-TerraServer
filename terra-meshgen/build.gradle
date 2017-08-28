@@ -1,6 +1,8 @@
 dependencies {
     compile project(':terra-offheap')
     compile 'org.jmonkeyengine:jme3-core:3.1.0-stable'
+    compile 'org.lwjgl:lwjgl:3.1.0'
+    compile 'org.lwjgl:lwjgl-opengl:3.1.0'
     testCompile 'org.jmonkeyengine:jme3-desktop:3.1.0-stable'
-    testCompile 'org.jmonkeyengine:jme3-lwjgl:3.1.0-stable'
+    testCompile 'org.jmonkeyengine:jme3-lwjgl3:3.1.0-stable'
 }

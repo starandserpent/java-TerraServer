@@ -4,10 +4,21 @@ import com.jme3.post.SceneProcessor;
 import com.jme3.renderer.RenderManager;
 import com.jme3.renderer.ViewPort;
 import com.jme3.renderer.queue.RenderQueue;
+import com.jme3.scene.Spatial.CullHint;
 import com.jme3.texture.FrameBuffer;
 
-import static org.lwjgl.opengl.GL15.*;
+import it.unimi.dsi.fastutil.objects.Object2IntMap;
+import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
+
 import static org.lwjgl.opengl.GL11.*;
+import static org.lwjgl.opengl.GL12.*;
+import static org.lwjgl.opengl.GL15.*;
+import static org.lwjgl.opengl.GL30.*;
+
+import java.nio.IntBuffer;
+import java.util.Collection;
+
+import org.lwjgl.BufferUtils;
 
 /**
  * Uses OpenGL hardware occlusion queries to potentially reduce amount of
@@ -17,6 +28,19 @@ import static org.lwjgl.opengl.GL11.*;
  *
  */
 public class OcclusionQueryProcessor implements SceneProcessor {
+    
+    private Collection<VisualObject> objs;
+    private Object2IntMap<VisualObject> queries;
+    
+    /**
+     * Constructs a new occlusion query scene processor.
+     * Be sure to not modify parameter collection asynchronously!
+     * @param objs Mutable collection of visual objects.
+     */
+    public OcclusionQueryProcessor(Collection<VisualObject> objs) {
+        this.objs = objs;
+        this.queries = new Object2IntOpenHashMap<>();
+    }
 
     @Override
     public void initialize(RenderManager rm, ViewPort vp) {
@@ -35,20 +59,45 @@ public class OcclusionQueryProcessor implements SceneProcessor {
 
     @Override
     public void preFrame(float tpf) {
-        // All the hard work here
+        // All the hard work is done here
         
-        int queryId = glGenQueries();
+        // Make sure that our query objects are not actually rendered
+        glColorMask(false, false, false, false); // This also increases performance
+        glDepthMask(false);
         
-        glBeginQuery(GL_SAMPLES_PASSED, queryId);
+        int vbo = glGenBuffers();
+        glBindBuffer(GL_ARRAY_BUFFER, vbo);
+        glBufferData(GL_ARRAY_BUFFER, BufferUtils.createFloatBuffer(100), GL_STATIC_DRAW);
         
-        // TODO traverse meshes or octree here - not sure how exactly
+        // First iteration: use the queries from previous frame
+        for (VisualObject obj : objs) {
+            int queryId = queries.getInt(obj);
+            if (glGetQueryObjecti(queryId, GL_QUERY_RESULT_AVAILABLE) != GL_FALSE) {
+                int result = glGetQueryi(queryId, GL_QUERY_RESULT);
+                if (result == GL_FALSE) {
+                    obj.linkedGeom.setCullHint(CullHint.Always);
+                }
+            } else { // We better render this stuff, as we have no idea if it is needed or not
+                obj.linkedGeom.setCullHint(CullHint.Never);
+            }
+        }
         
-        glEndQuery(queryId);
+
+        // Second iteration: do queries for next frame
+        for (VisualObject obj : objs) {
+            int queryId = glGenQueries();
+            
+            glBeginQuery(GL_SAMPLES_PASSED, queryId);
+            
+            glDrawArrays(GL_TRIANGLES, 0, 36);
+            
+            glEndQuery(GL_SAMPLES_PASSED);
+            queries.put(obj, queryId);
+        }
         
-        // Now, prepare to cull some objects
-        if (glGetQueryObjecti(queryId, GL_QUERY_RESULT_AVAILABLE) != GL_FALSE) {
-            // TODO set object CullHint -> Always
-        } // Else: do whatever last query result indicated
+        // Re-enable normal rendering
+        glColorMask(true, true, true, true);
+        glDepthMask(true);
     }
 
     @Override
