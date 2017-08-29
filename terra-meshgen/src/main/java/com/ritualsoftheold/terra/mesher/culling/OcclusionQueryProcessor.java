@@ -1,6 +1,7 @@
 package com.ritualsoftheold.terra.mesher.culling;
 
 import com.jme3.post.SceneProcessor;
+import com.jme3.profile.AppProfiler;
 import com.jme3.renderer.RenderManager;
 import com.jme3.renderer.ViewPort;
 import com.jme3.renderer.queue.RenderQueue;
@@ -14,6 +15,8 @@ import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.opengl.GL12.*;
 import static org.lwjgl.opengl.GL15.*;
 import static org.lwjgl.opengl.GL30.*;
+import static org.lwjgl.opengl.GL33.*;
+
 
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
@@ -26,23 +29,60 @@ import org.lwjgl.system.MemoryStack;
 /**
  * Uses OpenGL hardware occlusion queries to potentially reduce amount of
  * stuff that is rendered.
- * 
- * TODO
  *
  */
 public class OcclusionQueryProcessor implements SceneProcessor {
     
-    private List<VisualObject> objs;
+    private VisualObject[] objs;
+    private int objCount;
+    private int extraAlloc;
+    
     private Object2IntMap<VisualObject> queries;
     
     /**
      * Constructs a new occlusion query scene processor.
-     * Be sure to not modify parameter list asynchronously!
-     * @param objs Mutable list of visual objects.
+     * @param initialCount How many visual objects there will be initially.
+     * Must be at least 0.
+     * @param extraAlloc How much array space will be allocated whenever
+     * increasing array size. Must be at least 1!
      */
-    public OcclusionQueryProcessor(List<VisualObject> objs) {
-        this.objs = objs;
+    public OcclusionQueryProcessor(int initialCount, int extraAlloc) {
+        if (extraAlloc < 1) {
+            throw new IllegalArgumentException("extraAlloc must be at least");
+        } else if (initialCount < 0) {
+            throw new IllegalArgumentException("initialCount cannot be negative");
+        }
+        
+        this.objs = new VisualObject[initialCount + extraAlloc];
+        this.objCount = 0;
+        this.extraAlloc = extraAlloc;
         this.queries = new Object2IntOpenHashMap<>();
+    }
+    
+    /**
+     * Adds visual object to this query processor.
+     * @param obj Object.
+     * @return Index of the object.
+     */
+    public int addObject(VisualObject obj) {
+        if (objs.length == objCount) {
+            // Need to allocate more array
+            VisualObject[] old = objs;
+            objs = new VisualObject[objCount + extraAlloc];
+            System.arraycopy(old, 0, objs, 0, objCount);
+        }
+        objs[objCount] = obj;
+        objCount++;
+        
+        return objCount - 1;
+    }
+    
+    public void removeObject(int index) {
+        objs[index] = null;
+    }
+    
+    public void removeObject(VisualObject obj) {
+        removeObject(obj.cullingId);
     }
 
     @Override
@@ -65,6 +105,10 @@ public class OcclusionQueryProcessor implements SceneProcessor {
         // Mark objects which are not to be rendered according to queries
 
         for (VisualObject obj : objs) {
+            if (obj == null) { // Ignore null objects...
+                continue;
+            }
+            
             int queryId = queries.getInt(obj);
             if (glGetQueryObjecti(queryId, GL_QUERY_RESULT_AVAILABLE) != GL_FALSE) {
                 int result = glGetQueryi(queryId, GL_QUERY_RESULT);
@@ -91,10 +135,14 @@ public class OcclusionQueryProcessor implements SceneProcessor {
         glDepthMask(false);
         
         try (MemoryStack stack = MemoryStack.stackPush()) {
-            FloatBuffer vertices = stack.mallocFloat(36 * objs.size());
+            FloatBuffer vertices = stack.mallocFloat(108 * objCount);
             
-            int i = 0; // Use separate counter as objs could be LinkedList (get is slow, iterating fast)
-            for (VisualObject obj : objs) {
+            for (int i = 0; i < objCount; i++) {
+                VisualObject obj = objs[i];
+                if (obj == null) { // Ignore null objects...
+                    continue;
+                }
+                
                 float posX = obj.posX;
                 float posY = obj.posY;
                 float posZ = obj.posZ;
@@ -118,24 +166,55 @@ public class OcclusionQueryProcessor implements SceneProcessor {
                 .put(posX + posMod).put(posY - posMod).put(posZ + posMod)
                 .put(posX + posMod).put(posY + posMod).put(posZ + posMod);
                 
-                // TODO rest of vertices
+                // UP
+                vertices.put(posX - posMod).put(posY + posMod).put(posZ - posMod)
+                .put(posX + posMod).put(posY + posMod).put(posZ - posMod)
+                .put(posX + posMod).put(posY + posMod).put(posZ + posMod)
                 
+                .put(posX + posMod).put(posY + posMod).put(posZ - posMod)
+                .put(posX - posMod).put(posY + posMod).put(posZ + posMod)
+                .put(posX - posMod).put(posY + posMod).put(posZ - posMod);
                 
+                // DOWN
+                vertices.put(posX - posMod).put(posY - posMod).put(posZ - posMod)
+                .put(posX + posMod).put(posY - posMod).put(posZ - posMod)
+                .put(posX + posMod).put(posY - posMod).put(posZ + posMod)
+                
+                .put(posX + posMod).put(posY - posMod).put(posZ - posMod)
+                .put(posX - posMod).put(posY - posMod).put(posZ + posMod)
+                .put(posX - posMod).put(posY - posMod).put(posZ - posMod);
+                
+                // FRONT
+                vertices.put(posX - posMod).put(posY - posMod).put(posZ - posMod)
+                .put(posX + posMod).put(posY - posMod).put(posZ - posMod)
+                .put(posX + posMod).put(posY + posMod).put(posZ - posMod)
+                
+                .put(posX + posMod).put(posY + posMod).put(posZ - posMod)
+                .put(posX - posMod).put(posY + posMod).put(posZ - posMod)
+                .put(posX - posMod).put(posY - posMod).put(posZ - posMod);
+                
+                // BACK
+                vertices.put(posX - posMod).put(posY - posMod).put(posZ + posMod)
+                .put(posX - posMod).put(posY + posMod).put(posZ + posMod)
+                .put(posX + posMod).put(posY + posMod).put(posZ + posMod)
+                
+                .put(posX + posMod).put(posY + posMod).put(posZ + posMod)
+                .put(posX + posMod).put(posY - posMod).put(posZ + posMod)
+                .put(posX - posMod).put(posY - posMod).put(posZ + posMod);
             }
             vertices.flip(); // Needed by LWJGL to not crash horribly
             
-            i = 0; // Reset the counter
-            for (VisualObject obj : objs) {
+            for (int i = 0; i < objCount; i++) {
+                VisualObject obj = objs[i];
+                
                 int queryId = glGenQueries();
                 
-                glBeginQuery(GL_SAMPLES_PASSED, queryId);
+                glBeginQuery(GL_ANY_SAMPLES_PASSED, queryId);
                 
-                glDrawArrays(GL_TRIANGLES, 36 * i, 36);
+                glDrawArrays(GL_TRIANGLES, 108 * i, 108);
                 
-                glEndQuery(GL_SAMPLES_PASSED);
+                glEndQuery(GL_ANY_SAMPLES_PASSED);
                 queries.put(obj, queryId);
-                
-                i++;
             }
         }
         
@@ -147,6 +226,11 @@ public class OcclusionQueryProcessor implements SceneProcessor {
     @Override
     public void cleanup() {
         // We don't have resources that need cleanup
+    }
+
+    @Override
+    public void setProfiler(AppProfiler profiler) {
+        // New jME feature?
     }
 
 }

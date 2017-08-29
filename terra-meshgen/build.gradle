@@ -1,8 +1,15 @@
+repositories {
+    maven { url 'https://jitpack.io' }
+}
+
 dependencies {
+    // TODO don't compile against master snapshots, as they're basically time bombs waiting to detonate (crash)
     compile project(':terra-offheap')
-    compile 'org.jmonkeyengine:jme3-core:3.1.0-stable'
+    compile 'com.github.jMonkeyEngine.jmonkeyengine:jme3-core:master-SNAPSHOT'
     compile 'org.lwjgl:lwjgl:3.1.0'
     compile 'org.lwjgl:lwjgl-opengl:3.1.0'
-    testCompile 'org.jmonkeyengine:jme3-desktop:3.1.0-stable'
-    testCompile 'org.jmonkeyengine:jme3-lwjgl3:3.1.0-stable'
+    testCompile 'com.github.jMonkeyEngine.jmonkeyengine:jme3-desktop:master-SNAPSHOT'
+    testCompile 'com.github.jMonkeyEngine.jmonkeyengine:jme3-lwjgl3:master-SNAPSHOT'
+    //testCompile 'org.jmonkeyengine:jme3-desktop:3.1.0-stable'
+    //testCompile 'org.jmonkeyengine:jme3-lwjgl3:3.1.0-stable'
 }

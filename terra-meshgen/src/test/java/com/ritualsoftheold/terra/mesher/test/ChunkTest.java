@@ -18,6 +18,8 @@ import com.ritualsoftheold.terra.material.MaterialRegistry;
 import com.ritualsoftheold.terra.material.TerraTexture;
 import com.ritualsoftheold.terra.mesher.NaiveMesher;
 import com.ritualsoftheold.terra.mesher.VoxelMesher;
+import com.ritualsoftheold.terra.mesher.culling.OcclusionQueryProcessor;
+import com.ritualsoftheold.terra.mesher.culling.VisualObject;
 import com.ritualsoftheold.terra.mesher.resource.TextureManager;
 import com.ritualsoftheold.terra.offheap.DataConstants;
 
@@ -33,7 +35,9 @@ public class ChunkTest extends SimpleApplication {
     private static final Memory mem = OS.memory();
     
     public static void main(String... args) {
-        new ChunkTest().start();
+        ChunkTest app = new ChunkTest();
+        app.setShowSettings(false);
+        app.start();
     }
     
     private PointLight light;
@@ -85,15 +89,23 @@ public class ChunkTest extends SimpleApplication {
         mat.setTexture("DiffuseMap", manager.getGroundTexture());
         //mat.setParam("SeparateTexCoord", VarType.Boolean, true);
         geom.setMaterial(mat);
-        geom.setLocalScale(0.5f);
+        //geom.setLocalScale(0.5f);
         geom.setCullHint(CullHint.Never);
         rootNode.attachChild(geom);
         flyCam.setMoveSpeed(10);
         rootNode.setCullHint(CullHint.Never);
         
         light = new PointLight();
-        light.setRadius(40);
+        light.setRadius(400);
         rootNode.addLight(light);
+        
+        OcclusionQueryProcessor queryProcessor = new OcclusionQueryProcessor(1, 1);
+        VisualObject obj = new VisualObject();
+        obj.linkedGeom = geom;
+        obj.posMod = 8;
+        queryProcessor.addObject(obj);
+        
+        viewPort.addProcessor(queryProcessor);
     }
     
     @Override

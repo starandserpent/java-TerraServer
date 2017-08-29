@@ -4,6 +4,7 @@ import com.jme3.scene.Geometry;
 
 /**
  * Visual Terra object, be it chunk or octree.
+ * Used only as a data storage, a bit like how structs work in other languages.
  *
  */
 public class VisualObject {
@@ -36,5 +37,13 @@ public class VisualObject {
      */
     public float posMod;
     
+    /**
+     * Positions of the object in world. Will point to center of it.
+     */
     public float posX, posY, posZ;
+    
+    /**
+     * Numeric id used mainly for culling.
+     */
+    public int cullingId;
 }
