@@ -118,6 +118,12 @@ public class NaiveMesher implements VoxelMesher {
                 float z = z0 * scale * 2;
                 float y = (block - 4096 * z0) / 64 * scale * 2;
                 float x = block % 64 * scale * 2;
+                
+                // Reduce coordinates to have chunk center be where is needs to be
+                x -= 8;
+                y -= 8;
+                z -= 8;
+                
                 //System.out.println("x: " + x + ", y: " + y + ", z: " + z);
                 
                 // Calculate texture coordinates...

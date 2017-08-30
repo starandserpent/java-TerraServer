@@ -37,8 +37,6 @@ public class OcclusionQueryProcessor implements SceneProcessor {
     private int objCount;
     private int extraAlloc;
     
-    private Object2IntMap<VisualObject> queries;
-    
     /**
      * Constructs a new occlusion query scene processor.
      * @param initialCount How many visual objects there will be initially.
@@ -56,7 +54,6 @@ public class OcclusionQueryProcessor implements SceneProcessor {
         this.objs = new VisualObject[initialCount + extraAlloc];
         this.objCount = 0;
         this.extraAlloc = extraAlloc;
-        this.queries = new Object2IntOpenHashMap<>();
     }
     
     /**
@@ -102,23 +99,7 @@ public class OcclusionQueryProcessor implements SceneProcessor {
 
     @Override
     public void preFrame(float tpf) {
-        // Mark objects which are not to be rendered according to queries
-
-        for (VisualObject obj : objs) {
-            if (obj == null) { // Ignore null objects...
-                continue;
-            }
-            
-            int queryId = queries.getInt(obj);
-            if (glGetQueryObjecti(queryId, GL_QUERY_RESULT_AVAILABLE) != GL_FALSE) {
-                int result = glGetQueryi(queryId, GL_QUERY_RESULT);
-                if (result == GL_FALSE) {
-                    obj.linkedGeom.setCullHint(CullHint.Always);
-                }
-            } else { // We better render this stuff, as we have no idea if it is needed or not
-                obj.linkedGeom.setCullHint(CullHint.Never);
-            }
-        }
+        // Do nothing...
     }
 
     @Override
@@ -134,9 +115,14 @@ public class OcclusionQueryProcessor implements SceneProcessor {
         glColorMask(false, false, false, false); // This also increases performance
         glDepthMask(false);
         
+        // Create query ids
+        int[] queries = new int[objCount];
+        glGenQueries(queries);
+        
         try (MemoryStack stack = MemoryStack.stackPush()) {
             FloatBuffer vertices = stack.mallocFloat(108 * objCount);
             
+            // Create meshes in a buffer
             for (int i = 0; i < objCount; i++) {
                 VisualObject obj = objs[i];
                 if (obj == null) { // Ignore null objects...
@@ -204,19 +190,53 @@ public class OcclusionQueryProcessor implements SceneProcessor {
             }
             vertices.flip(); // Needed by LWJGL to not crash horribly
             
+            int vao = glGenVertexArrays();
+            glBindVertexArray(vao);
+            
+            int vbo = glGenBuffers();
+            glBindBuffer(GL_ARRAY_BUFFER, vbo);
+            glBufferData(GL_ARRAY_BUFFER, vertices, GL_STREAM_DRAW);
+            
+            // Begin the queries
             for (int i = 0; i < objCount; i++) {
-                VisualObject obj = objs[i];
+                int queryId = queries[i]; // Just pick one query id based on i
                 
-                int queryId = glGenQueries();
-                
-                glBeginQuery(GL_ANY_SAMPLES_PASSED, queryId);
+                glBeginQuery(GL_SAMPLES_PASSED, queryId);
                 
                 glDrawArrays(GL_TRIANGLES, 108 * i, 108);
                 
-                glEndQuery(GL_ANY_SAMPLES_PASSED);
-                queries.put(obj, queryId);
+                glEndQuery(GL_SAMPLES_PASSED);
             }
         }
+        
+        // Mark objects which are not to be rendered according to queries
+        for (int i = 0; i < objCount; i++) {
+            VisualObject obj = objs[i];
+            
+            if (obj == null) { // Ignore null objects...
+                continue;
+            }
+            
+            int queryId = queries[i];
+            
+            // Check if query is available...
+            if (glGetQueryObjectui(queryId, GL_QUERY_RESULT_AVAILABLE) == GL_FALSE) {
+                // It is, check if it is visible
+                int result = glGetQueryObjectui(queryId, GL_QUERY_RESULT);
+                if (result == GL_FALSE) { // Nope
+                    System.out.println("GL_FALSE");
+                    obj.linkedGeom.setCullHint(CullHint.Always);
+                } else { // Yeah, visible
+                    System.out.println("GL_TRUE: " + result);
+                    obj.linkedGeom.setCullHint(CullHint.Never);
+                }
+            } else { // We better render this stuff, as we have no idea if it is needed or not
+                obj.linkedGeom.setCullHint(CullHint.Never);
+            }
+        }
+        
+        // Close all queries to avoid flickering
+        glDeleteQueries(queries);
         
         // Re-enable normal rendering
         glColorMask(true, true, true, true);

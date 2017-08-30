@@ -12,6 +12,7 @@ import com.jme3.scene.Mesh;
 import com.jme3.scene.Spatial.CullHint;
 import com.jme3.scene.VertexBuffer.Type;
 import com.jme3.shader.VarType;
+import com.jme3.system.AppSettings;
 import com.jme3.util.BufferUtils;
 import com.ritualsoftheold.terra.TerraModule;
 import com.ritualsoftheold.terra.material.MaterialRegistry;
@@ -37,6 +38,11 @@ public class ChunkTest extends SimpleApplication {
     public static void main(String... args) {
         ChunkTest app = new ChunkTest();
         app.setShowSettings(false);
+        
+        AppSettings settings = new AppSettings(true);
+        settings.setVSync(true);
+        app.settings = settings;
+        
         app.start();
     }
     
@@ -44,6 +50,9 @@ public class ChunkTest extends SimpleApplication {
 
     @Override
     public void simpleInitApp() {
+        setDisplayFps(false);
+        setDisplayStatView(false);
+        
         // Create chunk data
         long addr = mem.allocate(DataConstants.CHUNK_UNCOMPRESSED);
         mem.setMemory(addr, DataConstants.CHUNK_UNCOMPRESSED, (byte) 0);
