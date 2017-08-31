@@ -1,6 +1,8 @@
 package com.ritualsoftheold.terra.mesher.culling;
 
+import com.jme3.math.Vector3f;
 import com.jme3.scene.Geometry;
+import com.jme3.scene.Mesh;
 
 /**
  * Visual Terra object, be it chunk or octree.
@@ -40,10 +42,12 @@ public class VisualObject {
     /**
      * Positions of the object in world. Will point to center of it.
      */
-    public float posX, posY, posZ;
+    public Vector3f pos;
     
     /**
      * Numeric id used mainly for culling.
      */
     public int cullingId;
+
+    public Mesh boundingBox;
 }
