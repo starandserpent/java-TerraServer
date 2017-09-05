@@ -50,8 +50,8 @@ public class ChunkTest extends SimpleApplication {
 
     @Override
     public void simpleInitApp() {
-        setDisplayFps(false);
-        setDisplayStatView(false);
+        //setDisplayFps(false);
+        //setDisplayStatView(false);
         
         // Create chunk data
         long addr = mem.allocate(DataConstants.CHUNK_UNCOMPRESSED);
@@ -106,12 +106,14 @@ public class ChunkTest extends SimpleApplication {
         
         light = new PointLight();
         light.setRadius(400);
+        light.setPosition(cam.getLocation());
         rootNode.addLight(light);
         
-        OcclusionQueryProcessor queryProcessor = new OcclusionQueryProcessor(1, 1);
+        OcclusionQueryProcessor queryProcessor = new OcclusionQueryProcessor(1, 1, assetManager);
         VisualObject obj = new VisualObject();
         obj.linkedGeom = geom;
         obj.posMod = 8;
+        obj.pos = geom.getLocalTranslation();
         queryProcessor.addObject(obj);
         
         viewPort.addProcessor(queryProcessor);
@@ -119,6 +121,6 @@ public class ChunkTest extends SimpleApplication {
     
     @Override
     public void simpleUpdate(float tpf) {
-        light.setPosition(cam.getLocation());
+        //light.setPosition(cam.getLocation());
     }
 }

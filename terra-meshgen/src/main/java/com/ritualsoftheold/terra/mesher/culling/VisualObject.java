@@ -49,5 +49,5 @@ public class VisualObject {
      */
     public int cullingId;
 
-    public Mesh boundingBox;
+    public Geometry boundingBox;
 }

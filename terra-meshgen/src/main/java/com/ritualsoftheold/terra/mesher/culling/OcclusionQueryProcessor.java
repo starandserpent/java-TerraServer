@@ -11,6 +11,7 @@ import com.jme3.renderer.RenderManager;
 import com.jme3.renderer.Renderer;
 import com.jme3.renderer.ViewPort;
 import com.jme3.renderer.queue.RenderQueue;
+import com.jme3.scene.Geometry;
 import com.jme3.scene.Mesh;
 import com.jme3.scene.Spatial.CullHint;
 import com.jme3.scene.shape.Box;
@@ -28,13 +29,16 @@ import static org.lwjgl.opengl.GL33.*;
  * stuff that is rendered.
  *
  */
-public class OcclusionQueryProcessor extends Filter {
+public class OcclusionQueryProcessor implements SceneProcessor {
     
     private VisualObject[] objs;
     private int objCount;
     private int extraAlloc;
     
     private RenderState queryState;
+    private Material queryMat;
+    
+    private RenderManager renderManager;
     
     /**
      * Constructs a new occlusion query scene processor.
@@ -42,8 +46,9 @@ public class OcclusionQueryProcessor extends Filter {
      * Must be at least 0.
      * @param extraAlloc How much array space will be allocated whenever
      * increasing array size. Must be at least 1!
+     * @param assetManager jME asset manager.
      */
-    public OcclusionQueryProcessor(int initialCount, int extraAlloc) {
+    public OcclusionQueryProcessor(int initialCount, int extraAlloc, AssetManager assetManager) {
         if (extraAlloc < 1) {
             throw new IllegalArgumentException("extraAlloc must be at least");
         } else if (initialCount < 0) {
@@ -55,7 +60,8 @@ public class OcclusionQueryProcessor extends Filter {
         this.extraAlloc = extraAlloc;
         
         // Initialize query rendering context
-        this.queryState = new RenderState();
+        queryMat = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
+        this.queryState = queryMat.getAdditionalRenderState();
         queryState.setDepthTest(true);
         queryState.setDepthWrite(false);
         queryState.setColorWrite(false);
@@ -86,9 +92,26 @@ public class OcclusionQueryProcessor extends Filter {
     public void removeObject(VisualObject obj) {
         removeObject(obj.cullingId);
     }
+    
+    @Override
+    public void initialize(RenderManager rm, ViewPort vp) {
+        renderManager = rm;
+    }
+    
+    @Override
+    public boolean isInitialized() {
+        return renderManager != null;
+    }
 
     @Override
-    public void initFilter(AssetManager manager, RenderManager renderManager, ViewPort vp, int w, int h) {
+    public void reshape(ViewPort vp, int w, int h) {
+        // TODO Auto-generated method stub
+        
+    }
+
+    @Override
+    public void cleanup() {
+        // TODO Auto-generated method stub
         
     }
 
@@ -103,12 +126,9 @@ public class OcclusionQueryProcessor extends Filter {
     }
 
     @Override
-    public void postFrame(RenderManager renderManager, ViewPort viewPort, FrameBuffer prevFilterBuffer, FrameBuffer sceneBuffer) {
+    public void postFrame(FrameBuffer out) {
         // Do queries
         Renderer renderer = renderManager.getRenderer();
-        RenderState original = renderManager.getForcedRenderState();
-        
-        renderManager.setForcedRenderState(queryState);
         
         // Create query ids
         int[] queries = new int[objCount];
@@ -123,16 +143,19 @@ public class OcclusionQueryProcessor extends Filter {
             
             int queryId = queries[i]; // Just pick one query id based on index
             
-            Mesh box = obj.boundingBox;
+            Geometry box = obj.boundingBox;
             if (box == null) {
                 // Sorry jME, I'm not confused (see Javadoc of Box)
-                box = new Box(obj.pos, obj.posMod, obj.posMod, obj.posMod);
+                Box boxMesh = new Box(obj.posMod, obj.posMod, obj.posMod);
+                box = new Geometry("culling box");
+                box.setMesh(boxMesh);
+                box.setLocalTranslation(obj.pos);
                 obj.boundingBox = box;
             }
             
             glBeginQuery(GL_SAMPLES_PASSED, queryId);
             
-            renderer.renderMesh(box, 0, 1, null);
+            queryMat.render(box, renderManager);
             
             glEndQuery(GL_SAMPLES_PASSED);
         }
@@ -165,15 +188,11 @@ public class OcclusionQueryProcessor extends Filter {
         
         // Close all queries to avoid flickering
         glDeleteQueries(queries);
-        
-        // Restory original (or null) forced render state
-        renderManager.setForcedRenderState(original);
     }
 
     @Override
-    protected Material getMaterial() {
+    public void setProfiler(AppProfiler profiler) {
         // TODO Auto-generated method stub
-        return null;
+        
     }
-
 }
