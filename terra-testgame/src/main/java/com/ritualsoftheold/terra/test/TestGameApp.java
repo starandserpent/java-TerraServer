@@ -12,6 +12,7 @@ import com.jme3.app.SimpleApplication;
 import com.jme3.input.KeyInput;
 import com.jme3.input.controls.ActionListener;
 import com.jme3.input.controls.KeyTrigger;
+import com.jme3.light.AmbientLight;
 import com.jme3.material.Material;
 import com.jme3.math.Vector3f;
 import com.jme3.scene.Geometry;
@@ -19,6 +20,7 @@ import com.jme3.scene.Mesh;
 import com.jme3.scene.Spatial;
 import com.jme3.scene.Spatial.CullHint;
 import com.jme3.scene.VertexBuffer.Type;
+import com.jme3.scene.shape.Box;
 import com.jme3.shader.VarType;
 import com.jme3.util.BufferUtils;
 import com.ritualsoftheold.terra.TerraModule;
@@ -28,6 +30,8 @@ import com.ritualsoftheold.terra.material.MaterialRegistry;
 import com.ritualsoftheold.terra.material.TerraTexture;
 import com.ritualsoftheold.terra.mesher.NaiveMesher;
 import com.ritualsoftheold.terra.mesher.VoxelMesher;
+import com.ritualsoftheold.terra.mesher.culling.OcclusionQueryProcessor;
+import com.ritualsoftheold.terra.mesher.culling.VisualObject;
 import com.ritualsoftheold.terra.mesher.resource.TextureManager;
 import com.ritualsoftheold.terra.offheap.chunk.ChunkBuffer;
 import com.ritualsoftheold.terra.offheap.io.dummy.DummyChunkLoader;
@@ -49,12 +53,17 @@ public class TestGameApp extends SimpleApplication implements ActionListener {
     
     private float loadMarkersUpdated;
     
+    private OcclusionQueryProcessor queryProcessor;
+    
     public static void main(String... args) {
         new TestGameApp().start();
     }
     
     @Override
     public void simpleInitApp() {
+        //setDisplayFps(false);
+        //setDisplayStatView(false);
+        
         TerraModule mod = new TerraModule("testgame");
         mod.newMaterial().name("dirt").texture(new TerraTexture(256, 256, "NorthenForestDirt256px.png"));
         mod.newMaterial().name("grass").texture(new TerraTexture(256, 256, "NorthenForestGrass256px.png"));
@@ -93,10 +102,10 @@ public class TestGameApp extends SimpleApplication implements ActionListener {
         texManager.loadMaterials(reg); // And make it load material registry
         
         // Create material
-        Material mat = new Material(assetManager, "jme3test/texture/UnshadedArray.j3md");
+        Material mat = new Material(assetManager, "terra/shader/TerraArray.j3md");
         //mat.getAdditionalRenderState().setWireframe(true);
         //mat.getAdditionalRenderState().setFaceCullMode(FaceCullMode.Off);
-        mat.setTexture("ColorMap", texManager.getGroundTexture());
+        mat.setTexture("DiffuseMap", texManager.getGroundTexture());
         
         world.setLoadListener(new WorldLoadListener() {
             
@@ -159,6 +168,11 @@ public class TestGameApp extends SimpleApplication implements ActionListener {
         
         inputManager.addMapping("RELOAD", new KeyTrigger(KeyInput.KEY_G));
         inputManager.addListener(this, "RELOAD");
+        
+        rootNode.addLight(new AmbientLight());
+        
+        queryProcessor = new OcclusionQueryProcessor(0, 10, assetManager);
+        viewPort.addProcessor(queryProcessor);
     }
     
     @Override
@@ -180,6 +194,12 @@ public class TestGameApp extends SimpleApplication implements ActionListener {
             Geometry geom = geomCreateQueue.poll();
             System.out.println("create geom: " + geom.getLocalTranslation());
             rootNode.attachChild(geom);
+            
+            VisualObject vis = new VisualObject();
+            vis.linkedGeom = geom;
+            vis.posMod = 18;
+            vis.pos = geom.getLocalTranslation();
+            queryProcessor.addObject(vis);
         }
     }
 

@@ -150,12 +150,13 @@ public class OcclusionQueryProcessor implements SceneProcessor {
                 box = new Geometry("culling box");
                 box.setMesh(boxMesh);
                 box.setLocalTranslation(obj.pos);
+                box.setMaterial(queryMat);
                 obj.boundingBox = box;
             }
             
             glBeginQuery(GL_SAMPLES_PASSED, queryId);
             
-            queryMat.render(box, renderManager);
+            renderManager.renderGeometry(box);
             
             glEndQuery(GL_SAMPLES_PASSED);
         }
@@ -178,7 +179,7 @@ public class OcclusionQueryProcessor implements SceneProcessor {
                     System.out.println("GL_FALSE");
                     obj.linkedGeom.setCullHint(CullHint.Always);
                 } else { // Yeah, visible
-                    System.out.println("GL_TRUE: " + result);
+                    //System.out.println("GL_TRUE: " + result);
                     obj.linkedGeom.setCullHint(CullHint.Never);
                 }
             } else { // We better render this stuff, as we have no idea if it is needed or not
