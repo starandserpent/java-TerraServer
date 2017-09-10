@@ -121,8 +121,8 @@ MaterialDef Phong Lighting {
 
         LightMode MultiPass
 
-        VertexShader GLSL100:   terra/shader/TerraArray.vert
-        FragmentShader GLSL100: terra/shader/TerraArray.frag
+        VertexShader GLSL130:   terra/shader/TerraArray.vert
+        FragmentShader GLSL130: terra/shader/TerraArray.frag
 
         WorldParameters {
             WorldViewProjectionMatrix
