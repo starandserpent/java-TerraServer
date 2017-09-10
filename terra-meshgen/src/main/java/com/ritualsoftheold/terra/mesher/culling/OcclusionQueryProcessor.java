@@ -40,6 +40,9 @@ public class OcclusionQueryProcessor implements SceneProcessor {
     
     private RenderManager renderManager;
     
+    private int[] queries;
+    private boolean enableCulling;
+    
     /**
      * Constructs a new occlusion query scene processor.
      * @param initialCount How many visual objects there will be initially.
@@ -117,7 +120,37 @@ public class OcclusionQueryProcessor implements SceneProcessor {
 
     @Override
     public void preFrame(float tpf) {
-        // Do nothing...
+        // Mark objects which are not to be rendered according to queries
+        
+        if (enableCulling) {
+            for (int i = 0; i < queries.length; i++) {
+                VisualObject obj = objs[i];
+                
+                if (obj == null) { // Ignore null objects...
+                    continue;
+                }
+                
+                int queryId = queries[i];
+                
+                // Check if query is available...
+                if (glGetQueryObjectui(queryId, GL_QUERY_RESULT_AVAILABLE) != GL_FALSE) {
+                    // It is, check if it is visible
+                    int result = glGetQueryObjectui(queryId, GL_QUERY_RESULT);
+                    if (result == GL_FALSE) { // Nope
+                        System.out.println("GL_FALSE");
+                        obj.linkedGeom.setCullHint(CullHint.Always);
+                    } else { // Yeah, visible
+                        //System.out.println("GL_TRUE: " + result);
+                        obj.linkedGeom.setCullHint(CullHint.Never);
+                    }
+                } else { // We better render this stuff, as we have no idea if it is needed or not
+                    obj.linkedGeom.setCullHint(CullHint.Never);
+                }
+            }
+            
+            // Close all queries from previous frame
+            glDeleteQueries(queries);
+        }
     }
 
     @Override
@@ -128,10 +161,9 @@ public class OcclusionQueryProcessor implements SceneProcessor {
     @Override
     public void postFrame(FrameBuffer out) {
         // Do queries
-        Renderer renderer = renderManager.getRenderer();
         
         // Create query ids
-        int[] queries = new int[objCount];
+        queries = new int[objCount];
         glGenQueries(queries);
             
         // Begin the queries
@@ -162,34 +194,7 @@ public class OcclusionQueryProcessor implements SceneProcessor {
             glEndQuery(GL_SAMPLES_PASSED);
         }
         
-        // Mark objects which are not to be rendered according to queries
-        for (int i = 0; i < objCount; i++) {
-            VisualObject obj = objs[i];
-            
-            if (obj == null) { // Ignore null objects...
-                continue;
-            }
-            
-            int queryId = queries[i];
-            
-            // Check if query is available...
-            if (glGetQueryObjectui(queryId, GL_QUERY_RESULT_AVAILABLE) != GL_FALSE) {
-                // It is, check if it is visible
-                int result = glGetQueryObjectui(queryId, GL_QUERY_RESULT);
-                if (result == GL_FALSE) { // Nope
-                    System.out.println("GL_FALSE");
-                    obj.linkedGeom.setCullHint(CullHint.Always);
-                } else { // Yeah, visible
-                    //System.out.println("GL_TRUE: " + result);
-                    obj.linkedGeom.setCullHint(CullHint.Never);
-                }
-            } else { // We better render this stuff, as we have no idea if it is needed or not
-                obj.linkedGeom.setCullHint(CullHint.Never);
-            }
-        }
-        
-        // Close all queries to avoid flickering
-        glDeleteQueries(queries);
+        enableCulling = true;
     }
 
     @Override
