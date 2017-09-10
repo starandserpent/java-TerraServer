@@ -22,6 +22,7 @@ import com.jme3.scene.Spatial.CullHint;
 import com.jme3.scene.VertexBuffer.Type;
 import com.jme3.scene.shape.Box;
 import com.jme3.shader.VarType;
+import com.jme3.system.AppSettings;
 import com.jme3.util.BufferUtils;
 import com.ritualsoftheold.terra.TerraModule;
 import com.ritualsoftheold.terra.files.FileChunkLoader;
@@ -56,13 +57,16 @@ public class TestGameApp extends SimpleApplication implements ActionListener {
     private OcclusionQueryProcessor queryProcessor;
     
     public static void main(String... args) {
-        new TestGameApp().start();
+        TestGameApp app = new TestGameApp();
+        app.showSettings = false;
+        app.start();
     }
     
     @Override
     public void simpleInitApp() {
         //setDisplayFps(false);
         //setDisplayStatView(false);
+        
         
         TerraModule mod = new TerraModule("testgame");
         mod.newMaterial().name("dirt").texture(new TerraTexture(256, 256, "NorthenForestDirt256px.png"));
@@ -197,7 +201,7 @@ public class TestGameApp extends SimpleApplication implements ActionListener {
             
             VisualObject vis = new VisualObject();
             vis.linkedGeom = geom;
-            vis.posMod = 18;
+            vis.posMod = 10;
             vis.pos = geom.getLocalTranslation();
             queryProcessor.addObject(vis);
         }

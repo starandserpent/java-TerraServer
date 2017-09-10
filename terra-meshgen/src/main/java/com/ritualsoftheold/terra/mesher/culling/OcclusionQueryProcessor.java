@@ -152,6 +152,7 @@ public class OcclusionQueryProcessor implements SceneProcessor {
                 box.setLocalTranslation(obj.pos);
                 box.setMaterial(queryMat);
                 obj.boundingBox = box;
+                box.updateGeometricState();
             }
             
             glBeginQuery(GL_SAMPLES_PASSED, queryId);
@@ -172,7 +173,7 @@ public class OcclusionQueryProcessor implements SceneProcessor {
             int queryId = queries[i];
             
             // Check if query is available...
-            if (glGetQueryObjectui(queryId, GL_QUERY_RESULT_AVAILABLE) == GL_FALSE) {
+            if (glGetQueryObjectui(queryId, GL_QUERY_RESULT_AVAILABLE) != GL_FALSE) {
                 // It is, check if it is visible
                 int result = glGetQueryObjectui(queryId, GL_QUERY_RESULT);
                 if (result == GL_FALSE) { // Nope
