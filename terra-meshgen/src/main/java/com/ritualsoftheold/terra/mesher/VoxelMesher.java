@@ -31,6 +31,6 @@ public interface VoxelMesher {
     
     IntList getIndices();
     
-    FloatList getTextureCoords();
+    IntList getTextureCoords();
 
 }

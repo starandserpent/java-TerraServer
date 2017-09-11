@@ -100,7 +100,7 @@ void main(){
    #endif
 
    gl_Position = TransformWorldViewProjection(modelSpacePos);// g_WorldViewProjectionMatrix * modelSpacePos;
-   texCoord = vec3(float(inTexCoord & 0x3ff), float(inTexCoord >> 10 & 0x3ff), float(inTexCoord >> 20));
+   texCoord = vec3((float(inTexCoord & 0x3ff) - 512f) / 128f, (float(inTexCoord >> 10 & 0x3ff) - 512f) / 128f, (float(inTexCoord >> 20) - 512f) / 128f);
    #ifdef SEPARATE_TEXCOORD
       texCoord2 = inTexCoord2;
    #endif
