@@ -94,38 +94,25 @@ public class NaiveMesher implements VoxelMesher {
         while (!it.isDone()) {
             int begin = it.getOffset();
             short blockId = it.nextMaterial();
-            int count = it.getCount();
-            
-            if (blockId == 0) {
-                block += count;
+            if (blockId == 0) { // TODO better AIR check
                 continue;
             }
-            
-            TerraTexture texture = textures.getTexture(blockId); // Get texture for id
-            if (texture == null) {
-                block += count;
-                continue;
-            }
-            
-            // Calculate texture coordinates...
-            int texMinX = texture.getTexCoordX();
-            int texMinY = texture.getTexCoordY() ;
-            int texMaxX = texMinX + texture.getWidth() / texture.getScaleDivider();
-            int texMaxY = texMinY + texture.getHeight() / texture.getScaleDivider();
-            int texArray = texture.getTexCoordZ();
-            System.out.println("texMinX: " + texMinX + ", texMinY: " + texMinY + ", texMaxX: " + texMaxX + ", texMaxY: " + texMaxY);
-            
             //System.out.println(blockId);
             
             float scale = 0.125f;
-            for (int i = 0; i < count; i++) { // Loop blocks from what we just read
+            for (int i = 0; i < it.getCount(); i++) { // Loop blocks from what we just read
                 //System.out.println((48 - j * 16) + ": " + Long.toBinaryString(id));
                 byte faces = hidden[begin + i]; // Read hidden faces of this block
-                if (faces == 0b00111111) { // TODO better "is-air" check
+                if (blockId == 0 || faces == 0b00111111) { // TODO better "is-air" check
                     block++; // To next block!
                     continue; // AIR or all faces are hidden
                 }
                 //System.out.println("id: " + id + ", block: " + block);
+                TerraTexture texture = textures.getTexture(blockId); // Get texture for id
+                if (texture == null) {
+                    block++; // To next block!
+                    continue;
+                }
                 
                 float z0 = block / 4096;
                 float z = z0 * scale * 2;
@@ -138,6 +125,15 @@ public class NaiveMesher implements VoxelMesher {
                 z -= 8;
                 
                 //System.out.println("x: " + x + ", y: " + y + ", z: " + z);
+                
+                // Calculate texture coordinates...
+                float texMinX = texture.getTexCoordX();
+                float texMinY = texture.getTexCoordY() ;
+                float texMaxX = texMinX + texture.getScale() * 0.25f * texture.getWidth() / atlasSize;
+                float texMaxY = texMinY + texture.getScale() * 0.25f * texture.getHeight() / atlasSize;
+                float texArray = texture.getTexCoordZ();
+                
+                //System.out.println("texMinX: " + texMinX + ", texMinY: " + texMinY + ", texMaxX: " + texMaxX + ", texMaxY: " + texMaxY);
                 
                 if ((faces & 0b00100000) == 0) { // RIGHT
                     //System.out.println("Draw RIGHT");
@@ -168,7 +164,7 @@ public class NaiveMesher implements VoxelMesher {
                     vertIndex += 4;
                     
                     texCoords(texMaxX, texMaxY, texArray);
-
+                    
                     texCoords(texMinX, texMaxY, texArray);
                     
                     texCoords(texMinX, texMinY, texArray);
@@ -356,17 +352,18 @@ public class NaiveMesher implements VoxelMesher {
         }
     }
     
-    private void texCoords(int x, int y, int z) {
-        x /= 2;
-        y /= 2;
+    private void texCoords(float x, float y, float z) {
+        // Make sure there are no negative values in floats
+        float uX = x + 8;
+        float uY = y + 8;
+        float uZ = z + 8;
         
-        System.out.println("texX: " + x + ", texY: " + y);
-        texCoords.add(z << 11 | y << 11 | x);
+        // Create specially formatted ints out of them (note, only positive values here!)
+        int iX = (int) (uX * 128);
+        int iY = (int) (uY * 128);
+        int iZ = (int) (uZ * 128);
         
-        int inTexCoord = texCoords.getInt(texCoords.size() - 1);
-        System.out.println((inTexCoord & 0x7ff) * 2 / 2048f);
-        System.out.println((inTexCoord >>> 11 & 0x7ff) / 2048f);
-        System.out.println(inTexCoord >>> 22);
+        texCoords.add(iZ << 10 & iY << 10 & iX);
     }
 
     @Override
@@ -388,5 +385,7 @@ public class NaiveMesher implements VoxelMesher {
     public IntList getTextureCoords() {
         return texCoords;
     }
+    
+    
 
 }

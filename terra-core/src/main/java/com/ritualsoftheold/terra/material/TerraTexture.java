@@ -6,18 +6,18 @@ package com.ritualsoftheold.terra.material;
  */
 public class TerraTexture {
     
-    private static final int DEFAULT_SCALE = 1;
+    private static final float DEFAULT_SCALE = 4;
     
     private int width;
     private int height;
     
-    private int scale;
+    private float scale;
     
     private String asset;
     
-    private int texCoordX, texCoordY, texCoordZ;
+    private float texCoordX, texCoordY, texCoordZ;
     
-    public TerraTexture(int width, int height, int scale, String asset) {
+    public TerraTexture(int width, int height, float scale, String asset) {
         this.width = width;
         this.height = height;
         this.asset = asset;
@@ -45,11 +45,12 @@ public class TerraTexture {
     }
     
     /**
-     * Gets scale divider of this texture. Values more than 1 mean that it will
-     * not fit to single 25cm cube face.
-     * @return Scale divider of this texture.
+     * Gets scale of this texture. In the other words,
+     * this big amount of the texture will go to 0.25m square meter area.
+     * Values fall in range of [0, 1[.
+     * @return Scale of the texture.
      */
-    public int getScaleDivider() {
+    public float getScale() {
         return scale;
     }
     
@@ -61,21 +62,21 @@ public class TerraTexture {
         return asset;
     }
     
-    public void assignTexCoords(int x, int y, int z) {
+    public void assignTexCoords(float x, float y, float z) {
         texCoordX = x;
         texCoordY = y;
         texCoordZ = z;
     }
     
-    public int getTexCoordX() {
+    public float getTexCoordX() {
         return texCoordX;
     }
     
-    public int getTexCoordY() {
+    public float getTexCoordY() {
         return texCoordY;
     }
     
-    public int getTexCoordZ() {
+    public float getTexCoordZ() {
         return texCoordZ;
     }
     
