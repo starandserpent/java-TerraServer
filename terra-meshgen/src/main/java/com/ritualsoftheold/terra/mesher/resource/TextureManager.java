@@ -127,7 +127,7 @@ public class TextureManager {
             
             // Set correct texture coordinates
             // X,Y=X and Y planes, Z=texture array index
-            texture.assignTexCoords(x * 1.0f * size / ATLAS_SIZE, y * 1.0f * size / ATLAS_SIZE, atlases.size());
+            texture.assignTexCoords(x * size, y * size, atlases.size());
             System.out.println("Assign texture coordinates: " + texture.getTexCoordX() + ", " + texture.getTexCoordY() + ", " + texture.getTexCoordZ() + " for " + texture.getAsset());
             
             x++;
@@ -141,7 +141,7 @@ public class TextureManager {
         }
     }
 
-    public float getAtlasSize() {
+    public int getAtlasSize() {
         return ATLAS_SIZE;
     }
     

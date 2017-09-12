@@ -28,7 +28,7 @@ varying vec4 DiffuseSum;
 varying vec3 SpecularSum;
 
 attribute vec3 inPosition;
-attribute int inTexCoord;
+attribute uint inTexCoord;
 attribute vec3 inNormal;
 
 varying vec3 lightVec;
@@ -100,7 +100,12 @@ void main(){
    #endif
 
    gl_Position = TransformWorldViewProjection(modelSpacePos);// g_WorldViewProjectionMatrix * modelSpacePos;
-   texCoord = vec3((float(inTexCoord & 0x3ff) - 512f) / 128f, (float(inTexCoord >> 10 & 0x3ff) - 512f) / 128f, (float(inTexCoord >> 20) - 512f) / 128f);
+   
+   uint texBitmask = uint(0x7ff);
+   texCoord = vec3(float(inTexCoord & texBitmask) / 2048f, float(inTexCoord >> 11 & texBitmask) / 2048f, float(inTexCoord >> 22));
+   if (texCoord.x - 0.03125 < 0.001)
+   texCoord = vec3(0, 0, 0);
+   
    #ifdef SEPARATE_TEXCOORD
       texCoord2 = inTexCoord2;
    #endif
