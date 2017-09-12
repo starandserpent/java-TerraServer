@@ -133,9 +133,9 @@ public class NaiveMesher implements VoxelMesher {
                 float x = block % 64 * scale * 2;
                 
                 // Reduce coordinates to have chunk center be where is needs to be
-                x -= 8;
-                y -= 8;
-                z -= 8;
+//                x -= 8;
+//                y -= 8;
+//                z -= 8;
                 
                 //System.out.println("x: " + x + ", y: " + y + ", z: " + z);
                 
@@ -364,8 +364,9 @@ public class NaiveMesher implements VoxelMesher {
         texCoords.add(z << 11 | y << 11 | x);
         
         int inTexCoord = texCoords.getInt(texCoords.size() - 1);
-        System.out.println((inTexCoord & 0x7ff) * 2 / 2048f / 4f);
-        System.out.println((inTexCoord >>> 11 & 0x7ff) / 2048f / 4f);
+        System.out.println(inTexCoord);
+        System.out.println((inTexCoord & 0x7ff) * 2);
+        System.out.println((inTexCoord >>> 11 & 0x7ff) * 2);
         System.out.println(inTexCoord >>> 22);
     }
 

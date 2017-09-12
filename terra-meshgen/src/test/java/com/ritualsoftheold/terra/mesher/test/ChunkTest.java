@@ -57,14 +57,14 @@ public class ChunkTest extends SimpleApplication {
         long addr = mem.allocate(DataConstants.CHUNK_UNCOMPRESSED);
         mem.setMemory(addr, DataConstants.CHUNK_UNCOMPRESSED, (byte) 0);
         mem.writeByte(addr, (byte) 0); // Chunk type here
-        mem.writeShort(addr + 1, (short) 2); // Add some stuff to chunk
-        mem.writeShort(addr + 3, (short) 0xffff);
-        mem.writeShort(addr + 5, (short) 2);
-        mem.writeShort(addr + 7, (short) 0xffff);
-        mem.writeShort(addr + 9, (short) 2);
-        mem.writeShort(addr + 11, (short) 0xffff);
-        mem.writeShort(addr + 13, (short) 2);
-        mem.writeShort(addr + 15, (short) 0xffff);
+        mem.writeShort(addr + 1, (short) 1); // Add some stuff to chunk
+        mem.writeShort(addr + 3, (short) 1);
+//        mem.writeShort(addr + 5, (short) 2);
+//        mem.writeShort(addr + 7, (short) 0xffff);
+//        mem.writeShort(addr + 9, (short) 2);
+//        mem.writeShort(addr + 11, (short) 0xffff);
+//        mem.writeShort(addr + 13, (short) 2);
+//        mem.writeShort(addr + 15, (short) 0xffff);
         //System.out.println(Long.toBinaryString(mem.readLong(addr)));
         
         // Register materials
@@ -72,9 +72,9 @@ public class ChunkTest extends SimpleApplication {
         MaterialRegistry registry = new MaterialRegistry();
         
         TerraModule mod = new TerraModule("test");
-        mod.newMaterial().name("grass").texture(new TerraTexture(32, 32, "grass.png"));
-        mod.newMaterial().name("dirt").texture(new TerraTexture(32, 32, "dirt.png"));
-        //mod.newMaterial().name("dirt-256").texture(new TerraTexture(32, 32, "NorthenForestDirt256px.png"));
+        //mod.newMaterial().name("grass").texture(new TerraTexture(32, 32, "grass.png"));
+        //mod.newMaterial().name("dirt").texture(new TerraTexture(32, 32, "dirt.png"));
+        mod.newMaterial().name("dirt-256").texture(new TerraTexture(256, 256, "NorthenForestDirt256px.png"));
         mod.registerMaterials(registry);
         
         manager.loadMaterials(registry);
@@ -98,7 +98,7 @@ public class ChunkTest extends SimpleApplication {
         mat.setTexture("DiffuseMap", manager.getGroundTexture());
         //mat.setParam("SeparateTexCoord", VarType.Boolean, true);
         geom.setMaterial(mat);
-        //geom.setLocalScale(0.5f);
+        geom.setLocalScale(16f);
         geom.setCullHint(CullHint.Never);
         rootNode.attachChild(geom);
         flyCam.setMoveSpeed(10);
@@ -116,7 +116,7 @@ public class ChunkTest extends SimpleApplication {
         obj.pos = geom.getLocalTranslation();
         queryProcessor.addObject(obj);
         
-        viewPort.addProcessor(queryProcessor);
+        //viewPort.addProcessor(queryProcessor);
     }
     
     @Override

@@ -24,7 +24,9 @@ import com.ritualsoftheold.terra.mesher.resource.TextureManager;
 public class TextureManagerTest extends SimpleApplication {
 
     public static void main(String... args) {
-        new TextureManagerTest().start();
+        TextureManagerTest testApp = new TextureManagerTest();
+        testApp.setShowSettings(false);
+        testApp.start();
     }
     
     @Override
@@ -33,9 +35,9 @@ public class TextureManagerTest extends SimpleApplication {
         MaterialRegistry registry = new MaterialRegistry();
         
         TerraModule mod = new TerraModule("test");
-        mod.newMaterial().name("grass").texture(new TerraTexture(32, 32, "grass.png"));
-        mod.newMaterial().name("dirt").texture(new TerraTexture(32, 32, "dirt.png"));
-        //mod.newMaterial().name("dirt-256").texture(new TerraTexture(32, 32, "NorthenForestDirt256px.png"));
+        //mod.newMaterial().name("grass").texture(new TerraTexture(32, 32, "grass.png"));
+        //mod.newMaterial().name("dirt").texture(new TerraTexture(32, 32, "dirt.png"));
+        mod.newMaterial().name("dirt-256").texture(new TerraTexture(256, 256, "NorthenForestDirt256px.png"));
         mod.registerMaterials(registry);
         
         manager.loadMaterials(registry);

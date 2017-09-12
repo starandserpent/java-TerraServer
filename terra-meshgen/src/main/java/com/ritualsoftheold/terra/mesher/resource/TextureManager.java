@@ -28,7 +28,7 @@ import it.unimi.dsi.fastutil.shorts.Short2ObjectMap;
 public class TextureManager {
     
     private static final int TEXTURE_MIN_RES = 2;
-    private static final int ATLAS_SIZE = 4096;
+    private static final int ATLAS_SIZE = 256;
     private static final int BYTES_PER_PIXEL = 4;
     private static final int ATLAS_SIZE_IMAGE = ATLAS_SIZE * BYTES_PER_PIXEL;
     
