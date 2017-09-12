@@ -102,7 +102,7 @@ void main(){
    gl_Position = TransformWorldViewProjection(modelSpacePos);// g_WorldViewProjectionMatrix * modelSpacePos;
    
    uint texBitmask = uint(0x7ff);
-   texCoord = vec3(float(inTexCoord & texBitmask) / 2048f, float(inTexCoord >> 11 & texBitmask) / 2048f, float(inTexCoord >> 22));
+   texCoord = vec3(float(inTexCoord & texBitmask) / 2048f / 4f, float(inTexCoord >> 11 & texBitmask) / 2048f / 4f, float(inTexCoord >> 22));
    if (texCoord.x - 0.03125 < 0.001)
    texCoord = vec3(0, 0, 0);
    

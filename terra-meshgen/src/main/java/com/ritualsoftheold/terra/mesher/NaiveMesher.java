@@ -364,8 +364,8 @@ public class NaiveMesher implements VoxelMesher {
         texCoords.add(z << 11 | y << 11 | x);
         
         int inTexCoord = texCoords.getInt(texCoords.size() - 1);
-        System.out.println((inTexCoord & 0x7ff) * 2 / 2048f);
-        System.out.println((inTexCoord >>> 11 & 0x7ff) / 2048f);
+        System.out.println((inTexCoord & 0x7ff) * 2 / 2048f / 4f);
+        System.out.println((inTexCoord >>> 11 & 0x7ff) / 2048f / 4f);
         System.out.println(inTexCoord >>> 22);
     }
 
