@@ -1,5 +1,3 @@
-#extension GL_EXT_gpu_shader4 : enable
-
 #import "Common/ShaderLib/Instancing.glsllib"
 #import "Common/ShaderLib/Skinning.glsllib"
 #import "Common/ShaderLib/Lighting.glsllib"
@@ -28,7 +26,7 @@ varying vec4 DiffuseSum;
 varying vec3 SpecularSum;
 
 attribute vec3 inPosition;
-attribute int inTexCoord;
+attribute vec3 inTexCoord;
 attribute vec3 inNormal;
 
 varying vec3 lightVec;
@@ -100,7 +98,7 @@ void main(){
    #endif
 
    gl_Position = TransformWorldViewProjection(modelSpacePos);// g_WorldViewProjectionMatrix * modelSpacePos;
-   texCoord = vec3(float(inTexCoord & 0x3ff), float(inTexCoord >> 10 & 0x3ff), float(inTexCoord >> 20));
+   texCoord = inTexCoord;
    #ifdef SEPARATE_TEXCOORD
       texCoord2 = inTexCoord2;
    #endif
