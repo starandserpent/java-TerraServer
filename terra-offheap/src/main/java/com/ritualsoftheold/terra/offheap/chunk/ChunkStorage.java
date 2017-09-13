@@ -100,18 +100,6 @@ public class ChunkStorage {
         this.memListener = listener;
     }
     
-    public CompletableFuture<ChunkBuffer> requestBuffer(short bufferId) {
-        ChunkBuffer buf = buffers.get(bufferId);
-        if (buf == null) { // Oops we need to load this
-            ChunkBuffer newBuf = new ChunkBuffer(chunksPerBuffer, extraAlloc, (short) freeBufferId.getAndIncrement(), memListener); // Create buffer
-            CompletableFuture<ChunkBuffer> future = CompletableFuture.supplyAsync(() -> loader.loadChunks(bufferId, newBuf), loaderExecutor);
-            future.thenAccept((loadedBuffer) -> buffers.put(bufferId, loadedBuffer));
-            return future;
-        } else {
-            return CompletableFuture.completedFuture(buf);
-        }
-    }
-    
     /**
      * Gets a chunk buffer with given id. If it is not loaded or does not exist,
      * it will be loaded or created and this method might block caller thread.
@@ -148,31 +136,6 @@ public class ChunkStorage {
             return CompletableFuture.supplyAsync(() -> loader.saveChunks(bufferId, buf), loaderExecutor);
         } else {
             throw new IllegalStateException("chunk buffer not even loaded!");
-        }
-    }
-    
-    public CompletableFuture<Chunk> requestChunk(int chunkId, MaterialRegistry registry) {
-        OffheapChunk chunk = chunkCache.getIfPresent(chunkId);
-        if (chunk == null) { // Not in cache...
-            // TODO optimize memory allocations here
-            // We have static-sized cache, why not recycle memory? (answer: thread safety, but still...)
-            short bufferId = (short) (chunkId >>> 16);
-            int index = chunkId & 0xffff;
-            CompletableFuture<ChunkBuffer> bufFuture = requestBuffer(bufferId);
-            CompletableFuture<Chunk> chunkFuture = CompletableFuture.supplyAsync(() -> {
-                long addr = mem.allocate(DataConstants.CHUNK_UNCOMPRESSED);
-                ChunkBuffer buf = bufFuture.join(); // Wait for the other future
-                
-                buf.unpack(index, addr); // Unpack data
-                OffheapChunk loadedChunk = new OffheapChunk(registry);
-                loadedChunk.memoryAddress(addr); // Set memory address to point to data
-                chunkCache.put(chunkId, loadedChunk); // Cache what we just loaded
-                
-                return loadedChunk;
-            });
-            return chunkFuture;
-        } else { // Cache found!
-            return CompletableFuture.completedFuture(chunk);
         }
     }
     
