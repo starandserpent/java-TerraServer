@@ -20,7 +20,7 @@ public class TestWorldGenerator implements WorldGenerator {
     }
 
     @Override
-    public boolean generate(short[] data, float x, float y, float z, float scale) {
+    public boolean generate(short[] data, float x, float y, float z, float scale, WorldGenerator.Metadata meta) {
         System.out.println("chunk: " + x + "," + y + "," + z);
         if (y < 5) {
             Arrays.fill(data, 0, DataConstants.CHUNK_MAX_BLOCKS / 2, dirt);
