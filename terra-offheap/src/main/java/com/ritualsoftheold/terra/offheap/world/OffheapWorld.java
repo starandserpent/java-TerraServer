@@ -608,24 +608,6 @@ public class OffheapWorld implements TerraWorld {
         }
     }
     
-    @Override
-    public CompletableFuture<Octree> requestOctree(int index) {
-        byte groupIndex = (byte) (index >>> 24);
-        int octreeIndex = index & 0xffffff;
-        
-        CompletableFuture<Octree> future = CompletableFuture.supplyAsync(() -> {
-            long groupAddr = octreeStorage.getGroup(groupIndex);
-            // This future will block on groupFuture.get()... hopefully
-            long addr = groupAddr + octreeIndex * DataConstants.OCTREE_SIZE;
-            
-            OffheapOctree octree = new OffheapOctree(this, 0f); // TODO scale, somehow
-            octree.memoryAddress(addr); // Validate octree with memory address!
-            
-            return octree;
-        }, storageExecutor);
-        return future;
-    }
-    
     public int handleGenerate(float x, float y, float z) {
         System.out.println("Handle generation...");
         
@@ -645,11 +627,6 @@ public class OffheapWorld implements TerraWorld {
         int chunkId = chunkStorage.addChunk(tempAddr, registry);
         mem.freeMemory(tempAddr, DataConstants.CHUNK_UNCOMPRESSED);
         return chunkId;
-    }
-    
-    @Override
-    public CompletableFuture<Chunk> requestChunk(int index) {
-        return chunkStorage.requestChunk(index, getMaterialRegistry());
     }
     
     public OctreeStorage getOctreeStorage() {

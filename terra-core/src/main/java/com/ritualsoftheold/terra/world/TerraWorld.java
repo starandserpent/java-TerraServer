@@ -38,10 +38,6 @@ public interface TerraWorld {
      * @return Chunk at location.
      */
     Chunk getChunk(float x, float y, float z);
-
-    CompletableFuture<Octree> requestOctree(int index);
-
-    CompletableFuture<Chunk> requestChunk(int index);
     
     /**
      * Adds load marker. User should make sure that
