@@ -628,8 +628,12 @@ public class OffheapWorld implements TerraWorld {
     
     public int handleGenerate(float x, float y, float z) {
         System.out.println("Handle generation...");
+        
+        // Prepare data which generator will fill
         short[] data = new short[DataConstants.CHUNK_MAX_BLOCKS];
-        generator.generate(data, x, y, z, DataConstants.CHUNK_SCALE);
+        WorldGenerator.Metadata meta = new WorldGenerator.Metadata();
+        
+        generator.generate(data, x, y, z, DataConstants.CHUNK_SCALE, meta);
         
         long tempAddr = mem.allocate(DataConstants.CHUNK_UNCOMPRESSED);
         
