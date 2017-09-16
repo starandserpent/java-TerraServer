@@ -16,14 +16,23 @@ public class ChunkBuffer2 {
     private static final Memory mem = OS.memory();
     
     /**
-     * Chunk memory addresses.
+     * Chunk memory addresses. Pointer to data.
      */
     private long addrs;
     
     /**
      * Chunk types. Note that not all chunk types have associated address!
+     * Pointer to data.
      */
     private long types;
+    
+    /**
+     * Change queues for all chunks.
+     * Pointer to data.
+     */
+    private long queues;
+    
+    private int queueSize;
     
     /**
      * Current count of chunks in this buffer. This also serves
@@ -51,7 +60,7 @@ public class ChunkBuffer2 {
      */
     private MemoryUseListener memListener;
     
-    private static class ChangeQueue {
+    private class ChangeQueue {
         
         /*
          * Internally chunk changes are put into buffer-global queue,
@@ -65,17 +74,9 @@ public class ChunkBuffer2 {
          * * 3 bytes: block index in the chunk
          * * 2 bytes: block id to set
          * 
-         * Write everything as single long, otherwise endianness issues may arise!
+         * Write and read everything as single long, otherwise endianness issues may arise!
          * 
-         * Queries are to be manually flushed periodically. When flushing,
-         * all queries that were submitted when flushing started will be
-         * written into actual data. At end of flushing operation, any
-         * new queries will be moved to start.
-         * 
-         * After that, queue will be validated to ensure that there was no
-         * race condition. All queries found after initial start will be
-         * re-submitted.
-         */
+         * Queries are to be manually flushed periodically.
         
         /**
          * Queue data address.
@@ -97,6 +98,11 @@ public class ChunkBuffer2 {
          * Current free position in the queue.
          */
         private AtomicInteger pos;
+        
+        /**
+         * Queue of chunks which are to be flushed.
+         */
+        private long flushQueue;
         
         /**
          * Prepares to flush entries.
@@ -126,19 +132,51 @@ public class ChunkBuffer2 {
 
         private void flush() {
             int flushCount = prepareFlush();
+            int processed = 0; // How many of flushes have we queued forward?
 
             // Actual flushing operation
-            for (int i = 0; i < flushCount; i++) {
-                long query = mem.readLong(flushAddr);
-                long type = query >>> 56;
+            while (processed < flushCount) {
+                int[] consumed = new int[chunkCount.get()]; // How much have we consumed of per-chunk queues?
                 
-                if (type == 0) {
-                    // Read data using bitwise operations
-                    long chunk = query >>> 40 & 0xffff;
-                    long block = query >>> 16 & 0xffffff;
-                    long newId = query & 0xffff;
+                int begin = processed; // Where did this processing loop begin?
+                
+                for (int i = 0; i < flushCount; i++) {
+                    long query = mem.readLong(flushAddr);
+                    long type = query >>> 56;
                     
+                    if (type == 0) {
+                        // Read data using bitwise operations
+                        int chunk = (int) (query >>> 40 & 0xffff);
+    //                    long block = query >>> 16 & 0xffffff;
+    //                    long newId = query & 0xffff;
+                        
+                        int offset = consumed[chunk];
+                        if (offset == queueSize) { // Out of space...
+                            break; // Need to update that chunk NOW
+                            // TODO optimize
+                        }
+                        
+                        long queueSlot = queues + offset * queueSize;
+                        mem.writeLong(queueSlot, query);
+                        
+                        // Increment counters
+                        consumed[chunk] += 8;
+                        processed++;
+                    }
+                }
+                
+                // TODO multithreaded (going to be so much "fun" with that...)
+                for (int i = begin; i < processed; i++) {
+                    long start = queues + i * queueSize;
                     
+                    for (int j = 0; j < consumed[i]; j++) {
+                        long query = mem.readLong(start + j * 8);
+                        
+                        long block = query >>> 16 & 0xffffff;
+                        long newId = query & 0xffff;
+                        
+                        // TODO actual change here, perhaps use DataProviders here too
+                    }
                 }
             }
 
