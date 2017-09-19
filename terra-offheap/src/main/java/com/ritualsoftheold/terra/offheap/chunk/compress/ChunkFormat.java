@@ -22,4 +22,11 @@ public interface ChunkFormat {
      */
     boolean convert(long from, long to, int type);
     
+    short getBlock(long chunk, int index);
+    
+    void getBlocks(long chunk, int[] indices, short[] ids);
+    
+    void setBlock(long chunk, int index, short id);
+    
+    void setBlocks(long chunk, int[] indices, short[] ids);
 }
