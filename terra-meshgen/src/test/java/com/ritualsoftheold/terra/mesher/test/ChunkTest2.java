@@ -16,7 +16,7 @@ import com.ritualsoftheold.terra.mesher.NaiveMesher;
 import com.ritualsoftheold.terra.mesher.VoxelMesher;
 import com.ritualsoftheold.terra.mesher.resource.TextureManager;
 import com.ritualsoftheold.terra.offheap.DataConstants;
-import com.ritualsoftheold.terra.offheap.chunk.RunLengthCompressor;
+import com.ritualsoftheold.terra.offheap.chunk.compress.RunLengthCompressor;
 
 import net.openhft.chronicle.core.Memory;
 import net.openhft.chronicle.core.OS;

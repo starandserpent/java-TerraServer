@@ -189,6 +189,8 @@ public class ChunkBuffer2 {
         }
     }
     
+    private ChangeQueue changeQueue;
+    
     /**
      * Creates a new chunk. It will not have memory address and typo of it is set to
      * empty.
@@ -215,8 +217,8 @@ public class ChunkBuffer2 {
     }
     
     public void queueChange(int chunk, int block, int newId) {
+        long query = (chunk << 40) & (block << 16) & newId;
         
-        
-        // TODO
+        changeQueue.add(query);
     }
 }

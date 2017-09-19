@@ -1,4 +1,4 @@
-package com.ritualsoftheold.terra.offheap.chunk;
+package com.ritualsoftheold.terra.offheap.chunk.compress;
 
 import com.ritualsoftheold.terra.offheap.DataConstants;
 

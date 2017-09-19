@@ -3,6 +3,7 @@ package com.ritualsoftheold.terra.offheap.chunk;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import com.ritualsoftheold.terra.offheap.DataConstants;
+import com.ritualsoftheold.terra.offheap.chunk.compress.RunLengthCompressor;
 import com.ritualsoftheold.terra.offheap.memory.MemoryUseListener;
 
 import net.openhft.chronicle.core.Memory;
