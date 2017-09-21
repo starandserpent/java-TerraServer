@@ -173,7 +173,7 @@ public class ChunkBuffer2 {
                     long queueAddr = queues + i * queueSize;
                     
                     // Get suitable chunk format, which we'll eventually use to write the data
-                    ChunkFormat format = ChunkFormat.forType(mem.readVolatileByte(types + i * 4));
+                    ChunkFormat format = ChunkFormat.forType(mem.readVolatileByte(types + i));
                     
                     // Ask format to process queries (and hope it handles that correctly)
                     format.processQueries(mem.readVolatileLong(addrs + i * 4), queueAddr, queriesSize);
