@@ -21,26 +21,15 @@ public class UncompressedChunkFormat implements ChunkFormat {
     }
 
     @Override
-    public short getBlock(long chunk, int index) {
-        return mem.readVolatileShort(chunk + index * 2);
-    }
-
-    @Override
-    public void getBlocks(long chunk, int[] indices, short[] ids) {
-        for (int i = 0; i < indices.length; i++) {
-            ids[i] = getBlock(chunk, i);
-        }
-    }
-
-    @Override
-    public void setBlock(long chunk, int index, short id) {
-        mem.writeVolatileShort(chunk + index * 2, id);
-    }
-
-    @Override
-    public void setBlocks(long chunk, int[] indices, short[] ids) {
-        for (int i = 0; i < indices.length; i++) {
-            setBlock(chunk, i, ids[i]);
+    public void processQueries(long chunk, long queue, int size) {
+        long end = queue + size;
+        for (long addr = queue; addr < end; addr += 8) {
+            long query = mem.readVolatileLong(addr);
+            
+            int block = (int) (query >>> 16 & 0xffffff);
+            short newId = (short) (query & 0xffff);
+            
+            mem.writeShort(chunk + block * 2, newId);
         }
     }
     

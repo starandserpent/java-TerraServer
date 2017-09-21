@@ -1,11 +1,8 @@
 package com.ritualsoftheold.terra.offheap.chunk.compress;
 
-import com.ritualsoftheold.terra.offheap.chunk.iterator.ChunkIterator;
-
-
 public interface ChunkFormat {
     
-    public static ChunkIterator forType(byte type) {
+    public static ChunkFormat forType(byte type) {
         switch (type) {
             default:
                 throw new IllegalArgumentException("unknown chunk type " + type);
@@ -13,7 +10,7 @@ public interface ChunkFormat {
     }
     
     /**
-     * Attempts to convert given chunk from type that this compressor
+     * Attempts to convert given chunk from type that this format
      * supports to another one.
      * @param from Source memory address.
      * @param to Target memory address.
@@ -22,11 +19,12 @@ public interface ChunkFormat {
      */
     boolean convert(long from, long to, int type);
     
-    short getBlock(long chunk, int index);
-    
-    void getBlocks(long chunk, int[] indices, short[] ids);
-    
-    void setBlock(long chunk, int index, short id);
-    
-    void setBlocks(long chunk, int[] indices, short[] ids);
+    /**
+     * Processes given queries for given chunk. Note that chunk must have
+     * type which this format is meant for.
+     * @param chunk Address to chunk data.
+     * @param queue Address to query queue.
+     * @param size Size of query data.
+     */
+    void processQueries(long chunk, long queue, int size);
 }

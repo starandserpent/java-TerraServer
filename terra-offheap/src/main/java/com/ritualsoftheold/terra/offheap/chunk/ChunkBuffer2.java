@@ -2,6 +2,7 @@ package com.ritualsoftheold.terra.offheap.chunk;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
+import com.ritualsoftheold.terra.offheap.chunk.compress.ChunkFormat;
 import com.ritualsoftheold.terra.offheap.memory.MemoryUseListener;
 
 import net.openhft.chronicle.core.Memory;
@@ -131,6 +132,7 @@ public class ChunkBuffer2 {
         }
 
         private void flush() {
+            int beginChunkCount = chunkCount.get();
             int flushCount = prepareFlush();
             int processed = 0; // How many of flushes have we queued forward?
 
@@ -156,7 +158,7 @@ public class ChunkBuffer2 {
                             // TODO optimize
                         }
                         
-                        long queueSlot = queues + offset * queueSize;
+                        long queueSlot = queues + queueSize * chunk + offset;
                         mem.writeLong(queueSlot, query);
                         
                         // Increment counters
@@ -166,17 +168,15 @@ public class ChunkBuffer2 {
                 }
                 
                 // TODO multithreaded (going to be so much "fun" with that...)
-                for (int i = begin; i < processed; i++) {
-                    long start = queues + i * queueSize;
+                for (int i = 0; i < beginChunkCount; i++) {
+                    int queriesSize = consumed[i]; // Data consumed by queries
+                    long queueAddr = queues + i * queueSize;
                     
-                    for (int j = 0; j < consumed[i]; j++) {
-                        long query = mem.readLong(start + j * 8);
-                        
-                        long block = query >>> 16 & 0xffffff;
-                        long newId = query & 0xffff;
-                        
-                        // TODO actual change here, perhaps use DataProviders here too
-                    }
+                    // Get suitable chunk format, which we'll eventually use to write the data
+                    ChunkFormat format = ChunkFormat.forType(mem.readVolatileByte(types + i * 4));
+                    
+                    // Ask format to process queries (and hope it handles that correctly)
+                    format.processQueries(mem.readVolatileLong(addrs + i * 4), queueAddr, queriesSize);
                 }
             }
 
