@@ -1,5 +1,6 @@
 package com.ritualsoftheold.terra.offheap.chunk.compress;
 
+import com.ritualsoftheold.terra.offheap.chunk.ChunkBuffer2;
 import com.ritualsoftheold.terra.offheap.chunk.ChunkType;
 
 public interface ChunkFormat {
@@ -31,8 +32,10 @@ public interface ChunkFormat {
      * Processes given queries for given chunk. Note that chunk must have
      * type which this format is meant for.
      * @param chunk Address to chunk data.
+     * @param chunkLen Length of allocated memory for chunk. If more than this is
+     * needed, it can be requested from chunk buffer.
      * @param queue Address to query queue.
      * @param size Size of query data.
      */
-    void processQueries(long chunk, long queue, int size);
+    void processQueries(long chunk, int chunkLen, ChunkBuffer2.Allocator buf, long queue, int size);
 }

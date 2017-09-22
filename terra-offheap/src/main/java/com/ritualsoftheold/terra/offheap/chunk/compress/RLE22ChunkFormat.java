@@ -1,5 +1,6 @@
 package com.ritualsoftheold.terra.offheap.chunk.compress;
 
+import com.ritualsoftheold.terra.offheap.chunk.ChunkBuffer2;
 import com.ritualsoftheold.terra.offheap.chunk.ChunkType;
 
 public class RLE22ChunkFormat implements ChunkFormat {
@@ -18,7 +19,7 @@ public class RLE22ChunkFormat implements ChunkFormat {
     }
 
     @Override
-    public void processQueries(long chunk, long queue, int size) {
+    public void processQueries(long chunk, int chunkLen, ChunkBuffer2.Allocator buf, long queue, int size) {
         // TODO Auto-generated method stub
         
     }

@@ -190,7 +190,8 @@ public class ChunkBuffer2 {
                     ChunkFormat format = ChunkFormat.forType(mem.readVolatileByte(types + i));
                     
                     // Ask format to process queries (and hope it handles that correctly)
-                    format.processQueries(mem.readVolatileLong(addrs + i * 4), queueAddr, queriesSize);
+                    format.processQueries(mem.readVolatileLong(addrs + i * 4), mem.readVolatileInt(lengths + i * 4),
+                            allocator, queueAddr, queriesSize);
                 }
             }
 
@@ -206,6 +207,16 @@ public class ChunkBuffer2 {
             mem.writeVolatileLong(addr + index * 8, query);
         }
     }
+    
+    /**
+     * Allocates and deallocates memory for chunks on demand.
+     *
+     */
+    public class Allocator {
+        
+    }
+    
+    private Allocator allocator;
     
     private ChangeQueue changeQueue;
     
