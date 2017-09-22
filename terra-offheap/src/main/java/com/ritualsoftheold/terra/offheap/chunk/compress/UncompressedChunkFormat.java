@@ -9,6 +9,8 @@ public class UncompressedChunkFormat implements ChunkFormat {
     
     private static final Memory mem = OS.memory();
     
+    public static final UncompressedChunkFormat INSTANCE = new UncompressedChunkFormat();
+    
     @Override
     public boolean convert(long from, long to, int type) {
         switch (type) {

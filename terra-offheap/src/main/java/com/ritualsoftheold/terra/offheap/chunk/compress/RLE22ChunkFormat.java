@@ -4,6 +4,8 @@ import com.ritualsoftheold.terra.offheap.chunk.ChunkType;
 
 public class RLE22ChunkFormat implements ChunkFormat {
 
+    public static final RLE22ChunkFormat INSTANCE = new RLE22ChunkFormat();
+    
     @Override
     public boolean convert(long from, long to, int type) {
         switch (type) {

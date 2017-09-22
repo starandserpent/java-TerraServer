@@ -1,9 +1,17 @@
 package com.ritualsoftheold.terra.offheap.chunk.compress;
 
+import com.ritualsoftheold.terra.offheap.chunk.ChunkType;
+
 public interface ChunkFormat {
     
     public static ChunkFormat forType(byte type) {
         switch (type) {
+            case ChunkType.RLE_2_2:
+                return RLE22ChunkFormat.INSTANCE;
+            case ChunkType.EMPTY:
+                throw new IllegalArgumentException("empty chunk type (TODO)");
+            case ChunkType.UNCOMPRESSED:
+                return UncompressedChunkFormat.INSTANCE;
             default:
                 throw new IllegalArgumentException("unknown chunk type " + type);
         }

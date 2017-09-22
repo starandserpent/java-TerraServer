@@ -22,6 +22,16 @@ public class ChunkBuffer2 {
     private long addrs;
     
     /**
+     * Chunk data lengths. Pointer to data.
+     */
+    private long lengths;
+    
+    /**
+     * Used chunk data lengths. Pointer to data.
+     */
+    private long used;
+    
+    /**
      * Chunk types. Note that not all chunk types have associated address!
      * Pointer to data.
      */
@@ -78,6 +88,7 @@ public class ChunkBuffer2 {
          * Write and read everything as single long, otherwise endianness issues may arise!
          * 
          * Queries are to be manually flushed periodically.
+         */
         
         /**
          * Queue data address.
@@ -93,17 +104,18 @@ public class ChunkBuffer2 {
          * How many elements fit into the queue at same time.
          */
         private int size;
-        private int length;
         
         /**
          * Current free position in the queue.
          */
         private AtomicInteger pos;
         
-        /**
-         * Queue of chunks which are to be flushed.
-         */
-        private long flushQueue;
+        private ChangeQueue(long addr1, long addr2, int size) {
+            this.addr = addr1;
+            this.flushAddr = addr2;
+            this.size = size;
+            this.pos = new AtomicInteger(0);
+        }
         
         /**
          * Prepares to flush entries.
@@ -139,8 +151,6 @@ public class ChunkBuffer2 {
             // Actual flushing operation
             while (processed < flushCount) {
                 int[] consumed = new int[chunkCount.get()]; // How much have we consumed of per-chunk queues?
-                
-                int begin = processed; // Where did this processing loop begin?
                 
                 for (int i = 0; i < flushCount; i++) {
                     long query = mem.readLong(flushAddr);
@@ -191,6 +201,35 @@ public class ChunkBuffer2 {
     
     private ChangeQueue changeQueue;
     
+    public ChunkBuffer2(short id, int maxChunks, int globalQueueSize, int chunkQueueSize, MemoryUseListener memListener) {
+        bufferId = id; // Set buffer id
+        
+        // Initialize memory blocks for metadata
+        long allocLen = maxChunks * 17 + 2 * globalQueueSize + maxChunks * chunkQueueSize;
+        long baseAddr = mem.allocate(allocLen);
+        addrs = baseAddr; // 8 bytes per chunk
+        lengths = baseAddr + 8 * maxChunks; // 4 bytes per chunk
+        used = baseAddr + 12 * maxChunks; // 4 bytes per chunk
+        types = baseAddr + 16 * maxChunks; // 1 byte per chunk
+        
+        // Initialize counts (max: parameter, current: 0)
+        maxCount = maxChunks;
+        chunkCount = new AtomicInteger(0);
+        
+        long globalData = baseAddr + 17;
+        
+        // Intialize global change queue
+        changeQueue = new ChangeQueue(globalData, globalData + globalQueueSize, globalQueueSize);
+        
+        // Initialize chunk-local queues
+        queueSize = chunkQueueSize;
+        queues = globalData + globalQueueSize * 2;
+        
+        // Save ref to memory use listener and notify it
+        this.memListener = memListener;
+        memListener.onAllocate(allocLen);
+    }
+    
     /**
      * Creates a new chunk. It will not have memory address and typo of it is set to
      * empty.
@@ -208,17 +247,24 @@ public class ChunkBuffer2 {
         mem.writeVolatileLong(addrs + index * 8, addr);
     }
     
-    public int getChunkType(int index) {
-        return mem.readVolatileInt(types + index * 4);
+    public byte getChunkType(int index) {
+        return mem.readVolatileByte(types + index * 4);
     }
     
-    public void setChunkType(int index, int type) {
-        mem.writeVolatileInt(types + index * 4, type);
+    public void setChunkType(int index, byte type) {
+        mem.writeVolatileByte(types + index * 4, type);
+        if (type != ChunkType.EMPTY) {
+            
+        }
     }
     
     public void queueChange(int chunk, int block, int newId) {
         long query = (chunk << 40) & (block << 16) & newId;
         
         changeQueue.add(query);
+    }
+    
+    public void flushChanges() {
+        changeQueue.flush();
     }
 }
