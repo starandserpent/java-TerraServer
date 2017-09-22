@@ -179,7 +179,11 @@ public class ChunkBuffer2 {
                 
                 // TODO multithreaded (going to be so much "fun" with that...)
                 for (int i = 0; i < beginChunkCount; i++) {
-                    int queriesSize = consumed[i]; // Data consumed by queries
+                    int queriesSize = consumed[i]; // Data consumed by queries'
+                    if (queriesSize == 0) {
+                        continue; // No changes here
+                    }
+                    
                     long queueAddr = queues + i * queueSize;
                     
                     // Get suitable chunk format, which we'll eventually use to write the data
@@ -195,6 +199,10 @@ public class ChunkBuffer2 {
         
         private void add(long query) {
             int index = pos.getAndIncrement();
+            if (index > size) {
+                pos.decrementAndGet(); // Undo change
+                throw new IllegalStateException("change queue full (TODO don't crash but wait instead)");
+            }
             mem.writeVolatileLong(addr + index * 8, query);
         }
     }
@@ -212,13 +220,18 @@ public class ChunkBuffer2 {
         used = baseAddr + 12 * maxChunks; // 4 bytes per chunk
         types = baseAddr + 16 * maxChunks; // 1 byte per chunk
         
+        long globalData = baseAddr + 17;
+        
+        // Zero/generally set memory that needs it
+        mem.setMemory(baseAddr, maxChunks * 16, (byte) 0); // Zero some chunk specific data
+        mem.setMemory(types, maxChunks, ChunkType.EMPTY); // Types need to be EMPTY, even if it is not 0
+        mem.setMemory(globalData, 2 * globalQueueSize + maxChunks * chunkQueueSize, (byte) 0); // Zero global data
+        
         // Initialize counts (max: parameter, current: 0)
         maxCount = maxChunks;
         chunkCount = new AtomicInteger(0);
         
-        long globalData = baseAddr + 17;
-        
-        // Intialize global change queue
+        // Initialize global change queue
         changeQueue = new ChangeQueue(globalData, globalData + globalQueueSize, globalQueueSize);
         
         // Initialize chunk-local queues
@@ -253,9 +266,6 @@ public class ChunkBuffer2 {
     
     public void setChunkType(int index, byte type) {
         mem.writeVolatileByte(types + index * 4, type);
-        if (type != ChunkType.EMPTY) {
-            
-        }
     }
     
     public void queueChange(int chunk, int block, int newId) {
