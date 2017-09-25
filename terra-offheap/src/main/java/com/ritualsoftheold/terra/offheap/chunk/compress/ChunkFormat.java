@@ -38,4 +38,6 @@ public interface ChunkFormat {
      * @param size Size of query data.
      */
     void processQueries(long chunk, int chunkLen, ChunkBuffer2.Allocator alloc, long queue, int size);
+
+    void getBlocks(long chunk, int[] indices, short[] ids);
 }

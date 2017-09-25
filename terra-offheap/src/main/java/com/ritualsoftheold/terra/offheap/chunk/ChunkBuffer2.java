@@ -214,24 +214,36 @@ public class ChunkBuffer2 {
      */
     public class Allocator {
         
-        // TODO fix stubs
+        // TODO optimize to recycle memory
         
         /**
-         * Reallocates given chunk to have required amount of space available.
-         * @param chunk Chunk address.
+         * Allocates memory for a chunk with given length.
          * @param length Length of data.
-         * @return New address for chunk.
+         * @return Memory address where to put it.
          */
-        public long realloc(long chunk, int length) {
-            return 0;
+        public long alloc(int length) {
+            memListener.onAllocate(length);
+            return mem.allocate(length);
         }
         
-        public long copy(long chunk) {
-            return 0;
-        }
-        
-        public void paste(long copy, long chunk) {
+        /**
+         * Swaps memory address from old to new chunk. Old memory will be recycled.
+         * @param chunk Chunk id.
+         * @param oldAddr Old chunk address.
+         * @param newAddr New chunk address.
+         * @param length Length of new chunk.
+         */
+        public void swap(int chunk, long oldAddr, long newAddr, int length) {
+            int oldLength = mem.readVolatileInt(lengths + chunk * 4); // Get old length
             
+            mem.writeVolatileLong(addrs + chunk * 8, newAddr);
+            // TODO figure out what if another thread accesses data at this moment
+            mem.writeVolatileInt(lengths + chunk * 4, length);
+            mem.writeVolatileInt(used + chunk * 4, length);
+            
+            // Deallocate (for now) old chunk
+            mem.freeMemory(oldAddr, oldLength);
+            memListener.onFree(oldLength);
         }
     }
     
@@ -275,11 +287,26 @@ public class ChunkBuffer2 {
     
     /**
      * Creates a new chunk. It will not have memory address and typo of it is set to
-     * empty.
+     * empty. If new chunk cannot be created, -1 will be returned.
      * @return Index for chunk in THIS BUFFER.
      */
     public int newChunk() {
-        return chunkCount.getAndIncrement();
+        int index = chunkCount.getAndIncrement();
+        if (index >= maxCount) { // No space...
+            return -1;
+        }
+        
+        return index;
+    }
+    
+    /**
+     * Gets free capacity of this chunk buffer. Note that since everything can
+     * be asynchronous, you must also check that {@link #newChunk()} doesn't
+     * return -1.
+     * @return Free capacity.
+     */
+    public int getFreeCapacity() {
+        return maxCount - chunkCount.get();
     }
     
     public long getChunkAddr(int index) {
@@ -298,13 +325,23 @@ public class ChunkBuffer2 {
         mem.writeVolatileByte(types + index * 4, type);
     }
     
-    public void queueChange(int chunk, int block, int newId) {
+    public void queueChange(int chunk, int block, short newId) {
         long query = (chunk << 40) & (block << 16) & newId;
         
         changeQueue.add(query);
     }
     
+    public void getBlocks(int chunk, int[] indices, short[] ids) {
+        ChunkFormat format = ChunkFormat.forType(mem.readVolatileByte(types + chunk)); // Get format
+        
+        format.getBlocks(mem.readVolatileLong(addrs + chunk * 8), indices, ids);
+    }
+    
     public void flushChanges() {
         changeQueue.flush();
+    }
+    
+    public int getBufferId() {
+        return bufferId;
     }
 }
