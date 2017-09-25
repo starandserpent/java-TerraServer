@@ -22,10 +22,12 @@ public class ChunkStorage2 {
     public int newChunk() {
         boolean secondTry = true;
         while (true) {
-            for (ChunkBuffer2 buf : buffers) {
+            for (int i = 0; i < buffers.length; i++) {
+                ChunkBuffer2 buf = buffers[i];
+                
                 if (buf == null) { // Oh, that buffer is not loaded
                     if (secondTry) {
-                        // TODO load buffer
+                        loadBuffer(i); // Load it, now
                     } else { // Ignore if there is potential to not have load anything
                         continue;
                     }
@@ -35,7 +37,7 @@ public class ChunkStorage2 {
                     int index = buf.newChunk();
                     if (index != -1) { // If it succeeded
                         // Return full id for new chunk
-                        return buf.getBufferId() << 16 & index;
+                        return i << 16 & index;
                     }
                     // Fail means "try different buffer"
                 }
@@ -50,6 +52,23 @@ public class ChunkStorage2 {
             // ... until success
         }
     }
+
+    /**
+     * Loads given chunk buffer.
+     * @param index Index for buffer.
+     */
+    private void loadBuffer(int index) {
+        // TODO
+    }
     
-    
+    /**
+     * Creates a chunk buffer and assigns to given index. Note that this
+     * operation is synchronous to prevent creation of conflicting chunk
+     * buffers. If it returns true,
+     * @param index Index for new buffer.
+     * @return If creation succeeded.
+     */
+    private synchronized boolean createBuffer(int index) {
+        return false; // TODO
+    }
 }
