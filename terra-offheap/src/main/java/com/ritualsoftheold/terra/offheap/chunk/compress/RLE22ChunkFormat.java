@@ -19,7 +19,7 @@ public class RLE22ChunkFormat implements ChunkFormat {
     }
 
     @Override
-    public void processQueries(long chunk, int chunkLen, ChunkBuffer2.Allocator buf, long queue, int size) {
+    public void processQueries(long chunk, int chunkLen, ChunkBuffer2.Allocator alloc, long queue, int size) {
         // TODO Auto-generated method stub
         
     }

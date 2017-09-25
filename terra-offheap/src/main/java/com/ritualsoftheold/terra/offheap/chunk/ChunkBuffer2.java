@@ -214,6 +214,25 @@ public class ChunkBuffer2 {
      */
     public class Allocator {
         
+        // TODO fix stubs
+        
+        /**
+         * Reallocates given chunk to have required amount of space available.
+         * @param chunk Chunk address.
+         * @param length Length of data.
+         * @return New address for chunk.
+         */
+        public long realloc(long chunk, int length) {
+            return 0;
+        }
+        
+        public long copy(long chunk) {
+            return 0;
+        }
+        
+        public void paste(long copy, long chunk) {
+            
+        }
     }
     
     private Allocator allocator;

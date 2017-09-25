@@ -37,5 +37,5 @@ public interface ChunkFormat {
      * @param queue Address to query queue.
      * @param size Size of query data.
      */
-    void processQueries(long chunk, int chunkLen, ChunkBuffer2.Allocator buf, long queue, int size);
+    void processQueries(long chunk, int chunkLen, ChunkBuffer2.Allocator alloc, long queue, int size);
 }

@@ -24,7 +24,7 @@ public class UncompressedChunkFormat implements ChunkFormat {
     }
 
     @Override
-    public void processQueries(long chunk, int chunkLen, ChunkBuffer2.Allocator buf, long queue, int size) {
+    public void processQueries(long chunk, int chunkLen, ChunkBuffer2.Allocator alloc, long queue, int size) {
         long end = queue + size;
         for (long addr = queue; addr < end; addr += 8) {
             long query = mem.readVolatileLong(addr);
