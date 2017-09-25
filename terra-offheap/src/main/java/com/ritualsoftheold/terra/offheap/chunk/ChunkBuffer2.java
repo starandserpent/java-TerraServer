@@ -325,12 +325,24 @@ public class ChunkBuffer2 {
         mem.writeVolatileByte(types + index * 4, type);
     }
     
+    /**
+     * Queues a single block change to happen soon in given place.
+     * @param chunk Chunk index in this buffer.
+     * @param block Block index in the chunk.
+     * @param newId New id for the block
+     */
     public void queueChange(int chunk, int block, short newId) {
         long query = (chunk << 40) & (block << 16) & newId;
         
         changeQueue.add(query);
     }
     
+    /**
+     * Requests ids of a number of blocks.
+     * @param chunk Index fo chunk where to operate.
+     * @param indices Indices for blocks
+     * @param ids Where to place ids.
+     */
     public void getBlocks(int chunk, int[] indices, short[] ids) {
         ChunkFormat format = ChunkFormat.forType(mem.readVolatileByte(types + chunk)); // Get format
         
