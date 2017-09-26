@@ -232,14 +232,16 @@ public class ChunkBuffer2 {
          * @param oldAddr Old chunk address.
          * @param newAddr New chunk address.
          * @param length Length of new chunk.
+         * @param used How much of new space is used.
          */
-        public void swap(int chunk, long oldAddr, long newAddr, int length) {
+        public void swap(int chunk, long oldAddr, long newAddr, int length, int used) {
             int oldLength = mem.readVolatileInt(lengths + chunk * 4); // Get old length
             
-            mem.writeVolatileLong(addrs + chunk * 8, newAddr);
+            setChunkAddr(chunk, newAddr);
             // TODO figure out what if another thread accesses data at this moment
-            mem.writeVolatileInt(lengths + chunk * 4, length);
-            mem.writeVolatileInt(used + chunk * 4, length);
+            setChunkLength(chunk, length);
+            // Or at this moment
+            setChunkUsed(chunk, length);
             
             // Deallocate (for now) old chunk
             mem.freeMemory(oldAddr, oldLength);
