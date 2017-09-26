@@ -356,4 +356,46 @@ public class ChunkBuffer2 {
     public int getBufferId() {
         return bufferId;
     }
+    
+    /**
+     * Allows one to build a buffer.
+     *
+     */
+    public static class Builder {
+        
+        private short id;
+        private int maxChunks;
+        private int globalQueueSize;
+        private int chunkQueueSize;
+        private MemoryUseListener memListener;
+        
+        public Builder id(short id) {
+            this.id = id;
+            return this;
+        }
+        
+        public Builder maxChunks(int maxChunks) {
+            this.maxChunks = maxChunks;
+            return this;
+        }
+        
+        public Builder globalQueue(int size) {
+            this.globalQueueSize = size;
+            return this;
+        }
+        
+        public Builder chunkQueue(int size) {
+            this.chunkQueueSize = size;
+            return this;
+        }
+        
+        public Builder memListener(MemoryUseListener listener) {
+            this.memListener = listener;
+            return this;
+        }
+        
+        public ChunkBuffer2 build() {
+            return new ChunkBuffer2(id, maxChunks, globalQueueSize, chunkQueueSize, memListener);
+        }
+    }
 }

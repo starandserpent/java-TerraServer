@@ -15,6 +15,11 @@ public class ChunkStorage2 {
     private ChunkBuffer2[] buffers;
     
     /**
+     * Creates chunk buffers.
+     */
+    private ChunkBuffer2.Builder bufferBuilder;
+    
+    /**
      * Loads data from disk as necessary.
      */
     private ChunkLoader loader;
@@ -69,6 +74,13 @@ public class ChunkStorage2 {
      * @return If creation succeeded.
      */
     private synchronized boolean createBuffer(int index) {
-        return false; // TODO
+        if (buffers[index] != null) { // Check if already created
+            return false;
+        }
+        
+        // Create buffer
+        buffers[index] = bufferBuilder.build();
+        
+        return true;
     }
 }
