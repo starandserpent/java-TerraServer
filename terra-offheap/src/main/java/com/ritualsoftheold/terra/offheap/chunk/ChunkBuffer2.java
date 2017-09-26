@@ -325,6 +325,22 @@ public class ChunkBuffer2 {
         mem.writeVolatileByte(types + index * 4, type);
     }
     
+    public int getChunkLength(int index) {
+        return mem.readVolatileInt(lengths + index * 4);
+    }
+    
+    public void setChunkLength(int index, int length) {
+        mem.writeVolatileInt(lengths + index * 4, length);
+    }
+    
+    public int getChunkUsed(int index) {
+        return mem.readVolatileInt(used + index * 4);
+    }
+    
+    public void setChunkUsed(int index, int length) {
+        mem.writeVolatileInt(used + index * 4, length);
+    }
+    
     /**
      * Queues a single block change to happen soon in given place.
      * @param chunk Chunk index in this buffer.
@@ -358,7 +374,9 @@ public class ChunkBuffer2 {
     }
     
     /**
-     * Allows one to build a buffer.
+     * Allows building chunk buffers. One builder can create as many buffers
+     * as required. Settings may be altered between building buffers, but that
+     * is NOT recommended.
      *
      */
     public static class Builder {
@@ -396,6 +414,30 @@ public class ChunkBuffer2 {
         
         public ChunkBuffer2 build() {
             return new ChunkBuffer2(id, maxChunks, globalQueueSize, chunkQueueSize, memListener);
+        }
+    }
+    
+    /**
+     * Attempts to load given amount of chunks from data for which there is
+     * provided a memory address.
+     * @param addr Address of data's start.
+     * @param count How many chunks are in that data.
+     */
+    public void load(long addr, int count) {
+        for (int i = 0; i < count; i++) {
+            // Read metadata
+            byte type = mem.readByte(addr);
+            int length = mem.readInt(addr + 1);
+            addr += 5; // To actual chunk data
+            
+            // Copy data that needs to be copied
+            setChunkAddr(i, addr);
+            setChunkType(i, type);
+            setChunkLength(i, length);
+            setChunkUsed(i, length);
+            
+            // Increment pointer to point to next chunk
+            addr += length;
         }
     }
 }
