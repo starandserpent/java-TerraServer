@@ -34,21 +34,8 @@ public class OffheapChunk implements Chunk, OffheapNode {
     }
 
     @Override
-    public Block getBlockAt(float x, float y, float z) {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-    @Override
-    public void setBlockAt(float x, float y, float z, Block block) {
-        // TODO Auto-generated method stub
-        
-    }
-
-    @Override
     public int getMaxBlockCount() {
-        // TODO Auto-generated method stub
-        return 0;
+        return DataConstants.CHUNK_MAX_BLOCKS;
     }
 
     @Override

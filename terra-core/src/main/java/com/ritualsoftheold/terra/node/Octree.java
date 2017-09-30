@@ -10,7 +10,7 @@ public interface Octree extends Node {
     
     Octree getOctreeAt(int index) throws ClassCastException;
     
-    Block getBlockAt(int index) throws ClassCastException;
+    //Block getBlockAt(int index) throws ClassCastException;
     
     Chunk getChunkAt(int index) throws ClassCastException;
     

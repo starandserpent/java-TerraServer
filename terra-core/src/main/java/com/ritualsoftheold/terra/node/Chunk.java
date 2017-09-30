@@ -1,14 +1,50 @@
 package com.ritualsoftheold.terra.node;
 
+import com.ritualsoftheold.terra.material.TerraMaterial;
+
 /**
  * Chunk is a node which contains many blocks.
  *
  */
 public interface Chunk extends Node {
     
-    Block getBlockAt(float x, float y, float z);
+    default int getIndex(int x, int y, int z) {
+        return z * 4096 + y * 64 + x;
+    }
     
-    void setBlockAt(float x, float y, float z, Block block);
+    short getBlockId(int index);
+    
+    default short getBlockId(int x, int y, int z) {
+        return getBlockId(getIndex(x, y, z));
+    }
+    
+    void setBlockId(int index, short id);
+    
+    default void setBlockId(int x, int y, int z, short id) {
+        setBlockId(getIndex(x, y, z), id);
+    }
+    
+    void getBlockIds(int[] indices, short[] ids);
+    
+    default short[] getBlockIds(int[] indices) {
+        short[] ids = new short[indices.length];
+        getBlockIds(indices, ids);
+        return ids;
+    }
+    
+    void setBlockIds(int[] indices, short[] ids);
+    
+    TerraMaterial getBlock(int index);
+    
+    default TerraMaterial getBlock(int x, int y, int z) {
+        return getBlock(getIndex(x, y, z));
+    }
+    
+    void setBlock(int index, TerraMaterial material);
+    
+    default void setBlock(int x, int y, int z, TerraMaterial material) {
+        setBlock(getIndex(x, y, z), material);
+    }
     
     /**
      * Gets maximum block count of this chunk.
