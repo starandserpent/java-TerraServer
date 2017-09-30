@@ -5,7 +5,6 @@ import com.ritualsoftheold.terra.material.TerraMaterial;
 import com.ritualsoftheold.terra.node.Chunk;
 import com.ritualsoftheold.terra.offheap.DataConstants;
 import com.ritualsoftheold.terra.offheap.chunk.ChunkBuffer;
-import com.ritualsoftheold.terra.offheap.chunk.ChunkStorage;
 import com.ritualsoftheold.terra.offheap.data.OffheapNode;
 
 import net.openhft.chronicle.core.Memory;
@@ -26,6 +25,12 @@ public class OffheapChunk implements Chunk, OffheapNode {
     private int chunkId;
     
     private MaterialRegistry materialRegistry;
+    
+    public OffheapChunk(ChunkBuffer buf, int chunkId, MaterialRegistry materialRegistry) {
+        this.buf = buf;
+        this.chunkId = chunkId;
+        this.materialRegistry = materialRegistry;
+    }
 
     @Override
     public Type getNodeType() {

@@ -524,12 +524,12 @@ public class OffheapWorld implements TerraWorld {
                             mem.compareAndSwapInt(nodeAddr, 0, newNode);
                             System.err.println("gen node: " + (newNode & 0xffff) + ", buf: " + (newNode >>> 16));
                             // TODO clear garbage produced by race conditions somehow
-                            listener.chunkLoaded(chunkStorage.ensureLoaded(newNode), chunkStorage, newNode, fX, fY, fZ);
+                            listener.chunkLoaded(chunkStorage.getTemporaryChunk(node, registry));
                         //});
                         // Put joinable future to list of them, if caller wants to make sure they're all done
                         //futures.add(future);
                     } else {
-                        listener.chunkLoaded(chunkStorage.ensureLoaded(node), chunkStorage.getBufferUnsafe((short) (node >>> 16)), x2, y2, z2);
+                        listener.chunkLoaded(chunkStorage.getTemporaryChunk(node, registry));
                     }
                 }
                 

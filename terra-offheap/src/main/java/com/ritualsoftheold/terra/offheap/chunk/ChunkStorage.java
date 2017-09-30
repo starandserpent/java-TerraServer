@@ -1,6 +1,8 @@
 package com.ritualsoftheold.terra.offheap.chunk;
 
+import com.ritualsoftheold.terra.material.MaterialRegistry;
 import com.ritualsoftheold.terra.offheap.io.ChunkLoader;
+import com.ritualsoftheold.terra.offheap.node.OffheapChunk;
 
 /**
  * Manages all chunks of a single world using chunk buffers.
@@ -92,5 +94,15 @@ public class ChunkStorage {
         buffers[index] = bufferBuilder.build();
         
         return true;
+    }
+    
+    /**
+     * Creates temporary chunk object. Only for internal use, might mess with
+     * memory manager if used in wrong place!
+     * @return Chunk.
+     */
+    public OffheapChunk getTemporaryChunk(int chunkId, MaterialRegistry materialRegistry) {
+        ChunkBuffer buf = buffers[chunkId >>> 16];
+        return new OffheapChunk(buf, chunkId & 0xffff, materialRegistry);
     }
 }
