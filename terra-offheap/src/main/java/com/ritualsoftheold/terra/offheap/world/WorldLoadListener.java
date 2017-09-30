@@ -1,6 +1,6 @@
 package com.ritualsoftheold.terra.offheap.world;
 
-import com.ritualsoftheold.terra.offheap.chunk.ChunkBuffer;
+import com.ritualsoftheold.terra.offheap.chunk.ChunkStorage;
 
 /**
  * This is called when a chunk or octree is loaded.
@@ -10,7 +10,7 @@ import com.ritualsoftheold.terra.offheap.chunk.ChunkBuffer;
  */
 public interface WorldLoadListener {
     
-    void octreeLoaded(long addr, long groupAddr, float x, float y, float z, float scale);
+    void octreeLoaded(long addr, long groupAddr, int id, float x, float y, float z, float scale);
     
-    void chunkLoaded(long addr, ChunkBuffer buf, float x, float y, float z);
+    void chunkLoaded(long addr, ChunkStorage storage, int id, float x, float y, float z);
 }

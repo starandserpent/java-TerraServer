@@ -24,6 +24,11 @@ public class ChunkStorage {
      */
     private ChunkLoader loader;
     
+    public ChunkStorage(ChunkBuffer.Builder bufferBuilder, ChunkLoader loader) {
+        this.bufferBuilder = bufferBuilder;
+        this.loader = loader;
+    }
+    
     public int newChunk() {
         boolean secondTry = true;
         while (true) {
