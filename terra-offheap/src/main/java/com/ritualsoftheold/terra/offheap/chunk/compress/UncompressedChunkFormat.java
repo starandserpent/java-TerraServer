@@ -1,6 +1,6 @@
 package com.ritualsoftheold.terra.offheap.chunk.compress;
 
-import com.ritualsoftheold.terra.offheap.chunk.ChunkBuffer2;
+import com.ritualsoftheold.terra.offheap.chunk.ChunkBuffer;
 import com.ritualsoftheold.terra.offheap.chunk.ChunkType;
 
 import net.openhft.chronicle.core.Memory;
@@ -24,7 +24,7 @@ public class UncompressedChunkFormat implements ChunkFormat {
     }
 
     @Override
-    public void processQueries(long chunk, int chunkLen, ChunkBuffer2.Allocator alloc, long queue, int size) {
+    public void processQueries(long chunk, int chunkLen, ChunkBuffer.Allocator alloc, long queue, int size) {
         long end = queue + size;
         for (long addr = queue; addr < end; addr += 8) {
             long query = mem.readVolatileLong(addr);

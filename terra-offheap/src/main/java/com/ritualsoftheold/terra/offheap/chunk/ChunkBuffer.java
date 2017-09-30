@@ -2,15 +2,14 @@ package com.ritualsoftheold.terra.offheap.chunk;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
-import com.ritualsoftheold.terra.offheap.DataConstants;
-import com.ritualsoftheold.terra.offheap.chunk.compress.RunLengthCompressor;
+import com.ritualsoftheold.terra.offheap.chunk.compress.ChunkFormat;
 import com.ritualsoftheold.terra.offheap.memory.MemoryUseListener;
 
 import net.openhft.chronicle.core.Memory;
 import net.openhft.chronicle.core.OS;
 
 /**
- * Contains some chunks in memory.
+ * Contains chunks in memory.
  *
  */
 public class ChunkBuffer {
@@ -18,278 +17,429 @@ public class ChunkBuffer {
     private static final Memory mem = OS.memory();
     
     /**
-     * Maximum chunk count in this buffer.
+     * Chunk memory addresses. Pointer to data.
      */
-    private int chunkCount;
+    private long addrs;
     
     /**
-     * Array of memory addresses for chunks.
+     * Chunk data lengths. Pointer to data.
      */
-    private long[] chunks;
+    private long lengths;
     
     /**
-     * Array of chunk data lengths.
+     * Used chunk data lengths. Pointer to data.
      */
-    private long[] lengths;
+    private long used;
     
     /**
-     * Index of first free chunk slot in this buffer.
+     * Chunk types. Note that not all chunk types have associated address!
+     * Pointer to data.
      */
-    private AtomicInteger freeIndex;
+    private long types;
     
     /**
-     * When this was last needed.
+     * Change queues for all chunks.
+     * Pointer to data.
      */
-    private volatile long neededTime;
+    private long queues;
+    
+    private int queueSize;
     
     /**
-     * Every time memory is allocated, the amount of it to be allocated is
-     * increased by this value. This is to avoid constant and pointless
-     * reallocations.
+     * Current count of chunks in this buffer. This also serves
+     * as first free index to this buffer.
      */
-    private int extraAlloc;
+    private AtomicInteger chunkCount;
     
     /**
-     * Buffer id for storage that contains this.
-     * TODO what if a buffer is in multiple storages? is that allowed, actually?
+     * Maximum count of chunks in this buffer.
+     */
+    private int maxCount;
+    
+    /**
+     * If of this chunk buffer.
      */
     private short bufferId;
     
+    /**
+     * Returns when this buffer was last used.
+     */
+    private volatile long lastNeeded;
+    
+    /**
+     * Memory usage listener.
+     */
     private MemoryUseListener memListener;
     
-    public ChunkBuffer(int chunkCount, int extraAlloc, short bufferId, MemoryUseListener memListener) {
-        this.chunkCount = chunkCount;
+    private class ChangeQueue {
         
-        chunks = new long[chunkCount];
-        lengths = new long[chunkCount];
-        freeIndex = new AtomicInteger(0);
-        this.extraAlloc = extraAlloc;
-        this.bufferId = bufferId;
-        this.memListener = memListener;
-    }
-    
-    public short getId() {
-        return bufferId;
-    }
-    
-    /**
-     * Checks if this buffer can take one more chunk.
-     * @return If one more chunk can be added.
-     */
-    public boolean hasSpace() {
-        return chunkCount > freeIndex.get();
-    }
-    
-    /**
-     * Creates a chunk to this buffer.
-     * @param firstLength Starting length of chunk (in memory). Try to have
-     * something sensible here to avoid instant reallocation.
-     * @return Chunk index in this buffer.
-     */
-    public int createChunk(int firstLength) {
-        // Take index, then adjust freeIndex
-        int index = freeIndex.getAndIncrement();
         /*
-         * Thread safe, I guess? First we get index+increment it in atomic
-         * operation. It is not possible to enter actual creation code
-         * until BOTH are done, so you can't (hopefully) overwrite existing
-         * data with race conditions.
+         * Internally chunk changes are put into buffer-global queue,
+         * which is stored in offheap memory.
+         * 
+         * Each query is 8 bytes (a long). Contents are:
+         * * 1 byte: type of query
+         * 
+         * Following type comes other data. For '0' queries, it is:
+         * * 2 bytes: affected chunk (in this buffer)
+         * * 3 bytes: block index in the chunk
+         * * 2 bytes: block id to set
+         * 
+         * Write and read everything as single long, otherwise endianness issues may arise!
+         * 
+         * Queries are to be manually flushed periodically.
          */
         
-        long amount = firstLength + extraAlloc;
-        long addr = mem.allocate(amount);
-        mem.setMemory(addr, amount, (byte) 0);
-        chunks[index] = addr;
-        lengths[index] = amount;
-        memListener.onAllocate(amount);
+        /**
+         * Queue data address.
+         */
+        private long addr;
         
-        // And finally return the index
+        /**
+         * When flushing, data is copied here.
+         */
+        private long flushAddr;
+        
+        /**
+         * How many elements fit into the queue at same time.
+         */
+        private int size;
+        
+        /**
+         * Current free position in the queue.
+         */
+        private AtomicInteger pos;
+        
+        private ChangeQueue(long addr1, long addr2, int size) {
+            this.addr = addr1;
+            this.flushAddr = addr2;
+            this.size = size;
+            this.pos = new AtomicInteger(0);
+        }
+        
+        /**
+         * Prepares to flush entries.
+         * @return How many are to be flushed safely.
+         */
+        private int prepareFlush() {
+            // Copy data to flush cache
+            int flushCount = pos.get();
+            mem.copyMemory(addr, flushAddr, flushCount * 8);
+            
+            return flushCount;
+        }
+        
+        private void cleanup(int oldCount) {
+            // Zero beginning block (data is flushed already)
+            mem.setMemory(addr, oldCount * 8, (byte) 0);
+            
+            // Zero the position
+            int newCount = pos.getAndSet(0);
+            
+            // Re-add any remaining queries to queue
+            int diff = newCount - oldCount;
+            for (int i = newCount; i < newCount + diff; i++) {
+                add(mem.readVolatileLong(addr + i * 8));
+            }
+        }
+
+        private void flush() {
+            int beginChunkCount = chunkCount.get();
+            int flushCount = prepareFlush();
+            int processed = 0; // How many of flushes have we queued forward?
+
+            // Actual flushing operation
+            while (processed < flushCount) {
+                int[] consumed = new int[chunkCount.get()]; // How much have we consumed of per-chunk queues?
+                
+                for (int i = 0; i < flushCount; i++) {
+                    long query = mem.readLong(flushAddr);
+                    long type = query >>> 56;
+                    
+                    if (type == 0) {
+                        // Read data using bitwise operations
+                        int chunk = (int) (query >>> 40 & 0xffff);
+    //                    long block = query >>> 16 & 0xffffff;
+    //                    long newId = query & 0xffff;
+                        
+                        int offset = consumed[chunk];
+                        if (offset == queueSize) { // Out of space...
+                            break; // Need to update that chunk NOW
+                            // TODO optimize
+                        }
+                        
+                        long queueSlot = queues + queueSize * chunk + offset;
+                        mem.writeLong(queueSlot, query);
+                        
+                        // Increment counters
+                        consumed[chunk] += 8;
+                        processed++;
+                    }
+                }
+                
+                // TODO multithreaded (going to be so much "fun" with that...)
+                for (int i = 0; i < beginChunkCount; i++) {
+                    int queriesSize = consumed[i]; // Data consumed by queries'
+                    if (queriesSize == 0) {
+                        continue; // No changes here
+                    }
+                    
+                    long queueAddr = queues + i * queueSize;
+                    
+                    // Get suitable chunk format, which we'll eventually use to write the data
+                    ChunkFormat format = ChunkFormat.forType(mem.readVolatileByte(types + i));
+                    
+                    // Ask format to process queries (and hope it handles that correctly)
+                    format.processQueries(mem.readVolatileLong(addrs + i * 4), mem.readVolatileInt(lengths + i * 4),
+                            allocator, queueAddr, queriesSize);
+                }
+            }
+
+            cleanup(flushCount);
+        }
+        
+        private void add(long query) {
+            int index = pos.getAndIncrement();
+            if (index > size) {
+                pos.decrementAndGet(); // Undo change
+                throw new IllegalStateException("change queue full (TODO don't crash but wait instead)");
+            }
+            mem.writeVolatileLong(addr + index * 8, query);
+        }
+    }
+    
+    /**
+     * Allocates and deallocates memory for chunks on demand.
+     *
+     */
+    public class Allocator {
+        
+        // TODO optimize to recycle memory
+        
+        /**
+         * Allocates memory for a chunk with given length.
+         * @param length Length of data.
+         * @return Memory address where to put it.
+         */
+        public long alloc(int length) {
+            memListener.onAllocate(length);
+            return mem.allocate(length);
+        }
+        
+        /**
+         * Swaps memory address from old to new chunk. Old memory will be recycled.
+         * @param chunk Chunk id.
+         * @param oldAddr Old chunk address.
+         * @param newAddr New chunk address.
+         * @param length Length of new chunk.
+         * @param used How much of new space is used.
+         */
+        public void swap(int chunk, long oldAddr, long newAddr, int length, int used) {
+            int oldLength = mem.readVolatileInt(lengths + chunk * 4); // Get old length
+            
+            setChunkAddr(chunk, newAddr);
+            // TODO figure out what if another thread accesses data at this moment
+            setChunkLength(chunk, length);
+            // Or at this moment
+            setChunkUsed(chunk, length);
+            
+            // Deallocate (for now) old chunk
+            mem.freeMemory(oldAddr, oldLength);
+            memListener.onFree(oldLength);
+        }
+    }
+    
+    private Allocator allocator;
+    
+    private ChangeQueue changeQueue;
+    
+    public ChunkBuffer(short id, int maxChunks, int globalQueueSize, int chunkQueueSize, MemoryUseListener memListener) {
+        bufferId = id; // Set buffer id
+        
+        // Initialize memory blocks for metadata
+        long allocLen = maxChunks * 17 + 2 * globalQueueSize + maxChunks * chunkQueueSize;
+        long baseAddr = mem.allocate(allocLen);
+        addrs = baseAddr; // 8 bytes per chunk
+        lengths = baseAddr + 8 * maxChunks; // 4 bytes per chunk
+        used = baseAddr + 12 * maxChunks; // 4 bytes per chunk
+        types = baseAddr + 16 * maxChunks; // 1 byte per chunk
+        
+        long globalData = baseAddr + 17;
+        
+        // Zero/generally set memory that needs it
+        mem.setMemory(baseAddr, maxChunks * 16, (byte) 0); // Zero some chunk specific data
+        mem.setMemory(types, maxChunks, ChunkType.EMPTY); // Types need to be EMPTY, even if it is not 0
+        mem.setMemory(globalData, 2 * globalQueueSize + maxChunks * chunkQueueSize, (byte) 0); // Zero global data
+        
+        // Initialize counts (max: parameter, current: 0)
+        maxCount = maxChunks;
+        chunkCount = new AtomicInteger(0);
+        
+        // Initialize global change queue
+        changeQueue = new ChangeQueue(globalData, globalData + globalQueueSize, globalQueueSize);
+        
+        // Initialize chunk-local queues
+        queueSize = chunkQueueSize;
+        queues = globalData + globalQueueSize * 2;
+        
+        // Save ref to memory use listener and notify it
+        this.memListener = memListener;
+        memListener.onAllocate(allocLen);
+    }
+    
+    /**
+     * Creates a new chunk. It will not have memory address and typo of it is set to
+     * empty. If new chunk cannot be created, -1 will be returned.
+     * @return Index for chunk in THIS BUFFER.
+     */
+    public int newChunk() {
+        int index = chunkCount.getAndIncrement();
+        if (index >= maxCount) { // No space...
+            return -1;
+        }
+        
         return index;
     }
     
     /**
-     * Reallocates chunk with given amount of space. Note that you <b>must</b>
-     * free old data, after you have copied all relevant parts to new area.
-     * @param index Chunk index in this buffer.
-     * @param newLength New length in bytes.
-     * @return New memory address. Remember to free the old one!
+     * Gets free capacity of this chunk buffer. Note that since everything can
+     * be asynchronous, you must also check that {@link #newChunk()} doesn't
+     * return -1.
+     * @return Free capacity.
      */
-    public long reallocChunk(int index, long newLength) {
-        long amount = newLength + extraAlloc;
-        long addr = mem.allocate(amount);
-        mem.setMemory(addr, amount, (byte) 0);
-        
-        chunks[index] = addr;
-        lengths[index] = amount;
-        memListener.onAllocate(amount);
-        
-        return addr;
+    public int getFreeCapacity() {
+        return maxCount - chunkCount.get();
+    }
+    
+    public long getChunkAddr(int index) {
+        return mem.readVolatileLong(addrs + index * 8);
+    }
+    
+    public void setChunkAddr(int index, long addr) {
+        mem.writeVolatileLong(addrs + index * 8, addr);
+    }
+    
+    public byte getChunkType(int index) {
+        return mem.readVolatileByte(types + index * 4);
+    }
+    
+    public void setChunkType(int index, byte type) {
+        mem.writeVolatileByte(types + index * 4, type);
+    }
+    
+    public int getChunkLength(int index) {
+        return mem.readVolatileInt(lengths + index * 4);
+    }
+    
+    public void setChunkLength(int index, int length) {
+        mem.writeVolatileInt(lengths + index * 4, length);
+    }
+    
+    public int getChunkUsed(int index) {
+        return mem.readVolatileInt(used + index * 4);
+    }
+    
+    public void setChunkUsed(int index, int length) {
+        mem.writeVolatileInt(used + index * 4, length);
     }
     
     /**
-     * Loads chunk buffer from given memory address which contains given amount
-     * of chunks. Note that this is not allowed to exceed the amount given
-     * when this buffer was created!
-     * @param addr
-     * @param count
+     * Queues a single block change to happen soon in given place.
+     * @param chunk Chunk index in this buffer.
+     * @param block Block index in the chunk.
+     * @param newId New id for the block
      */
-    public void load(long addr, int count) {
-        long allocated = 0; // Count this
-        // Read pointer data
-        for (int i = 0; i < count; i++) {
-            long entry = mem.readLong(addr + i * DataConstants.CHUNK_POINTER_STORE) >>> 8;
-            long chunkAddr = addr + (entry >>> 24);
-            long chunkLen = (entry & 0xffffff);
-            
-            // Save the length
-            lengths[i] = chunkLen + extraAlloc;
-            
-            // Allocate memory, then copy data
-            long amount = chunkLen + extraAlloc;
-            long newAddr = mem.allocate(amount);
-            mem.copyMemory(chunkAddr, newAddr, chunkLen);
-            chunks[i] = newAddr;
-            allocated += amount;
-        }
-        freeIndex.set(count);
+    public void queueChange(int chunk, int block, short newId) {
+        long query = (chunk << 40) & (block << 16) & newId;
         
-        memListener.onAllocate(allocated);
+        changeQueue.add(query);
     }
     
     /**
-     * Gets how much space saving this buffer would take.
-     * @return Space required for saving.
+     * Requests ids of a number of blocks.
+     * @param chunk Index fo chunk where to operate.
+     * @param indices Indices for blocks
+     * @param ids Where to place ids.
      */
-    public long getSaveSize() {
-        long size = 0;
-        for (long len : lengths) {
-            size += len;
-        }
-        return size;
-    }
-    
-    /**
-     * Saves chunks at given address. Make sure you have enough space!
-     * @param addr Memory address.
-     */
-    public int save(long addr) {
-        int chunksLoaded = freeIndex.get(); // How many chunks this actually contains
+    public void getBlocks(int chunk, int[] indices, short[] ids) {
+        ChunkFormat format = ChunkFormat.forType(mem.readVolatileByte(types + chunk)); // Get format
         
-        int saveOffset = 0;
-        for (int i = 0; i < chunksLoaded; i++) {
-            long chunkLen = lengths[i]; // Take length of chunk
-            
-            // Write chunk offset and length in save data
-            long curAddr = addr + i * DataConstants.CHUNK_POINTER_STORE;
-            mem.writeInt(curAddr, saveOffset); // Offset
-            mem.writeShort(curAddr + 4, (short) (chunkLen >>> 8)); // Length
-            mem.writeByte(curAddr + 5, (byte) (chunkLen & 0xff));
-            
-            mem.copyMemory(chunks[i], addr + saveOffset, chunkLen); // Copy data to save location
-            saveOffset += chunkLen; // Increase save offset for next chunk
-        }
-        
-        return chunksLoaded;
+        format.getBlocks(mem.readVolatileLong(addrs + chunk * 8), indices, ids);
     }
     
-    /**
-     * Returns an iterator for this buffer. If amount of chunks
-     * changes, iterator will become invalid and unsafe to use.
-     * @return Chunk iterator.
-     */
-    public ChunkBufferIterator iterator() {
-        return new ChunkBufferIterator(chunks, lengths, freeIndex.get() - 1);
+    public void flushChanges() {
+        changeQueue.flush();
     }
     
-    public int getExtraAlloc() {
-        return extraAlloc;
-    }
-    
-    public long getChunkAddress(int bufferId) {
-        return chunks[bufferId];
-    }
-    
-    public long getChunkLength(int bufferId) {
-        return lengths[bufferId];
-    }
-    
-    /**
-     * Unpacks specific chunk to given address.
-     * @param index
-     * @param addr
-     */
-    public void unpack(int index, long addr) {
-        RunLengthCompressor.compress(chunks[index], addr);
-    }
-    
-    // TODO might be broken but is unused, check for memory leaks later
-    public void pack(int index, long addr, int length) {
-        // TODO optimize to do less memory allocations
-        long tempAddr = mem.allocate(length);
-        long compressedLength = RunLengthCompressor.compress(addr, tempAddr);
-        if (compressedLength  > lengths[index]) { // If we do not have enough space, allocate more
-            reallocChunk(index, compressedLength);
-        }
-        mem.copyMemory(tempAddr, chunks[index], compressedLength); // Copy temporary packed data to final destination
-        mem.freeMemory(tempAddr, length); // Free temporary packing memory
-    }
-
-    public int putChunk(long addr) {
-        long tempAddr = mem.allocate(DataConstants.CHUNK_UNCOMPRESSED); // TODO optimize to allocate less memory
-        int compressedLength = RunLengthCompressor.compress(addr, tempAddr);
-        
-        int bufferId = createChunk(compressedLength);
-        long bufAddr = getChunkAddress(bufferId);
-//        System.out.println("Write 0 to " + bufAddr);
-//        System.out.println("first block: " + mem.readShort(addr));
-//        System.out.println("compressed: " + Integer.toBinaryString(mem.readInt(tempAddr + 12)));
-//        System.out.println("compressedLength: " + compressedLength);
-        mem.writeByte(bufAddr, (byte) 0);
-        mem.copyMemory(tempAddr, bufAddr + 1, compressedLength);
-        mem.freeMemory(tempAddr, DataConstants.CHUNK_UNCOMPRESSED);
+    public int getBufferId() {
         return bufferId;
     }
     
     /**
-     * Sets when this buffer was last needed.
-     * @param time Time in milliseconds.
+     * Allows building chunk buffers. One builder can create as many buffers
+     * as required. Settings may be altered between building buffers, but that
+     * is NOT recommended.
+     *
      */
-    public void setLastNeeded(long time) {
-        neededTime = time;
-    }
-    
-    public long getLastNeeded() {
-        return neededTime;
-    }
-    
-    public int getChunkCount() {
-        return freeIndex.get();
-    }
-
-    public void unloadAll() {
-        long freed = 0;
-        for (int i = 0; i < chunks.length; i++) {
-            mem.freeMemory(chunks[i], lengths[i]);
-            freed += lengths[i];
-        }
-        memListener.onFree(freed);
-    }
-    
-    @Override
-    public int hashCode() {
-        return bufferId; // bufferId is unique, use it as hash code
-    }
-
-    /**
-     * Calculates how much offheap memory this takes.
-     * @return Offheap memory used.
-     */
-    public long calculateSize() {
-        long size = 0;
-        for (long len : lengths) {
-            size += len;
+    public static class Builder {
+        
+        private short id;
+        private int maxChunks;
+        private int globalQueueSize;
+        private int chunkQueueSize;
+        private MemoryUseListener memListener;
+        
+        public Builder id(short id) {
+            this.id = id;
+            return this;
         }
         
-        return size;
+        public Builder maxChunks(int maxChunks) {
+            this.maxChunks = maxChunks;
+            return this;
+        }
+        
+        public Builder globalQueue(int size) {
+            this.globalQueueSize = size;
+            return this;
+        }
+        
+        public Builder chunkQueue(int size) {
+            this.chunkQueueSize = size;
+            return this;
+        }
+        
+        public Builder memListener(MemoryUseListener listener) {
+            this.memListener = listener;
+            return this;
+        }
+        
+        public ChunkBuffer build() {
+            return new ChunkBuffer(id, maxChunks, globalQueueSize, chunkQueueSize, memListener);
+        }
+    }
+    
+    /**
+     * Attempts to load given amount of chunks from data for which there is
+     * provided a memory address.
+     * @param addr Address of data's start.
+     * @param count How many chunks are in that data.
+     */
+    public void load(long addr, int count) {
+        for (int i = 0; i < count; i++) {
+            // Read metadata
+            byte type = mem.readByte(addr);
+            int length = mem.readInt(addr + 1);
+            addr += 5; // To actual chunk data
+            
+            // Copy data that needs to be copied
+            setChunkAddr(i, addr);
+            setChunkType(i, type);
+            setChunkLength(i, length);
+            setChunkUsed(i, length);
+            
+            // Increment pointer to point to next chunk
+            addr += length;
+        }
     }
 }

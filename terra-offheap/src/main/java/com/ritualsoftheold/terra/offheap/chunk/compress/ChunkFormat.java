@@ -1,6 +1,6 @@
 package com.ritualsoftheold.terra.offheap.chunk.compress;
 
-import com.ritualsoftheold.terra.offheap.chunk.ChunkBuffer2;
+import com.ritualsoftheold.terra.offheap.chunk.ChunkBuffer;
 import com.ritualsoftheold.terra.offheap.chunk.ChunkType;
 
 public interface ChunkFormat {
@@ -37,7 +37,7 @@ public interface ChunkFormat {
      * @param queue Address to query queue.
      * @param size Size of query data.
      */
-    void processQueries(long chunk, int chunkLen, ChunkBuffer2.Allocator alloc, long queue, int size);
+    void processQueries(long chunk, int chunkLen, ChunkBuffer.Allocator alloc, long queue, int size);
 
     void getBlocks(long chunk, int[] indices, short[] ids);
 }
