@@ -19,7 +19,9 @@ import com.ritualsoftheold.terra.node.Chunk;
 import com.ritualsoftheold.terra.node.Node;
 import com.ritualsoftheold.terra.node.Octree;
 import com.ritualsoftheold.terra.offheap.DataConstants;
+import com.ritualsoftheold.terra.offheap.chunk.ChunkBuffer;
 import com.ritualsoftheold.terra.offheap.chunk.ChunkStorage;
+import com.ritualsoftheold.terra.offheap.chunk.ChunkType;
 import com.ritualsoftheold.terra.offheap.io.ChunkLoader;
 import com.ritualsoftheold.terra.offheap.io.OctreeLoader;
 import com.ritualsoftheold.terra.offheap.memory.MemoryManager;
@@ -617,15 +619,21 @@ public class OffheapWorld implements TerraWorld {
         
         generator.generate(data, x, y, z, DataConstants.CHUNK_SCALE, meta);
         
-        long tempAddr = mem.allocate(DataConstants.CHUNK_UNCOMPRESSED);
+        int chunkId = chunkStorage.newChunk(); // Create a chunk
+        ChunkBuffer buf = chunkStorage.getBuffer(chunkId >>> 16); // Use buffer id from chunk it to get buffer
+        int index = chunkId & 0xffff; // Get index inside buffer
         
-        // TODO memory copy is faster (but not as safe)
+        // TODO use data heuristics to get the type
+        buf.setChunkType(index, ChunkType.UNCOMPRESSED);
+        
+        long chunkAddr = mem.allocate(DataConstants.CHUNK_UNCOMPRESSED);
         for (int i = 0; i < data.length; i++) {
-            mem.writeShort(tempAddr + i * 2, data[i]);
+            mem.writeShort(chunkAddr + i * 2, data[i]);
         }
+        buf.setChunkAddr(index, chunkAddr);
+        buf.setChunkLength(index, DataConstants.CHUNK_UNCOMPRESSED);
+        buf.setChunkUsed(index, DataConstants.CHUNK_UNCOMPRESSED);
         
-        int chunkId = chunkStorage.addChunk(tempAddr, registry);
-        mem.freeMemory(tempAddr, DataConstants.CHUNK_UNCOMPRESSED);
         return chunkId;
     }
     

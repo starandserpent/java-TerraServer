@@ -99,10 +99,22 @@ public class ChunkStorage {
     /**
      * Creates temporary chunk object. Only for internal use, might mess with
      * memory manager if used in wrong place!
+     * @param chunkId
+     * @param materialRegistry
      * @return Chunk.
      */
     public OffheapChunk getTemporaryChunk(int chunkId, MaterialRegistry materialRegistry) {
         ChunkBuffer buf = buffers[chunkId >>> 16];
         return new OffheapChunk(buf, chunkId & 0xffff, materialRegistry);
+    }
+    
+    /**
+     * Gets a chunk buffer. Only for internal usage, might cause trouble
+     * with memory manager if not used correctly.
+     * @param index
+     * @return Chunk buffer (or null).
+     */
+    public ChunkBuffer getBuffer(int index) {
+        return buffers[index];
     }
 }
