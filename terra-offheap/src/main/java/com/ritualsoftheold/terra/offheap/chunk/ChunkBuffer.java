@@ -264,7 +264,7 @@ public class ChunkBuffer {
         used = baseAddr + 12 * maxChunks; // 4 bytes per chunk
         types = baseAddr + 16 * maxChunks; // 1 byte per chunk
         
-        long globalData = baseAddr + 17;
+        long globalData = baseAddr + 17 * maxChunks;
         
         // Zero/generally set memory that needs it
         mem.setMemory(baseAddr, maxChunks * 16, (byte) 0); // Zero some chunk specific data
@@ -364,7 +364,13 @@ public class ChunkBuffer {
     public void getBlocks(int chunk, int[] indices, short[] ids) {
         ChunkFormat format = ChunkFormat.forType(mem.readVolatileByte(types + chunk)); // Get format
         
-        format.getBlocks(mem.readVolatileLong(addrs + chunk * 8), indices, ids);
+        format.getBlocks(getChunkAddr(chunk), indices, ids);
+    }
+    
+    public short getBlock(int chunk, int index) {
+        ChunkFormat format = ChunkFormat.forType(mem.readVolatileByte(types + chunk)); // Get format
+        
+        return format.getBlock(getChunkAddr(chunk), index);
     }
     
     public void flushChanges() {

@@ -7,13 +7,4 @@ package com.ritualsoftheold.terra.offheap.data;
 public interface OffheapObject {
     
     long memoryAddress();
-    
-    void memoryAddress(long addr);
-    
-    boolean isValid();
-    
-    /**
-     * Makes this object invalid, until it gets a memory address.
-     */
-    void invalidate();
 }

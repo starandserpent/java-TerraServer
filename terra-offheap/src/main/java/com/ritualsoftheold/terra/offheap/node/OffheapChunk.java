@@ -5,6 +5,8 @@ import com.ritualsoftheold.terra.node.Block;
 import com.ritualsoftheold.terra.node.Chunk;
 import com.ritualsoftheold.terra.node.SimpleBlock;
 import com.ritualsoftheold.terra.offheap.DataConstants;
+import com.ritualsoftheold.terra.offheap.chunk.ChunkBuffer;
+import com.ritualsoftheold.terra.offheap.chunk.ChunkStorage;
 import com.ritualsoftheold.terra.offheap.data.OffheapNode;
 
 import net.openhft.chronicle.core.Memory;
@@ -12,23 +14,14 @@ import net.openhft.chronicle.core.OS;
 
 public class OffheapChunk implements Chunk, OffheapNode {
 
-    private static Memory mem = OS.memory();
+    private static final Memory mem = OS.memory();
     
     /**
-     * Memory address of block data.
+     * Buffer which holds this chunk.
      */
-    private long address;
+    private ChunkBuffer buf;
     
-    /**
-     * Is this chunk valid.
-     */
-    private boolean valid;
-    
-    private MaterialRegistry reg;
-    
-    public OffheapChunk(MaterialRegistry reg) {
-        this.reg = reg;
-    }
+    private int index;
 
     @Override
     public Type getNodeType() {
@@ -37,76 +30,39 @@ public class OffheapChunk implements Chunk, OffheapNode {
 
     @Override
     public long memoryAddress() {
-        requireValid();
-        
-        return address;
-    }
-
-    @Override
-    public void memoryAddress(long addr) {
-        valid = true;
-        
-        address = addr;
-    }
-
-    @Override
-    public boolean isValid() {
-        return valid;
-    }
-
-    @Override
-    public void invalidate() {
-        valid = false;
-    }
-    
-    @Override
-    public long l_getBlockMemoryAddr(float x, float y, float z) {
-        requireValid();
-        
-        // Calculate offsets
-        int x0 =  (int) (x * 0.25f);
-        int y0 = (int) (y * 0.25f);
-        int z0 = (int) (z * 0.25f);
-        
-        // Multiply offsets by coordinate multiplers (x=1, y=16, z=16²)
-        return address + DataConstants.CHUNK_DATA_OFFSET + x0 * DataConstants.CHUNK_COORD_X + y0 * DataConstants.CHUNK_COORD_Y + z0 * DataConstants.CHUNK_COORD_Z;
-    }
-    
-    @Override
-    public short l_getMaterial(float x, float y, float z) {
-        return mem.readShort(l_getBlockMemoryAddr(x, y, z));
+        return buf.getChunkAddr(index);
     }
 
     @Override
     public Block getBlockAt(float x, float y, float z) {
-        // TODO other block sizes
-        return new SimpleBlock(reg.getForWorldId(l_getMaterial(x, y, z)), 0.25f);
-    }
-    
-    @Override
-    public void l_setMaterial(float x, float y, float z, short id, float scale) {
-        // TODO actually use scale...
-        mem.writeShort(l_getBlockMemoryAddr(x, y, z), id);
+        // TODO Auto-generated method stub
+        return null;
     }
 
     @Override
     public void setBlockAt(float x, float y, float z, Block block) {
-        mem.writeShort(l_getBlockMemoryAddr(x, y, z), block.getMaterial().getWorldId());
+        // TODO Auto-generated method stub
+        
     }
 
     @Override
     public int getMaxBlockCount() {
-        return DataConstants.CHUNK_MAX_BLOCKS;
+        // TODO Auto-generated method stub
+        return 0;
     }
 
     @Override
     public void getData(short[] data) {
-        // TODO OOOPS - might need to use raw Unsafe here... Chronicle Core plays TOO safe
+        // TODO Auto-generated method stub
+        
     }
 
     @Override
     public void setData(short[] data) {
-        // TODO 
+        // TODO Auto-generated method stub
+        
     }
+    
+    
 
 }

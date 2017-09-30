@@ -23,14 +23,4 @@ public interface Node {
         
         OTHER
     }
-    
-    // Low level, optional API
-    
-    default long l_getAddress() {
-        throw new UnsupportedOperationException();
-    }
-    
-    default int l_getDataSize() {
-        throw new UnsupportedOperationException();
-    }
 }
