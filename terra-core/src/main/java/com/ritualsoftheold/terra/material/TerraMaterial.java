@@ -1,12 +1,13 @@
 package com.ritualsoftheold.terra.material;
 
 import com.ritualsoftheold.terra.TerraModule;
+import com.ritualsoftheold.terra.node.Node;
 
 /**
  * Represents a material of block.
  *
  */
-public class TerraMaterial {
+public class TerraMaterial implements Node {
     
     /**
      * Constructs a new material builder.
@@ -90,5 +91,10 @@ public class TerraMaterial {
         public TerraMaterial build() {
             return material;
         }
+    }
+
+    @Override
+    public Type getNodeType() {
+        return Type.BLOCK;
     }
 }
