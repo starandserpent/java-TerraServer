@@ -6,6 +6,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import com.ritualsoftheold.terra.offheap.DataConstants;
 import com.ritualsoftheold.terra.offheap.io.OctreeLoader;
+import com.ritualsoftheold.terra.offheap.memory.MemoryManager;
 import com.ritualsoftheold.terra.offheap.memory.MemoryUseListener;
 import com.ritualsoftheold.terra.offheap.node.OffheapOctree;
 import com.ritualsoftheold.terra.offheap.world.OffheapWorld;
@@ -54,18 +55,16 @@ public class OctreeStorage {
     
     private MemoryUseListener memListener;
     
-    public OctreeStorage(int blockSize, OctreeLoader loader, Executor executor) {
+    public OctreeStorage(int blockSize, OctreeLoader loader, Executor executor, MemoryUseListener memListener) {
         this.loader = loader;
         this.loaderExecutor = executor;
+        this.memListener = memListener;
         this.blockSize = blockSize;
         this.groups = mem.allocate(256 * 8); // 256 longs at most
+        memListener.onAllocate(256 * 8); // Notify memory use listener
         mem.setMemory(groups, 256 * 8, (byte) 0);
         this.lastNeeded = mem.allocate(256 * 8);
         mem.setMemory(lastNeeded, 256 * 8, (byte) 0);
-    }
-    
-    public void setMemListener(MemoryUseListener listener) {
-        this.memListener = listener;
         
         // Begin from 1, so master octree group will never be "free"
         for (byte i = 1; i < 256; i++) {

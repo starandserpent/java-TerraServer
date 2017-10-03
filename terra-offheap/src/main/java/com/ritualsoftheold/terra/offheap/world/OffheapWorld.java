@@ -90,6 +90,15 @@ public class OffheapWorld implements TerraWorld {
         
         private OffheapWorld world;
         
+        private int octreeGroupSize;
+        
+        private long memPreferred;
+        private long memMax;
+        private MemoryPanicHandler memPanicHandler;
+        
+        private ChunkBuffer.Builder chunkBufferBuilder;
+        private int chunkMaxBuffers;
+        
         public Builder() {
             world = new OffheapWorld();
         }
@@ -109,13 +118,15 @@ public class OffheapWorld implements TerraWorld {
             return this;
         }
         
-        public Builder chunkStorage(ChunkStorage storage) {
-            world.chunkStorage = storage;
+        public Builder chunkStorage(ChunkBuffer.Builder bufferBuilder, int maxBuffers) {
+            this.chunkBufferBuilder = bufferBuilder;
+            this.chunkMaxBuffers = maxBuffers;
+            
             return this;
         }
         
-        public Builder octreeStorage(OctreeStorage storage) {
-            world.octreeStorage = storage;
+        public Builder octreeStorage(int groupSize) {
+            this.octreeGroupSize = groupSize;
             return this;
         }
         
@@ -134,8 +145,11 @@ public class OffheapWorld implements TerraWorld {
             return this;
         }
         
-        public Builder memoryManager(MemoryManager memManager) {
-            world.memManager = memManager;
+        public Builder memorySettings(long preferred, long max, MemoryPanicHandler panicHandler) {
+            this.memPreferred = preferred;
+            this.memMax = max;
+            this.memPanicHandler = panicHandler;
+            
             return this;
         }
         
@@ -146,6 +160,16 @@ public class OffheapWorld implements TerraWorld {
             world.exclusivePending = new StampedLock();
             world.sizeManager = new WorldSizeManager(world);
             
+            // Initialize memory manager
+            world.memManager = new MemoryManager(world, memPreferred, memMax, memPanicHandler);
+            
+            // Initialize stuff that needs memory manager
+            world.octreeStorage = new OctreeStorage(octreeGroupSize, world.octreeLoader, world.storageExecutor, world.memManager);
+            world.chunkStorage = new ChunkStorage(chunkBufferBuilder, chunkMaxBuffers, world.chunkLoader, world.storageExecutor);
+            
+            // Update master octree
+            world.updateMasterOctree();
+            
             return world;
         }
     }
@@ -153,39 +177,6 @@ public class OffheapWorld implements TerraWorld {
     // Only used by the builder
     private OffheapWorld() {
         
-    }
-    
-    // DEPRECATED - TODO remove soon
-    public OffheapWorld(ChunkLoader chunkLoader, OctreeLoader octreeLoader, MaterialRegistry registry, WorldGenerator generator) {
-        this.chunkLoader = chunkLoader;
-        this.octreeLoader = octreeLoader;
-        
-        // Initialize storages
-        this.storageExecutor = new ForkJoinPool();
-        
-        ChunkBuffer.Builder bufferBuilder = new ChunkBuffer.Builder();
-        bufferBuilder.maxChunks(64)
-                .globalQueue(512)
-                .chunkQueue(64)
-                .memListener(null); // TODO
-        this.chunkStorage = new ChunkStorage(bufferBuilder, 512, chunkLoader, storageExecutor); // TODO settings for sizes of storages
-        
-        this.octreeStorage = new OctreeStorage(8192 * DataConstants.OCTREE_SIZE, octreeLoader, storageExecutor);
-        
-        // Initialize master octree only after memory manager is present
-        
-        this.loadMarkers = new ArrayList<>();
-        
-        this.registry = registry;
-        
-        this.generatorExecutor = new ForkJoinPool();
-        this.generator = generator;
-        
-        // Initialize access locks
-        this.lock = new StampedLock();
-        this.exclusivePending = new StampedLock();
-        
-        this.sizeManager = new WorldSizeManager(this);
     }
 
     @Override
@@ -830,15 +821,6 @@ public class OffheapWorld implements TerraWorld {
     
     public void requestUnload() {
         memManager.queueUnload();
-    }
-    
-    public void setMemorySettings(long preferred, long max, MemoryPanicHandler panicHandler) {
-        this.memManager = new MemoryManager(this, preferred, max, panicHandler);
-        octreeStorage.setMemListener(memManager);
-        chunkStorage.setMemListener(memManager);
-        
-        updateMasterOctree();
-        System.out.println("Write flags to " + masterOctree.memoryAddress());
     }
     
     public void updateMasterOctree() {
