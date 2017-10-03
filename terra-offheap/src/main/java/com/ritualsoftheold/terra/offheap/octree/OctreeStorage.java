@@ -215,10 +215,8 @@ public class OctreeStorage {
     public OffheapOctree getOctree(int index, OffheapWorld world) {
         long addr = getOctreeAddr(index);
         
-        OffheapOctree octree = new OffheapOctree(world, 0f); // TODO scale, somehow
-        octree.memoryAddress(addr); // Validate octree with memory address!
-        
-        return octree;
+        // TODO memory management aka UserOffheapOctree
+        return new OffheapOctree(addr, index);
     }
     
     public long getOctreeAddr(int index) {
