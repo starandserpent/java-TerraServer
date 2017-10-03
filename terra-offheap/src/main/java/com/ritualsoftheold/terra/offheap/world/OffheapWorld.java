@@ -86,6 +86,76 @@ public class OffheapWorld implements TerraWorld {
     private float centerY;
     private float centerZ;
     
+    public static class Builder {
+        
+        private OffheapWorld world;
+        
+        public Builder() {
+            world = new OffheapWorld();
+        }
+        
+        public Builder chunkLoader(ChunkLoader loader) {
+            world.chunkLoader = loader;
+            return this;
+        }
+        
+        public Builder octreeLoader(OctreeLoader loader) {
+            world.octreeLoader = loader;
+            return this;
+        }
+        
+        public Builder storageExecutor(Executor executor) {
+            world.storageExecutor = executor;
+            return this;
+        }
+        
+        public Builder chunkStorage(ChunkStorage storage) {
+            world.chunkStorage = storage;
+            return this;
+        }
+        
+        public Builder octreeStorage(OctreeStorage storage) {
+            world.octreeStorage = storage;
+            return this;
+        }
+        
+        public Builder generator(WorldGenerator generator) {
+            world.generator = generator;
+            return this;
+        }
+        
+        public Builder generatorExecutor(Executor executor) {
+            world.generatorExecutor = executor;
+            return this;
+        }
+        
+        public Builder materialRegistry(MaterialRegistry registry) {
+            world.registry = registry;
+            return this;
+        }
+        
+        public Builder memoryManager(MemoryManager memManager) {
+            world.memManager = memManager;
+            return this;
+        }
+        
+        public OffheapWorld build() {
+            // Initialize some internal structures AFTER all user-controller initialization
+            world.loadMarkers = new ArrayList<>();
+            world.lock = new StampedLock();
+            world.exclusivePending = new StampedLock();
+            world.sizeManager = new WorldSizeManager(world);
+            
+            return world;
+        }
+    }
+    
+    // Only used by the builder
+    private OffheapWorld() {
+        
+    }
+    
+    // DEPRECATED - TODO remove soon
     public OffheapWorld(ChunkLoader chunkLoader, OctreeLoader octreeLoader, MaterialRegistry registry, WorldGenerator generator) {
         this.chunkLoader = chunkLoader;
         this.octreeLoader = octreeLoader;

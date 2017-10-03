@@ -38,7 +38,7 @@ public class FileOctreeLoader implements OctreeLoader {
     }
     
     @Override
-    public long loadOctrees(byte index, long address) {
+    public long loadOctrees(int index, long address) {
         Path file = dir.resolve(index + ".terra");
         
         try {
