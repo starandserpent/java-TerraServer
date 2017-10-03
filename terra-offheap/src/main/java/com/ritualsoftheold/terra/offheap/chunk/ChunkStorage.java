@@ -1,8 +1,12 @@
 package com.ritualsoftheold.terra.offheap.chunk;
 
+import java.util.concurrent.Executor;
+import java.util.concurrent.atomic.AtomicIntegerArray;
+
 import com.ritualsoftheold.terra.material.MaterialRegistry;
 import com.ritualsoftheold.terra.offheap.io.ChunkLoader;
 import com.ritualsoftheold.terra.offheap.node.OffheapChunk;
+import com.ritualsoftheold.terra.offheap.node.UserOffheapChunk;
 
 /**
  * Manages all chunks of a single world using chunk buffers.
@@ -16,6 +20,8 @@ public class ChunkStorage {
      */
     private ChunkBuffer[] buffers;
     
+    private AtomicIntegerArray aliveWrappers;
+    
     /**
      * Creates chunk buffers.
      */
@@ -26,9 +32,14 @@ public class ChunkStorage {
      */
     private ChunkLoader loader;
     
-    public ChunkStorage(ChunkBuffer.Builder bufferBuilder, ChunkLoader loader) {
+    private Executor executor;
+    
+    public ChunkStorage(ChunkBuffer.Builder bufferBuilder, int maxBuffers, ChunkLoader loader, Executor executor) {
         this.bufferBuilder = bufferBuilder;
         this.loader = loader;
+        this.buffers = new ChunkBuffer[maxBuffers];
+        this.aliveWrappers = new AtomicIntegerArray(maxBuffers);
+        this.executor = executor;
     }
     
     public int newChunk() {
@@ -116,5 +127,41 @@ public class ChunkStorage {
      */
     public ChunkBuffer getBuffer(int index) {
         return buffers[index];
+    }
+    
+    /**
+     * Gets or loads a chunk buffer. Only for internal usage.
+     * @param index
+     * @return
+     */
+    public ChunkBuffer getOrLoadBuffer(int index) {
+        ChunkBuffer buf = buffers[index];
+        if (buf == null) { // Not available, load it
+            loadBuffer(index);
+        }
+        return buf;
+    }
+
+    /**
+     * Makes sure that a chunk with given id is loaded. It may be empty, though!
+     * @param chunkId Full chunk id.
+     */
+    public void ensureLoaded(int chunkId) {
+        int bufIndex = chunkId >>> 16;
+        getOrLoadBuffer(bufIndex);
+    }
+    
+    /**
+     * Creates a managed wrapper for a chunk with given id using given material
+     * registry. Chunk must be closed once it is no longer used. Storing
+     * a chunk for long period of time is not recommended.
+     * @param chunkId
+     * @param materialRegistry
+     * @return Chunk wrapper.
+     */
+    public OffheapChunk getChunk(int chunkId, MaterialRegistry materialRegistry) {
+        int bufIndex = chunkId >>> 16;
+        ChunkBuffer buf = buffers[bufIndex];
+        return new UserOffheapChunk(buf, chunkId, materialRegistry, aliveWrappers, bufIndex);
     }
 }

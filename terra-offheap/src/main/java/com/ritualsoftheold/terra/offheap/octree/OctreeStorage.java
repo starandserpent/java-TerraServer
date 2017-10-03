@@ -78,17 +78,17 @@ public class OctreeStorage {
         }
     }
     
-    private long getGroupsAddr(byte index) {
-        return groups + index * 8;
+    private long getGroupsAddr(int newGroup) {
+        return groups + newGroup * 8;
     }
     
     /**
      * Gets address where a timestamp for last access of given octree is stored.
-     * @param index Group index.
+     * @param newGroup Group index.
      * @return Memory address.
      */
-    private long getTimestampAddr(byte index) {
-        return lastNeeded + index * 8;
+    private long getTimestampAddr(int newGroup) {
+        return lastNeeded + newGroup * 8;
     }
     
     /**
@@ -115,16 +115,16 @@ public class OctreeStorage {
         memListener.onFree(amount);
     }
     
-    public long getGroup(byte groupIndex) {
-        long addr = mem.readVolatileLong(getGroupsAddr(groupIndex));
+    public long getGroup(int newGroup) {
+        long addr = mem.readVolatileLong(getGroupsAddr(newGroup));
         if (addr == 0) {
-            addr = loader.loadOctrees(groupIndex, -1);
-            mem.writeVolatileLong(getGroupsAddr(groupIndex), addr);
+            addr = loader.loadOctrees(newGroup, -1);
+            mem.writeVolatileLong(getGroupsAddr(newGroup), addr);
             memListener.onAllocate(blockSize);
         }
         
         // Mark that we needed the group
-        mem.writeVolatileLong(getTimestampAddr(groupIndex), System.currentTimeMillis());
+        mem.writeVolatileLong(getTimestampAddr(newGroup), System.currentTimeMillis());
         
         return addr + DataConstants.OCTREE_GROUP_META;
     }

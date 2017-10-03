@@ -91,7 +91,10 @@ public class OffheapChunk implements Chunk, OffheapNode {
     public void setBlock(int index, TerraMaterial material) {
         setBlockId(index, material.getWorldId());
     }
-    
-    
+
+    @Override
+    public void close() throws Exception {
+        // Do nothing. No need to close this
+    }
 
 }

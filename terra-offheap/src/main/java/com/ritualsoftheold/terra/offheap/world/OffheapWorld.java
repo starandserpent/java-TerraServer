@@ -92,7 +92,14 @@ public class OffheapWorld implements TerraWorld {
         
         // Initialize storages
         this.storageExecutor = new ForkJoinPool();
-        this.chunkStorage = new ChunkStorage(chunkLoader, storageExecutor, 64, 1024); // TODO settings for sizes of storages
+        
+        ChunkBuffer.Builder bufferBuilder = new ChunkBuffer.Builder();
+        bufferBuilder.maxChunks(64)
+                .globalQueue(512)
+                .chunkQueue(64)
+                .memListener(null); // TODO
+        this.chunkStorage = new ChunkStorage(bufferBuilder, 512, chunkLoader, storageExecutor); // TODO settings for sizes of storages
+        
         this.octreeStorage = new OctreeStorage(8192 * DataConstants.OCTREE_SIZE, octreeLoader, storageExecutor);
         
         // Initialize master octree only after memory manager is present
@@ -257,8 +264,9 @@ public class OffheapWorld implements TerraWorld {
         assert listener != null;
         
         long addr = masterOctree.memoryAddress(); // Get starting memory address
+        int nodeId = 0;
         System.out.println("addr: " + addr);
-        listener.octreeLoaded(addr, octreeStorage.getGroup((byte) 0), x, y, z, masterScale);
+        listener.octreeLoaded(addr, octreeStorage.getGroup(0), nodeId, x, y, z, masterScale);
         
         float scale = masterScale; // Starting scale
         boolean isOctree = true; // If the final entry is chunk or octree
@@ -440,7 +448,7 @@ public class OffheapWorld implements TerraWorld {
         
         // Prepare to loadAll, then join all remaining futures here
         List<CompletableFuture<Void>> futures = new ArrayList<>((int) (scale / 16 * scale / 16 * scale / 16) + 10); // Assume size of coming futures
-        loadAll(groupAddr, addr, scale, octreeX, octreeY, octreeZ, listener, futures, noGenerate);
+        loadAll(groupAddr, addr, nodeId, scale, octreeX, octreeY, octreeZ, listener, futures, noGenerate);
         for (CompletableFuture<Void> future : futures) { // Join all futures now
             future.join();
         }
@@ -449,7 +457,7 @@ public class OffheapWorld implements TerraWorld {
     /**
      * Starts loading all children of given octree index.
      */
-    private void loadAll(long groupAddr, long addr, float scale, float x, float y, float z, WorldLoadListener listener,
+    private void loadAll(long groupAddr, long addr, int nodeId, float scale, float x, float y, float z, WorldLoadListener listener,
             List<CompletableFuture<Void>> futures, boolean noGenerate) {
         // Sanity checks (for debugging)
         assert groupAddr != 0;
@@ -598,15 +606,18 @@ public class OffheapWorld implements TerraWorld {
                         break;
                     }
                     
-                    long newGroupAddr = octreeStorage.getGroup(mem.readVolatileByte(nodeAddr));
-                    loadAll(newGroupAddr, newGroupAddr + (mem.readVolatileInt(nodeAddr) >>> 8) * DataConstants.OCTREE_SIZE, childScale, x2, y2, z2, listener, futures, noGenerate);
+                    int data = mem.readVolatileInt(nodeAddr);
+                    int newGroup = data >>> 24;
+                    int newIndex = data & 0xffffff;
+                    long newGroupAddr = octreeStorage.getGroup(newGroup);
+                    loadAll(newGroupAddr, newGroupAddr + newIndex * DataConstants.OCTREE_SIZE, data, childScale, x2, y2, z2, listener, futures, noGenerate);
                 } else {
                     System.out.println("Single node, scale: " + scale);
                 }
             }
             
             // Fire octree loaded once it is completely (or if noGenerate was passed, somewhat) generated
-            listener.octreeLoaded(addr, groupAddr, x, y, z, scale);
+            listener.octreeLoaded(addr, groupAddr, nodeId, x, y, z, scale);
         }
     }
     
