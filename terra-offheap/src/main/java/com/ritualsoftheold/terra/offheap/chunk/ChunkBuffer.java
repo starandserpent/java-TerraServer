@@ -311,6 +311,10 @@ public class ChunkBuffer {
         return maxCount - chunkCount.get();
     }
     
+    public int getChunkCount() {
+        return chunkCount.get();
+    }
+    
     public long getChunkAddr(int index) {
         return mem.readVolatileLong(addrs + index * 8);
     }
@@ -444,8 +448,35 @@ public class ChunkBuffer {
             setChunkLength(i, length);
             setChunkUsed(i, length);
             
+            // Note: avoid actually copying chunk contents as it is not really necessary
+            
             // Increment pointer to point to next chunk
             addr += length;
+        }
+    }
+    
+    public int getSaveSize() {
+        int size = 0;
+        
+        int count = chunkCount.get();
+        for (int i = 0; i < count; i++) {
+            size += getChunkLength(i);
+        }
+        
+        return size;
+    }
+    
+    public void save(long addr) {
+        int count = chunkCount.get();
+        for (int i = 0; i < count; i++) {
+            byte type = getChunkType(i);
+            int len = getChunkLength(i);
+            mem.writeByte(addr, type);
+            mem.writeInt(addr + 1, len);
+            addr += 5; // To actual data
+            
+            mem.copyMemory(getChunkAddr(i), addr, len); // Copy chunk contents
+            addr += len; // Address to next chunk!
         }
     }
 }
