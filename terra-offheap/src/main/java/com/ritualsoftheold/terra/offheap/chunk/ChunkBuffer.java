@@ -253,11 +253,14 @@ public class ChunkBuffer {
     
     private ChangeQueue changeQueue;
     
+    private int staticDataLength;
+    
     public ChunkBuffer(short id, int maxChunks, int globalQueueSize, int chunkQueueSize, MemoryUseListener memListener) {
         bufferId = id; // Set buffer id
         
         // Initialize memory blocks for metadata
-        long allocLen = maxChunks * 17 + 2 * globalQueueSize + maxChunks * chunkQueueSize;
+        int allocLen = maxChunks * 17 + 2 * globalQueueSize + maxChunks * chunkQueueSize;
+        staticDataLength = allocLen;
         long baseAddr = mem.allocate(allocLen);
         addrs = baseAddr; // 8 bytes per chunk
         lengths = baseAddr + 8 * maxChunks; // 4 bytes per chunk
@@ -455,7 +458,7 @@ public class ChunkBuffer {
         }
     }
     
-    public int getSaveSize() {
+    private int getContentSize() {
         int size = 0;
         
         int count = chunkCount.get();
@@ -464,6 +467,11 @@ public class ChunkBuffer {
         }
         
         return size;
+    }
+    
+    public int getSaveSize() {
+        int count = chunkCount.get();
+        return getContentSize() + count * 5;
     }
     
     public void save(long addr) {
@@ -478,5 +486,13 @@ public class ChunkBuffer {
             mem.copyMemory(getChunkAddr(i), addr, len); // Copy chunk contents
             addr += len; // Address to next chunk!
         }
+    }
+
+    public int getMemorySize() {
+        return getContentSize() + staticDataLength;
+    }
+
+    public int getId() {
+        return bufferId;
     }
 }

@@ -97,4 +97,8 @@ public class OffheapChunk implements Chunk, OffheapNode {
         // Do nothing. No need to close this
     }
 
+    public ChunkBuffer getBuffer() {
+        return buf;
+    }
+
 }

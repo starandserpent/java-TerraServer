@@ -1,5 +1,7 @@
 package com.ritualsoftheold.terra.offheap.chunk;
 
+import java.util.Collection;
+import java.util.Collections;
 import java.util.concurrent.Executor;
 import java.util.concurrent.atomic.AtomicIntegerArray;
 
@@ -21,6 +23,8 @@ public class ChunkStorage {
     private ChunkBuffer[] buffers;
     
     private AtomicIntegerArray aliveWrappers;
+    
+    private AtomicIntegerArray unloadStaged;
     
     /**
      * Creates chunk buffers.
@@ -163,5 +167,9 @@ public class ChunkStorage {
         int bufIndex = chunkId >>> 16;
         ChunkBuffer buf = buffers[bufIndex];
         return new UserOffheapChunk(buf, chunkId, materialRegistry, aliveWrappers, bufIndex);
+    }
+
+    public ChunkBuffer[] getAllBuffers() {
+        return buffers.clone();
     }
 }

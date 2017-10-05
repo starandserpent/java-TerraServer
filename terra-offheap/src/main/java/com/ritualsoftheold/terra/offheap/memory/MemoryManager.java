@@ -12,6 +12,7 @@ import com.ritualsoftheold.terra.offheap.DataConstants;
 import com.ritualsoftheold.terra.offheap.chunk.ChunkBuffer;
 import com.ritualsoftheold.terra.offheap.chunk.ChunkStorage;
 import com.ritualsoftheold.terra.offheap.memory.MemoryPanicHandler.PanicResult;
+import com.ritualsoftheold.terra.offheap.node.OffheapChunk;
 import com.ritualsoftheold.terra.offheap.octree.OctreeStorage;
 import com.ritualsoftheold.terra.offheap.world.OffheapWorld;
 import com.ritualsoftheold.terra.offheap.world.WorldLoadListener;
@@ -170,16 +171,15 @@ public class MemoryManager implements MemoryUseListener {
         world.updateLoadMarkers(new WorldLoadListener() {
             
             @Override
-            public void octreeLoaded(long addr, long groupAddr, float x, float y, float z,
+            public void octreeLoaded(long addr, long groupAddr, int id, float x, float y, float z,
                     float scale) {
                 System.out.println("Used group: " + groupAddr);
                 usedOctreeGroups.add(groupAddr);
             }
             
             @Override
-            public void chunkLoaded(long addr, ChunkBuffer buf, float x, float y, float z) {
-                System.out.println("Used buffer: " + buf);
-                usedChunkBufs.add(buf);
+            public void chunkLoaded(OffheapChunk chunk) {
+                usedChunkBufs.add(chunk.getBuffer());
             }
         }, true, true).forEach((f) -> f.join()); // Need to complete all futures returned by updateLoadMarkers
         System.out.println("Futures completed");
@@ -207,7 +207,7 @@ public class MemoryManager implements MemoryUseListener {
         System.out.println("Octrees to free: " + freed);
         
         // Mark which chunks to unload
-        Collection<ChunkBuffer> allBuffers = world.getChunkStorage().getAllBuffers();
+        ChunkBuffer[] allBuffers = world.getChunkStorage().getAllBuffers();
         Set<ChunkBuffer> unusedBuffers = new ObjectOpenHashSet<>();
         Set<CompletableFuture<ChunkBuffer>> savePending = new ObjectOpenHashSet<>();
         if (freed < goal) { // Only do this if unloading octrees wouldn't save enough space
@@ -216,7 +216,7 @@ public class MemoryManager implements MemoryUseListener {
                     unusedBuffers.add(buf);
                     savePending.add(chunkStorage.saveBuffer(buf.getId()));
                     
-                    freed += buf.calculateSize();
+                    freed += buf.getMemorySize();
                     if (freed >= goal) { // Hey, we can now release enough
                         break;
                     }
