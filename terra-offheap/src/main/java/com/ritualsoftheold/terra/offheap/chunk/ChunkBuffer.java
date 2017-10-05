@@ -367,11 +367,13 @@ public class ChunkBuffer {
      * @param chunk Index fo chunk where to operate.
      * @param indices Indices for blocks
      * @param ids Where to place ids.
+     * @param beginIndex Index where to begin reading arrays.
+     * @param endIndex Index before which is last index to be readed.
      */
-    public void getBlocks(int chunk, int[] indices, short[] ids) {
+    public void getBlocks(int chunk, int[] indices, short[] ids, int beginIndex, int endIndex) {
         ChunkFormat format = ChunkFormat.forType(mem.readVolatileByte(types + chunk)); // Get format
         
-        format.getBlocks(getChunkAddr(chunk), indices, ids);
+        format.getBlocks(getChunkAddr(chunk), indices, ids, beginIndex, endIndex);
     }
     
     public short getBlock(int chunk, int index) {

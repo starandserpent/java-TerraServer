@@ -25,7 +25,8 @@ public class RLE22ChunkFormat implements ChunkFormat {
     }
 
     @Override
-    public void getBlocks(long chunk, int[] indices, short[] ids) {
+    public void getBlocks(long chunk, int[] indices, short[] ids,
+            int beginIndex, int endIndex) {
         // TODO Auto-generated method stub
         
     }

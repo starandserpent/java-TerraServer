@@ -39,14 +39,14 @@ public interface ChunkFormat {
      */
     void processQueries(long chunk, int chunkLen, ChunkBuffer.Allocator alloc, long queue, int size);
 
-    void getBlocks(long chunk, int[] indices, short[] ids);
+    void getBlocks(long chunk, int[] indices, short[] ids, int beginIndex, int endIndex);
     
     default short getBlock(long chunk, int index) {
         // This is primitive implementation. Please override for any serious usage
         
         int[] indices = new int[]{index};
         short[] ids = new short[1];
-        getBlocks(chunk, indices, ids);
+        getBlocks(chunk, indices, ids, 0, 1);
         
         return ids[0];
     }

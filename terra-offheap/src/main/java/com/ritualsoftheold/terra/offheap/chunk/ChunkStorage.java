@@ -1,7 +1,5 @@
 package com.ritualsoftheold.terra.offheap.chunk;
 
-import java.util.Collection;
-import java.util.Collections;
 import java.util.concurrent.Executor;
 import java.util.concurrent.atomic.AtomicIntegerArray;
 
@@ -24,7 +22,14 @@ public class ChunkStorage {
     
     private AtomicIntegerArray aliveWrappers;
     
-    private AtomicIntegerArray unloadStaged;
+    private AtomicIntegerArray unloading;
+    
+    /**
+     * Buffers which are inactive are currently saving their contents. They can
+     * be activated by any operation that would happen on them. If they are not
+     * activated, they will be fully unloaded.
+     */
+    private ChunkBuffer[] inactiveBuffers;
     
     /**
      * Creates chunk buffers.
@@ -43,6 +48,7 @@ public class ChunkStorage {
         this.loader = loader;
         this.buffers = new ChunkBuffer[maxBuffers];
         this.aliveWrappers = new AtomicIntegerArray(maxBuffers);
+        this.unloading = new AtomicIntegerArray(maxBuffers);
         this.executor = executor;
     }
     
@@ -171,5 +177,77 @@ public class ChunkStorage {
 
     public ChunkBuffer[] getAllBuffers() {
         return buffers.clone();
+    }
+    
+    public int markUsed(int index) {
+        return unloading.incrementAndGet(index);
+    }
+    
+    public int markUnused(int index) {
+        return unloading.decrementAndGet(index);
+    }
+    
+    /**
+     * Gets given block from given chunk.
+     * @param chunk Chunk id.
+     * @param block Block index.
+     * @return Block id.
+     */
+    public short getBlock(int chunk, int block) {
+        int bufId = chunk >>> 16;
+        markUsed(bufId);
+        ChunkBuffer buf = getOrLoadBuffer(bufId);
+        short id = buf.getBlock(chunk, block);
+        markUnused(bufId);
+        
+        return id;
+    }
+    
+    /**
+     * Gets blocks from given chunk.
+     * @param chunk Chunk id.
+     * @param blocks Block indices.
+     * @param ids Array where to place ids.
+     */
+    public void getBlocks(int chunk, int[] blocks, short[] ids) {
+        int bufId = chunk >>> 16;
+        markUsed(bufId);
+        ChunkBuffer buf = getOrLoadBuffer(bufId);
+        buf.getBlocks(chunk, blocks, ids, 0, blocks.length);
+        markUnused(bufId);
+    }
+    
+    /**
+     * Gets blocks from given chunks.
+     * @param chunks Chunk ids.
+     * @param blocks Block indices.
+     * @param ids Array where to place ids.
+     */
+    public void getBlocks(int[] chunks, int[] blocks, short[] ids) {
+        int chunkStart = 0; // Where chunk began
+        int curChunk = chunks[0];
+        
+        // Go through all chunks and blocks inside them while batching queries
+        for (int i = 0; i < chunks.length; i++) {
+            int chunk = chunks[i];
+            if (chunk != curChunk) {
+                int bufId = curChunk >>> 16;
+                markUsed(bufId);
+                ChunkBuffer buf = getOrLoadBuffer(bufId); // Get buffer where chunk is
+                buf.getBlocks(curChunk, blocks, ids, chunkStart, i);
+                markUnused(bufId);
+                
+                chunkStart = i; // Update chunk start here
+                curChunk = chunk;
+            }
+        }
+        
+        if (chunkStart != chunks.length - 1) { // Still something to lookup?
+            int bufId = curChunk >>> 16;
+            markUsed(bufId);
+            ChunkBuffer buf = getOrLoadBuffer(bufId); // Get buffer where chunk is
+            buf.getBlocks(curChunk, blocks, ids, chunkStart, blocks.length);
+            markUnused(bufId);
+        }
     }
 }

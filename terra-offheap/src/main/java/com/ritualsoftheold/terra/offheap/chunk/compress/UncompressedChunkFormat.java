@@ -37,8 +37,8 @@ public class UncompressedChunkFormat implements ChunkFormat {
     }
 
     @Override
-    public void getBlocks(long chunk, int[] indices, short[] ids) {
-        for (int i = 0; i < ids.length; i++) {
+    public void getBlocks(long chunk, int[] indices, short[] ids, int beginIndex, int endIndex) {
+        for (int i = beginIndex; i < endIndex; i++) {
             ids[i] = mem.readShort(chunk + indices[i] * 2);
         }
     }
