@@ -208,13 +208,12 @@ public class MemoryManager implements MemoryUseListener {
         
         // Mark which chunks to unload
         ChunkBuffer[] allBuffers = world.getChunkStorage().getAllBuffers();
-        Set<ChunkBuffer> unusedBuffers = new ObjectOpenHashSet<>();
         Set<CompletableFuture<ChunkBuffer>> savePending = new ObjectOpenHashSet<>();
         if (freed < goal) { // Only do this if unloading octrees wouldn't save enough space
             for (ChunkBuffer buf : allBuffers) {
                 if (!usedChunkBufs.contains(buf)) { // If not used, mark for unloading
-                    unusedBuffers.add(buf);
-                    savePending.add(chunkStorage.saveBuffer(buf.getId()));
+                    chunkStorage.markUnused(buf.getId()); // Disable buffer for save
+                    savePending.add(chunkStorage.saveBuffer(buf)); // ... and save!
                     
                     freed += buf.getMemorySize();
                     if (freed >= goal) { // Hey, we can now release enough
@@ -244,8 +243,12 @@ public class MemoryManager implements MemoryUseListener {
             }
         }
         
+        for (ChunkBuffer buf : chunkStorage.flushInactiveBuffers()) {
+            
+        }
+        
         // Perform the performance critical operation with exclusive access
-        unloadCritical(goal, unusedGroups, unusedBuffers);
+        //unloadCritical(goal, unusedGroups, unusedBuffers);
     }
     
     /**

@@ -13,9 +13,9 @@ import com.ritualsoftheold.terra.offheap.chunk.ChunkBuffer;
  */
 public interface ChunkLoader {
     
-    ChunkBuffer loadChunks(short index, ChunkBuffer buf);
+    ChunkBuffer loadChunks(int index, ChunkBuffer buf);
     
-    ChunkBuffer saveChunks(short index, ChunkBuffer buf);
+    ChunkBuffer saveChunks(int i, ChunkBuffer buf);
     
     /**
      * Counts buffers that currently exist for this loader. Note that

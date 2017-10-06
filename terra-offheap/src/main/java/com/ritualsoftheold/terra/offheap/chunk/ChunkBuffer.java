@@ -386,10 +386,6 @@ public class ChunkBuffer {
         changeQueue.flush();
     }
     
-    public int getBufferId() {
-        return bufferId;
-    }
-    
     /**
      * Allows building chunk buffers. One builder can create as many buffers
      * as required. Settings may be altered between building buffers, but that

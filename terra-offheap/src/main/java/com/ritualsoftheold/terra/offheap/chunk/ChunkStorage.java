@@ -1,5 +1,6 @@
 package com.ritualsoftheold.terra.offheap.chunk;
 
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.concurrent.atomic.AtomicIntegerArray;
 
@@ -91,6 +92,13 @@ public class ChunkStorage {
      * @param index Index for buffer.
      */
     private void loadBuffer(int index) {
+        // If we have inactive buffer, activate it
+        ChunkBuffer inactiveBuf = inactiveBuffers[index];
+        if (inactiveBuf != null) {
+            markActive(index);
+            return;
+        }
+        
         boolean success = createBuffer(index);
         if (!success) {
             return; // Someone else is loading the buffer
@@ -187,6 +195,27 @@ public class ChunkStorage {
         return unloading.decrementAndGet(index);
     }
     
+    public void markInactive(int index) {
+        inactiveBuffers[index] = buffers[index]; // Assign inactive here
+        buffers[index] = null; // Assign null to original place
+    }
+    
+    public void markActive(int index) {
+        // Reverse markInactive
+        buffers[index]= inactiveBuffers[index];
+        inactiveBuffers[index] = null;
+    }
+    
+    public boolean isActive(int index) {
+        return buffers[index] != null;
+    }
+    
+    public ChunkBuffer[] flushInactiveBuffers() {
+        ChunkBuffer[] bufs = inactiveBuffers;
+        inactiveBuffers = new ChunkBuffer[buffers.length];
+        return bufs;
+    }
+    
     /**
      * Gets given block from given chunk.
      * @param chunk Chunk id.
@@ -249,5 +278,12 @@ public class ChunkStorage {
             buf.getBlocks(curChunk, blocks, ids, chunkStart, blocks.length);
             markUnused(bufId);
         }
+    }
+
+    public CompletableFuture<ChunkBuffer> saveBuffer(ChunkBuffer buf) {
+        return CompletableFuture.supplyAsync(() -> {
+            loader.saveChunks(buf.getId(), buf);
+            return buf;
+        });
     }
 }

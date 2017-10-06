@@ -31,7 +31,7 @@ public class FileChunkLoader implements ChunkLoader {
     }
     
     @Override
-    public ChunkBuffer loadChunks(short index, ChunkBuffer buf) {
+    public ChunkBuffer loadChunks(int index, ChunkBuffer buf) {
         Path file = dir.resolve(index + ".terrac");
 
         try {
@@ -57,7 +57,7 @@ public class FileChunkLoader implements ChunkLoader {
     }
 
     @Override
-    public ChunkBuffer saveChunks(short index, ChunkBuffer buf) {
+    public ChunkBuffer saveChunks(int index, ChunkBuffer buf) {
         Path file = dir.resolve(index + ".terrac");
         try {
             long len = buf.getSaveSize();
