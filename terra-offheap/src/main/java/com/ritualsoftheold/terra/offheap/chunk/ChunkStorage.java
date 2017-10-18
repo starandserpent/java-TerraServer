@@ -3,6 +3,7 @@ package com.ritualsoftheold.terra.offheap.chunk;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.concurrent.atomic.AtomicIntegerArray;
+import java.util.concurrent.atomic.AtomicReferenceArray;
 
 import com.ritualsoftheold.terra.material.MaterialRegistry;
 import com.ritualsoftheold.terra.offheap.io.ChunkLoader;
@@ -19,7 +20,7 @@ public class ChunkStorage {
      * Array of all chunk buffers. May contain nulls for buffers which have not
      * been yet needed.
      */
-    private ChunkBuffer[] buffers;
+    private AtomicReferenceArray<ChunkBuffer> buffers;
     
     private AtomicIntegerArray aliveWrappers;
     
@@ -30,7 +31,7 @@ public class ChunkStorage {
      * be activated by any operation that would happen on them. If they are not
      * activated, they will be fully unloaded.
      */
-    private ChunkBuffer[] inactiveBuffers;
+    private AtomicReferenceArray<ChunkBuffer> inactiveBuffers;
     
     /**
      * Creates chunk buffers.
@@ -47,7 +48,8 @@ public class ChunkStorage {
     public ChunkStorage(ChunkBuffer.Builder bufferBuilder, int maxBuffers, ChunkLoader loader, Executor executor) {
         this.bufferBuilder = bufferBuilder;
         this.loader = loader;
-        this.buffers = new ChunkBuffer[maxBuffers];
+        this.buffers = new AtomicReferenceArray<>(maxBuffers);
+        this.inactiveBuffers = new AtomicReferenceArray<>(maxBuffers);
         this.aliveWrappers = new AtomicIntegerArray(maxBuffers);
         this.unloading = new AtomicIntegerArray(maxBuffers);
         this.executor = executor;
@@ -56,8 +58,8 @@ public class ChunkStorage {
     public int newChunk() {
         boolean secondTry = true;
         while (true) {
-            for (int i = 0; i < buffers.length; i++) {
-                ChunkBuffer buf = buffers[i];
+            for (int i = 0; i < buffers.length(); i++) {
+                ChunkBuffer buf = buffers.get(i); // TODO performance
                 
                 if (buf == null) { // Oh, that buffer is not loaded
                     if (secondTry) {
@@ -92,10 +94,8 @@ public class ChunkStorage {
      * @param index Index for buffer.
      */
     private void loadBuffer(int index) {
-        // If we have inactive buffer, activate it
-        ChunkBuffer inactiveBuf = inactiveBuffers[index];
-        if (inactiveBuf != null) {
-            markActive(index);
+        // First attempt to get inactive buffer
+        if (markActive(index);) {
             return;
         }
         
@@ -103,8 +103,6 @@ public class ChunkStorage {
         if (!success) {
             return; // Someone else is loading the buffer
         }
-        
-        ChunkBuffer buf = buffers[index];
     }
     
     /**
@@ -115,12 +113,12 @@ public class ChunkStorage {
      * @return If creation succeeded.
      */
     private synchronized boolean createBuffer(int index) {
-        if (buffers[index] != null) { // Check if already created
+        if (buffers.get(index) != null) { // Check if already created
             return false;
         }
         
         // Create buffer
-        buffers[index] = bufferBuilder.build();
+        buffers.set(index, bufferBuilder.build());
         
         return true;
     }
@@ -133,7 +131,7 @@ public class ChunkStorage {
      * @return Chunk.
      */
     public OffheapChunk getTemporaryChunk(int chunkId, MaterialRegistry materialRegistry) {
-        ChunkBuffer buf = buffers[chunkId >>> 16];
+        ChunkBuffer buf = buffers.get(chunkId >>> 16);
         return new OffheapChunk(buf, chunkId & 0xffff, materialRegistry);
     }
     
@@ -144,7 +142,7 @@ public class ChunkStorage {
      * @return Chunk buffer (or null).
      */
     public ChunkBuffer getBuffer(int index) {
-        return buffers[index];
+        return buffers.get(index);
     }
     
     /**
@@ -153,9 +151,10 @@ public class ChunkStorage {
      * @return
      */
     public ChunkBuffer getOrLoadBuffer(int index) {
-        ChunkBuffer buf = buffers[index];
+        ChunkBuffer buf = buffers.get(index);
         if (buf == null) { // Not available, load it
             loadBuffer(index);
+            buf = buffers.get(index);
         }
         return buf;
     }
@@ -179,12 +178,12 @@ public class ChunkStorage {
      */
     public OffheapChunk getChunk(int chunkId, MaterialRegistry materialRegistry) {
         int bufIndex = chunkId >>> 16;
-        ChunkBuffer buf = buffers[bufIndex];
+        ChunkBuffer buf = buffers.get(bufIndex);
         return new UserOffheapChunk(buf, chunkId, materialRegistry, aliveWrappers, bufIndex);
     }
 
-    public ChunkBuffer[] getAllBuffers() {
-        return buffers.clone();
+    public AtomicReferenceArray<ChunkBuffer> getAllBuffers() {
+        return buffers;
     }
     
     public int markUsed(int index) {
@@ -195,24 +194,20 @@ public class ChunkStorage {
         return unloading.decrementAndGet(index);
     }
     
-    public void markInactive(int index) {
-        inactiveBuffers[index] = buffers[index]; // Assign inactive here
-        buffers[index] = null; // Assign null to original place
+    public boolean markInactive(int index) {
+        if (unloading.get(index) < 1) {
+            return inactiveBuffers.compareAndSet(index, null, buffers.getAndSet(index, null));
+        }
+        return false;
     }
     
-    public void markActive(int index) {
-        // Reverse markInactive
-        buffers[index]= inactiveBuffers[index];
-        inactiveBuffers[index] = null;
+    public boolean markActive(int index) {
+        return buffers.compareAndSet(index, null, inactiveBuffers.getAndSet(index, null));
     }
     
-    public boolean isActive(int index) {
-        return buffers[index] != null;
-    }
-    
-    public ChunkBuffer[] flushInactiveBuffers() {
-        ChunkBuffer[] bufs = inactiveBuffers;
-        inactiveBuffers = new ChunkBuffer[buffers.length];
+    public AtomicReferenceArray<ChunkBuffer> flushInactiveBuffers() {
+        AtomicReferenceArray<ChunkBuffer> bufs = inactiveBuffers;
+        inactiveBuffers = new AtomicReferenceArray<>(buffers.length());
         return bufs;
     }
     

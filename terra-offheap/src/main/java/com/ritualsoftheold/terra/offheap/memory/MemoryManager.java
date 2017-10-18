@@ -5,6 +5,7 @@ import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.atomic.AtomicReferenceArray;
 import java.util.concurrent.locks.LockSupport;
 
 import com.ritualsoftheold.terra.node.Chunk;
@@ -212,7 +213,7 @@ public class MemoryManager implements MemoryUseListener {
         if (freed < goal) { // Only do this if unloading octrees wouldn't save enough space
             for (ChunkBuffer buf : allBuffers) {
                 if (!usedChunkBufs.contains(buf)) { // If not used, mark for unloading
-                    chunkStorage.markUnused(buf.getId()); // Disable buffer for save
+                    chunkStorage.markInactive(buf.getId()); // Disable buffer for saving
                     savePending.add(chunkStorage.saveBuffer(buf)); // ... and save!
                     
                     freed += buf.getMemorySize();
@@ -243,8 +244,10 @@ public class MemoryManager implements MemoryUseListener {
             }
         }
         
-        for (ChunkBuffer buf : chunkStorage.flushInactiveBuffers()) {
-            
+        AtomicReferenceArray<ChunkBuffer> inactiveBuffers = chunkStorage.flushInactiveBuffers();
+        for (int i = 0; i < inactiveBuffers.length(); i++) {
+            ChunkBuffer buf = inactiveBuffers.get(i);
+            buf.unload();
         }
         
         // Perform the performance critical operation with exclusive access
@@ -263,11 +266,6 @@ public class MemoryManager implements MemoryUseListener {
         // Unload unused octree groups ("remove" them)
         for (byte index : unusedGroups) {
             world.getOctreeStorage().removeOctrees(index);
-        }
-        
-        // Unload unused chunk buffers
-        for (ChunkBuffer buf : unusedBuffers) {
-            world.getChunkStorage().unloadBuffer(buf.getId());
         }
         
         world.leaveExclusive(stamp);

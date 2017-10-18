@@ -485,6 +485,23 @@ public class ChunkBuffer {
             addr += len; // Address to next chunk!
         }
     }
+    
+    /**
+     * Unloads all chunks and metadata. Using this buffer while it is unloading
+     * or after it has been unloaded will probably crash your JVM.
+     */
+    public void unload() {
+        // Free chunk data
+        int count = chunkCount.get();
+        for (int i = 0; i < count; i++) {
+            int len = getChunkLength(i);
+            long addr = getChunkAddr(i);
+            mem.freeMemory(addr, len);
+        }
+        
+        // Free static data region
+        mem.freeMemory(addrs, staticDataLength);
+    }
 
     public int getMemorySize() {
         return getContentSize() + staticDataLength;

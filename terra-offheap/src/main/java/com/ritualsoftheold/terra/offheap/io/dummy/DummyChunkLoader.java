@@ -6,12 +6,12 @@ import com.ritualsoftheold.terra.offheap.io.ChunkLoader;
 public class DummyChunkLoader implements ChunkLoader {
 
     @Override
-    public ChunkBuffer loadChunks(short index, ChunkBuffer buf) {
+    public ChunkBuffer loadChunks(int index, ChunkBuffer buf) {
         return buf;
     }
 
     @Override
-    public ChunkBuffer saveChunks(short index, ChunkBuffer buf) {
+    public ChunkBuffer saveChunks(int index, ChunkBuffer buf) {
         return buf;
     }
 

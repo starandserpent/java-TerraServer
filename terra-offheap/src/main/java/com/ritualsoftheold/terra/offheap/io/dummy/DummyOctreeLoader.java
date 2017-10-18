@@ -17,7 +17,7 @@ public class DummyOctreeLoader implements OctreeLoader {
     }
 
     @Override
-    public long loadOctrees(byte index, long addr) {
+    public long loadOctrees(int index, long addr) {
         addr = mem.allocate(DataConstants.OCTREE_GROUP_META + blockSize * DataConstants.OCTREE_SIZE);
         mem.setMemory(addr, DataConstants.OCTREE_GROUP_META + blockSize * DataConstants.OCTREE_SIZE, (byte) 0);
         return addr;
