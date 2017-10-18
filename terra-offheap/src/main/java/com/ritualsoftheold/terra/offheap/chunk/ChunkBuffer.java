@@ -491,16 +491,21 @@ public class ChunkBuffer {
      * or after it has been unloaded will probably crash your JVM.
      */
     public void unload() {
+        int freed = staticDataLength;
+        
         // Free chunk data
         int count = chunkCount.get();
         for (int i = 0; i < count; i++) {
             int len = getChunkLength(i);
+            freed += len;
             long addr = getChunkAddr(i);
             mem.freeMemory(addr, len);
         }
         
         // Free static data region
         mem.freeMemory(addrs, staticDataLength);
+        
+        memListener.onFree(freed); // Notify memory listener once for whole unload
     }
 
     public int getMemorySize() {

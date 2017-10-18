@@ -208,10 +208,11 @@ public class MemoryManager implements MemoryUseListener {
         System.out.println("Octrees to free: " + freed);
         
         // Mark which chunks to unload
-        ChunkBuffer[] allBuffers = world.getChunkStorage().getAllBuffers();
+        AtomicReferenceArray<ChunkBuffer> allBuffers = world.getChunkStorage().getAllBuffers();
         Set<CompletableFuture<ChunkBuffer>> savePending = new ObjectOpenHashSet<>();
         if (freed < goal) { // Only do this if unloading octrees wouldn't save enough space
-            for (ChunkBuffer buf : allBuffers) {
+            for (int i = 0; i < allBuffers.length(); i++) {
+                ChunkBuffer buf = allBuffers.get(i); // TODO performance
                 if (!usedChunkBufs.contains(buf)) { // If not used, mark for unloading
                     chunkStorage.markInactive(buf.getId()); // Disable buffer for saving
                     savePending.add(chunkStorage.saveBuffer(buf)); // ... and save!

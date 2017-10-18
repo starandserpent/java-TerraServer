@@ -95,7 +95,7 @@ public class ChunkStorage {
      */
     private void loadBuffer(int index) {
         // First attempt to get inactive buffer
-        if (markActive(index);) {
+        if (markActive(index)) {
             return;
         }
         

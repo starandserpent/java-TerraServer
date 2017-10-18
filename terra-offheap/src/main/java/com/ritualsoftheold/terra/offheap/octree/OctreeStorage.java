@@ -3,6 +3,7 @@ package com.ritualsoftheold.terra.offheap.octree;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLongArray;
 
 import com.ritualsoftheold.terra.offheap.DataConstants;
 import com.ritualsoftheold.terra.offheap.io.OctreeLoader;
@@ -25,7 +26,7 @@ public class OctreeStorage {
     /**
      * Memory address of data (kinda array) which stores memory addresses.
      */
-    private long groups;
+    private AtomicLongArray groups;
     
     /**
      * Memory address of data which contains timestamps for when
@@ -60,9 +61,7 @@ public class OctreeStorage {
         this.loaderExecutor = executor;
         this.memListener = memListener;
         this.blockSize = blockSize;
-        this.groups = mem.allocate(256 * 8); // 256 longs at most
-        memListener.onAllocate(256 * 8); // Notify memory use listener
-        mem.setMemory(groups, 256 * 8, (byte) 0);
+        this.groups = new AtomicLongArray(256); // 256 longs at most
         this.lastNeeded = mem.allocate(256 * 8);
         mem.setMemory(lastNeeded, 256 * 8, (byte) 0);
         
@@ -75,10 +74,6 @@ public class OctreeStorage {
                 break;
             }
         }
-    }
-    
-    private long getGroupsAddr(int newGroup) {
-        return groups + newGroup * 8;
     }
     
     /**
@@ -100,7 +95,7 @@ public class OctreeStorage {
      * @param addr Memory address for data.
      */
     public void addOctrees(byte index, long addr) {
-        mem.writeVolatileLong(getGroupsAddr(index), addr);
+        groups.set(index, addr);
         memListener.onAllocate(blockSize);
     }
     
@@ -109,17 +104,18 @@ public class OctreeStorage {
      * @param index Octree group index.
      */
     public void removeOctrees(byte index) {
-        long amount = mem.readVolatileLong(getGroupsAddr(index));
+        long amount = groups.get(index);
         mem.freeMemory(amount, blockSize + DataConstants.OCTREE_GROUP_META);
         memListener.onFree(amount);
     }
     
     public long getGroup(int newGroup) {
-        long addr = mem.readVolatileLong(getGroupsAddr(newGroup));
+        long addr = groups.get(newGroup);
         if (addr == 0) {
             addr = loader.loadOctrees(newGroup, -1);
-            mem.writeVolatileLong(getGroupsAddr(newGroup), addr);
-            memListener.onAllocate(blockSize);
+            if (groups.compareAndSet(newGroup, 0, addr)) {
+                memListener.onAllocate(blockSize);
+            }
         }
         
         // Mark that we needed the group
