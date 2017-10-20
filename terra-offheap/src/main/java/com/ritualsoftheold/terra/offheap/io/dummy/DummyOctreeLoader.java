@@ -28,9 +28,4 @@ public class DummyOctreeLoader implements OctreeLoader {
         // Do nothing
     }
 
-    @Override
-    public int countGroups() {
-        return 0;
-    }
-
 }

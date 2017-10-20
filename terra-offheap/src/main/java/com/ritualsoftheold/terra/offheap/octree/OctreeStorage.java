@@ -5,12 +5,11 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLongArray;
 
+import com.ritualsoftheold.terra.material.MaterialRegistry;
 import com.ritualsoftheold.terra.offheap.DataConstants;
 import com.ritualsoftheold.terra.offheap.io.OctreeLoader;
-import com.ritualsoftheold.terra.offheap.memory.MemoryManager;
 import com.ritualsoftheold.terra.offheap.memory.MemoryUseListener;
 import com.ritualsoftheold.terra.offheap.node.OffheapOctree;
-import com.ritualsoftheold.terra.offheap.world.OffheapWorld;
 
 import net.openhft.chronicle.core.Memory;
 import net.openhft.chronicle.core.OS;
@@ -28,33 +27,36 @@ public class OctreeStorage {
      */
     private AtomicLongArray groups;
     
+    private AtomicLongArray inactiveGroups;
+    
     /**
      * Memory address of data which contains timestamps for when
      * octree data was last needed.
      */
-    private long lastNeeded;
+    private AtomicLongArray lastNeeded;
     
     /**
-     * Group where new octrees should be added.
-     */
-    private AtomicInteger freeGroup;
-    
-    /**
-     * Free index in the {@link #freeGroup}. You should insert new octree at
-     * this position, then increment this by one.
-     */
-    private AtomicInteger freeIndex;
-    
-    /**
-     * Size of storage groups.
+     * How many octrees goes to one storage group.
      */
     private int blockSize;
     
+    /**
+     * Octree loader implementation.
+     */
     private OctreeLoader loader;
     
+    /**
+     * Executor which will be used for asynchronous tasks.
+     */
     private Executor loaderExecutor;
     
+    /**
+     * Memory listener which is to be notified when memory is
+     * allocated or freed.
+     */
     private MemoryUseListener memListener;
+    
+    private long countAddr;
     
     public OctreeStorage(int blockSize, OctreeLoader loader, Executor executor, MemoryUseListener memListener) {
         this.loader = loader;
@@ -62,113 +64,91 @@ public class OctreeStorage {
         this.memListener = memListener;
         this.blockSize = blockSize;
         this.groups = new AtomicLongArray(256); // 256 longs at most
-        this.lastNeeded = mem.allocate(256 * 8);
-        mem.setMemory(lastNeeded, 256 * 8, (byte) 0);
+        this.inactiveGroups = new AtomicLongArray(256);
+        this.lastNeeded = new AtomicLongArray(256);
         
-        // Begin from 1, so master octree group will never be "free"
-        for (byte i = 1; i < 256; i++) {
-            int used = mem.readInt(getGroupMeta(i));
-            if (used < blockSize / DataConstants.OCTREE_SIZE) {
-                freeGroup = new AtomicInteger(i);
-                freeIndex = new AtomicInteger(used);
-                break;
-            }
-        }
-    }
-    
-    /**
-     * Gets address where a timestamp for last access of given octree is stored.
-     * @param newGroup Group index.
-     * @return Memory address.
-     */
-    private long getTimestampAddr(int newGroup) {
-        return lastNeeded + newGroup * 8;
+        // Load master group and cache count address
+        countAddr = getGroupMeta(0);
     }
     
     /**
      * Adds octrees with given index from given address. After this has been
      * done, do NOT touch the data following the memory address.
-     * 
-     * This will be considered as you had allocated for one group. Notifying
-     * memory use listener before calling this is bad idea.
      * @param index Octree group index.
      * @param addr Memory address for data.
+     * @return If it succeeded or failed.
      */
-    public void addOctrees(byte index, long addr) {
-        groups.set(index, addr);
-        memListener.onAllocate(blockSize);
+    public boolean addOctrees(byte index, long addr) {
+        return groups.compareAndSet(index, 0, addr);
     }
     
     /**
      * Removes octrees of given index, then deallocates memory where they were.
      * @param index Octree group index.
+     * @param saveFirst If group should be saved before it is removed from memory.
+     * @return If it succeeded or not.
      */
-    public void removeOctrees(byte index) {
-        long amount = groups.get(index);
-        mem.freeMemory(amount, blockSize + DataConstants.OCTREE_GROUP_META);
-        memListener.onFree(amount);
+    public boolean removeOctrees(byte index, boolean saveFirst) {
+        long addr = inactiveGroups.getAndSet(index, 0);
+        if (addr != 0) {
+            if (saveFirst) {
+                saveGroup(index);
+            }
+            
+            int amount = blockSize + DataConstants.OCTREE_GROUP_META;
+            mem.freeMemory(addr, amount);
+            memListener.onFree(amount);
+            return true;
+        }
+        return false;
     }
     
     public long getGroup(int newGroup) {
         long addr = groups.get(newGroup);
         if (addr == 0) {
-            addr = loader.loadOctrees(newGroup, -1);
+            addr = loader.loadOctrees(newGroup, 0);
             if (groups.compareAndSet(newGroup, 0, addr)) {
                 memListener.onAllocate(blockSize);
+            } else { // Another thread was quicker, we should just free memory now
+                mem.freeMemory(addr, blockSize + DataConstants.OCTREE_GROUP_META);
             }
         }
         
         // Mark that we needed the group
-        mem.writeVolatileLong(getTimestampAddr(newGroup), System.currentTimeMillis());
+        lastNeeded.set(newGroup, System.currentTimeMillis());
         
         return addr + DataConstants.OCTREE_GROUP_META;
     }
     
-    public long getGroupMeta(byte groupIndex) {
+    public long getGroupMeta(int groupIndex) {
         return getGroup(groupIndex) - DataConstants.OCTREE_GROUP_META;
     }
     
     public CompletableFuture<Long> saveGroup(byte groupIndex) {
-        long addr = mem.readVolatileLong(getGroupsAddr(groupIndex));
-        if (addr == -1) {
-            throw new IllegalStateException("cannot save not loaded group");
+        long addr = groups.get(groupIndex);
+        if (addr == 0) {
+            // The group is not there, perhaps it was made inactive
+            return null;
         } else {
             CompletableFuture<Long> future = CompletableFuture.supplyAsync(() -> {
                 loader.saveOctrees(groupIndex, addr);
                 return addr;
-            });
+            }, loaderExecutor);
             return future;
         }
     }
     
+    /**
+     * Creates a new octree and provides you with full id of it.
+     * @return Octree id.
+     */
     public int newOctree() {
-        int octreeIndex = freeIndex.getAndIncrement(); // Get octree index (not group) and increment it by one
-        // We just used the group, so mark it in map
-        //lastNeeded.put(freeGroup, System.currentTimeMillis());
+        int freeIndex = mem.addInt(countAddr, 1); // addInt functions like incrementAndGet in this case
+        int group = freeIndex / blockSize; // Find octree group (unsigned byte, < 256)
+        int index = freeIndex % blockSize; // Find index inside that group
         
-        int groupIndex = freeGroup.get(); // TODO I hope this is safe
-        if (freeIndex.get() * DataConstants.OCTREE_SIZE == blockSize) { // This group just became full
-            freeGroup.compareAndSet(groupIndex, groupIndex + 1); // Take next group if someone didn't do yet do it
-            freeIndex.compareAndSet(blockSize, 0); // ... and zero index if someone didn't yet do it
-        }
-        
-        System.out.println("Octree created: " + octreeIndex);
-        
-        // Write 1 to flags, so child nodes are NULL, not air
-        long groupAddr = getGroup((byte) groupIndex);
-        long addr = groupAddr + octreeIndex * DataConstants.OCTREE_SIZE; // TODO benchmark
-        mem.writeByte(addr, (byte) 0xff);
-        System.out.println("groupIndex: " + groupIndex + ", groupAddr: " + getGroup((byte) groupIndex));
-        System.out.println("Write 0xff at " + addr);
-        
-        // Increment group's free position (this is saved to disk, but usually NOT used)
-        mem.addInt(groupAddr - DataConstants.OCTREE_GROUP_META, 1);
-        
-        return octreeIndex << 8 | groupIndex;
-    }
-    
-    public int getNextIndex() {
-        return freeGroup.get() << 24 | freeIndex.get(); // Get next free index (includes group and octree indexes)
+        // Stitch group and index together to get full id!
+        return group << 24 & index;
     }
     
     /**
@@ -176,7 +156,7 @@ public class OctreeStorage {
      * @return Group count.
      */
     public int getGroupCount() {
-        return freeGroup.get() + 1;
+        return mem.readVolatileInt(countAddr) / blockSize;
     }
     
     public int splitOctree(int index, int node) {
@@ -207,11 +187,11 @@ public class OctreeStorage {
         return newIndex; // Finally return new index, as this is ready to be used
     }
     
-    public OffheapOctree getOctree(int index, OffheapWorld world) {
+    public OffheapOctree getOctree(int index, MaterialRegistry registry) {
         long addr = getOctreeAddr(index);
         
         // TODO memory management aka UserOffheapOctree
-        return new OffheapOctree(addr, index);
+        return new OffheapOctree(addr, index, registry);
     }
     
     public long getOctreeAddr(int index) {
@@ -220,12 +200,8 @@ public class OctreeStorage {
         long groupAddr = getGroup(groupIndex);
         return groupAddr + octreeIndex * DataConstants.OCTREE_SIZE;
     }
-    
-    public long getLastNeeded(byte groupId) {
-        return mem.readVolatileLong(getTimestampAddr(groupId));
-    }
 
-    public long getGroups() {
+    public AtomicLongArray getGroups() {
         return groups;
     }
     
@@ -257,7 +233,7 @@ public class OctreeStorage {
     }
 
     public long getMasterGroupAddr() {
-        return mem.readVolatileLong(getGroupsAddr((byte) 0));
+        return groups.get(0);
     }
 
     public float getCenterPoint(int type) {

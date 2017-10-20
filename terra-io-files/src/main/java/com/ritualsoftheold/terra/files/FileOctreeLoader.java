@@ -7,9 +7,7 @@ import java.nio.channels.FileChannel.MapMode;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
-import java.nio.file.attribute.PosixFileAttributes;
-import java.util.concurrent.locks.LockSupport;
-
+import java.util.concurrent.atomic.AtomicInteger;
 import com.ritualsoftheold.terra.offheap.io.OctreeLoader;
 
 import net.openhft.chronicle.core.Memory;
@@ -31,6 +29,8 @@ public class FileOctreeLoader implements OctreeLoader {
 
     private Path dir;
     private long fileSize;
+    
+    private AtomicInteger octreeCount;
     
     public FileOctreeLoader(Path dir, long fileSize) {
         this.dir = dir;
@@ -66,19 +66,6 @@ public class FileOctreeLoader implements OctreeLoader {
         } catch (IOException e) {
             throw new IORuntimeException(e);
         }
-    }
-
-    @Override
-    public int countGroups() {
-        int count = 0;
-        try {
-            for (Path file : Files.newDirectoryStream(dir)) {
-                count++;
-            }
-        } catch (IOException e) {
-            throw new IORuntimeException(e);
-        }
-        return count;
     }
 
 }

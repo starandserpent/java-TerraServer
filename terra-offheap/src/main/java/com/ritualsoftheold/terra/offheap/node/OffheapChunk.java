@@ -71,7 +71,7 @@ public class OffheapChunk implements Chunk, OffheapNode {
 
     @Override
     public void getBlockIds(int[] indices, short[] ids) {
-        buf.getBlocks(chunkId, indices, ids);
+        buf.getBlocks(chunkId, indices, ids, 0, ids.length);
     }
 
     @Override

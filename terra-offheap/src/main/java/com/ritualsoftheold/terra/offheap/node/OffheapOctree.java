@@ -1,5 +1,6 @@
 package com.ritualsoftheold.terra.offheap.node;
 
+import com.ritualsoftheold.terra.material.MaterialRegistry;
 import com.ritualsoftheold.terra.material.TerraMaterial;
 import com.ritualsoftheold.terra.node.Chunk;
 import com.ritualsoftheold.terra.node.Node;
@@ -21,9 +22,12 @@ public class OffheapOctree implements Octree, OffheapNode {
 
     private int octreeId;
     
-    public OffheapOctree(long addr, int octreeId) {
+    private MaterialRegistry materialRegistry;
+    
+    public OffheapOctree(long addr, int octreeId, MaterialRegistry materialRegistry) {
         this.addr = addr;
         this.octreeId = octreeId;
+        this.materialRegistry = materialRegistry;
     }
     
     @Override

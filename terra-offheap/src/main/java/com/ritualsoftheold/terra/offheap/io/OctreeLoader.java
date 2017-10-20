@@ -10,7 +10,7 @@ public interface OctreeLoader {
      * Loads octrees based on group/file index.
      * @param newGroup
      * @param addr Address where the caller would like data to be. If it
-     * doesn't matter, it can be set to -1. This is only a hint, which some
+     * doesn't matter, it can be set to 0. This is only a hint, which some
      * implementations may choose to ignore.
      * @return Address where data was put.
      */
@@ -22,6 +22,4 @@ public interface OctreeLoader {
      * @param addr
      */
     void saveOctrees(byte index, long addr);
-    
-    int countGroups();
 }
