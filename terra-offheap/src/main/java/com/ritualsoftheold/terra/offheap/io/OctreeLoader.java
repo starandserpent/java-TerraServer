@@ -21,5 +21,5 @@ public interface OctreeLoader {
      * @param index
      * @param addr
      */
-    void saveOctrees(byte index, long addr);
+    void saveOctrees(int index, long addr);
 }

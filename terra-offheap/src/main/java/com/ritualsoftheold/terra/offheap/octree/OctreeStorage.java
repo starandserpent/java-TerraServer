@@ -78,7 +78,7 @@ public class OctreeStorage {
      * @param addr Memory address for data.
      * @return If it succeeded or failed.
      */
-    public boolean addOctrees(byte index, long addr) {
+    public boolean addOctrees(int index, long addr) {
         return groups.compareAndSet(index, 0, addr);
     }
     
@@ -88,16 +88,19 @@ public class OctreeStorage {
      * @param saveFirst If group should be saved before it is removed from memory.
      * @return If it succeeded or not.
      */
-    public boolean removeOctrees(byte index, boolean saveFirst) {
+    public boolean removeOctrees(int index, boolean saveFirst) {
         long addr = inactiveGroups.getAndSet(index, 0);
         if (addr != 0) {
-            if (saveFirst) {
-                saveGroup(index);
-            }
-            
             int amount = blockSize + DataConstants.OCTREE_GROUP_META;
-            mem.freeMemory(addr, amount);
-            memListener.onFree(amount);
+            if (saveFirst) {
+                saveGroup(index).thenRun(() -> {
+                    mem.freeMemory(addr, amount);
+                    memListener.onFree(amount);
+                });
+            } else {
+                mem.freeMemory(addr, amount);
+                memListener.onFree(amount);
+            }
             return true;
         }
         return false;
@@ -124,7 +127,7 @@ public class OctreeStorage {
         return getGroup(groupIndex) - DataConstants.OCTREE_GROUP_META;
     }
     
-    public CompletableFuture<Long> saveGroup(byte groupIndex) {
+    public CompletableFuture<Long> saveGroup(int groupIndex) {
         long addr = groups.get(groupIndex);
         if (addr == 0) {
             // The group is not there, perhaps it was made inactive
@@ -159,6 +162,7 @@ public class OctreeStorage {
         return mem.readVolatileInt(countAddr) / blockSize;
     }
     
+    // TODO update and fix
     public int splitOctree(int index, int node) {
         byte groupIndex = (byte) (index >>> 24);
         int octreeIndex = index & 0xffffff;
@@ -195,7 +199,7 @@ public class OctreeStorage {
     }
     
     public long getOctreeAddr(int index) {
-        byte groupIndex = (byte) (index >>> 24);
+        int groupIndex = index >>> 24;
         int octreeIndex = index & 0xffffff;
         long groupAddr = getGroup(groupIndex);
         return groupAddr + octreeIndex * DataConstants.OCTREE_SIZE;
@@ -203,6 +207,10 @@ public class OctreeStorage {
 
     public AtomicLongArray getGroups() {
         return groups;
+    }
+    
+    public AtomicLongArray getInactiveGroups() {
+        return inactiveGroups;
     }
     
     public int getGroupSize() {

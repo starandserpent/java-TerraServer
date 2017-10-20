@@ -5,6 +5,7 @@ import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.atomic.AtomicLongArray;
 import java.util.concurrent.atomic.AtomicReferenceArray;
 import java.util.concurrent.locks.LockSupport;
 
@@ -189,15 +190,12 @@ public class MemoryManager implements MemoryUseListener {
         long freed = 0;
         
         // Mark which octrees to unload
-        long groups = world.getOctreeStorage().getGroups();
-        ByteSet unusedGroups = new ByteArraySet();
+        AtomicLongArray groups = world.getOctreeStorage().getGroups();
         Set<CompletableFuture<Long>> groupSavePending = new ObjectOpenHashSet<>();
-        System.out.println("octree count: " + octreeStorage.getNextIndex());
         for (int i = 0; i < octreeStorage.getGroupCount(); i++) {
-            long groupAddr = mem.readLong(groups + i * 8) + DataConstants.OCTREE_GROUP_META; // Group begins after meta for user code INCLUDING our listener
+            long groupAddr = groups.get(i) + DataConstants.OCTREE_GROUP_META; // Group begins after meta for user code INCLUDING our listener
             if (!usedOctreeGroups.contains(groupAddr)) { // Need to unload this group
-                unusedGroups.add((byte) i);
-                groupSavePending.add(octreeStorage.saveGroup((byte) i));
+                octreeStorage.removeOctrees(i, true); // Remove groups, but save first
                 
                 freed += world.getOctreeStorage().getGroupSize();
                 if (freed >= goal) { // Hey, we can now release enough
@@ -250,26 +248,6 @@ public class MemoryManager implements MemoryUseListener {
             ChunkBuffer buf = inactiveBuffers.get(i);
             buf.unload();
         }
-        
-        // Perform the performance critical operation with exclusive access
-        //unloadCritical(goal, unusedGroups, unusedBuffers);
-    }
-    
-    /**
-     * Performs actual unloading in world exclusive access.
-     * @param goal
-     * @param unusedGroups
-     * @param unusedBuffers
-     */
-    private void unloadCritical(long goal, ByteSet unusedGroups, Set<ChunkBuffer> unusedBuffers) {
-        long stamp = world.enterExclusive();
-        
-        // Unload unused octree groups ("remove" them)
-        for (byte index : unusedGroups) {
-            world.getOctreeStorage().removeOctrees(index);
-        }
-        
-        world.leaveExclusive(stamp);
     }
     
     /**
