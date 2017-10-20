@@ -32,39 +32,49 @@ public class FileOctreeLoader implements OctreeLoader {
     
     private AtomicInteger octreeCount;
     
+    private Object[] locks;
+    
     public FileOctreeLoader(Path dir, long fileSize) {
         this.dir = dir;
         this.fileSize = fileSize;
+        this.locks = new Object[256];
+        for (int i = 0; i < 256; i++) {
+            locks[i] = new Object();
+        }
     }
     
     @Override
     public long loadOctrees(int index, long address) {
-        Path file = dir.resolve(index + ".terra");
-        
-        try {
-            if (!Files.exists(file)) { // Create new file if necessary
-                RandomAccessFile f = new RandomAccessFile(file.toFile(), "rwd");
-                f.setLength(fileSize);
-                f.close();
+        synchronized (locks[index]) {
+            Path file = dir.resolve(index + ".terra");
+            
+            try {
+                if (!Files.exists(file)) { // Create new file if necessary
+                    RandomAccessFile f = new RandomAccessFile(file.toFile(), "rwd");
+                    f.setLength(fileSize);
+                    f.close();
+                }
+                long dataAddr = OS.map(FileChannel.open(file, StandardOpenOption.READ), MapMode.PRIVATE, 0, fileSize);
+                long addr = mem.allocate(fileSize);
+                mem.copyMemory(dataAddr, addr, fileSize);
+                return addr;
+            } catch (IOException e) {
+                throw new IORuntimeException(e);
             }
-            long dataAddr = OS.map(FileChannel.open(file, StandardOpenOption.READ), MapMode.PRIVATE, 0, fileSize);
-            long addr = mem.allocate(fileSize);
-            mem.copyMemory(dataAddr, addr, fileSize);
-            return addr;
-        } catch (IOException e) {
-            throw new IORuntimeException(e);
         }
     }
 
     @Override
-    public void saveOctrees(byte index, long addr) {
-        Path file = dir.resolve(index + ".terra");
-        try {
-            long mappedAddr = OS.map(FileChannel.open(file, StandardOpenOption.WRITE, StandardOpenOption.CREATE), MapMode.READ_WRITE, 0, fileSize);
-            mem.copyMemory(addr, mappedAddr, fileSize); // Copy data to file
-            OS.unmap(mappedAddr, fileSize);
-        } catch (IOException e) {
-            throw new IORuntimeException(e);
+    public void saveOctrees(int index, long addr) {
+        synchronized (locks[index]) {
+            Path file = dir.resolve(index + ".terra");
+            try {
+                long mappedAddr = OS.map(FileChannel.open(file, StandardOpenOption.WRITE, StandardOpenOption.CREATE), MapMode.READ_WRITE, 0, fileSize);
+                mem.copyMemory(addr, mappedAddr, fileSize); // Copy data to file
+                OS.unmap(mappedAddr, fileSize);
+            } catch (IOException e) {
+                throw new IORuntimeException(e);
+            }
         }
     }
 
