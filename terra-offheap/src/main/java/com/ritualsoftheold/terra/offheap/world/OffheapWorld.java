@@ -197,7 +197,7 @@ public class OffheapWorld implements TerraWorld {
         if (isChunk) {
             return chunkStorage.getChunk(nodeId, registry);
         } else {
-            return octreeStorage.getOctree(nodeId, this);
+            return octreeStorage.getOctree(nodeId, registry);
         }
     }
 
@@ -825,7 +825,7 @@ public class OffheapWorld implements TerraWorld {
     
     public void updateMasterOctree() {
         System.out.println("masterIndex: " + octreeStorage.getMasterIndex());
-        masterOctree = octreeStorage.getOctree(octreeStorage.getMasterIndex(), this);
+        masterOctree = octreeStorage.getOctree(octreeStorage.getMasterIndex(), registry);
         masterScale = octreeStorage.getMasterScale(128); // TODO need to have this CONFIGURABLE!
         centerX = octreeStorage.getCenterPoint(0);
         centerY = octreeStorage.getCenterPoint(1);

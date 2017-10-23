@@ -1,6 +1,6 @@
 package com.ritualsoftheold.terra.offheap.test;
 
-import com.ritualsoftheold.terra.offheap.chunk.ChunkBuffer;
+import com.ritualsoftheold.terra.offheap.node.OffheapChunk;
 import com.ritualsoftheold.terra.offheap.world.WorldLoadListener;
 
 /**
@@ -10,14 +10,15 @@ import com.ritualsoftheold.terra.offheap.world.WorldLoadListener;
 public class DummyLoadListener implements WorldLoadListener {
 
     @Override
-    public void octreeLoaded(long addr, long groupAddr, float x, float y,
-            float z, float scale) {
+    public void octreeLoaded(long addr, long groupAddr, int id, float x,
+            float y, float z, float scale) {
+        // TODO Auto-generated method stub
         
     }
 
     @Override
-    public void chunkLoaded(long addr, ChunkBuffer buf, float x, float y,
-            float z) {
+    public void chunkLoaded(OffheapChunk chunk) {
+        // TODO Auto-generated method stub
         
     }
 

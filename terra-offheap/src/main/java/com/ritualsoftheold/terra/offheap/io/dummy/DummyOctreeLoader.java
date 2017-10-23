@@ -24,7 +24,7 @@ public class DummyOctreeLoader implements OctreeLoader {
     }
 
     @Override
-    public void saveOctrees(byte index, long addr) {
+    public void saveOctrees(int index, long addr) {
         // Do nothing
     }
 
