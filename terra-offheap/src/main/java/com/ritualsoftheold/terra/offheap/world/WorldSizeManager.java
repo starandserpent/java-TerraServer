@@ -56,8 +56,6 @@ public class WorldSizeManager {
     }
     
     public void enlarge(float scale, int oldIndex) {
-        long stamp = world.enterExclusive();
-        
         int oldId = storage.getMasterIndex();
         System.out.println("Old master octree: " + oldId);
         
@@ -66,16 +64,14 @@ public class WorldSizeManager {
         System.out.println("New master octree: " + newId);
         long newAddr = storage.getOctreeAddr(newId);
         
-        // Get metadata addr for group 0 and update it
-        long metaAddr = storage.getGroupMeta((byte) 0);
-        mem.writeInt(metaAddr + 4, newId); // Id
-        mem.writeFloat(metaAddr + 8, scale); // New scale
+        // Get metadata addr for group 0
+        long metaAddr = storage.getGroupMeta(0);
         
         // Calculate new center point (inverted lookup table from usual)
         float posMod = 0.25f * scale;
-        float x = mem.readFloat(metaAddr + 12);
-        float y = mem.readFloat(metaAddr + 16);
-        float z = mem.readFloat(metaAddr + 20);
+        float x = mem.readVolatileFloat(metaAddr + 12);
+        float y = mem.readVolatileFloat(metaAddr + 16);
+        float z = mem.readVolatileFloat(metaAddr + 20);
         switch (oldIndex) {
             case 0:
                 x += posMod;
@@ -120,17 +116,19 @@ public class WorldSizeManager {
         }
         
         // Write new center coords
-        mem.writeFloat(metaAddr + 12, x);
-        mem.writeFloat(metaAddr + 16, y);
-        mem.writeFloat(metaAddr + 20, z);
+        mem.writeVolatileFloat(metaAddr + 12, x);
+        mem.writeVolatileFloat(metaAddr + 16, y);
+        mem.writeVolatileFloat(metaAddr + 20, z);
         
         // Place the old master octree at oldIndex pos in new octree
-        mem.writeInt(newAddr + 1 + oldIndex * 4, oldId);
+        mem.writeVolatileInt(newAddr + 1 + oldIndex * 4, oldId);
+        
+        // When new octree is set up, write it to replace old one
+        mem.writeVolatileInt(metaAddr + 4, newId); // Id
+        mem.writeVolatileFloat(metaAddr + 8, scale); // New scale
         
         // Tell world to switch to new master octree
         world.updateMasterOctree();
-        
-        world.leaveExclusive(stamp);
     }
     
     public void queueEnlarge(float scale, int oldIndex) {
