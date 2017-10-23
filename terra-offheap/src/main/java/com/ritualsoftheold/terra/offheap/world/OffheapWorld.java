@@ -69,17 +69,6 @@ public class OffheapWorld implements TerraWorld {
     // Memory management
     private MemoryManager memManager;
     
-    /**
-     * A lock for enter() and leave().
-     */
-    private StampedLock lock;
-    
-    /**
-     * A lock for pending exclusive operations which block all but
-     * enterNow() calls.
-     */
-    private StampedLock exclusivePending;
-    
     private WorldSizeManager sizeManager;
     
     private float centerX;
@@ -156,8 +145,6 @@ public class OffheapWorld implements TerraWorld {
         public OffheapWorld build() {
             // Initialize some internal structures AFTER all user-controller initialization
             world.loadMarkers = new ArrayList<>();
-            world.lock = new StampedLock();
-            world.exclusivePending = new StampedLock();
             world.sizeManager = new WorldSizeManager(world);
             
             // Initialize memory manager
@@ -779,44 +766,6 @@ public class OffheapWorld implements TerraWorld {
     
     public void setLoadListener(WorldLoadListener listener) {
         this.loadListener = listener;
-    }
-    
-    /**
-     * Waits for pending exclusive locks.
-     */
-    private void waitForExclusive() {
-        long stamp = exclusivePending.readLock();
-        exclusivePending.unlockRead(stamp);
-    }
-
-    @Override
-    public long enter() {
-        waitForExclusive();
-        return enterNow();
-    }
-
-    @Override
-    public long enterNow() {
-        return lock.readLock(); // Just get read lock
-    }
-
-    @Override
-    public void leave(long stamp) {
-        lock.unlockRead(stamp); // Just release read access
-    }
-    
-    public long enterExclusive() {
-        // Request that no further enter() will get accepted until we're done; enterNow() will work
-        long pendingStamp = exclusivePending.writeLock();
-        long stamp = lock.writeLock(); // Try acquire write lock; this will succeed once readers have left
-        exclusivePending.unlockWrite(pendingStamp); // We have exclusive access, unlock pending lock
-        // All threads which were blocking on exclusivePending will block on lock now
-        
-        return stamp; // Just return the stamp. User better be careful with it!
-    }
-    
-    public void leaveExclusive(long stamp) {
-        lock.unlockWrite(stamp);
     }
     
     public void requestUnload() {

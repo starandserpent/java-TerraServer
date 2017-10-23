@@ -26,15 +26,6 @@ public interface MemoryPanicHandler {
      */
     PanicResult outOfMemory(long max, long used, long possible);
     
-    /**
-     * When this panic handler returns {@link PanicResult#FREEZE}, this
-     * will be called soon after that with exclusive world access.
-     * @param stamp Stamp for exclusive access. Always return false, if you use
-     * or intend to use it.
-     * @return If exclusive world access should be ended.
-     */
-    boolean handleFreeze(long stamp);
-    
     public enum PanicResult {
         
         /**
@@ -48,12 +39,5 @@ public interface MemoryPanicHandler {
          * It will not continue normal operation, but it will not panic either.
          */
         INTERRUPT,
-        
-        /**
-         * Asks memory manager to enter freeze mode. It will request exclusive
-         * access to world data, thus pausing all operations on it. After that,
-         * {@link MemoryPanicHandler#handleFreeze()} will be called.
-         */
-        FREEZE
     }
 }

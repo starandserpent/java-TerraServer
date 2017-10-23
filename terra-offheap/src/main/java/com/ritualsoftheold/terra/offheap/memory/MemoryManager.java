@@ -118,11 +118,6 @@ public class MemoryManager implements MemoryUseListener {
         public PanicResult outOfMemory(long max, long used, long possible) {
             throw new UnsupportedOperationException("misuse of critical panic handler");
         }
-
-        @Override
-        public boolean handleFreeze(long stamp) {
-            return userPanicHandler.handleFreeze(stamp);
-        }
         
     }
     
@@ -237,9 +232,6 @@ public class MemoryManager implements MemoryUseListener {
             PanicResult result = panicHandler.goalNotMet(goal, freed);
             if (result == PanicResult.INTERRUPT) { // Stop here
                 return;
-            } else if (result == PanicResult.FREEZE) { // EVERYONE, STOP RIGHT NOW!
-                doFreeze(panicHandler);
-                return;
             }
         }
         
@@ -247,20 +239,6 @@ public class MemoryManager implements MemoryUseListener {
         for (int i = 0; i < inactiveBuffers.length(); i++) {
             ChunkBuffer buf = inactiveBuffers.get(i);
             buf.unload();
-        }
-    }
-    
-    /**
-     * Essentially "freezes" the world by acquiring exclusive access.
-     * Panic handler will then be called, and optionally, exclusive
-     * access automatically ended.
-     * @param panicHandler Panic handler to call.
-     */
-    private void doFreeze(MemoryPanicHandler panicHandler) {
-        long stamp = world.enterExclusive();
-        boolean shouldLeave = panicHandler.handleFreeze(stamp);
-        if (shouldLeave) {
-            world.leaveExclusive(stamp);
         }
     }
     
