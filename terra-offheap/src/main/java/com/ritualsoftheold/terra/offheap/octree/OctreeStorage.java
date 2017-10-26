@@ -27,8 +27,6 @@ public class OctreeStorage {
      */
     private AtomicLongArray groups;
     
-    private AtomicLongArray inactiveGroups;
-    
     /**
      * Memory address of data which contains timestamps for when
      * octree data was last needed.
@@ -63,12 +61,14 @@ public class OctreeStorage {
         this.loaderExecutor = executor;
         this.memListener = memListener;
         this.blockSize = blockSize;
-        this.groups = new AtomicLongArray(256); // 256 longs at most
-        this.inactiveGroups = new AtomicLongArray(256);
+        this.groups = new AtomicLongArray(256); // 256 groups at most
         this.lastNeeded = new AtomicLongArray(256);
         
         // Load master group and cache count address
         countAddr = getGroupMeta(0);
+        if (mem.readVolatileInt(countAddr) == 0) { // Point over master group, we don't add octrees there normally
+            mem.writeVolatileInt(countAddr, blockSize - 1);
+        }
     }
     
     /**
@@ -89,7 +89,7 @@ public class OctreeStorage {
      * @return If it succeeded or not.
      */
     public boolean removeOctrees(int index, boolean saveFirst) {
-        long addr = inactiveGroups.getAndSet(index, 0);
+        long addr = groups.getAndSet(index, 0);
         if (addr != 0) {
             int amount = blockSize + DataConstants.OCTREE_GROUP_META;
             if (saveFirst) {
@@ -97,6 +97,7 @@ public class OctreeStorage {
                     mem.freeMemory(addr, amount);
                     memListener.onFree(amount);
                 });
+                return true;
             } else {
                 mem.freeMemory(addr, amount);
                 memListener.onFree(amount);
@@ -106,11 +107,11 @@ public class OctreeStorage {
         return false;
     }
     
-    public long getGroup(int newGroup) {
-        long addr = groups.get(newGroup);
+    public long getGroup(int group) {
+        long addr = groups.get(group);
         if (addr == 0) {
-            addr = loader.loadOctrees(newGroup, 0);
-            if (groups.compareAndSet(newGroup, 0, addr)) {
+            addr = loader.loadOctrees(group, 0);
+            if (groups.compareAndSet(group, 0, addr)) {
                 memListener.onAllocate(blockSize);
             } else { // Another thread was quicker, we should just free memory now
                 mem.freeMemory(addr, blockSize + DataConstants.OCTREE_GROUP_META);
@@ -118,7 +119,7 @@ public class OctreeStorage {
         }
         
         // Mark that we needed the group
-        lastNeeded.set(newGroup, System.currentTimeMillis());
+        lastNeeded.set(group, System.currentTimeMillis());
         
         return addr + DataConstants.OCTREE_GROUP_META;
     }
@@ -151,7 +152,7 @@ public class OctreeStorage {
         int index = freeIndex % blockSize; // Find index inside that group
         
         // Stitch group and index together to get full id!
-        return group << 24 & index;
+        return group << 24 | index;
     }
     
     /**
@@ -159,10 +160,10 @@ public class OctreeStorage {
      * @return Group count.
      */
     public int getGroupCount() {
-        return mem.readVolatileInt(countAddr) / blockSize;
+        return mem.readVolatileInt(countAddr) / blockSize + 1;
     }
     
-    // TODO update and fix
+    // I guess it works, unit tested and all...
     public int splitOctree(int index, int node) {
         byte groupIndex = (byte) (index >>> 24);
         int octreeIndex = index & 0xffffff;
@@ -179,14 +180,14 @@ public class OctreeStorage {
         long newGroupAddr = getGroup((byte) (newIndex >>> 24)); // Get address for the new group
         long newAddr = newGroupAddr + (newIndex & 0xffffff) * DataConstants.OCTREE_NODE_SIZE;
         
-        mem.writeByte(newAddr, (byte) 0); // New octree has single nodes only
+        mem.writeVolatileByte(newAddr, (byte) 0); // New octree has single nodes only
         for (int i = 0; i < 8; i++) { // Copy old data to EVERY new node
-            mem.writeInt(newAddr + i * DataConstants.OCTREE_NODE_SIZE, blockData);
+            mem.writeVolatileInt(newAddr + i * DataConstants.OCTREE_NODE_SIZE, blockData);
         }
         
         // Now update old octree to properly point into it's no longer single child node
-        mem.writeByte(addr, (byte) (mem.readByte(addr) | (1 << node))); // Update flags
-        mem.writeInt(nodeAddr, newIndex); // ... and actual index
+        mem.writeVolatileByte(addr, (byte) (mem.readVolatileByte(addr) | (1 << node))); // Update flags
+        mem.writeVolatileInt(nodeAddr, newIndex); // ... and actual index
         
         return newIndex; // Finally return new index, as this is ready to be used
     }
@@ -209,12 +210,8 @@ public class OctreeStorage {
         return groups;
     }
     
-    public AtomicLongArray getInactiveGroups() {
-        return inactiveGroups;
-    }
-    
     public int getGroupSize() {
-        return blockSize + DataConstants.OCTREE_GROUP_META;
+        return blockSize * DataConstants.OCTREE_SIZE + DataConstants.OCTREE_GROUP_META;
     }
 
     /**

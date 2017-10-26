@@ -184,7 +184,7 @@ public class MemoryManager implements MemoryUseListener {
         // Track how much we'd actually free memory
         long freed = 0;
         
-        // Mark which octrees to unload
+        // Unload (and save) octrees
         AtomicLongArray groups = world.getOctreeStorage().getGroups();
         Set<CompletableFuture<Long>> groupSavePending = new ObjectOpenHashSet<>();
         for (int i = 0; i < octreeStorage.getGroupCount(); i++) {
