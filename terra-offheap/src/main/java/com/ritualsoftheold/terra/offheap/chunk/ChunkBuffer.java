@@ -297,7 +297,8 @@ public class ChunkBuffer {
      */
     public int newChunk() {
         int index = chunkCount.getAndIncrement();
-        if (index >= maxCount) { // No space...
+        if (index > maxCount - 1) { // No space...
+            chunkCount.decrementAndGet(); // Whoops
             return -1;
         }
         
@@ -311,11 +312,11 @@ public class ChunkBuffer {
      * @return Free capacity.
      */
     public int getFreeCapacity() {
-        return maxCount - chunkCount.get();
+        return Math.max(0, maxCount - chunkCount.get());
     }
     
     public int getChunkCount() {
-        return chunkCount.get();
+        return Math.min(chunkCount.get(), maxCount);
     }
     
     public long getChunkAddr(int index) {
