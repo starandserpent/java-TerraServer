@@ -124,7 +124,7 @@ public class ChunkBuffer {
         private int prepareFlush() {
             // Copy data to flush cache
             int flushCount = pos.get();
-            mem.copyMemory(addr, flushAddr, flushCount * 8);
+            //mem.copyMemory(addr, flushAddr, flushCount * 8);
             
             return flushCount;
         }
@@ -146,6 +146,8 @@ public class ChunkBuffer {
         private void flush() {
             int beginChunkCount = chunkCount.get();
             int flushCount = prepareFlush();
+            System.err.println("Will flush: " + flushCount);
+            System.out.println("not slot: " + addr + 16);
             int processed = 0; // How many of flushes have we queued forward?
 
             // Actual flushing operation
@@ -153,12 +155,13 @@ public class ChunkBuffer {
                 int[] consumed = new int[chunkCount.get()]; // How much have we consumed of per-chunk queues?
                 
                 for (int i = 0; i < flushCount; i++) {
-                    long query = mem.readLong(flushAddr);
+                    long query = mem.readVolatileLong(addr + i * 8);
                     long type = query >>> 56;
                     
-                    if (type == 0) {
+                    if (type == 1) {
                         // Read data using bitwise operations
                         int chunk = (int) (query >>> 40 & 0xffff);
+                        System.out.println("prepare: " + chunk);
     //                    long block = query >>> 16 & 0xffffff;
     //                    long newId = query & 0xffff;
                         
@@ -168,8 +171,10 @@ public class ChunkBuffer {
                             // TODO optimize
                         }
                         
+                        System.out.println("final3.5: " + (mem.readVolatileLong(addr + 16) >>> 56));
                         long queueSlot = queues + queueSize * chunk + offset;
                         mem.writeLong(queueSlot, query);
+                        System.out.println("final4: " + (mem.readVolatileLong(addr + 16) >>> 56));
                         
                         // Increment counters
                         consumed[chunk] += 8;
@@ -177,22 +182,26 @@ public class ChunkBuffer {
                     }
                 }
                 
-                // TODO multithreaded (going to be so much "fun" with that...)
+                // TODO multithreaded (going to have so much "fun" with that...)
                 for (int i = 0; i < beginChunkCount; i++) {
-                    int queriesSize = consumed[i]; // Data consumed by queries'
+                    System.out.println("chunk: " + i);
+                    int queriesSize = consumed[i]; // Data consumed by queries
                     if (queriesSize == 0) {
+                        System.out.println("Move along");
                         continue; // No changes here
                     }
                     
                     long queueAddr = queues + i * queueSize;
                     
                     // Get suitable chunk format, which we'll eventually use to write the data
-                    ChunkFormat format = ChunkFormat.forType(mem.readVolatileByte(types + i));
+                    ChunkFormat format = ChunkFormat.forType(getChunkType(i));
                     
                     // Ask format to process queries (and hope it handles that correctly)
-                    format.processQueries(mem.readVolatileLong(addrs + i * 4), mem.readVolatileInt(lengths + i * 4),
+                    format.processQueries(getChunkAddr(i), getChunkLength(i),
                             allocator, queueAddr, queriesSize);
                 }
+                
+                System.exit(0);
             }
 
             cleanup(flushCount);
@@ -256,6 +265,9 @@ public class ChunkBuffer {
     private int staticDataLength;
     
     public ChunkBuffer(short id, int maxChunks, int globalQueueSize, int chunkQueueSize, MemoryUseListener memListener) {
+        int globalQueueLen = globalQueueSize * 8;
+        int chunkQueueLen = chunkQueueSize * 8 * maxChunks;
+        
         bufferId = id; // Set buffer id
         
         // Initialize memory blocks for metadata
@@ -272,18 +284,18 @@ public class ChunkBuffer {
         // Zero/generally set memory that needs it
         mem.setMemory(baseAddr, maxChunks * 16, (byte) 0); // Zero some chunk specific data
         mem.setMemory(types, maxChunks, ChunkType.EMPTY); // Types need to be EMPTY, even if it is not 0
-        mem.setMemory(globalData, 2 * globalQueueSize + maxChunks * chunkQueueSize, (byte) 0); // Zero global data
+        mem.setMemory(globalData, 2 * globalQueueLen + chunkQueueLen, (byte) 0); // Zero global data
         
         // Initialize counts (max: parameter, current: 0)
         maxCount = maxChunks;
         chunkCount = new AtomicInteger(0);
         
         // Initialize global change queue
-        changeQueue = new ChangeQueue(globalData, globalData + globalQueueSize, globalQueueSize);
+        changeQueue = new ChangeQueue(globalData, globalData + globalQueueLen, globalQueueSize);
         
         // Initialize chunk-local queues
-        queueSize = chunkQueueSize;
-        queues = globalData + globalQueueSize * 2;
+        queueSize = chunkQueueLen;
+        queues = globalData + globalQueueLen * 2;
         
         // Save ref to memory use listener and notify it
         this.memListener = memListener;
@@ -357,8 +369,9 @@ public class ChunkBuffer {
      * @param block Block index in the chunk.
      * @param newId New id for the block
      */
-    public void queueChange(int chunk, int block, short newId) {
-        long query = (chunk << 40) & (block << 16) & newId;
+    public void queueChange(long chunk, long block, short newId) {
+        long query = (1L << 56) | (chunk << 40) | (block << 16) | newId;
+        System.out.println(query >>> 56);
         
         changeQueue.add(query);
     }
@@ -378,7 +391,7 @@ public class ChunkBuffer {
     }
     
     public short getBlock(int chunk, int index) {
-        ChunkFormat format = ChunkFormat.forType(mem.readVolatileByte(types + chunk)); // Get format
+        ChunkFormat format = ChunkFormat.forType(getChunkType(chunk)); // Get format
         
         return format.getBlock(getChunkAddr(chunk), index);
     }

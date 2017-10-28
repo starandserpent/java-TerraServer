@@ -5,7 +5,12 @@ import static org.junit.Assert.*;
 import org.junit.Before;
 import org.junit.Test;
 
+import com.ritualsoftheold.terra.offheap.DataConstants;
 import com.ritualsoftheold.terra.offheap.chunk.ChunkBuffer;
+import com.ritualsoftheold.terra.offheap.chunk.ChunkType;
+
+import net.openhft.chronicle.core.Memory;
+import net.openhft.chronicle.core.OS;
 
 /**
  * Tests chunk buffer functionality. Not to be confused with (TODO) chunk
@@ -13,6 +18,8 @@ import com.ritualsoftheold.terra.offheap.chunk.ChunkBuffer;
  *
  */
 public class ChunkBufferTest {
+    
+    private static final Memory mem = OS.memory();
     
     private ChunkBuffer buf;
     
@@ -58,5 +65,68 @@ public class ChunkBufferTest {
         assertEquals(2, buf.getChunkType(index));
         assertEquals(4, buf.getChunkLength(index));
         assertEquals(3, buf.getChunkUsed(index));
+    }
+    
+//    @Test
+//    public void queueTest() {
+//        // Create 3 chunks
+//        buf.newChunk();
+//        buf.newChunk();
+//        buf.newChunk();
+//        
+//        // Configure the chunk we use for testing
+//        long addr = mem.allocate(DataConstants.CHUNK_UNCOMPRESSED);
+//        mem.setMemory(addr, DataConstants.CHUNK_UNCOMPRESSED, (byte) 0);
+//        buf.setChunkType(2, ChunkType.UNCOMPRESSED);
+//        buf.setChunkAddr(2, addr);
+//        buf.setChunkLength(2, DataConstants.CHUNK_UNCOMPRESSED);
+//        buf.setChunkUsed(2, DataConstants.CHUNK_UNCOMPRESSED);
+//        
+//        // Verify we did stuff correctly in this test
+//        assertEquals(0, buf.getBlock(2, 0));
+//        assertEquals(0, buf.getBlock(2, 1));
+//        assertEquals(0, buf.getBlock(2, DataConstants.CHUNK_MAX_BLOCKS - 1));
+//        
+//        // Do changes (does it crash?)
+//        buf.queueChange(2, 1, (short) 3);
+//        buf.flushChanges();
+//        
+//        // Check that changes were made to CORRECT block
+//        assertEquals(0, buf.getBlock(2, 0));
+//        assertEquals(3, buf.getBlock(2, 1));
+//        assertEquals(0, buf.getBlock(2, 2));
+//    }
+    
+    @Test
+    public void queueAdvancedTest() {
+        int count = 5;
+        for (int i = 0; i < count; i++) {
+            buf.newChunk();
+            
+            // Configure chunks we use for testing
+            long addr = mem.allocate(DataConstants.CHUNK_UNCOMPRESSED);
+            mem.setMemory(addr, DataConstants.CHUNK_UNCOMPRESSED, (byte) 0);
+            buf.setChunkType(i, ChunkType.UNCOMPRESSED);
+            buf.setChunkAddr(i, addr);
+            buf.setChunkLength(i, DataConstants.CHUNK_UNCOMPRESSED);
+            buf.setChunkUsed(i, DataConstants.CHUNK_UNCOMPRESSED);
+            
+            // Verify we did stuff correctly in this test
+            assertEquals(0, buf.getBlock(i, 0));
+            assertEquals(0, buf.getBlock(i, 1));
+            assertEquals(0, buf.getBlock(i, DataConstants.CHUNK_MAX_BLOCKS - 1)); // And that there is enough memory...
+        }
+        
+        for (int i = 0; i < count; i++) {
+            buf.queueChange(i, 1, (short) 3);
+        }
+        buf.flushChanges();
+        
+        // Check that changes were made to CORRECT block
+        for (int i = 0; i < count; i++) {
+            assertEquals(0, buf.getBlock(i, 0));
+            assertEquals(3, buf.getBlock(i, 1));
+            assertEquals(0, buf.getBlock(i, 2));
+        }
     }
 }
