@@ -124,7 +124,7 @@ public class ChunkBuffer {
         private int prepareFlush() {
             // Copy data to flush cache
             int flushCount = pos.get();
-            //mem.copyMemory(addr, flushAddr, flushCount * 8);
+            mem.copyMemory(addr, flushAddr, flushCount * 8);
             
             return flushCount;
         }
@@ -146,8 +146,6 @@ public class ChunkBuffer {
         private void flush() {
             int beginChunkCount = chunkCount.get();
             int flushCount = prepareFlush();
-            System.err.println("Will flush: " + flushCount);
-            System.out.println("not slot: " + addr + 16);
             int processed = 0; // How many of flushes have we queued forward?
 
             // Actual flushing operation
@@ -155,13 +153,12 @@ public class ChunkBuffer {
                 int[] consumed = new int[chunkCount.get()]; // How much have we consumed of per-chunk queues?
                 
                 for (int i = 0; i < flushCount; i++) {
-                    long query = mem.readVolatileLong(addr + i * 8);
+                    long query = mem.readVolatileLong(flushAddr + i * 8);
                     long type = query >>> 56;
                     
-                    if (type == 1) {
+                    if (type == 0) {
                         // Read data using bitwise operations
                         int chunk = (int) (query >>> 40 & 0xffff);
-                        System.out.println("prepare: " + chunk);
     //                    long block = query >>> 16 & 0xffffff;
     //                    long newId = query & 0xffff;
                         
@@ -171,10 +168,8 @@ public class ChunkBuffer {
                             // TODO optimize
                         }
                         
-                        System.out.println("final3.5: " + (mem.readVolatileLong(addr + 16) >>> 56));
                         long queueSlot = queues + queueSize * chunk + offset;
                         mem.writeLong(queueSlot, query);
-                        System.out.println("final4: " + (mem.readVolatileLong(addr + 16) >>> 56));
                         
                         // Increment counters
                         consumed[chunk] += 8;
@@ -184,10 +179,8 @@ public class ChunkBuffer {
                 
                 // TODO multithreaded (going to have so much "fun" with that...)
                 for (int i = 0; i < beginChunkCount; i++) {
-                    System.out.println("chunk: " + i);
                     int queriesSize = consumed[i]; // Data consumed by queries
                     if (queriesSize == 0) {
-                        System.out.println("Move along");
                         continue; // No changes here
                     }
                     
@@ -200,8 +193,6 @@ public class ChunkBuffer {
                     format.processQueries(getChunkAddr(i), getChunkLength(i),
                             allocator, queueAddr, queriesSize);
                 }
-                
-                System.exit(0);
             }
 
             cleanup(flushCount);
@@ -271,7 +262,7 @@ public class ChunkBuffer {
         bufferId = id; // Set buffer id
         
         // Initialize memory blocks for metadata
-        int allocLen = maxChunks * 17 + 2 * globalQueueSize + maxChunks * chunkQueueSize;
+        int allocLen = maxChunks * 17 + 2 * globalQueueLen + chunkQueueLen;
         staticDataLength = allocLen;
         long baseAddr = mem.allocate(allocLen);
         addrs = baseAddr; // 8 bytes per chunk
@@ -370,8 +361,7 @@ public class ChunkBuffer {
      * @param newId New id for the block
      */
     public void queueChange(long chunk, long block, short newId) {
-        long query = (1L << 56) | (chunk << 40) | (block << 16) | newId;
-        System.out.println(query >>> 56);
+        long query = (0L << 56) | (chunk << 40) | (block << 16) | newId;
         
         changeQueue.add(query);
     }
