@@ -5,3 +5,7 @@ include 'terra-offheap'
 include 'terra-io-files'
 include 'terra-meshgen'
 include 'terra-testgame'
+include 'terra-net-core'
+include 'terra-net-client'
+include 'terra-net-server'
+
