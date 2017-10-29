@@ -67,35 +67,35 @@ public class ChunkBufferTest {
         assertEquals(3, buf.getChunkUsed(index));
     }
     
-//    @Test
-//    public void queueTest() {
-//        // Create 3 chunks
-//        buf.newChunk();
-//        buf.newChunk();
-//        buf.newChunk();
-//        
-//        // Configure the chunk we use for testing
-//        long addr = mem.allocate(DataConstants.CHUNK_UNCOMPRESSED);
-//        mem.setMemory(addr, DataConstants.CHUNK_UNCOMPRESSED, (byte) 0);
-//        buf.setChunkType(2, ChunkType.UNCOMPRESSED);
-//        buf.setChunkAddr(2, addr);
-//        buf.setChunkLength(2, DataConstants.CHUNK_UNCOMPRESSED);
-//        buf.setChunkUsed(2, DataConstants.CHUNK_UNCOMPRESSED);
-//        
-//        // Verify we did stuff correctly in this test
-//        assertEquals(0, buf.getBlock(2, 0));
-//        assertEquals(0, buf.getBlock(2, 1));
-//        assertEquals(0, buf.getBlock(2, DataConstants.CHUNK_MAX_BLOCKS - 1));
-//        
-//        // Do changes (does it crash?)
-//        buf.queueChange(2, 1, (short) 3);
-//        buf.flushChanges();
-//        
-//        // Check that changes were made to CORRECT block
-//        assertEquals(0, buf.getBlock(2, 0));
-//        assertEquals(3, buf.getBlock(2, 1));
-//        assertEquals(0, buf.getBlock(2, 2));
-//    }
+    @Test
+    public void queueTest() {
+        // Create 3 chunks
+        buf.newChunk();
+        buf.newChunk();
+        buf.newChunk();
+        
+        // Configure the chunk we use for testing
+        long addr = mem.allocate(DataConstants.CHUNK_UNCOMPRESSED);
+        mem.setMemory(addr, DataConstants.CHUNK_UNCOMPRESSED, (byte) 0);
+        buf.setChunkType(2, ChunkType.UNCOMPRESSED);
+        buf.setChunkAddr(2, addr);
+        buf.setChunkLength(2, DataConstants.CHUNK_UNCOMPRESSED);
+        buf.setChunkUsed(2, DataConstants.CHUNK_UNCOMPRESSED);
+        
+        // Verify we did stuff correctly in this test
+        assertEquals(0, buf.getBlock(2, 0));
+        assertEquals(0, buf.getBlock(2, 1));
+        assertEquals(0, buf.getBlock(2, DataConstants.CHUNK_MAX_BLOCKS - 1));
+        
+        // Do changes (does it crash?)
+        buf.queueChange(2, 1, (short) 3);
+        buf.flushChanges();
+        
+        // Check that changes were made to CORRECT block
+        assertEquals(0, buf.getBlock(2, 0));
+        assertEquals(3, buf.getBlock(2, 1));
+        assertEquals(0, buf.getBlock(2, 2));
+    }
     
     @Test
     public void queueAdvancedTest() {
@@ -123,6 +123,22 @@ public class ChunkBufferTest {
         buf.flushChanges();
         
         // Check that changes were made to CORRECT block
+        for (int i = 0; i < count; i++) {
+            assertEquals(0, buf.getBlock(i, 0));
+            assertEquals(3, buf.getBlock(i, 1));
+            assertEquals(0, buf.getBlock(i, 2));
+        }
+        
+        // Test saving data...
+        int saveSize = buf.getSaveSize();
+        long saveAddr = mem.allocate(saveSize);
+        buf.save(saveAddr);
+        buf.unload(); // And unloading!
+        
+        init(); // Get new chunk buffer!
+        buf.load(saveAddr, count);
+        
+        // Check that loading didn't corrupt stuff
         for (int i = 0; i < count; i++) {
             assertEquals(0, buf.getBlock(i, 0));
             assertEquals(3, buf.getBlock(i, 1));
