@@ -27,13 +27,6 @@ public class ChunkStorage {
     private AtomicIntegerArray unloading;
     
     /**
-     * Buffers which are inactive are currently saving their contents. They can
-     * be activated by any operation that would happen on them. If they are not
-     * activated, they will be fully unloaded.
-     */
-    private AtomicReferenceArray<ChunkBuffer> inactiveBuffers;
-    
-    /**
      * Creates chunk buffers.
      */
     private ChunkBuffer.Builder bufferBuilder;
@@ -49,7 +42,6 @@ public class ChunkStorage {
         this.bufferBuilder = bufferBuilder;
         this.loader = loader;
         this.buffers = new AtomicReferenceArray<>(maxBuffers);
-        this.inactiveBuffers = new AtomicReferenceArray<>(maxBuffers);
         this.aliveWrappers = new AtomicIntegerArray(maxBuffers);
         this.unloading = new AtomicIntegerArray(maxBuffers);
         this.executor = executor;
@@ -64,6 +56,7 @@ public class ChunkStorage {
                 if (buf == null) { // Oh, that buffer is not loaded
                     if (secondTry) {
                         loadBuffer(i); // Load it, now
+                        buf = buffers.get(i);
                     } else { // Ignore if there is potential to not have load anything
                         continue;
                     }
@@ -94,15 +87,12 @@ public class ChunkStorage {
      * @param index Index for buffer.
      */
     private void loadBuffer(int index) {
-        // First attempt to get inactive buffer
-        if (markActive(index)) {
-            return;
-        }
-        
         boolean success = createBuffer(index);
         if (!success) {
             return; // Someone else is loading the buffer
         }
+        
+        loader.loadChunks(index, buffers.get(index));
     }
     
     /**
@@ -194,21 +184,8 @@ public class ChunkStorage {
         return unloading.decrementAndGet(index);
     }
     
-    public boolean markInactive(int index) {
-        if (unloading.get(index) < 1) {
-            return inactiveBuffers.compareAndSet(index, null, buffers.getAndSet(index, null));
-        }
-        return false;
-    }
-    
-    public boolean markActive(int index) {
-        return buffers.compareAndSet(index, null, inactiveBuffers.getAndSet(index, null));
-    }
-    
-    public AtomicReferenceArray<ChunkBuffer> flushInactiveBuffers() {
-        AtomicReferenceArray<ChunkBuffer> bufs = inactiveBuffers;
-        inactiveBuffers = new AtomicReferenceArray<>(buffers.length());
-        return bufs;
+    public int getUsedCount(int index) {
+        return unloading.get(index);
     }
     
     /**
@@ -279,6 +256,35 @@ public class ChunkStorage {
         return CompletableFuture.supplyAsync(() -> {
             loader.saveChunks(buf.getId(), buf);
             return buf;
-        });
+        }, executor);
+    }
+
+    public void unloadBuffer(int index, boolean saveFirst) {
+        CompletableFuture.runAsync(() -> {
+            ChunkBuffer buf = buffers.getAndSet(index, null); // Get buffer, set it to null
+            // Once used mark gets to zero, we can unload
+            while (true) { // Spin loop until used < 1
+                // TODO Java 9 Thread.onSpinWait
+                int used = getUsedCount(index);
+                if (used < 1) {
+                    break;
+                }
+            }
+            while (true) { // Spin loop until aliveWrappers < 1
+                int alive = aliveWrappers.get(index);
+                if (alive < 1) {
+                    break;
+                }
+            }
+            
+            // Proceed to unload
+            if (saveFirst) {
+                saveBuffer(buf).join();
+            }
+            
+            // Finally, unload
+            buf.unload();
+            // And then buffer object is left for GC to claim
+        }, executor);
     }
 }

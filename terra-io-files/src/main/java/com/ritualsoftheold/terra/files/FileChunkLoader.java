@@ -6,6 +6,7 @@ import java.nio.channels.FileChannel.MapMode;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
+import java.util.concurrent.atomic.AtomicReferenceArray;
 
 import com.ritualsoftheold.terra.offheap.chunk.ChunkBuffer;
 import com.ritualsoftheold.terra.offheap.io.ChunkLoader;
@@ -26,6 +27,8 @@ public class FileChunkLoader implements ChunkLoader {
 
     private Path dir;
     
+    private AtomicReferenceArray<Object> locks;
+    
     public FileChunkLoader(Path dir) {
         this.dir = dir;
     }
@@ -35,20 +38,25 @@ public class FileChunkLoader implements ChunkLoader {
         Path file = dir.resolve(index + ".terrac");
 
         try {
-            if (!Files.exists(file)) { // Create file if it does not exist
-                Files.createFile(file);
-            }
+            // CAS will fail except first time
+            locks.compareAndSet(index, null, new Object());
             
-            long len = Files.size(file);
-            long addr = OS.map(FileChannel.open(file, StandardOpenOption.READ), MapMode.PRIVATE, 0, len); // Map to memory
-            int chunkCount;
-            if (len < FILE_META_LENGTH) {
-                chunkCount = 0; // Hey, new file
-            } else {
-                chunkCount = mem.readInt(addr);
+            synchronized (locks.get(index)) {
+                if (!Files.exists(file)) { // Create file if it does not exist
+                    Files.createFile(file);
+                }
+                
+                long len = Files.size(file);
+                long addr = OS.map(FileChannel.open(file, StandardOpenOption.READ), MapMode.PRIVATE, 0, len); // Map to memory
+                int chunkCount;
+                if (len < FILE_META_LENGTH) {
+                    chunkCount = 0; // Hey, new file
+                } else {
+                    chunkCount = mem.readInt(addr);
+                }
+                buf.load(addr + FILE_META_LENGTH, chunkCount); // Load chunks
+                OS.unmap(addr, len); // Unmap data after it is not needed
             }
-            buf.load(addr + FILE_META_LENGTH, chunkCount); // Load chunks
-            OS.unmap(addr, len); // Unmap data after it is not needed
         } catch (IOException e) {
             throw new IORuntimeException(e);
         }
@@ -60,11 +68,17 @@ public class FileChunkLoader implements ChunkLoader {
     public ChunkBuffer saveChunks(int index, ChunkBuffer buf) {
         Path file = dir.resolve(index + ".terrac");
         try {
-            long len = buf.getSaveSize();
-            long addr = OS.map(FileChannel.open(file, StandardOpenOption.WRITE, StandardOpenOption.CREATE), MapMode.READ_WRITE, 0, FILE_META_LENGTH + len); // Map to memory
-            mem.writeInt(addr, buf.getChunkCount()); // Write chunk count to metadata
-            buf.save(addr + FILE_META_LENGTH); // Save to memory mapped region
-            OS.unmap(addr, len); // Unmap data after it is not needed
+            // CAS will fail except first time
+            locks.compareAndSet(index, null, new Object());
+            
+            synchronized (locks.get(index)) {
+                long len = buf.getSaveSize();
+                long addr = OS.map(FileChannel.open(file, StandardOpenOption.WRITE, StandardOpenOption.CREATE),
+                        MapMode.READ_WRITE, 0, FILE_META_LENGTH + len); // Map to memory
+                mem.writeInt(addr, buf.getChunkCount()); // Write chunk count to metadata
+                buf.save(addr + FILE_META_LENGTH); // Save to memory mapped region
+                OS.unmap(addr, len); // Unmap data after it is not needed
+            }
         } catch (IOException e) {
             throw new IORuntimeException(e);
         }

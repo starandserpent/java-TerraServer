@@ -30,8 +30,6 @@ public class FileOctreeLoader implements OctreeLoader {
     private Path dir;
     private long fileSize;
     
-    private AtomicInteger octreeCount;
-    
     private Object[] locks;
     
     public FileOctreeLoader(Path dir, long fileSize) {
@@ -45,10 +43,10 @@ public class FileOctreeLoader implements OctreeLoader {
     
     @Override
     public long loadOctrees(int index, long address) {
-        synchronized (locks[index]) {
-            Path file = dir.resolve(index + ".terra");
-            
-            try {
+        Path file = dir.resolve(index + ".terra");
+        
+        try {
+            synchronized (locks[index]) {
                 if (!Files.exists(file)) { // Create new file if necessary
                     RandomAccessFile f = new RandomAccessFile(file.toFile(), "rwd");
                     f.setLength(fileSize);
@@ -58,9 +56,9 @@ public class FileOctreeLoader implements OctreeLoader {
                 long addr = mem.allocate(fileSize);
                 mem.copyMemory(dataAddr, addr, fileSize);
                 return addr;
-            } catch (IOException e) {
-                throw new IORuntimeException(e);
             }
+        } catch (IOException e) {
+            throw new IORuntimeException(e);
         }
     }
 

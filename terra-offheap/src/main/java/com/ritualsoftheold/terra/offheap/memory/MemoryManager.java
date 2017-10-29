@@ -186,7 +186,6 @@ public class MemoryManager implements MemoryUseListener {
         
         // Unload (and save) octrees
         AtomicLongArray groups = world.getOctreeStorage().getGroups();
-        Set<CompletableFuture<Long>> groupSavePending = new ObjectOpenHashSet<>();
         for (int i = 0; i < octreeStorage.getGroupCount(); i++) {
             long groupAddr = groups.get(i) + DataConstants.OCTREE_GROUP_META; // Group begins after meta for user code INCLUDING our listener
             if (!usedOctreeGroups.contains(groupAddr)) { // Need to unload this group
@@ -207,8 +206,7 @@ public class MemoryManager implements MemoryUseListener {
             for (int i = 0; i < allBuffers.length(); i++) {
                 ChunkBuffer buf = allBuffers.get(i); // TODO performance
                 if (!usedChunkBufs.contains(buf)) { // If not used, mark for unloading
-                    chunkStorage.markInactive(buf.getId()); // Disable buffer for saving
-                    savePending.add(chunkStorage.saveBuffer(buf)); // ... and save!
+                    chunkStorage.unloadBuffer(buf.getId(), true);
                     
                     freed += buf.getMemorySize();
                     if (freed >= goal) { // Hey, we can now release enough
@@ -218,13 +216,6 @@ public class MemoryManager implements MemoryUseListener {
             }
         }
         
-        // Finish any pending save operations BEFORE entering critical section
-        for (CompletableFuture<Long> future : groupSavePending) {
-            future.join();
-        }
-        for (CompletableFuture<ChunkBuffer> future : savePending) {
-            future.join();
-        }
         System.out.println("Could free: " + freed);
         
         // Ok, everything saved and so on... Can we save enough?
@@ -233,12 +224,6 @@ public class MemoryManager implements MemoryUseListener {
             if (result == PanicResult.INTERRUPT) { // Stop here
                 return;
             }
-        }
-        
-        AtomicReferenceArray<ChunkBuffer> inactiveBuffers = chunkStorage.flushInactiveBuffers();
-        for (int i = 0; i < inactiveBuffers.length(); i++) {
-            ChunkBuffer buf = inactiveBuffers.get(i);
-            buf.unload();
         }
     }
     
