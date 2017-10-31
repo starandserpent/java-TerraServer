@@ -59,7 +59,7 @@ public class ChunkBuffer {
     /**
      * If of this chunk buffer.
      */
-    private short bufferId;
+    private int bufferId;
     
     /**
      * Returns when this buffer was last used.
@@ -255,7 +255,7 @@ public class ChunkBuffer {
     
     private int staticDataLength;
     
-    public ChunkBuffer(short id, int maxChunks, int globalQueueSize, int chunkQueueSize, MemoryUseListener memListener) {
+    public ChunkBuffer(int id, int maxChunks, int globalQueueSize, int chunkQueueSize, MemoryUseListener memListener) {
         int globalQueueLen = globalQueueSize * 8;
         int chunkQueueLen = chunkQueueSize * 8 * maxChunks;
         
@@ -398,16 +398,10 @@ public class ChunkBuffer {
      */
     public static class Builder {
         
-        private short id;
         private int maxChunks;
         private int globalQueueSize;
         private int chunkQueueSize;
         private MemoryUseListener memListener;
-        
-        public Builder id(short id) {
-            this.id = id;
-            return this;
-        }
         
         public Builder maxChunks(int maxChunks) {
             this.maxChunks = maxChunks;
@@ -429,8 +423,8 @@ public class ChunkBuffer {
             return this;
         }
         
-        public ChunkBuffer build() {
-            return new ChunkBuffer(id, maxChunks, globalQueueSize, chunkQueueSize, memListener);
+        public ChunkBuffer build(int index) {
+            return new ChunkBuffer(index, maxChunks, globalQueueSize, chunkQueueSize, memListener);
         }
     }
     

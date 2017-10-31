@@ -28,7 +28,6 @@ public class ChunkStorageTest {
     @Before
     public void init() {
         ChunkBuffer.Builder builder = new ChunkBuffer.Builder()
-                .id((short) 1)
                 .maxChunks(64)
                 .globalQueue(8)
                 .chunkQueue(4)

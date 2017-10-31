@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ForkJoinPool;
 
 import com.jme3.app.SimpleApplication;
 import com.jme3.input.KeyInput;
@@ -36,8 +37,11 @@ import com.ritualsoftheold.terra.mesher.culling.VisualObject;
 import com.ritualsoftheold.terra.mesher.resource.TextureManager;
 import com.ritualsoftheold.terra.offheap.chunk.ChunkBuffer;
 import com.ritualsoftheold.terra.offheap.io.dummy.DummyChunkLoader;
+import com.ritualsoftheold.terra.offheap.io.dummy.DummyOctreeLoader;
 import com.ritualsoftheold.terra.offheap.memory.MemoryPanicHandler;
 import com.ritualsoftheold.terra.offheap.memory.MemoryPanicHandler.PanicResult;
+import com.ritualsoftheold.terra.offheap.node.OffheapChunk;
+import com.ritualsoftheold.terra.offheap.test.DummyMemoryUseListener;
 import com.ritualsoftheold.terra.offheap.world.OffheapWorld;
 import com.ritualsoftheold.terra.offheap.world.WorldLoadListener;
 import com.ritualsoftheold.terra.world.LoadMarker;
@@ -74,31 +78,37 @@ public class TestGameApp extends SimpleApplication implements ActionListener {
         MaterialRegistry reg = new MaterialRegistry();
         mod.registerMaterials(reg);
         
-        try {
-            WorldGenerator gen = new TestWorldGenerator();
-            gen.initialize(0, reg);
-            world = new OffheapWorld(new DummyChunkLoader(), new FileOctreeLoader(Files.createDirectories(Paths.get("octrees")), 8192),
-                    reg, gen);
-            world.setMemorySettings(100000, 1000000, new MemoryPanicHandler() {
+        WorldGenerator gen = new TestWorldGenerator();
+        gen.initialize(0, reg);
+        
+        ChunkBuffer.Builder bufferBuilder = new ChunkBuffer.Builder()
+                .maxChunks(128)
+                .globalQueue(8)
+                .chunkQueue(4);
+        
+        world = new OffheapWorld.Builder()
+                .chunkLoader(new DummyChunkLoader())
+                .octreeLoader(new DummyOctreeLoader(32768))
+                .storageExecutor(ForkJoinPool.commonPool())
+                .chunkStorage(bufferBuilder, 128)
+                .octreeStorage(32768)
+                .generator(gen)
+                .generatorExecutor(ForkJoinPool.commonPool())
+                .materialRegistry(reg)
+                .memorySettings(10000000, 10000000, new MemoryPanicHandler() {
+                    
+                    @Override
+                    public PanicResult outOfMemory(long max, long used, long possible) {
+                        return PanicResult.CONTINUE;
+                    }
+                    
+                    @Override
+                    public PanicResult goalNotMet(long goal, long possible) {
+                        return PanicResult.CONTINUE;
+                    }
+                })
+                .build();
                 
-                @Override
-                public PanicResult outOfMemory(long max, long used, long possible) {
-                    return PanicResult.CONTINUE;
-                }
-                
-                @Override
-                public boolean handleFreeze(long stamp) {
-                    return true;
-                }
-                
-                @Override
-                public PanicResult goalNotMet(long goal, long possible) {
-                    return PanicResult.CONTINUE;
-                }
-            });
-        } catch (IOException e) {
-            throw new IORuntimeException(e);
-        }
         player = new LoadMarker(0, 0, 0, 32, 200, 0);
         world.addLoadMarker(player);
         
@@ -112,17 +122,18 @@ public class TestGameApp extends SimpleApplication implements ActionListener {
         mat.setTexture("DiffuseMap", texManager.getGroundTexture());
         
         world.setLoadListener(new WorldLoadListener() {
-            
+
             @Override
-            public void octreeLoaded(long addr, long groupAddr, float x, float y, float z, float scale) {
+            public void octreeLoaded(long addr, long groupAddr, int id, float x,
+                    float y, float z, float scale) {
                 // For now, just ignore octrees
             }
-            
+
             @Override
-            public void chunkLoaded(long addr, ChunkBuffer buf, float x, float y, float z) {
-                System.out.println("Loaded chunk: " + addr);
+            public void chunkLoaded(OffheapChunk chunk) {
+                System.out.println("Loaded chunk: " + chunk.memoryAddress());
                 VoxelMesher mesher = new NaiveMesher(); // Not thread safe, but this is still performance hog!
-                mesher.chunk(addr, texManager);
+                mesher.chunk(chunk.memoryAddress(), texManager);
                 
                 // Create mesh
                 Mesh mesh = new Mesh();
@@ -137,7 +148,7 @@ public class TestGameApp extends SimpleApplication implements ActionListener {
                 //mat.setParam("SeparateTexCoord", VarType.Boolean, true);
                 geom.setMaterial(mat);
                 //geom.setLocalScale(0.5f);
-                geom.setLocalTranslation(x, y, z);
+                geom.setLocalTranslation(x, y, z); // Whooops, this data is ABSOLUTELY needed - TODO
                 geom.setCullHint(CullHint.Never);
                 
                 // Place geometry in queue for main thread
@@ -163,12 +174,10 @@ public class TestGameApp extends SimpleApplication implements ActionListener {
          * 
          * Then? Networking.
          */
-        long stamp = world.enter();
         List<CompletableFuture<Void>> markers = world.updateLoadMarkers();
 //        markers.forEach((f) -> {
 //            f.join();
 //        });
-        world.leave(stamp);
         
         inputManager.addMapping("RELOAD", new KeyTrigger(KeyInput.KEY_G));
         inputManager.addListener(this, "RELOAD");
@@ -211,9 +220,7 @@ public class TestGameApp extends SimpleApplication implements ActionListener {
     public void onAction(String name, boolean isPressed, float tpf) {
         if (name == "RELOAD" && isPressed) {
             //rootNode.detachAllChildren();
-            long stamp = world.enter();
             world.updateLoadMarkers();
-            world.leave(stamp);
         }
     }
 

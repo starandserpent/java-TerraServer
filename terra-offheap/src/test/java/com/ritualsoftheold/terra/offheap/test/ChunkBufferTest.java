@@ -26,12 +26,11 @@ public class ChunkBufferTest {
     @Before
     public void init() {
         buf = new ChunkBuffer.Builder()
-                .id((short) 1)
                 .maxChunks(64)
                 .globalQueue(8)
                 .chunkQueue(4)
                 .memListener(new DummyMemoryUseListener())
-                .build();
+                .build((short) 1);
     }
     
     @Test

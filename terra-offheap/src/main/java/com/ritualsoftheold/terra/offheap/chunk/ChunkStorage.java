@@ -66,7 +66,7 @@ public class ChunkStorage {
                     int index = buf.newChunk();
                     if (index != -1) { // If it succeeded
                         // Return full id for new chunk
-                        return i << 16 & index;
+                        return i << 16 | index;
                     }
                     // Fail means "try different buffer"
                 }
@@ -108,7 +108,7 @@ public class ChunkStorage {
         }
         
         // Create buffer
-        buffers.set(index, bufferBuilder.build());
+        buffers.set(index, bufferBuilder.build(index));
         
         return true;
     }
