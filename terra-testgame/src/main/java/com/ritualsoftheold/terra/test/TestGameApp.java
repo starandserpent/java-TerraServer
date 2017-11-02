@@ -130,7 +130,7 @@ public class TestGameApp extends SimpleApplication implements ActionListener {
             }
 
             @Override
-            public void chunkLoaded(OffheapChunk chunk) {
+            public void chunkLoaded(OffheapChunk chunk, float x, float y, float z) {
                 System.out.println("Loaded chunk: " + chunk.memoryAddress());
                 VoxelMesher mesher = new NaiveMesher(); // Not thread safe, but this is still performance hog!
                 mesher.chunk(chunk.memoryAddress(), texManager);
@@ -148,7 +148,7 @@ public class TestGameApp extends SimpleApplication implements ActionListener {
                 //mat.setParam("SeparateTexCoord", VarType.Boolean, true);
                 geom.setMaterial(mat);
                 //geom.setLocalScale(0.5f);
-                geom.setLocalTranslation(x, y, z); // Whooops, this data is ABSOLUTELY needed - TODO
+                geom.setLocalTranslation(x, y, z);
                 geom.setCullHint(CullHint.Never);
                 
                 // Place geometry in queue for main thread

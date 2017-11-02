@@ -12,5 +12,5 @@ public interface WorldLoadListener {
     
     void octreeLoaded(long addr, long groupAddr, int id, float x, float y, float z, float scale);
     
-    void chunkLoaded(OffheapChunk chunk);
+    void chunkLoaded(OffheapChunk chunk, float x, float y, float z);
 }
