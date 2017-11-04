@@ -115,6 +115,10 @@ public class WorldLoader {
                         // Someone was quicker. Use their version, then
                         node = mem.readVolatileInt(nodeAddr);
                         // TODO deal with the trash
+                    } else {
+                        // Now, generate the chunk...
+                        // (hopefully nothing tried to read from it while we're doing this)
+                        
                     }
                 } else {
                     node = octreeStorage.newOctree(); // Create octree and attempt to swap it
