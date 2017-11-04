@@ -2,8 +2,9 @@ package com.ritualsoftheold.terra.offheap.chunk.compress;
 
 import com.ritualsoftheold.terra.offheap.chunk.ChunkBuffer;
 import com.ritualsoftheold.terra.offheap.chunk.ChunkType;
+import com.ritualsoftheold.terra.offheap.data.WorldDataFormat;
 
-public interface ChunkFormat {
+public interface ChunkFormat extends WorldDataFormat {
     
     public static ChunkFormat forType(byte type) {
         switch (type) {
@@ -42,12 +43,17 @@ public interface ChunkFormat {
     void getBlocks(long chunk, int[] indices, short[] ids, int beginIndex, int endIndex);
     
     default short getBlock(long chunk, int index) {
-        // This is primitive implementation. Please override for any serious usage
+        // This is simplistic/bad implementation. Please override for any serious usage
         
         int[] indices = new int[]{index};
         short[] ids = new short[1];
         getBlocks(chunk, indices, ids, 0, 1);
         
         return ids[0];
+    }
+    
+    @Override
+    default boolean isOctree() {
+        return false;
     }
 }

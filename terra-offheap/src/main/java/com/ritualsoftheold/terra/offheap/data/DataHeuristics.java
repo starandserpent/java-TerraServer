@@ -1,37 +1,43 @@
 package com.ritualsoftheold.terra.offheap.data;
 
+import com.ritualsoftheold.terra.offheap.chunk.compress.RLE22ChunkFormat;
+import com.ritualsoftheold.terra.offheap.chunk.compress.UncompressedChunkFormat;
+import com.ritualsoftheold.terra.offheap.octree.OctreeNodeFormat;
+
 /**
  * Decides best storage option for given block data.
  *
  */
 public class DataHeuristics {
     
-    // Octree-related providers
-    private WorldDataProvider nodeProvider;
-    private WorldDataProvider octreeProvider;
+    // Chunk data formats
+    private WorldDataFormat rle22Chunk;
+    private WorldDataFormat uncompressedChunk;
     
-    // Chunk-related providers
-    private WorldDataProvider compressedChunkProvider;
+    // Octree data formats
+    private WorldDataFormat octreeNode;
+    
+    public DataHeuristics() {
+        this.rle22Chunk = new RLE22ChunkFormat();
+        this.uncompressedChunk = new UncompressedChunkFormat();
+        
+        this.octreeNode = new OctreeNodeFormat();
+    }
     
     /**
-     * Gets (probably) best data provider for data with given values.
+     * Gets (probably) best data format for data with given values.
      * @param matCount Material count. Required.
-     * @param isEightCubes If the data is eight cubes with same size, special
-     * optimizations can usually be performed.
      * @return More or less suitable data provider for given data.
      */
-    public WorldDataProvider getDataProvider(int matCount, boolean isEightCubes) {
-        assert matCount > 0;
+    public WorldDataFormat getDataFormat(int matCount) {
+        assert matCount >= 0;
         
         if (matCount == 1) {
-            return nodeProvider; // Octree single node provider
-        } else if (isEightCubes) {
-            assert false; // TODO
-            assert matCount < 5;
-            
-            return octreeProvider; // Octree/8 nodes provider
+            return octreeNode;
+        } else {
+            // TODO use RLE22, or other RLE when applicable
+            // (at the moment, easier to debug just one type...)
+            return uncompressedChunk;
         }
-        
-        return compressedChunkProvider;
     }
 }

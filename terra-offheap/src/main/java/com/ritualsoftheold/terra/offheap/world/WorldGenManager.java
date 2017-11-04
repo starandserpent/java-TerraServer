@@ -1,13 +1,17 @@
 package com.ritualsoftheold.terra.offheap.world;
 
 import com.ritualsoftheold.terra.offheap.DataConstants;
+import com.ritualsoftheold.terra.offheap.chunk.ChunkStorage;
 import com.ritualsoftheold.terra.offheap.data.DataHeuristics;
-import com.ritualsoftheold.terra.offheap.data.WorldDataProvider;
+import com.ritualsoftheold.terra.offheap.data.WorldDataFormat;
+import com.ritualsoftheold.terra.offheap.octree.OctreeNodeFormat;
+import com.ritualsoftheold.terra.offheap.octree.OctreeStorage;
 import com.ritualsoftheold.terra.world.gen.WorldGenerator;
 
-import it.unimi.dsi.fastutil.shorts.ShortArraySet;
 import it.unimi.dsi.fastutil.shorts.ShortLinkedOpenHashSet;
 import it.unimi.dsi.fastutil.shorts.ShortSet;
+import net.openhft.chronicle.core.Memory;
+import net.openhft.chronicle.core.OS;
 
 /**
  * Manages generating the world.
@@ -15,6 +19,12 @@ import it.unimi.dsi.fastutil.shorts.ShortSet;
  */
 public class WorldGenManager {
     
+    private static final Memory mem = OS.memory();
+    
+    /**
+     * World generator which does the actual hard work:
+     * fills arrays after each other with blocks.
+     */
     private WorldGenerator generator;
     
     /**
@@ -22,7 +32,11 @@ public class WorldGenManager {
      */
     private DataHeuristics heuristics;
     
-    public void generate(float x, float y, float z, float scale) {
+    private OctreeStorage octreeStorage;
+    
+    private ChunkStorage chunkStorage;
+    
+    public void generate(long addr, int index, float x, float y, float z, float scale) {
         short[] data = new short[DataConstants.CHUNK_MAX_BLOCKS];
         WorldGenerator.Metadata meta = new WorldGenerator.Metadata();
         
@@ -36,7 +50,24 @@ public class WorldGenManager {
         }
         
         // Get data provider which best suits for this piece of generated world
-        WorldDataProvider provider = heuristics.getDataProvider(matCount, false);
+        WorldDataFormat format = heuristics.getDataFormat(matCount);
+        
+        // Handle octrees and chunk separately...
+        if (format.isOctree()) {
+           // It is just a single octree node
+            ((OctreeNodeFormat) format).modifyFlag(addr, index, 0); // Never use it as chunk pointer
+            ((OctreeNodeFormat) format).setNode(addr, index, data[0]); // Set actual data there
+            // TODO fix potential race conditions
+        } else {
+            int id = chunkStorage.newChunk();
+            if (!mem.compareAndSwapInt(addr + index * 4, 0, id)) {
+                // Someone got there before us!
+                return; // -> they get to do this
+            }
+            
+            // TODO fill the data to chunk
+        }
+        
     }
     
     /**

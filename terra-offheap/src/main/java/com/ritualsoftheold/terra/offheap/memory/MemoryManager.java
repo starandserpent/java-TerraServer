@@ -175,7 +175,7 @@ public class MemoryManager implements MemoryUseListener {
             }
             
             @Override
-            public void chunkLoaded(OffheapChunk chunk) {
+            public void chunkLoaded(OffheapChunk chunk, float x, float y, float z) {
                 usedChunkBufs.add(chunk.getBuffer());
             }
         }, true, true).forEach((f) -> f.join()); // Need to complete all futures returned by updateLoadMarkers
