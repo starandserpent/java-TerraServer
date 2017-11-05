@@ -1,8 +1,5 @@
 package com.ritualsoftheold.terra.test;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.List;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
@@ -18,16 +15,10 @@ import com.jme3.material.Material;
 import com.jme3.math.Vector3f;
 import com.jme3.scene.Geometry;
 import com.jme3.scene.Mesh;
-import com.jme3.scene.Spatial;
 import com.jme3.scene.Spatial.CullHint;
 import com.jme3.scene.VertexBuffer.Type;
-import com.jme3.scene.shape.Box;
-import com.jme3.shader.VarType;
-import com.jme3.system.AppSettings;
 import com.jme3.util.BufferUtils;
 import com.ritualsoftheold.terra.TerraModule;
-import com.ritualsoftheold.terra.files.FileChunkLoader;
-import com.ritualsoftheold.terra.files.FileOctreeLoader;
 import com.ritualsoftheold.terra.material.MaterialRegistry;
 import com.ritualsoftheold.terra.material.TerraTexture;
 import com.ritualsoftheold.terra.mesher.NaiveMesher;
@@ -39,15 +30,11 @@ import com.ritualsoftheold.terra.offheap.chunk.ChunkBuffer;
 import com.ritualsoftheold.terra.offheap.io.dummy.DummyChunkLoader;
 import com.ritualsoftheold.terra.offheap.io.dummy.DummyOctreeLoader;
 import com.ritualsoftheold.terra.offheap.memory.MemoryPanicHandler;
-import com.ritualsoftheold.terra.offheap.memory.MemoryPanicHandler.PanicResult;
 import com.ritualsoftheold.terra.offheap.node.OffheapChunk;
-import com.ritualsoftheold.terra.offheap.test.DummyMemoryUseListener;
 import com.ritualsoftheold.terra.offheap.world.OffheapWorld;
 import com.ritualsoftheold.terra.offheap.world.WorldLoadListener;
 import com.ritualsoftheold.terra.world.LoadMarker;
 import com.ritualsoftheold.terra.world.gen.WorldGenerator;
-
-import net.openhft.chronicle.core.io.IORuntimeException;
 
 public class TestGameApp extends SimpleApplication implements ActionListener {
     
@@ -175,9 +162,9 @@ public class TestGameApp extends SimpleApplication implements ActionListener {
          * Then? Networking.
          */
         List<CompletableFuture<Void>> markers = world.updateLoadMarkers();
-//        markers.forEach((f) -> {
-//            f.join();
-//        });
+        markers.forEach((f) -> {
+            f.join();
+        });
         
         inputManager.addMapping("RELOAD", new KeyTrigger(KeyInput.KEY_G));
         inputManager.addListener(this, "RELOAD");

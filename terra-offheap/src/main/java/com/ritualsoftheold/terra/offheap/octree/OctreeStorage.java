@@ -153,7 +153,7 @@ public class OctreeStorage {
         int id = group << 24 | index;
         
         // Make octrees contents "null" by making flags 1
-        mem.writeVolatileByte(getOctreeAddr(id), (byte) 1);
+        mem.writeVolatileByte(getOctreeAddr(id), (byte) 0xff);
         
         // Stitch group and index together to get full id!
         return id;

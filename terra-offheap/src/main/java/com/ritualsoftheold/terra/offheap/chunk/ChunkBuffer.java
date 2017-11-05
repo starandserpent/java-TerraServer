@@ -284,6 +284,9 @@ public class ChunkBuffer {
         // Save ref to memory use listener and notify it
         this.memListener = memListener;
         memListener.onAllocate(allocLen);
+        
+        // Initialize chunk memory allocator
+        this.allocator = new Allocator();
     }
     
     /**
