@@ -46,7 +46,6 @@ public class ChunkStorageTest {
         buf.setChunkType(0, ChunkType.UNCOMPRESSED);
         buf.setChunkAddr(0, addr);
         buf.setChunkLength(0, DataConstants.CHUNK_UNCOMPRESSED);
-        buf.setChunkUsed(0, DataConstants.CHUNK_UNCOMPRESSED);
         
         OffheapChunk chunk = storage.getTemporaryChunk(0, registry);
         assertNotNull(chunk);

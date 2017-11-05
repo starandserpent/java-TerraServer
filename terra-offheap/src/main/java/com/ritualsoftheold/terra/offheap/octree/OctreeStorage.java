@@ -150,9 +150,13 @@ public class OctreeStorage {
         int freeIndex = mem.addInt(countAddr, 1); // addInt functions like incrementAndGet in this case
         int group = freeIndex / blockSize; // Find octree group (unsigned byte, < 256)
         int index = freeIndex % blockSize; // Find index inside that group
+        int id = group << 24 | index;
+        
+        // Make octrees contents "null" by making flags 1
+        mem.writeVolatileByte(getOctreeAddr(id), (byte) 1);
         
         // Stitch group and index together to get full id!
-        return group << 24 | index;
+        return id;
     }
     
     /**

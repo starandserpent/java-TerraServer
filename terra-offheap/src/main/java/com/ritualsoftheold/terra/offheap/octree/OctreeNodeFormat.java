@@ -40,7 +40,7 @@ public class OctreeNodeFormat implements WorldDataFormat {
             
             // Try write the change
             if (mem.compareAndSwapInt(addr, part, modified)) {
-                // If it fails, try again (new loop)
+                // Only if it succeeds, we can exit the loop
                 break;
             }
         }

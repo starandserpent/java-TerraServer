@@ -52,6 +52,32 @@ public interface ChunkFormat extends WorldDataFormat {
         return ids[0];
     }
     
+    SetAllResult setAllBlocks(short[] data, ChunkBuffer.Allocator allocator);
+    
+    /**
+     * Returned as a result for setAllBlocks call.
+     *
+     */
+    public static class SetAllResult {
+        
+        public SetAllResult(long addr, int length) {
+            this.addr = addr;
+            this.length = length;
+        }
+        
+        /**
+         * Memory address where data is.
+         */
+        public long addr;
+        
+        /**
+         * Length of data.
+         */
+        public int length;
+    }
+    
+    int getChunkType();
+    
     @Override
     default boolean isOctree() {
         return false;

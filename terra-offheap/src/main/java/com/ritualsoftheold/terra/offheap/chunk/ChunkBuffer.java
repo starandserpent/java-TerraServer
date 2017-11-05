@@ -2,6 +2,7 @@ package com.ritualsoftheold.terra.offheap.chunk;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
+import com.ritualsoftheold.terra.offheap.chunk.ChunkBuffer.Allocator;
 import com.ritualsoftheold.terra.offheap.chunk.compress.ChunkFormat;
 import com.ritualsoftheold.terra.offheap.memory.MemoryUseListener;
 
@@ -25,11 +26,6 @@ public class ChunkBuffer {
      * Chunk data lengths. Pointer to data.
      */
     private long lengths;
-    
-    /**
-     * Used chunk data lengths. Pointer to data.
-     */
-    private long used;
     
     /**
      * Chunk types. Note that not all chunk types have associated address!
@@ -240,8 +236,6 @@ public class ChunkBuffer {
             setChunkAddr(chunk, newAddr);
             // TODO figure out what if another thread accesses data at this moment
             setChunkLength(chunk, length);
-            // Or at this moment
-            setChunkUsed(chunk, length);
             
             // Deallocate (for now) old chunk
             mem.freeMemory(oldAddr, oldLength);
@@ -262,15 +256,14 @@ public class ChunkBuffer {
         bufferId = id; // Set buffer id
         
         // Initialize memory blocks for metadata
-        int allocLen = maxChunks * 17 + 2 * globalQueueLen + chunkQueueLen;
+        int allocLen = maxChunks * 13 + 2 * globalQueueLen + chunkQueueLen;
         staticDataLength = allocLen;
         long baseAddr = mem.allocate(allocLen);
         addrs = baseAddr; // 8 bytes per chunk
         lengths = baseAddr + 8 * maxChunks; // 4 bytes per chunk
-        used = baseAddr + 12 * maxChunks; // 4 bytes per chunk
-        types = baseAddr + 16 * maxChunks; // 1 byte per chunk
+        types = baseAddr + 12 * maxChunks; // 1 byte per chunk
         
-        long globalData = baseAddr + 17 * maxChunks;
+        long globalData = baseAddr + 13 * maxChunks;
         
         // Zero/generally set memory that needs it
         mem.setMemory(baseAddr, maxChunks * 16, (byte) 0); // Zero some chunk specific data
@@ -344,14 +337,6 @@ public class ChunkBuffer {
     
     public void setChunkLength(int index, int length) {
         mem.writeVolatileInt(lengths + index * 4, length);
-    }
-    
-    public int getChunkUsed(int index) {
-        return mem.readVolatileInt(used + index * 4);
-    }
-    
-    public void setChunkUsed(int index, int length) {
-        mem.writeVolatileInt(used + index * 4, length);
     }
     
     /**
@@ -445,7 +430,6 @@ public class ChunkBuffer {
             setChunkAddr(i, addr);
             setChunkType(i, type);
             setChunkLength(i, length);
-            setChunkUsed(i, length);
             
             // Note: avoid actually copying chunk contents as it is not really necessary
             
@@ -512,5 +496,9 @@ public class ChunkBuffer {
 
     public int getId() {
         return bufferId;
+    }
+
+    public Allocator getAllocator() {
+        return allocator;
     }
 }

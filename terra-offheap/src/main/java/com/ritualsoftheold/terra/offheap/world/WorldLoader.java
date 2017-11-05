@@ -35,6 +35,26 @@ public class WorldLoader {
      */
     private float worldScale;
     
+    /**
+     * World generation manager. Mandatory if this loader ever needs to
+     * generate stuff, otherwise not needed.
+     */
+    private WorldGenManager genManager;
+    
+    public WorldLoader(OctreeStorage octreeStorage, ChunkStorage chunkStorage, WorldGenManager genManager) {
+        this.octreeStorage = octreeStorage;
+        this.chunkStorage = chunkStorage;
+        this.genManager = genManager;
+    }
+    
+    public void worldConfig(float x, float y, float z, int octree, float scale) {
+        this.centerX = x;
+        this.centerY = y;
+        this.centerZ = z;
+        this.masterOctree = octree;
+        this.worldScale = scale;
+    }
+    
     public void seekArea(float x, float y, float z, float range, WorldLoadListener listener, boolean generate) {
         /**
          * Node coordinates, start at world center.
@@ -110,16 +130,7 @@ public class WorldLoader {
                 // Ok, this is something that has not been generated, so it is
                 // "octree null": flag is 1, but node is 0 (kind of null pointer)
                 if (scale == DataConstants.CHUNK_SCALE) {
-                    node = chunkStorage.newChunk();
-                    if (!mem.compareAndSwapInt(nodeAddr, 0, node)) {
-                        // Someone was quicker. Use their version, then
-                        node = mem.readVolatileInt(nodeAddr);
-                        // TODO deal with the trash
-                    } else {
-                        // Now, generate the chunk...
-                        // (hopefully nothing tried to read from it while we're doing this)
-                        
-                    }
+                    genManager.generate(addr, index, subNodeX, subNodeY, subNodeZ, scale);
                 } else {
                     node = octreeStorage.newOctree(); // Create octree and attempt to swap it
                     if (!mem.compareAndSwapInt(nodeAddr, 0, node)) {
@@ -180,31 +191,6 @@ public class WorldLoader {
                 long nodeAddr = addr + i * 4;
                 int node = mem.readVolatileInt(nodeAddr);
                 
-                // Check if node exists, and create if it doesn't
-                if (node == 0) {
-                    if (!generate) { // Generation is disallowed
-                        continue;
-                    }
-                    
-                    // Ok, this is something that has not been generated, so it is
-                    // "octree null": flag is 1, but node is 0 (kind of null pointer)
-                    if (scale == DataConstants.CHUNK_SCALE) {
-                        node = chunkStorage.newChunk();
-                        if (!mem.compareAndSwapInt(nodeAddr, 0, node)) {
-                            // Someone was quicker. Use their version, then
-                            node = mem.readVolatileInt(nodeAddr);
-                            // TODO deal with the trash
-                        }
-                    } else {
-                        node = octreeStorage.newOctree(); // Create octree and attempt to swap it
-                        if (!mem.compareAndSwapInt(nodeAddr, 0, node)) {
-                            // Someone was quicker. Use their version, then
-                            node = mem.readVolatileInt(nodeAddr);
-                            // TODO deal with the trash
-                        }
-                    }
-                }
-                
                 // Create coordinates for child node
                 float subNodeX = 0;
                 float subNodeY = 0;
@@ -250,6 +236,26 @@ public class WorldLoader {
                         subNodeY = nodeY + posMod;
                         subNodeZ = nodeZ + posMod;
                         break;
+                }
+                
+                // Check if node exists, and create if it doesn't
+                if (node == 0) {
+                    if (!generate) { // Generation is disallowed
+                        continue;
+                    }
+                    
+                    // Ok, this is something that has not been generated, so it is
+                    // "octree null": flag is 1, but node is 0 (kind of null pointer)
+                    if (scale == DataConstants.CHUNK_SCALE) {
+                        genManager.generate(addr, i, subNodeX, subNodeY, subNodeZ, scale);
+                    } else {
+                        node = octreeStorage.newOctree(); // Create octree and attempt to swap it
+                        if (!mem.compareAndSwapInt(nodeAddr, 0, node)) {
+                            // Someone was quicker. Use their version, then
+                            node = mem.readVolatileInt(nodeAddr);
+                            // TODO deal with the trash
+                        }
+                    }
                 }
                 
                 if (scale == DataConstants.CHUNK_SCALE) { // It is a chunk!

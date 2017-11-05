@@ -17,7 +17,7 @@ public class DummyLoadListener implements WorldLoadListener {
     }
 
     @Override
-    public void chunkLoaded(OffheapChunk chunk) {
+    public void chunkLoaded(OffheapChunk chunk, float x, float y, float z) {
         // TODO Auto-generated method stub
         
     }

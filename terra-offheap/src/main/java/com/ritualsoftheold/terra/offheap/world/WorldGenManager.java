@@ -1,11 +1,12 @@
 package com.ritualsoftheold.terra.offheap.world;
 
 import com.ritualsoftheold.terra.offheap.DataConstants;
+import com.ritualsoftheold.terra.offheap.chunk.ChunkBuffer;
 import com.ritualsoftheold.terra.offheap.chunk.ChunkStorage;
+import com.ritualsoftheold.terra.offheap.chunk.compress.ChunkFormat;
 import com.ritualsoftheold.terra.offheap.data.DataHeuristics;
 import com.ritualsoftheold.terra.offheap.data.WorldDataFormat;
 import com.ritualsoftheold.terra.offheap.octree.OctreeNodeFormat;
-import com.ritualsoftheold.terra.offheap.octree.OctreeStorage;
 import com.ritualsoftheold.terra.world.gen.WorldGenerator;
 
 import it.unimi.dsi.fastutil.shorts.ShortLinkedOpenHashSet;
@@ -14,7 +15,8 @@ import net.openhft.chronicle.core.Memory;
 import net.openhft.chronicle.core.OS;
 
 /**
- * Manages generating the world.
+ * Manages generating the world using an underlying world generator.
+ * This way world generators don't have to deal with Terra's internals.
  *
  */
 public class WorldGenManager {
@@ -32,9 +34,13 @@ public class WorldGenManager {
      */
     private DataHeuristics heuristics;
     
-    private OctreeStorage octreeStorage;
-    
     private ChunkStorage chunkStorage;
+    
+    public WorldGenManager(WorldGenerator generator, DataHeuristics heuristics, ChunkStorage chunkStorage) {
+        this.generator = generator;
+        this.heuristics = heuristics;
+        this.chunkStorage = chunkStorage;
+    }
     
     public void generate(long addr, int index, float x, float y, float z, float scale) {
         short[] data = new short[DataConstants.CHUNK_MAX_BLOCKS];
@@ -65,7 +71,17 @@ public class WorldGenManager {
                 return; // -> they get to do this
             }
             
-            // TODO fill the data to chunk
+            ChunkFormat chunkFormat = (ChunkFormat) format;
+            ChunkBuffer buf = chunkStorage.getBuffer(id >>> 16);
+            // Allocate memory and move data there
+            ChunkFormat.SetAllResult result = chunkFormat.setAllBlocks(data, buf.getAllocator());
+            // Get chunk index inside buffer and configure chunk with it
+            int bufIndex = id & 0xffff;
+            buf.setChunkAddr(bufIndex, result.addr);
+            buf.setChunkLength(index, result.length);
+            buf.setChunkType(bufIndex, (byte) chunkFormat.getChunkType()); // Type is set last for a good reason
+            // Empty chunk will block most calls until it is no longer empty
+            // (so we can safely mess with addr and length before we set type)
         }
         
     }

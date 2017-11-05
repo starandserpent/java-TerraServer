@@ -1,5 +1,6 @@
 package com.ritualsoftheold.terra.offheap.chunk.compress;
 
+import com.ritualsoftheold.terra.offheap.DataConstants;
 import com.ritualsoftheold.terra.offheap.chunk.ChunkBuffer;
 import com.ritualsoftheold.terra.offheap.chunk.ChunkType;
 
@@ -41,6 +42,23 @@ public class UncompressedChunkFormat implements ChunkFormat {
         for (int i = beginIndex; i < endIndex; i++) {
             ids[i] = mem.readShort(chunk + indices[i] * 2);
         }
+    }
+
+    @Override
+    public ChunkFormat.SetAllResult setAllBlocks(short[] data, ChunkBuffer.Allocator allocator) {
+        long addr = allocator.alloc(DataConstants.CHUNK_UNCOMPRESSED); // Allocate enough memory
+        
+        // Copy data there
+        for (int i = 0; i < data.length; i++) {
+            mem.writeShort(addr + i * 2, data[i]);
+        }
+        
+        return new ChunkFormat.SetAllResult(addr, DataConstants.CHUNK_UNCOMPRESSED);
+    }
+
+    @Override
+    public int getChunkType() {
+        return ChunkType.UNCOMPRESSED;
     }
     
 }

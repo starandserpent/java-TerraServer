@@ -51,19 +51,16 @@ public class ChunkBufferTest {
         assertEquals(0, buf.getChunkAddr(index));
         assertEquals(1, buf.getChunkType(index));
         assertEquals(0, buf.getChunkLength(index));
-        assertEquals(0, buf.getChunkUsed(index));
         
         // Then modify said values (not real values)
         buf.setChunkAddr(index, 1);
         buf.setChunkType(index, (byte) 2);
         buf.setChunkLength(index, 4);
-        buf.setChunkUsed(index, 3);
         
         // ... check that modifications were correct
         assertEquals(1, buf.getChunkAddr(index));
         assertEquals(2, buf.getChunkType(index));
         assertEquals(4, buf.getChunkLength(index));
-        assertEquals(3, buf.getChunkUsed(index));
     }
     
     @Test
@@ -79,7 +76,6 @@ public class ChunkBufferTest {
         buf.setChunkType(2, ChunkType.UNCOMPRESSED);
         buf.setChunkAddr(2, addr);
         buf.setChunkLength(2, DataConstants.CHUNK_UNCOMPRESSED);
-        buf.setChunkUsed(2, DataConstants.CHUNK_UNCOMPRESSED);
         
         // Verify we did stuff correctly in this test
         assertEquals(0, buf.getBlock(2, 0));
@@ -108,7 +104,6 @@ public class ChunkBufferTest {
             buf.setChunkType(i, ChunkType.UNCOMPRESSED);
             buf.setChunkAddr(i, addr);
             buf.setChunkLength(i, DataConstants.CHUNK_UNCOMPRESSED);
-            buf.setChunkUsed(i, DataConstants.CHUNK_UNCOMPRESSED);
             
             // Verify we did stuff correctly in this test
             assertEquals(0, buf.getBlock(i, 0));

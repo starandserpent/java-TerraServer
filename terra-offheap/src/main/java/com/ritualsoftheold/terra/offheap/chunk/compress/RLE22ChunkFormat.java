@@ -31,4 +31,14 @@ public class RLE22ChunkFormat implements ChunkFormat {
         
     }
 
+    @Override
+    public ChunkFormat.SetAllResult setAllBlocks(short[] data, ChunkBuffer.Allocator allocator) {
+        return null; // TODO
+    }
+
+    @Override
+    public int getChunkType() {
+        return ChunkType.RLE_2_2;
+    }
+
 }
