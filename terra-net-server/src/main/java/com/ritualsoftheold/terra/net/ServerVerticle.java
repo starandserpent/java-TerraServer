@@ -10,6 +10,7 @@ public class ServerVerticle extends AbstractVerticle {
 
     private DatagramSocket socket = null;
 
+
     @Override
     public void start() throws Exception {
         this.socket = vertx.createDatagramSocket();
