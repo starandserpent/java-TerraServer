@@ -1,17 +1,12 @@
 package com.ritualsoftheold.terra.mesher.test;
 
 import com.jme3.app.SimpleApplication;
-import com.jme3.light.AmbientLight;
-import com.jme3.light.Light;
 import com.jme3.light.PointLight;
 import com.jme3.material.Material;
-import com.jme3.material.RenderState.FaceCullMode;
-import com.jme3.renderer.RenderManager;
 import com.jme3.scene.Geometry;
 import com.jme3.scene.Mesh;
 import com.jme3.scene.Spatial.CullHint;
 import com.jme3.scene.VertexBuffer.Type;
-import com.jme3.shader.VarType;
 import com.jme3.system.AppSettings;
 import com.jme3.util.BufferUtils;
 import com.ritualsoftheold.terra.TerraModule;
@@ -23,6 +18,8 @@ import com.ritualsoftheold.terra.mesher.culling.OcclusionQueryProcessor;
 import com.ritualsoftheold.terra.mesher.culling.VisualObject;
 import com.ritualsoftheold.terra.mesher.resource.TextureManager;
 import com.ritualsoftheold.terra.offheap.DataConstants;
+import com.ritualsoftheold.terra.offheap.chunk.ChunkType;
+import com.ritualsoftheold.terra.offheap.chunk.iterator.ChunkIterator;
 
 import net.openhft.chronicle.core.Memory;
 import net.openhft.chronicle.core.OS;
@@ -40,6 +37,7 @@ public class ChunkTest extends SimpleApplication {
         app.setShowSettings(false);
         
         AppSettings settings = new AppSettings(true);
+        settings.setResolution(1024, 768);
         settings.setVSync(true);
         app.settings = settings;
         
@@ -56,15 +54,14 @@ public class ChunkTest extends SimpleApplication {
         // Create chunk data
         long addr = mem.allocate(DataConstants.CHUNK_UNCOMPRESSED);
         mem.setMemory(addr, DataConstants.CHUNK_UNCOMPRESSED, (byte) 0);
-        mem.writeByte(addr, (byte) 0); // Chunk type here
-        mem.writeShort(addr + 1, (short) 2); // Add some stuff to chunk
-        mem.writeShort(addr + 3, (short) 0xffff);
-        mem.writeShort(addr + 5, (short) 1);
-        mem.writeShort(addr + 7, (short) 0xffff);
-        mem.writeShort(addr + 9, (short) 1);
-        mem.writeShort(addr + 11, (short) 0xffff);
-        mem.writeShort(addr + 13, (short) 1);
-        mem.writeShort(addr + 15, (short) 0xffff);
+        mem.writeShort(addr, (short) 2); // Add some stuff to chunk
+        mem.writeShort(addr + 2, (short) 0xffff);
+        mem.writeShort(addr + 4, (short) 1);
+        mem.writeShort(addr + 6, (short) 0xffff);
+        mem.writeShort(addr + 8, (short) 1);
+        mem.writeShort(addr + 10, (short) 0xffff);
+        mem.writeShort(addr + 12, (short) 1);
+        mem.writeShort(addr + 14, (short) 0xffff);
         //System.out.println(Long.toBinaryString(mem.readLong(addr)));
         
         // Register materials
@@ -80,7 +77,7 @@ public class ChunkTest extends SimpleApplication {
         manager.loadMaterials(registry);
         
         VoxelMesher mesher = new NaiveMesher(); // Create mesher
-        mesher.chunk(addr, manager); // TODO check back when material registry is done
+        mesher.chunk(ChunkIterator.forChunk(addr, ChunkType.RLE_2_2), manager);
         
         // Create mesh
         Mesh mesh = new Mesh();

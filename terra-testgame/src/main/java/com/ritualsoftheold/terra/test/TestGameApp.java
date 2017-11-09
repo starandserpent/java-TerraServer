@@ -193,7 +193,7 @@ public class TestGameApp extends SimpleApplication implements ActionListener {
             
         while (!geomCreateQueue.isEmpty()) {
             Geometry geom = geomCreateQueue.poll();
-            System.out.println("create geom: " + geom.getLocalTranslation());
+            //System.out.println("create geom: " + geom.getLocalTranslation());
             rootNode.attachChild(geom);
             
             VisualObject vis = new VisualObject();

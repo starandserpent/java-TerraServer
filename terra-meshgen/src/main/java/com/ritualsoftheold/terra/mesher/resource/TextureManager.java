@@ -2,14 +2,12 @@ package com.ritualsoftheold.terra.mesher.resource;
 
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import com.jme3.asset.AssetManager;
 import com.jme3.texture.Image;
 import com.jme3.texture.Image.Format;
 import com.jme3.texture.Texture.MagFilter;
-import com.jme3.texture.Texture;
 import com.jme3.texture.TextureArray;
 import com.ritualsoftheold.terra.material.MaterialRegistry;
 import com.ritualsoftheold.terra.material.TerraMaterial;
@@ -141,7 +139,7 @@ public class TextureManager {
         }
     }
 
-    public float getAtlasSize() {
+    public int getAtlasSize() {
         return ATLAS_SIZE;
     }
     

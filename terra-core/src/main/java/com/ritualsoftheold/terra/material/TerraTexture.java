@@ -6,7 +6,7 @@ package com.ritualsoftheold.terra.material;
  */
 public class TerraTexture {
     
-    private static final float DEFAULT_SCALE = 4;
+    private static final float DEFAULT_SCALE = 1;
     
     private int width;
     private int height;

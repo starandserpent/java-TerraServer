@@ -1,7 +1,5 @@
 package com.ritualsoftheold.terra.mesher;
 
-import java.util.Arrays;
-
 import com.ritualsoftheold.terra.material.MaterialRegistry;
 import com.ritualsoftheold.terra.material.TerraTexture;
 import com.ritualsoftheold.terra.mesher.resource.TextureManager;
@@ -12,8 +10,6 @@ import it.unimi.dsi.fastutil.floats.FloatArrayList;
 import it.unimi.dsi.fastutil.floats.FloatList;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
-import net.openhft.chronicle.core.Memory;
-import net.openhft.chronicle.core.OS;
 
 /**
  * Naive mesher does culling, but doesn't try to merge same blocks into bigger faces.
@@ -22,8 +18,6 @@ import net.openhft.chronicle.core.OS;
  *
  */
 public class NaiveMesher implements VoxelMesher {
-    
-    private static final Memory mem = OS.memory();
     
     private FloatList verts;
     private IntList indices;
@@ -84,7 +78,7 @@ public class NaiveMesher implements VoxelMesher {
         // Reset iterator to starting position
         it.reset();
         
-        float atlasSize = textures.getAtlasSize();
+        int atlasSize = textures.getAtlasSize();
         
         int block = 0;
         int vertIndex = 0;
@@ -111,8 +105,8 @@ public class NaiveMesher implements VoxelMesher {
                     continue;
                 }
                 
-                float z0 = block / 4096;
-                float z = z0 * scale * 2;
+                int z0 = block / 4096; // Integer division: current z index
+                float z = z0 * scale * 2; // Z coordinate, considering the scale
                 float y = (block - 4096 * z0) / 64 * scale * 2;
                 float x = block % 64 * scale * 2;
                 
@@ -121,13 +115,13 @@ public class NaiveMesher implements VoxelMesher {
                 y -= 8;
                 z -= 8;
                 
-                //System.out.println("x: " + x + ", y: " + y + ", z: " + z);
+                System.out.println("x: " + x + ", y: " + y + ", z: " + z);
                 
                 // Calculate texture coordinates...
                 float texMinX = texture.getTexCoordX();
                 float texMinY = texture.getTexCoordY() ;
-                float texMaxX = texMinX + texture.getScale() * 0.25f * texture.getWidth() / atlasSize;
-                float texMaxY = texMinY + texture.getScale() * 0.25f * texture.getHeight() / atlasSize;
+                float texMaxX = texMinX + texture.getScale() * texture.getWidth() / atlasSize;
+                float texMaxY = texMinY + texture.getScale() * texture.getHeight() / atlasSize;
                 float texArray = texture.getTexCoordZ();
                 
                 //System.out.println("texMinX: " + texMinX + ", texMinY: " + texMinY + ", texMaxX: " + texMaxX + ", texMaxY: " + texMaxY);
