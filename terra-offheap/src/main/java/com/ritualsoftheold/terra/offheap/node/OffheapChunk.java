@@ -5,6 +5,7 @@ import com.ritualsoftheold.terra.material.TerraMaterial;
 import com.ritualsoftheold.terra.node.Chunk;
 import com.ritualsoftheold.terra.offheap.DataConstants;
 import com.ritualsoftheold.terra.offheap.chunk.ChunkBuffer;
+import com.ritualsoftheold.terra.offheap.chunk.iterator.ChunkIterator;
 import com.ritualsoftheold.terra.offheap.data.OffheapNode;
 
 import net.openhft.chronicle.core.Memory;
@@ -99,6 +100,15 @@ public class OffheapChunk implements Chunk, OffheapNode {
 
     public ChunkBuffer getBuffer() {
         return buf;
+    }
+    
+    /**
+     * Creates new low-level iterator for this chunk.
+     * @return Iterator.
+     */
+    public ChunkIterator newIterator() {
+        byte type = buf.getChunkType(chunkId);
+        return ChunkIterator.forChunk(buf.getChunkAddr(chunkId), type);
     }
 
 }

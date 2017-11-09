@@ -36,8 +36,8 @@ public class NaiveMesher implements VoxelMesher {
     }
 
     @Override
-    public void chunk(long addr, TextureManager textures) {
-        assert addr != 0;
+    public void chunk(ChunkIterator it, TextureManager textures) {
+        assert it != null;
         assert textures != null;
         
         // Clear previous lists
@@ -47,9 +47,6 @@ public class NaiveMesher implements VoxelMesher {
         
         byte[] hidden = new byte[DataConstants.CHUNK_MAX_BLOCKS]; // Visibility mappings for cubes
         //Arrays.fill(hidden, (byte) 0);
-        
-        // Create iterator
-        ChunkIterator it = ChunkIterator.forChunk(addr + DataConstants.CHUNK_DATA_OFFSET, mem.readByte(addr));
         
         // Generate mappings for culling
         while (!it.isDone()) {

@@ -1,5 +1,7 @@
 package com.ritualsoftheold.terra.offheap.chunk.iterator;
 
+import com.ritualsoftheold.terra.offheap.chunk.ChunkType;
+
 /**
  * Iterates over chunk data. Different implementations handle differnet
  * chunk formats.
@@ -16,8 +18,12 @@ public interface ChunkIterator {
      */
     public static ChunkIterator forChunk(long addr, byte type) {
         switch (type) {
-        case 0:
+        case ChunkType.RLE_2_2:
             return new RunLengthIterator(addr);
+        case ChunkType.EMPTY:
+            throw new IllegalArgumentException("iterating an empty chunk (type 1) is not possible");
+        case ChunkType.UNCOMPRESSED:
+            return new SimpleIterator(addr);
         default:
             throw new IllegalArgumentException("unknown chunk type " + type);
         }

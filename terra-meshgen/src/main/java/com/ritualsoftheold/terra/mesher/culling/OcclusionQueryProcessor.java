@@ -137,7 +137,7 @@ public class OcclusionQueryProcessor implements SceneProcessor {
                     // It is, check if it is visible
                     int result = glGetQueryObjectui(queryId, GL_QUERY_RESULT);
                     if (result == GL_FALSE) { // Nope
-                        System.out.println("GL_FALSE");
+                        //System.out.println("GL_FALSE");
                         obj.linkedGeom.setCullHint(CullHint.Always);
                     } else { // Yeah, visible
                         //System.out.println("GL_TRUE: " + result);

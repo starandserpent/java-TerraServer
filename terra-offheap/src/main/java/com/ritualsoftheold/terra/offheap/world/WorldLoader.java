@@ -134,7 +134,7 @@ public class WorldLoader {
                 if (scale == DataConstants.CHUNK_SCALE) {
                     genManager.generate(addr, index, subNodeX, subNodeY, subNodeZ, scale);
                 } else {
-                    System.out.println("Will create octree...");
+                    //System.out.println("Will create octree...");
                     node = octreeStorage.newOctree(); // Create octree and attempt to swap it
                     if (!mem.compareAndSwapInt(nodeAddr, 0, node)) {
                         // Someone was quicker. Use their version, then
@@ -159,6 +159,7 @@ public class WorldLoader {
                     || rY + range > subNodeY + posMod || rY - range < subNodeY - posMod // Y coordinate
                     || rZ + range > subNodeZ + posMod || rZ - range < subNodeZ - posMod) { // Z coordinate
                 // When ANY fails: we have found the node over which we must load all
+                System.out.println("First call to loadArea with scale: " + scale + ", range: " + range);
                 loadArea(nodeId, scale, nodeX, nodeY, nodeZ, listener, generate);
                 break;
             }
@@ -174,10 +175,10 @@ public class WorldLoader {
     }
     
     public void loadArea(int nodeId, float scale, float nodeX, float nodeY, float nodeZ, WorldLoadListener listener, boolean generate) {
-        System.out.println("loadArea, scale: " + scale);
+        //System.out.println("loadArea, scale: " + scale);
         // Fetch data about given node
         long addr = octreeStorage.getOctreeAddr(nodeId); // This also loads the octree with group it is in
-        System.out.println("loadArea addr: " + addr);
+        //System.out.println("loadArea addr: " + addr);
         byte flags = mem.readVolatileByte(addr);
         addr += 1; // Skip the flags to data
         
@@ -191,7 +192,7 @@ public class WorldLoader {
         // Loop through child nodes
         for (int i = 0; i < 8; i++) {
             int flag = flags >>> i & 1;
-            System.out.println("flag == " + flag);
+            //System.out.println("flag == " + flag);
             
             // Octree or chunk
             if (flag == 1) {
@@ -254,11 +255,11 @@ public class WorldLoader {
                     // Ok, this is something that has not been generated, so it is
                     // "octree null": flag is 1, but node is 0 (kind of null pointer)
                     if (scale == DataConstants.CHUNK_SCALE) {
-                        System.out.println("Create chunk (i: " + i + ")");
+                        //System.out.println("Create chunk (i: " + i + ")");
                         genManager.generate(addr, i, subNodeX, subNodeY, subNodeZ, scale);
                     } else {
                         node = octreeStorage.newOctree(); // Create octree and attempt to swap it
-                        System.out.println("Create octree!");
+                        //System.out.println("Create octree!");
                         if (!mem.compareAndSwapInt(nodeAddr, 0, node)) {
                             // Someone was quicker. Use their version, then
                             node = mem.readVolatileInt(nodeAddr);
@@ -268,17 +269,17 @@ public class WorldLoader {
                 }
                 
                 if (scale == DataConstants.CHUNK_SCALE) { // It is a chunk!
-                    System.out.println("Chunk path...");
+                    //System.out.println("Chunk path...");
                     // Load chunk and then fire event to listener
                     chunkStorage.ensureLoaded(node);
                     listener.chunkLoaded(chunkStorage.getTemporaryChunk(node, null), subNodeX, subNodeY, subNodeZ);
                 } else { // Octree. Here comes recursion...
                     // TODO multithreading
-                    System.out.println("Octree path, node: " + node);
+                    //System.out.println("Octree path, node: " + node);
                     loadArea(node, scale, subNodeX, subNodeY, subNodeZ, listener, generate);
                 }
             } // else: no action needed, single node was loaded with getOctreeAddr
-            System.out.println("end of i: " + i);
+            //System.out.println("end of i: " + i);
         }
     }
 }

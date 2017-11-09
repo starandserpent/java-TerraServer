@@ -291,7 +291,7 @@ public class OffheapWorld implements TerraWorld {
         System.out.println("masterIndex: " + octreeStorage.getMasterIndex());
         int masterIndex = octreeStorage.getMasterIndex();
         masterOctree = octreeStorage.getOctree(masterIndex, registry); // TODO do we really need OffheapOctree in world for this?
-        masterScale = octreeStorage.getMasterScale(256); // TODO need to have this CONFIGURABLE!
+        masterScale = octreeStorage.getMasterScale(128); // TODO need to have this CONFIGURABLE!
         centerX = octreeStorage.getCenterPoint(0);
         centerY = octreeStorage.getCenterPoint(1);
         centerZ = octreeStorage.getCenterPoint(2);

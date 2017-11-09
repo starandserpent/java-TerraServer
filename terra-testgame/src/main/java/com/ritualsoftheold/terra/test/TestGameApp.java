@@ -27,6 +27,7 @@ import com.ritualsoftheold.terra.mesher.culling.OcclusionQueryProcessor;
 import com.ritualsoftheold.terra.mesher.culling.VisualObject;
 import com.ritualsoftheold.terra.mesher.resource.TextureManager;
 import com.ritualsoftheold.terra.offheap.chunk.ChunkBuffer;
+import com.ritualsoftheold.terra.offheap.chunk.iterator.ChunkIterator;
 import com.ritualsoftheold.terra.offheap.io.dummy.DummyChunkLoader;
 import com.ritualsoftheold.terra.offheap.io.dummy.DummyOctreeLoader;
 import com.ritualsoftheold.terra.offheap.memory.MemoryPanicHandler;
@@ -96,7 +97,7 @@ public class TestGameApp extends SimpleApplication implements ActionListener {
                 })
                 .build();
                 
-        player = new LoadMarker(0, 0, 0, 32, 200, 0);
+        player = new LoadMarker(0, 0, 0, 32, 20, 0);
         world.addLoadMarker(player);
         
         TextureManager texManager = new TextureManager(assetManager); // Initialize texture atlas/array manager
@@ -118,9 +119,9 @@ public class TestGameApp extends SimpleApplication implements ActionListener {
 
             @Override
             public void chunkLoaded(OffheapChunk chunk, float x, float y, float z) {
-                System.out.println("Loaded chunk: " + chunk.memoryAddress());
+                //System.out.println("Loaded chunk: " + chunk.memoryAddress());
                 VoxelMesher mesher = new NaiveMesher(); // Not thread safe, but this is still performance hog!
-                mesher.chunk(chunk.memoryAddress(), texManager);
+                mesher.chunk(chunk.newIterator(), texManager);
                 
                 // Create mesh
                 Mesh mesh = new Mesh();
@@ -206,7 +207,7 @@ public class TestGameApp extends SimpleApplication implements ActionListener {
     @Override
     public void onAction(String name, boolean isPressed, float tpf) {
         if (name == "RELOAD" && isPressed) {
-            //rootNode.detachAllChildren();
+            rootNode.detachAllChildren();
             world.updateLoadMarkers();
         }
     }

@@ -2,6 +2,7 @@ package com.ritualsoftheold.terra.mesher;
 
 import com.ritualsoftheold.terra.material.MaterialRegistry;
 import com.ritualsoftheold.terra.mesher.resource.TextureManager;
+import com.ritualsoftheold.terra.offheap.chunk.iterator.ChunkIterator;
 
 import it.unimi.dsi.fastutil.floats.FloatList;
 import it.unimi.dsi.fastutil.ints.IntList;
@@ -14,10 +15,10 @@ public interface VoxelMesher {
     
     /**
      * Creates a mesh for chunk at given address.
-     * @param addr
+     * @param it
      * @param textures
      */
-    void chunk(long addr, TextureManager textures);
+    void chunk(ChunkIterator it, TextureManager textures);
     
     /**
      * Creates a mesh for octree at given address.
