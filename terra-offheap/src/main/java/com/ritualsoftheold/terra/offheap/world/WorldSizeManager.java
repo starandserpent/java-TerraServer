@@ -19,43 +19,25 @@ public class WorldSizeManager {
     private OffheapWorld world;
     private OctreeStorage storage;
     
-    private BlockingQueue<EnlargeRequest> queue;
-    
-    private static class EnlargeRequest {
-        
-        public EnlargeRequest(float scale, int oldIndex) {
-            this.scale = scale;
-            this.oldIndex = oldIndex;
-        }
-        
-        private float scale;
-        private int oldIndex;
-    }
-    
-    private Thread handlerThread = new Thread(() -> {
-        while (true) {
-            try {
-                EnlargeRequest request = queue.take(); // Wait on queue until requests come
-                if (request.scale >= world.getMasterScale()) {
-                    // Proceed only if we would actually be enlarging the master octree
-                    enlarge(request.scale, request.oldIndex);
-                }
-            } catch (InterruptedException e) {
-                // Oops
-            }
-        }
-    });
-    
     public WorldSizeManager(OffheapWorld world) {
         assert world != null;
         
         this.world = world;
         this.storage = world.getOctreeStorage();
-        this.queue = new ArrayBlockingQueue<>(100, true);
-        handlerThread.start();
     }
     
-    public void enlarge(float scale, int oldIndex) {
+    public synchronized void enlarge(float scale, int oldIndex) {
+        // Get metadata addr for group 0 (where all master octrees originate)
+        long metaAddr = storage.getGroupMeta(0);
+        float oldScale = mem.readVolatileFloat(metaAddr + 8);
+        
+        // This method is synchronized, so only one thread at time can execute it
+        // Thus, we can simply check if request we got is still valid...
+        if (oldScale > scale) {
+            return; // No need to do anything
+            // Someone else enlarged the world AND updated world loader's data
+        }
+        
         int oldId = storage.getMasterIndex();
         System.out.println("Old master octree: " + oldId);
         
@@ -63,9 +45,6 @@ public class WorldSizeManager {
         int newId = oldId + 1;
         System.out.println("New master octree: " + newId);
         long newAddr = storage.getOctreeAddr(newId);
-        
-        // Get metadata addr for group 0
-        long metaAddr = storage.getGroupMeta(0);
         
         // Calculate new center point (inverted lookup table from usual)
         float posMod = 0.25f * scale;
@@ -129,10 +108,6 @@ public class WorldSizeManager {
         
         // Tell world to switch to new master octree
         world.updateMasterOctree();
-    }
-    
-    public void queueEnlarge(float scale, int oldIndex) {
-        queue.add(new EnlargeRequest(scale, oldIndex));
     }
     
     // TODO shrinking world?

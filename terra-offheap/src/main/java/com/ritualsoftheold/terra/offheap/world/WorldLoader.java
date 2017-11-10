@@ -41,10 +41,16 @@ public class WorldLoader {
      */
     private WorldGenManager genManager;
     
-    public WorldLoader(OctreeStorage octreeStorage, ChunkStorage chunkStorage, WorldGenManager genManager) {
+    /**
+     * Handles enlarging master octree when needed.
+     */
+    private WorldSizeManager sizeManager;
+    
+    public WorldLoader(OctreeStorage octreeStorage, ChunkStorage chunkStorage, WorldGenManager genManager, WorldSizeManager sizeManager) {
         this.octreeStorage = octreeStorage;
         this.chunkStorage = chunkStorage;
         this.genManager = genManager;
+        this.sizeManager = sizeManager;
     }
     
     public void worldConfig(float x, float y, float z, int octree, float scale) {
@@ -60,18 +66,46 @@ public class WorldLoader {
         /**
          * Node coordinates, start at world center.
          */
-        float nodeX = centerX, nodeY = centerY, nodeZ = centerZ;
+        float nodeX, nodeY, nodeZ;
         
         /**
          * Relative coordinates to current node. Starting from relative
          * to center of world.
          */
-        float rX = x - centerX, rY = y - centerY, rZ = z - centerZ;
+        float rX, rY, rZ;
         
         /**
          * Scale of node that is currently operated
          */
-        float scale = worldScale;
+        float scale;
+        
+        // Enlarge world until the range fits in master octree
+        while (true) {
+            // Update/create some values we need later on
+            nodeX = centerX;
+            nodeY = centerY;
+            nodeZ = centerZ;
+            
+            rX = x - centerX;
+            rY = y - centerY;
+            rZ = z - centerZ;
+            
+            scale = worldScale;
+            
+            float posMod = 0.25f * scale; // posMod=position modifier; scale / 4, always
+            if (rX + range > nodeX + posMod || rX - range < nodeX - posMod // X coordinate
+                || rY + range > nodeY + posMod || rY - range < nodeY - posMod // Y coordinate
+                || rZ + range > nodeZ + posMod || rZ - range < nodeZ - posMod) { // Z coordinate
+                System.out.println("Enlarge world");
+                scale *= 2;
+                sizeManager.enlarge(scale, masterOctree);
+                // Size manager will call us through OffheapWorld, updating our fields as needed
+                System.exit(0);
+            } else {
+                // No need to enlarge the world (anymore)
+                break;
+            }
+        }
         
         /**
          * Id of current node, starts as master octree.

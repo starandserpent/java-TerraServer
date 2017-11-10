@@ -157,7 +157,7 @@ public class OffheapWorld implements TerraWorld {
             world.genManager = new WorldGenManager(world.generator, new DataHeuristics(), world.chunkStorage);
             
             // ... and world loading
-            world.worldLoader = new WorldLoader(world.octreeStorage, world.chunkStorage, world.genManager);
+            world.worldLoader = new WorldLoader(world.octreeStorage, world.chunkStorage, world.genManager, new WorldSizeManager(world));
             
             // Update master octree (and finish loader stuff)
             world.updateMasterOctree();

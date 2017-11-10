@@ -115,7 +115,7 @@ public class NaiveMesher implements VoxelMesher {
                 y -= 8;
                 z -= 8;
                 
-                System.out.println("x: " + x + ", y: " + y + ", z: " + z);
+                //System.out.println("x: " + x + ", y: " + y + ", z: " + z);
                 
                 // Calculate texture coordinates...
                 float texMinX = texture.getTexCoordX();
