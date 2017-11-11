@@ -62,7 +62,7 @@ public class WorldLoader {
     }
     
     public void seekArea(float x, float y, float z, float range, WorldLoadListener listener, boolean generate) {
-        System.out.println("I WAS CALLED");
+        System.out.println("I WAS CALLED, scale: " + worldScale);
         /**
          * Node coordinates, start at world center.
          */
@@ -92,15 +92,16 @@ public class WorldLoader {
             
             scale = worldScale;
             
-            float posMod = 0.25f * scale; // posMod=position modifier; scale / 4, always
-            if (rX + range > nodeX + posMod || rX - range < nodeX - posMod // X coordinate
-                || rY + range > nodeY + posMod || rY - range < nodeY - posMod // Y coordinate
-                || rZ + range > nodeZ + posMod || rZ - range < nodeZ - posMod) { // Z coordinate
-                System.out.println("Enlarge world");
-                scale *= 2;
-                sizeManager.enlarge(scale, masterOctree);
-                // Size manager will call us through OffheapWorld, updating our fields as needed
+            System.out.println("relative: " + rX + ", " + rY + ", " + rZ);
+            if (scale > 256)
                 System.exit(0);
+            float subScale = 0.5f * scale;
+            
+            if (rX + range > nodeX + subScale || rX - range < nodeX - subScale // X coordinate
+                || rY + range > nodeY + subScale || rY - range < nodeY - subScale // Y coordinate
+                || rZ + range > nodeZ + subScale || rZ - range < nodeZ - subScale) { // Z coordinate
+                checkEnlarge(nodeX, nodeY, nodeZ, rX, rY, rZ, scale, range);
+                // Size manager will call us through OffheapWorld, updating our fields as needed
             } else {
                 // No need to enlarge the world (anymore)
                 break;
@@ -206,6 +207,34 @@ public class WorldLoader {
             // And since this is not master octree anymore, remember to fire an event
             listener.octreeLoaded(addr, octreeStorage.getGroup(nodeId >>> 24), nodeId, subNodeX, subNodeY, subNodeZ, scale);
         }
+    }
+    
+    private void checkEnlarge(float nodeX, float nodeY, float nodeZ, float rX, float rY, float rZ, float scale, float range) {
+        /**
+         * New world scale, if we enlarge master octree.
+         */
+        float newScale = scale * 2;
+        float subScale = 0.5f * scale;
+        
+        /**
+         * World size manager places the old master octree in this index
+         * of new master octree. Start value anticipates that all coordinate axes
+         * overflow towards positive values.
+         */
+        int oldIndex = 0;
+        
+        // If negative overflow happens, we priorize it
+        if (rX - range < nodeX - subScale) {
+            oldIndex += 1;
+        } if (rY - range < nodeY - subScale) {
+            oldIndex += 2;
+        } if (rZ - range < nodeZ - subScale) {
+            oldIndex += 4;
+        }
+        System.out.println("oldIndex: " + oldIndex);
+        
+        // Request size manager to enlarge the world
+        sizeManager.enlarge(newScale, oldIndex);
     }
     
     public void loadArea(int nodeId, float scale, float nodeX, float nodeY, float nodeZ, WorldLoadListener listener, boolean generate) {
