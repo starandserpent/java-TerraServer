@@ -119,6 +119,14 @@ public class TestGameApp extends SimpleApplication implements ActionListener {
 
             @Override
             public void chunkLoaded(OffheapChunk chunk, float x, float y, float z) {
+                Vector3f center = cam.getLocation();
+                if (Math.abs(x - center.x) > 32
+                        || Math.abs(y - center.y) > 32
+                        || Math.abs(z - center.z) > 32) {
+                    System.out.println("too far away!");
+                    return;
+                }
+                
                 //System.out.println("Loaded chunk: " + chunk.memoryAddress());
                 VoxelMesher mesher = new NaiveMesher(); // Not thread safe, but this is still performance hog!
                 mesher.chunk(chunk.newIterator(), texManager);

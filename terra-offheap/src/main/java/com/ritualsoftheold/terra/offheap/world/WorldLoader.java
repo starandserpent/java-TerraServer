@@ -93,8 +93,6 @@ public class WorldLoader {
             scale = worldScale;
             
             System.out.println("relative: " + rX + ", " + rY + ", " + rZ);
-            if (scale > 256)
-                System.exit(0);
             float subScale = 0.5f * scale;
             
             if (rX + range > nodeX + subScale || rX - range < nodeX - subScale // X coordinate
