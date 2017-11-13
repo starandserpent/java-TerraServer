@@ -12,7 +12,7 @@ import net.openhft.chronicle.core.OS;
 public class RunLengthCompressor {
     
     private static final Memory mem = OS.memory();
-    private static final int MAX_COUNT = Character.MAX_VALUE + 1;
+    static final int MAX_COUNT = Character.MAX_VALUE + 1;
     
     public static int compress(long in, long out) {
         short previous = mem.readShort(in); // Read first block in

@@ -34,9 +34,9 @@ public class DataHeuristics {
         
         if (matCount == 1) {
             return octreeNode;
+        } else if (matCount < 10) {
+            return rle22Chunk;
         } else {
-            // TODO use RLE22, or other RLE when applicable
-            // (at the moment, easier to debug just one type...)
             return uncompressedChunk;
         }
     }

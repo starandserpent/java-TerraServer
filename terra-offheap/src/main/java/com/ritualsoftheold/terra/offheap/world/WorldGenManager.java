@@ -79,6 +79,10 @@ public class WorldGenManager {
             int bufIndex = id & 0xffff;
             buf.setChunkAddr(bufIndex, result.addr);
             buf.setChunkLength(index, result.length);
+            int type = result.typeSwap;
+            if (type == -1) {
+                type = chunkFormat.getChunkType();
+            }
             buf.setChunkType(bufIndex, (byte) chunkFormat.getChunkType()); // Type is set last for a good reason
             // Empty chunk will block most calls until it is no longer empty
             // (so we can safely mess with addr and length before we set type)

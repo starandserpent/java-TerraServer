@@ -65,6 +65,12 @@ public interface ChunkFormat extends WorldDataFormat {
             this.length = length;
         }
         
+        public SetAllResult(long addr, int length, int typeSwap) {
+            this.addr = addr;
+            this.length = length;
+            this.typeSwap = typeSwap;
+        }
+        
         /**
          * Memory address where data is.
          */
@@ -74,6 +80,12 @@ public interface ChunkFormat extends WorldDataFormat {
          * Length of data.
          */
         public int length;
+        
+        /**
+         * If the format implementation decides that using given type is not
+         * so great idea after all, it can change the type.
+         */
+        public int typeSwap = -1;
     }
     
     int getChunkType();

@@ -1,11 +1,19 @@
 package com.ritualsoftheold.terra.offheap.chunk.compress;
 
+import com.ritualsoftheold.terra.offheap.DataConstants;
 import com.ritualsoftheold.terra.offheap.chunk.ChunkBuffer;
 import com.ritualsoftheold.terra.offheap.chunk.ChunkType;
 
+import net.openhft.chronicle.core.Memory;
+import net.openhft.chronicle.core.OS;
+
 public class RLE22ChunkFormat implements ChunkFormat {
+    
+    private static final Memory mem = OS.memory();
 
     public static final RLE22ChunkFormat INSTANCE = new RLE22ChunkFormat();
+    
+    private static final int REALLOC_SIZE = DataConstants.CHUNK_UNCOMPRESSED / 16; // TODO measure this
     
     @Override
     public boolean convert(long from, long to, int type) {
@@ -33,7 +41,47 @@ public class RLE22ChunkFormat implements ChunkFormat {
 
     @Override
     public ChunkFormat.SetAllResult setAllBlocks(short[] data, ChunkBuffer.Allocator allocator) {
-        return null; // TODO
+        long addr = allocator.alloc(DataConstants.CHUNK_UNCOMPRESSED);
+        
+        int offset = 0;
+        int count = 0;
+        short previous = data[0];
+        for (short id : data) {
+            // If id changed or max count for this RLE format hit, write entry
+            if (previous != id || count == RunLengthCompressor.MAX_COUNT) {
+                mem.writeInt(addr + offset, (count - 1) << 16 | previous);
+                offset += 4;
+                count = 1;
+                previous = id;
+            } else { // If we can, just add to count to be written somewhere, sometime
+                count++;
+            }
+            
+            // Oh. This is not working, we'd use more space than uncompressed chunk
+            if (offset == DataConstants.CHUNK_UNCOMPRESSED) {
+                // Use uncompressed chunk format to handle this
+                UncompressedChunkFormat.INSTANCE.setAllBlocks(data, allocator.createDummy(addr, DataConstants.CHUNK_UNCOMPRESSED));
+                return new ChunkFormat.SetAllResult(addr, DataConstants.CHUNK_UNCOMPRESSED, ChunkType.UNCOMPRESSED);
+            }
+        }
+        // Write last entry that might have not been written in the loop
+        if (count != 0) {
+            mem.writeInt(addr + offset, (count - 1) << 16 | previous);
+            offset += 4; // Increase outIndex to point to next data slot
+        }
+        
+        // Maybe reallocate memory, if it is probably worth the cost
+        int length = DataConstants.CHUNK_UNCOMPRESSED;
+        if (offset > REALLOC_SIZE) {
+            length = offset; // We reallocate, so length is the old offset
+            long newAddr = allocator.alloc(length); // Allocate memory, but only how much we need this time
+            mem.copyMemory(addr, newAddr, length);
+            allocator.free(addr, DataConstants.CHUNK_UNCOMPRESSED);
+            addr = newAddr; // Assign new address in place of old
+        }
+        
+        // Create a sensible result
+        return new ChunkFormat.SetAllResult(addr, length);
     }
 
     @Override

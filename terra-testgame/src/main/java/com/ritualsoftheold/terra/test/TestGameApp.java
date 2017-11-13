@@ -123,7 +123,7 @@ public class TestGameApp extends SimpleApplication implements ActionListener {
                 if (Math.abs(x - center.x) > 32
                         || Math.abs(y - center.y) > 32
                         || Math.abs(z - center.z) > 32) {
-                    System.out.println("too far away!");
+                    System.out.println("too far away: " + x + ", " + y + ", " + z);
                     return;
                 }
                 

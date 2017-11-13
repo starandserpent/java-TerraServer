@@ -223,6 +223,18 @@ public class ChunkBuffer {
         }
         
         /**
+         * Frees memory from chunk data. This is rather low level utily;
+         * be careful to NOT free data which may be used
+         * @param addr
+         * @param length
+         */
+        public void free(long addr, int length) {
+            mem.freeMemory(addr, length);
+            memListener.onFree(length);
+            
+        }
+        
+        /**
          * Swaps memory address from old to new chunk. Old memory will be recycled.
          * @param chunk Chunk id.
          * @param oldAddr Old chunk address.
@@ -240,6 +252,50 @@ public class ChunkBuffer {
             // Deallocate (for now) old chunk
             mem.freeMemory(oldAddr, oldLength);
             memListener.onFree(oldLength);
+        }
+        
+        /**
+         * Creates a dummy allocator, which will try to use given address
+         * if length of first allocation matches length given here.
+         * @param addr Address where there is free.
+         * @param length Length of free space.
+         */
+        public Allocator createDummy(long addr, int length) {
+            return new DummyAllocator(addr, length);
+        }
+        
+        /**
+         * Sometimes chunk formats or related classes just want to pass memory
+         * around; no actual allocations are necessary (or wanted). In these cases,
+         * requesting a dummy allocator is best way to operate.
+         *
+         */
+        private class DummyAllocator extends Allocator {
+            
+            /**
+             * Address for memory this will try to provide.
+             */
+            private long dummyAddr;
+            
+            private int dummyLength;
+            
+            private DummyAllocator(long addr, int length) {
+                this.dummyAddr = addr;
+                this.dummyLength = length;
+            }
+            
+            public long alloc(int length) {
+                if (length == dummyLength) {
+                    dummyLength = -1; // Disallow further dummy allocations
+                    return dummyAddr;
+                } else {
+                    // Get rid of dummy memory
+                    // TODO recycle
+                    mem.freeMemory(dummyAddr, dummyLength);
+                    memListener.onFree(dummyLength);
+                    return super.alloc(length); // Do real allocation
+                }
+            }
         }
     }
     
