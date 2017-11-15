@@ -123,7 +123,7 @@ public class TestGameApp extends SimpleApplication implements ActionListener {
                 if (Math.abs(x - center.x) > 32
                         || Math.abs(y - center.y) > 32
                         || Math.abs(z - center.z) > 32) {
-                    System.out.println("too far away: " + x + ", " + y + ", " + z);
+                    //System.out.println("too far away: " + x + ", " + y + ", " + z);
                     return;
                 }
                 
@@ -181,7 +181,7 @@ public class TestGameApp extends SimpleApplication implements ActionListener {
         rootNode.addLight(new AmbientLight());
         
         queryProcessor = new OcclusionQueryProcessor(0, 10, assetManager);
-        viewPort.addProcessor(queryProcessor);
+        //viewPort.addProcessor(queryProcessor);
     }
     
     @Override

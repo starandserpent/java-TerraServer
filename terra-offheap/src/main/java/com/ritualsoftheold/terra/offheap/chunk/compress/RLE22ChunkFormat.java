@@ -13,7 +13,7 @@ public class RLE22ChunkFormat implements ChunkFormat {
 
     public static final RLE22ChunkFormat INSTANCE = new RLE22ChunkFormat();
     
-    private static final int REALLOC_SIZE = DataConstants.CHUNK_UNCOMPRESSED / 16; // TODO measure this
+    private static final int REALLOC_SIZE = DataConstants.CHUNK_UNCOMPRESSED / 32; // TODO measure this
     
     @Override
     public boolean convert(long from, long to, int type) {
@@ -72,7 +72,7 @@ public class RLE22ChunkFormat implements ChunkFormat {
         
         // Maybe reallocate memory, if it is probably worth the cost
         int length = DataConstants.CHUNK_UNCOMPRESSED;
-        if (offset > REALLOC_SIZE) {
+        if (length - offset > REALLOC_SIZE) {
             length = offset; // We reallocate, so length is the old offset
             long newAddr = allocator.alloc(length); // Allocate memory, but only how much we need this time
             mem.copyMemory(addr, newAddr, length);
