@@ -43,6 +43,7 @@ public class WorldGenManager {
     }
     
     public void generate(long addr, int index, float x, float y, float z, float scale) {
+        System.out.println("Handle generate: " + x + ", " + y + ", " + z);
         short[] data = new short[DataConstants.CHUNK_MAX_BLOCKS];
         WorldGenerator.Metadata meta = new WorldGenerator.Metadata();
         
