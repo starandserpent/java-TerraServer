@@ -193,7 +193,7 @@ public class WorldLoader {
                     || rZ + range > subNodeZ + posMod || rZ - range < subNodeZ - posMod) { // Z coordinate
                 // When ANY fails: we have found the node over which we must load all
                 System.out.println("First call to loadArea with scale: " + scale + ", range: " + range);
-                loadArea(nodeId, scale, nodeX, nodeY, nodeZ, listener, generate);
+                loadArea(x, y, z, range, nodeId, scale, nodeX, nodeY, nodeZ, listener, generate);
                 break;
             }
             
@@ -235,7 +235,8 @@ public class WorldLoader {
         sizeManager.enlarge(newScale, oldIndex);
     }
     
-    public void loadArea(int nodeId, float scale, float nodeX, float nodeY, float nodeZ, WorldLoadListener listener, boolean generate) {
+    public void loadArea(float x, float y, float z, float range, int nodeId, float scale,
+            float nodeX, float nodeY, float nodeZ, WorldLoadListener listener, boolean generate) {
         //System.out.println("loadArea, scale: " + scale);
         // Fetch data about given node
         long addr = octreeStorage.getOctreeAddr(nodeId); // This also loads the octree with group it is in
@@ -257,9 +258,6 @@ public class WorldLoader {
             
             // Octree or chunk
             if (flag == 1) {
-                long nodeAddr = addr + i * 4;
-                int node = mem.readVolatileInt(nodeAddr);
-                
                 // Create coordinates for child node
                 float subNodeX = 0;
                 float subNodeY = 0;
@@ -307,6 +305,17 @@ public class WorldLoader {
                         break;
                 }
                 
+                // Check if this node is within range and does it, thus, need to be loaded
+                float subScale = 0.5f * scale;
+                if (subNodeX + subScale < x - range || subNodeX - subScale > x + range
+                        || subNodeY + subScale < y - range || subNodeY - subScale > y + range
+                        || subNodeZ + subScale < z - range|| subNodeZ - subScale > z + range) {
+                    continue; // Apparently no, go straight to next one
+                }
+                
+                long nodeAddr = addr + i * 4;
+                int node = mem.readVolatileInt(nodeAddr);
+                
                 // Check if node exists, and create if it doesn't
                 if (node == 0) {
                     if (!generate) { // Generation is disallowed
@@ -337,7 +346,7 @@ public class WorldLoader {
                 } else { // Octree. Here comes recursion...
                     // TODO multithreading
                     //System.out.println("Octree path, node: " + node);
-                    loadArea(node, scale, subNodeX, subNodeY, subNodeZ, listener, generate);
+                    loadArea(x, y, z, range, node, scale, subNodeX, subNodeY, subNodeZ, listener, generate);
                 }
             } // else: no action needed, single node was loaded with getOctreeAddr
             //System.out.println("end of i: " + i);
