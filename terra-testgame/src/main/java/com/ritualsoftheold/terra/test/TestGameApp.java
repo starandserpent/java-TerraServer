@@ -100,7 +100,7 @@ public class TestGameApp extends SimpleApplication implements ActionListener {
                 })
                 .build();
                 
-        player = new LoadMarker(0, 0, 0, 32, 20, 0);
+        player = new LoadMarker(0, 0, 0, 64, 20, 0);
         world.addLoadMarker(player);
         
         TextureManager texManager = new TextureManager(assetManager); // Initialize texture atlas/array manager
