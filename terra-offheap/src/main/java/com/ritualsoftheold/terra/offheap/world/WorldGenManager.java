@@ -67,6 +67,7 @@ public class WorldGenManager {
             // TODO fix potential race conditions
         } else {
             int id = chunkStorage.newChunk();
+            System.out.println("Created chunk: " + id);
             if (!mem.compareAndSwapInt(addr + index * 4, 0, id)) {
                 // Someone got there before us!
                 return; // -> they get to do this

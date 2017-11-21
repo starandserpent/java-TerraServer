@@ -181,6 +181,7 @@ public class WorldLoader {
             scale *= 0.5;  // Scale essentially becomes posMod
             if (scale == DataConstants.CHUNK_SCALE) { // Dereference a chunk
                 chunkStorage.ensureLoaded(node); // Use node content as chunk id and load it
+                node = mem.readVolatileInt(nodeAddr);
                 listener.chunkLoaded(chunkStorage.getTemporaryChunk(node, null), subNodeX, subNodeY, subNodeZ);
                 break; // No further action necessary
             } else { // "Dereference" an octree
@@ -327,6 +328,7 @@ public class WorldLoader {
                     if (scale == DataConstants.CHUNK_SCALE) {
                         //System.out.println("Create chunk (i: " + i + ")");
                         genManager.generate(addr, i, subNodeX, subNodeY, subNodeZ, scale);
+                        node = mem.readVolatileInt(nodeAddr); // Read node, whatever it is
                     } else {
                         node = octreeStorage.newOctree(); // Create octree and attempt to swap it
                         //System.out.println("Create octree!");

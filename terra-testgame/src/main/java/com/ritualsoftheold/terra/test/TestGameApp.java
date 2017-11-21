@@ -17,6 +17,7 @@ import com.jme3.scene.Geometry;
 import com.jme3.scene.Mesh;
 import com.jme3.scene.Spatial.CullHint;
 import com.jme3.scene.VertexBuffer.Type;
+import com.jme3.system.AppSettings;
 import com.jme3.util.BufferUtils;
 import com.ritualsoftheold.terra.TerraModule;
 import com.ritualsoftheold.terra.material.MaterialRegistry;
@@ -51,6 +52,8 @@ public class TestGameApp extends SimpleApplication implements ActionListener {
     public static void main(String... args) {
         TestGameApp app = new TestGameApp();
         app.showSettings = false;
+        app.settings = new AppSettings(true);
+        app.settings.setResolution(1024, 768);
         app.start();
     }
     
