@@ -21,6 +21,8 @@ import com.ritualsoftheold.terra.offheap.world.WorldLoadListener;
 
 import it.unimi.dsi.fastutil.bytes.ByteArraySet;
 import it.unimi.dsi.fastutil.bytes.ByteSet;
+import it.unimi.dsi.fastutil.ints.IntArraySet;
+import it.unimi.dsi.fastutil.ints.IntSet;
 import it.unimi.dsi.fastutil.longs.LongArrayList;
 import it.unimi.dsi.fastutil.longs.LongArraySet;
 import it.unimi.dsi.fastutil.longs.LongList;
@@ -130,8 +132,6 @@ public class MemoryManager implements MemoryUseListener {
      */
     public MemoryManager(OffheapWorld world, long preferred, long max, MemoryPanicHandler panicHandler) {
         this.world = world;
-        this.octreeStorage = world.getOctreeStorage();
-        this.chunkStorage = world.getChunkStorage();
         this.preferredSize = preferred;
         this.maxSize = max;
         this.usedSize = new AtomicLong();
@@ -141,6 +141,11 @@ public class MemoryManager implements MemoryUseListener {
         this.managerThread = new ManagerThread();
         this.managerThread.start();
         this.criticalPanicHandler = new CriticalPanicHandler();
+    }
+    
+    public void initialize(OctreeStorage octreeStorage, ChunkStorage chunkStorage) {
+        this.octreeStorage = octreeStorage;
+        this.chunkStorage = chunkStorage;
     }
     
     /**
@@ -159,8 +164,8 @@ public class MemoryManager implements MemoryUseListener {
      * @param goal How much we need memory.
      */
     public void unload(long goal, MemoryPanicHandler panicHandler) {
-        // Create sets which will contain addresses that are used
-        LongSet usedOctreeGroups = new LongArraySet();
+        // Create sets which will contain ids of groups that are used
+        IntSet usedOctreeGroups = new IntArraySet();
         Set<ChunkBuffer> usedChunkBufs = new ObjectOpenHashSet<>();
         
         // Populate sets with addresses
@@ -170,8 +175,8 @@ public class MemoryManager implements MemoryUseListener {
             @Override
             public void octreeLoaded(long addr, long groupAddr, int id, float x, float y, float z,
                     float scale) {
-                System.out.println("Used group: " + groupAddr);
-                usedOctreeGroups.add(groupAddr);
+                System.out.println("Used group: " + (id >>> 24));
+                usedOctreeGroups.add(id >>> 24);
             }
             
             @Override
@@ -186,9 +191,10 @@ public class MemoryManager implements MemoryUseListener {
         
         // Unload (and save) octrees
         AtomicLongArray groups = world.getOctreeStorage().getGroups();
-        for (int i = 0; i < octreeStorage.getGroupCount(); i++) {
-            long groupAddr = groups.get(i) + DataConstants.OCTREE_GROUP_META; // Group begins after meta for user code INCLUDING our listener
-            if (!usedOctreeGroups.contains(groupAddr)) { // Need to unload this group
+        // Begin at 1, master group must not be unloaded; ever
+        for (int i = 1; i < octreeStorage.getGroupCount(); i++) {
+            if (!usedOctreeGroups.contains(i)) { // Need to unload this group
+                System.out.println("Can unload: " + i);
                 octreeStorage.removeOctrees(i, true); // Remove groups, but save first
                 
                 freed += world.getOctreeStorage().getGroupSize();
@@ -205,6 +211,11 @@ public class MemoryManager implements MemoryUseListener {
         if (freed < goal) { // Only do this if unloading octrees wouldn't save enough space
             for (int i = 0; i < allBuffers.length(); i++) {
                 ChunkBuffer buf = allBuffers.get(i); // TODO performance
+                if (buf == null) {
+                    // Buffer is not loaded at the moment, skip it
+                    continue;
+                }
+                
                 if (!usedChunkBufs.contains(buf)) { // If not used, mark for unloading
                     chunkStorage.unloadBuffer(buf.getId(), true);
                     

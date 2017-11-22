@@ -93,7 +93,7 @@ public class OctreeStorage {
         if (addr != 0) {
             int amount = blockSize + DataConstants.OCTREE_GROUP_META;
             if (saveFirst) {
-                saveGroup(index).thenRun(() -> {
+                saveGroup(index, addr).thenRun(() -> {
                     mem.freeMemory(addr, amount);
                     memListener.onFree(amount);
                 });
@@ -128,8 +128,7 @@ public class OctreeStorage {
         return getGroup(groupIndex) - DataConstants.OCTREE_GROUP_META;
     }
     
-    public CompletableFuture<Long> saveGroup(int groupIndex) {
-        long addr = groups.get(groupIndex);
+    public CompletableFuture<Long> saveGroup(int groupIndex, long addr) {
         if (addr == 0) {
             // The group is not there, perhaps it was made inactive
             return null;

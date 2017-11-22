@@ -2,12 +2,14 @@ package com.ritualsoftheold.terra.offheap.test;
 
 import static org.junit.Assert.*;
 
+import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.junit.Before;
 import org.junit.Test;
 
 import com.ritualsoftheold.terra.material.MaterialRegistry;
+import com.ritualsoftheold.terra.offheap.chunk.ChunkBuffer;
 import com.ritualsoftheold.terra.offheap.io.dummy.DummyChunkLoader;
 import com.ritualsoftheold.terra.offheap.io.dummy.DummyOctreeLoader;
 import com.ritualsoftheold.terra.offheap.memory.MemoryPanicHandler;
@@ -22,13 +24,14 @@ import com.ritualsoftheold.terra.world.gen.EmptyWorldGenerator;
  */
 public class MemoryTest {
     
-    private OffheapWorld world;
+    private ChunkBuffer.Builder bufferBuilder;
     
     @Before
     public void init() {
-        world = new OffheapWorld(new DummyChunkLoader(), new DummyOctreeLoader(8192), new MaterialRegistry(),
-                new TestWorldGenerator());
-        world.setLoadListener(new DummyLoadListener());
+        bufferBuilder = new ChunkBuffer.Builder()
+                .maxChunks(128)
+                .globalQueue(8)
+                .chunkQueue(4);
     }
     
     /**
@@ -38,33 +41,36 @@ public class MemoryTest {
     @Test
     public void testFree1() {
         AtomicBoolean called = new AtomicBoolean(false);
+        OffheapWorld world = new OffheapWorld.Builder()
+                .chunkLoader(new DummyChunkLoader())
+                .octreeLoader(new DummyOctreeLoader(32768))
+                .storageExecutor(ForkJoinPool.commonPool())
+                .chunkStorage(bufferBuilder, 128)
+                .octreeStorage(32768)
+                .generator(new TestWorldGenerator())
+                .generatorExecutor(ForkJoinPool.commonPool())
+                .materialRegistry(new MaterialRegistry())
+                .memorySettings(0, 10000000, new MemoryPanicHandler() {
+                    
+                    @Override
+                    public PanicResult outOfMemory(long max, long used, long possible) {
+                        assertTrue("wrong action", false);
+                        return PanicResult.CONTINUE;
+                    }
+                    
+                    @Override
+                    public PanicResult goalNotMet(long goal, long possible) {
+                        called.set(true);
+                        return PanicResult.CONTINUE;
+                    }
+                })
+                .build();
+        world.setLoadListener(new DummyLoadListener());
         
-        world.setMemorySettings(0, 10000000, new MemoryPanicHandler() {
-            
-            @Override
-            public PanicResult outOfMemory(long max, long used, long possible) {
-                assertTrue("wrong action", false);
-                return PanicResult.CONTINUE;
-            }
-            
-            @Override
-            public boolean handleFreeze(long stamp) {
-                return true;
-            }
-            
-            @Override
-            public PanicResult goalNotMet(long goal, long possible) {
-                called.set(true);
-                return PanicResult.CONTINUE;
-            }
-        });
-        
-        long stamp = world.enter();
         world.addLoadMarker(new LoadMarker(0, 0, 0, 256, 256, 0));
         world.updateLoadMarkers().forEach((future) -> future.join());
         System.out.println("Load markers up to date!");
         world.requestUnload();
-        world.leave(stamp);
         
         int counter = 0;
         while (called.get() != true) {
@@ -90,32 +96,36 @@ public class MemoryTest {
     public void testFree2() {
         AtomicBoolean called = new AtomicBoolean(false);
         
-        world.setMemorySettings(0, 0, new MemoryPanicHandler() {
+        OffheapWorld world = new OffheapWorld.Builder()
+                .chunkLoader(new DummyChunkLoader())
+                .octreeLoader(new DummyOctreeLoader(32768))
+                .storageExecutor(ForkJoinPool.commonPool())
+                .chunkStorage(bufferBuilder, 128)
+                .octreeStorage(32768)
+                .generator(new TestWorldGenerator())
+                .generatorExecutor(ForkJoinPool.commonPool())
+                .materialRegistry(new MaterialRegistry())
+                .memorySettings(10, 10, new MemoryPanicHandler() {
             
-            @Override
-            public PanicResult outOfMemory(long max, long used, long possible) {
-                called.set(true);
-                return PanicResult.CONTINUE;
-            }
-            
-            @Override
-            public boolean handleFreeze(long stamp) {
-                return true;
-            }
-            
-            @Override
-            public PanicResult goalNotMet(long goal, long possible) {
-                assertTrue("wrong action", false);
-                return PanicResult.CONTINUE;
-            }
-        });
+                    @Override
+                    public PanicResult outOfMemory(long max, long used, long possible) {
+                        called.set(true);
+                        return PanicResult.CONTINUE;
+                    }
+                    
+                    @Override
+                    public PanicResult goalNotMet(long goal, long possible) {
+                        assertTrue("wrong action", false);
+                        return PanicResult.CONTINUE;
+                    }
+                })
+                .build();
+        world.setLoadListener(new DummyLoadListener());
         
-        long stamp = world.enter();
         world.addLoadMarker(new LoadMarker(0, 0, 0, 256, 256, 0));
         world.updateLoadMarkers().forEach((future) -> future.join());
         System.out.println("Load markers up to date!");
         world.requestUnload();
-        world.leave(stamp);
         
         int counter = 0;
         while (called.get() != true) {
@@ -140,32 +150,36 @@ public class MemoryTest {
     public void testFree3() {
         AtomicBoolean called = new AtomicBoolean(false);
         
-        world.setMemorySettings(5000000, 5000000, new MemoryPanicHandler() {
+        OffheapWorld world = new OffheapWorld.Builder()
+                .chunkLoader(new DummyChunkLoader())
+                .octreeLoader(new DummyOctreeLoader(32768))
+                .storageExecutor(ForkJoinPool.commonPool())
+                .chunkStorage(bufferBuilder, 128)
+                .octreeStorage(32768)
+                .generator(new TestWorldGenerator())
+                .generatorExecutor(ForkJoinPool.commonPool())
+                .materialRegistry(new MaterialRegistry())
+                .memorySettings(0, 10000000, new MemoryPanicHandler() {
             
-            @Override
-            public PanicResult outOfMemory(long max, long used, long possible) {
-                called.set(true);
-                return PanicResult.CONTINUE;
-            }
-            
-            @Override
-            public boolean handleFreeze(long stamp) {
-                return true;
-            }
-            
-            @Override
-            public PanicResult goalNotMet(long goal, long possible) {
-                called.set(true);
-                return PanicResult.CONTINUE;
-            }
-        });
+                    @Override
+                    public PanicResult outOfMemory(long max, long used, long possible) {
+                        called.set(true);
+                        return PanicResult.CONTINUE;
+                    }
+                    
+                    @Override
+                    public PanicResult goalNotMet(long goal, long possible) {
+                        called.set(true);
+                        return PanicResult.CONTINUE;
+                    }
+                })
+                .build();
+        world.setLoadListener(new DummyLoadListener());
         
-        long stamp = world.enter();
         world.addLoadMarker(new LoadMarker(0, 0, 0, 256, 256, 0));
         world.updateLoadMarkers().forEach((future) -> future.join());
         System.out.println("Load markers up to date!");
         world.requestUnload();
-        world.leave(stamp);
         
         try {
             Thread.sleep(3000);
@@ -182,36 +196,40 @@ public class MemoryTest {
     public void testFree4() {
         AtomicBoolean called = new AtomicBoolean(false);
         
-        world.setMemorySettings(100000, 100000, new MemoryPanicHandler() {
-            
-            @Override
-            public PanicResult outOfMemory(long max, long used, long possible) {
-                called.set(true);
-                System.out.println("Out of memory");
-                return PanicResult.CONTINUE;
-            }
-            
-            @Override
-            public boolean handleFreeze(long stamp) {
-                return true;
-            }
-            
-            @Override
-            public PanicResult goalNotMet(long goal, long possible) {
-                called.set(true);
-                System.out.println("Goal not met");
-                return PanicResult.CONTINUE;
-            }
-        });
+        OffheapWorld world = new OffheapWorld.Builder()
+                .chunkLoader(new DummyChunkLoader())
+                .octreeLoader(new DummyOctreeLoader(32768))
+                .storageExecutor(ForkJoinPool.commonPool())
+                .chunkStorage(bufferBuilder, 128)
+                .octreeStorage(32768)
+                .generator(new TestWorldGenerator())
+                .generatorExecutor(ForkJoinPool.commonPool())
+                .materialRegistry(new MaterialRegistry())
+                .memorySettings(10000, 10000000, new MemoryPanicHandler() {
+                    
+                    @Override
+                    public PanicResult outOfMemory(long max, long used, long possible) {
+                        called.set(true);
+                        System.out.println("Out of memory");
+                        return PanicResult.CONTINUE;
+                    }
+                    
+                    @Override
+                    public PanicResult goalNotMet(long goal, long possible) {
+                        called.set(true);
+                        System.out.println("Goal not met");
+                        return PanicResult.CONTINUE;
+                    }
+                })
+                .build();
+        world.setLoadListener(new DummyLoadListener());
         
-        long stamp = world.enter();
         LoadMarker marker = new LoadMarker(0, 0, 0, 256, 256, 0);
         world.addLoadMarker(marker);
         world.updateLoadMarkers().forEach((future) -> future.join());
         world.removeLoadMarker(marker);
         System.out.println("Load markers up to date!");
         world.requestUnload();
-        world.leave(stamp);
         
         try {
             Thread.sleep(3000);

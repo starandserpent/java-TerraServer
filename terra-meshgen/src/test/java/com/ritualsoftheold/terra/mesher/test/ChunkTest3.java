@@ -17,6 +17,7 @@ import com.ritualsoftheold.terra.mesher.NaiveMesher;
 import com.ritualsoftheold.terra.mesher.VoxelMesher;
 import com.ritualsoftheold.terra.mesher.resource.TextureManager;
 import com.ritualsoftheold.terra.offheap.DataConstants;
+import com.ritualsoftheold.terra.offheap.chunk.iterator.ChunkIterator;
 
 import net.openhft.chronicle.core.Memory;
 import net.openhft.chronicle.core.OS;
@@ -48,11 +49,10 @@ public class ChunkTest3 extends SimpleApplication {
         // Create chunk data
         long addr = mem.allocate(DataConstants.CHUNK_UNCOMPRESSED);
         mem.setMemory(addr, DataConstants.CHUNK_UNCOMPRESSED, (byte) 0);
-        mem.writeByte(addr, (byte) 0); // Chunk type here
-        mem.writeShort(addr + 1, grass.getWorldId()); // Add some stuff to chunk
-        mem.writeShort(addr + 3, (short) 0xffff);
-        mem.writeShort(addr + 5, dirt.getWorldId());
-        mem.writeShort(addr + 7, (short) 0xfffa);
+        mem.writeShort(addr, grass.getWorldId()); // Add some stuff to chunk
+        mem.writeShort(addr + 2, (short) 0xffff);
+        mem.writeShort(addr + 4, dirt.getWorldId());
+        mem.writeShort(addr + 6, (short) 0xfffa);
 //        mem.writeShort(addr + 9, (short) 2);
 //        mem.writeShort(addr + 11, (short) 0xffff);
 //        mem.writeShort(addr + 13, (short) 2);
@@ -62,7 +62,7 @@ public class ChunkTest3 extends SimpleApplication {
         manager.loadMaterials(registry);
         
         VoxelMesher mesher = new NaiveMesher(); // Create mesher
-        mesher.chunk(addr, manager); // TODO check back when material registry is done
+        mesher.chunk(ChunkIterator.forChunk(addr, (byte) 0), manager); // TODO check back when material registry is done
         
         // Create mesh
         Mesh mesh = new Mesh();

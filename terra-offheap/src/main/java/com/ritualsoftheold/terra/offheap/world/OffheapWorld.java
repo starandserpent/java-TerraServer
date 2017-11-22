@@ -145,13 +145,16 @@ public class OffheapWorld implements TerraWorld {
             world.loadMarkers = new ArrayList<>();
             world.sizeManager = new WorldSizeManager(world);
             
-            // Initialize memory manager
+            // Create memory manager
             world.memManager = new MemoryManager(world, memPreferred, memMax, memPanicHandler);
             
             // Initialize stuff that needs memory manager
             world.octreeStorage = new OctreeStorage(octreeGroupSize, world.octreeLoader, world.storageExecutor, world.memManager);
             chunkBufferBuilder.memListener(world.memManager);
             world.chunkStorage = new ChunkStorage(chunkBufferBuilder, chunkMaxBuffers, world.chunkLoader, world.storageExecutor);
+            
+            // Initialize memory manager with storages
+            world.memManager.initialize(world.octreeStorage, world.chunkStorage);
             
             // Initialize world generation
             world.genManager = new WorldGenManager(world.generator, new DataHeuristics(), world.chunkStorage);

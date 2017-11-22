@@ -17,6 +17,7 @@ import com.ritualsoftheold.terra.mesher.VoxelMesher;
 import com.ritualsoftheold.terra.mesher.resource.TextureManager;
 import com.ritualsoftheold.terra.offheap.DataConstants;
 import com.ritualsoftheold.terra.offheap.chunk.compress.RunLengthCompressor;
+import com.ritualsoftheold.terra.offheap.chunk.iterator.ChunkIterator;
 
 import net.openhft.chronicle.core.Memory;
 import net.openhft.chronicle.core.OS;
@@ -41,8 +42,7 @@ public class ChunkTest2 extends SimpleApplication {
             mem.writeShort(origin + i, (short) 1);
         }
         long addr = mem.allocate(DataConstants.CHUNK_UNCOMPRESSED);
-        mem.writeByte(addr, (byte) 0);
-        RunLengthCompressor.compress(origin, addr + 1);
+        RunLengthCompressor.compress(origin, addr);
         //System.out.println(Long.toBinaryString(mem.readLong(addr)));
         
         // Register materials
@@ -58,7 +58,7 @@ public class ChunkTest2 extends SimpleApplication {
         manager.loadMaterials(registry);
         
         VoxelMesher mesher = new NaiveMesher(); // Create mesher
-        mesher.chunk(addr, manager); // TODO check back when material registry is done
+        mesher.chunk(ChunkIterator.forChunk(addr, (byte) 0), manager); // TODO check back when material registry is done
         
         // Create mesh
         Mesh mesh = new Mesh();
