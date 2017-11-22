@@ -91,6 +91,7 @@ public class WorldLoader {
             rZ = z - centerZ;
             
             scale = worldScale;
+            System.out.println("worldscale: " + scale);
             
             System.out.println("relative: " + rX + ", " + rY + ", " + rZ);
             float subScale = 0.5f * scale;
@@ -306,14 +307,6 @@ public class WorldLoader {
                         break;
                 }
                 
-                // Check if this node is within range and does it, thus, need to be loaded
-                float subScale = 0.5f * scale;
-                if (subNodeX + subScale < x - range || subNodeX - subScale > x + range
-                        || subNodeY + subScale < y - range || subNodeY - subScale > y + range
-                        || subNodeZ + subScale < z - range|| subNodeZ - subScale > z + range) {
-                    continue; // Apparently no, go straight to next one
-                }
-                
                 long nodeAddr = addr + i * 4;
                 int node = mem.readVolatileInt(nodeAddr);
                 
@@ -326,6 +319,15 @@ public class WorldLoader {
                     // Ok, this is something that has not been generated, so it is
                     // "octree null": flag is 1, but node is 0 (kind of null pointer)
                     if (scale == DataConstants.CHUNK_SCALE) {
+                        // Check if this node is within range and does it, thus, need to be loaded
+                        // This is done only for chunks, since octree structure must always be fully loaded
+                        float subScale = 0.5f * scale;
+                        if (subNodeX + subScale < x - range || subNodeX - subScale > x + range
+                                || subNodeY + subScale < y - range || subNodeY - subScale > y + range
+                                || subNodeZ + subScale < z - range|| subNodeZ - subScale > z + range) {
+                            continue; // Apparently no, go straight to next one
+                        }
+                        
                         //System.out.println("Create chunk (i: " + i + ")");
                         genManager.generate(addr, i, subNodeX, subNodeY, subNodeZ, scale);
                         node = mem.readVolatileInt(nodeAddr); // Read node, whatever it is
