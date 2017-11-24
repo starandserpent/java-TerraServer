@@ -3,6 +3,7 @@ package com.ritualsoftheold.terra.offheap.octree;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicIntegerArray;
 import java.util.concurrent.atomic.AtomicLongArray;
 
 import com.ritualsoftheold.terra.material.MaterialRegistry;
@@ -32,6 +33,8 @@ public class OctreeStorage {
      * octree data was last needed.
      */
     private AtomicLongArray lastNeeded;
+    
+    private AtomicIntegerArray userCounts;
     
     /**
      * How many octrees goes to one storage group.
@@ -63,6 +66,7 @@ public class OctreeStorage {
         this.blockSize = blockSize;
         this.groups = new AtomicLongArray(256); // 256 groups at most
         this.lastNeeded = new AtomicLongArray(256);
+        this.userCounts = new AtomicIntegerArray(256);
         
         // Load master group and cache count address
         countAddr = getGroupMeta(0);
@@ -91,6 +95,15 @@ public class OctreeStorage {
     public boolean removeOctrees(int index, boolean saveFirst) {
         long addr = groups.getAndSet(index, 0);
         if (addr != 0) {
+            // Once used mark gets to zero, we can unload
+            while (true) { // Spin loop until used < 1
+                // TODO Java 9 Thread.onSpinWait
+                int used = getUsedCount(index);
+                if (used < 1) {
+                    break;
+                }
+            }
+            
             int amount = blockSize + DataConstants.OCTREE_GROUP_META;
             if (saveFirst) {
                 saveGroup(index, addr).thenRun(() -> {
@@ -107,6 +120,13 @@ public class OctreeStorage {
         return false;
     }
     
+    /**
+     * Gets an address for octree group. You must make sure to mark it used
+     * before doing this and marking it unused after you are done. Failure to
+     * do so probably causes segfaults or worse.
+     * @param group Group index.
+     * @return Address for group.
+     */
     public long getGroup(int group) {
         long addr = groups.get(group);
         if (addr == 0) {
@@ -148,11 +168,13 @@ public class OctreeStorage {
     public int newOctree() {
         int freeIndex = mem.addInt(countAddr, 1); // addInt functions like incrementAndGet in this case
         int group = freeIndex / blockSize; // Find octree group (unsigned byte, < 256)
+        markUsed(group); // Group must not be unloaded while we are working on it
         int index = freeIndex % blockSize; // Find index inside that group
         int id = group << 24 | index;
         
         // Make octrees contents "null" by making flags 1
         mem.writeVolatileByte(getOctreeAddr(id), (byte) 0xff);
+        markUnused(group); // Now, it could be unloaded. At least it is safe
         
         // Stitch group and index together to get full id!
         return id;
@@ -169,6 +191,7 @@ public class OctreeStorage {
     // I guess it works, unit tested and all...
     public int splitOctree(int index, int node) {
         byte groupIndex = (byte) (index >>> 24);
+        markUsed(groupIndex);
         int octreeIndex = index & 0xffffff;
         
         // Grab all necessary addresses
@@ -180,7 +203,10 @@ public class OctreeStorage {
         
         // Gather new indexes and addresses
         int newIndex = newOctree(); // Get an index for new octree
-        long newGroupAddr = getGroup((byte) (newIndex >>> 24)); // Get address for the new group
+        int newGroup = newIndex >>> 24;
+        markUsed(newGroup);
+        
+        long newGroupAddr = getGroup(newGroup); // Get address for the new group
         long newAddr = newGroupAddr + (newIndex & 0xffffff) * DataConstants.OCTREE_NODE_SIZE;
         
         mem.writeVolatileByte(newAddr, (byte) 0); // New octree has single nodes only
@@ -191,6 +217,10 @@ public class OctreeStorage {
         // Now update old octree to properly point into it's no longer single child node
         mem.writeVolatileByte(addr, (byte) (mem.readVolatileByte(addr) | (1 << node))); // Update flags
         mem.writeVolatileInt(nodeAddr, newIndex); // ... and actual index
+        
+        // Mark both new and old buffers unused
+        markUnused(groupIndex);
+        markUnused(newGroup);
         
         return newIndex; // Finally return new index, as this is ready to be used
     }
@@ -248,4 +278,17 @@ public class OctreeStorage {
         long addr = getGroupMeta((byte) 0) + 12 + type * 4;
         return mem.readFloat(addr);
     }
+    
+    public int markUsed(int index) {
+        return userCounts.incrementAndGet(index);
+    }
+    
+    public int markUnused(int index) {
+        return userCounts.decrementAndGet(index);
+    }
+    
+    public int getUsedCount(int index) {
+        return userCounts.get(index);
+    }
+    
 }

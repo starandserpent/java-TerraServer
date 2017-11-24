@@ -308,5 +308,70 @@ public class OffheapWorld implements TerraWorld {
     public float getMasterScale() {
         return masterScale;
     }
-
+    
+    /**
+     * Copies chunk data for given chunk to given memory address.
+     * Make sure there is enough space allocated!
+     * @param id Chunk id.
+     * @param target Target memory address
+     * @return How much data (in bytes) chunk was.
+     */
+    public int copyChunkData(int id, long target) {
+        int bufId = id >>> 16;
+        chunkStorage.markUsed(bufId);
+        
+        // Get buffer and relevant memory addresses
+        ChunkBuffer buf = chunkStorage.getOrLoadBuffer(bufId);
+        int index = id & 0xffff;
+        long addr = buf.getChunkAddr(index);
+        int length = buf.getChunkLength(index);
+        
+        // Only copy if there is something to copy
+        if (length > 0) {
+            mem.copyMemory(addr, target, length);
+        }
+        
+        chunkStorage.markUnused(bufId);
+        
+        return length;
+    }
+    
+    /**
+     * Copies an octree group or parts of one to given memory address.
+     * Make sure there is enough space allocated!
+     * @param index Group index.
+     * @param target Target memory address.
+     * @param beginIndex Index of first octree to be copied.
+     * @param endIndex Index of last octree to be copied. Negative values
+     * are interpreted as last octree of the group
+     * @return How much bytes were eventually copied.
+     */
+    public int copyOctreeGroup(int index, long target, int beginIndex, int endIndex) {
+        if (endIndex < 0) { // Default to last octree in group
+            endIndex = octreeStorage.getGroupSize() - 1;
+        }
+        
+        // Calculate count, validate it, if passed then calculate length
+        int count = endIndex - beginIndex;
+        if (beginIndex < 0) {
+            throw new IllegalArgumentException("beginIndex cannot be less than 0");
+        }
+        if (endIndex >= octreeStorage.getGroupSize()) {
+            throw new IllegalArgumentException("endIndex cannot be greater than size of group");
+        }
+        if (count < 1) {
+            throw new IllegalArgumentException("copying less than one octree is not possible");
+        }
+        int length = count * DataConstants.OCTREE_SIZE;
+        
+        octreeStorage.markUsed(index); // Prevent group from being unloaded
+        
+        // Get address of group and copy relevant nodes
+        long addr = octreeStorage.getGroup(index);
+        mem.copyMemory(addr + beginIndex * DataConstants.OCTREE_SIZE, target + endIndex * DataConstants.OCTREE_SIZE, length);
+        
+        octreeStorage.markUnused(index); // Allow unloading again, copy finished
+        
+        return length;
+    }
 }

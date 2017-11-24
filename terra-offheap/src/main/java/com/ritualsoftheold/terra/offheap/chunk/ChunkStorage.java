@@ -22,9 +22,16 @@ public class ChunkStorage {
      */
     private AtomicReferenceArray<ChunkBuffer> buffers;
     
+    /**
+     * Lists non-closed wrappers for chunks per buffer.
+     */
     private AtomicIntegerArray aliveWrappers;
     
-    private AtomicIntegerArray unloading;
+    /**
+     * Lists user counts for all chunk buffers. 0 means that the buffer is not
+     * in use; anything above it means that it is not safe to unload!
+     */
+    private AtomicIntegerArray userCounts;
     
     /**
      * Creates chunk buffers.
@@ -43,7 +50,7 @@ public class ChunkStorage {
         this.loader = loader;
         this.buffers = new AtomicReferenceArray<>(maxBuffers);
         this.aliveWrappers = new AtomicIntegerArray(maxBuffers);
-        this.unloading = new AtomicIntegerArray(maxBuffers);
+        this.userCounts = new AtomicIntegerArray(maxBuffers);
         this.executor = executor;
     }
     
@@ -168,8 +175,12 @@ public class ChunkStorage {
      */
     public OffheapChunk getChunk(int chunkId, MaterialRegistry materialRegistry) {
         int bufIndex = chunkId >>> 16;
+        markUsed(bufIndex);
         ChunkBuffer buf = buffers.get(bufIndex);
-        return new UserOffheapChunk(buf, chunkId, materialRegistry, aliveWrappers, bufIndex);
+        OffheapChunk wrapper = new UserOffheapChunk(buf, chunkId, materialRegistry, aliveWrappers, bufIndex);
+        markUnused(bufIndex); // Must be after constructing wrapper
+        // Constructor places buffer in aliveWrappers, so after it we can mark it "unused"
+        return wrapper;
     }
 
     public AtomicReferenceArray<ChunkBuffer> getAllBuffers() {
@@ -177,15 +188,15 @@ public class ChunkStorage {
     }
     
     public int markUsed(int index) {
-        return unloading.incrementAndGet(index);
+        return userCounts.incrementAndGet(index);
     }
     
     public int markUnused(int index) {
-        return unloading.decrementAndGet(index);
+        return userCounts.decrementAndGet(index);
     }
     
     public int getUsedCount(int index) {
-        return unloading.get(index);
+        return userCounts.get(index);
     }
     
     /**
@@ -284,7 +295,7 @@ public class ChunkStorage {
             
             // Finally, unload
             buf.unload();
-            // And then buffer object is left for GC to claim
+            // And then buffer "wrapper" object is left for GC to claim
         }, executor);
     }
 }
