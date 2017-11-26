@@ -21,13 +21,5 @@ public class ChunkType {
      */
     public static final byte UNCOMPRESSED = 2;
     
-    /**
-     * RLE compressed chunk. 3 bytes for count, 1 for id.
-     */
-    public static final byte RLE_3_1 = 3;
-    
-    /**
-     * RLE compressed chunk. 1 byte for both count and id.
-     */
-    public static final byte RLE_1_1 = 4;
+    public static final byte PALETTE_1 = 3;
 }
