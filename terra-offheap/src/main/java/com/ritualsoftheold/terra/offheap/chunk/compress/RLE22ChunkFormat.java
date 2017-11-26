@@ -27,7 +27,7 @@ public class RLE22ChunkFormat implements ChunkFormat {
     }
 
     @Override
-    public void processQueries(long chunk, int chunkLen, ChunkBuffer.Allocator alloc, long queue, int size) {
+    public ChunkFormat.ProcessResult processQueries(long chunk, int chunkLen, ChunkBuffer.Allocator alloc, long queue, int size) {
         // TODO figure out a way to avoid uncompress-compress (it might be quite costly)
         // This is still better than nothing; uncompress - for all of queue: apply - compress
         // is far better than; for all of queue: uncompress - apply one change - compress
@@ -37,7 +37,34 @@ public class RLE22ChunkFormat implements ChunkFormat {
         convert(chunk, uncompressed, ChunkType.UNCOMPRESSED);
         UncompressedChunkFormat.INSTANCE.processQueries(uncompressed, DataConstants.CHUNK_UNCOMPRESSED, alloc, queue, size);
         
-        UncompressedChunkFormat.INSTANCE.convert(uncompressed, chunk, ChunkType.RLE_2_2);
+        // Attempt recompression
+        int compressedLen = RunLengthCompressor.compress(uncompressed, chunk, chunkLen);
+        if (compressedLen == -1) { // Oops. Compression failed (out of memory)
+            long newAddr = alloc.alloc(DataConstants.CHUNK_UNCOMPRESSED);
+            compressedLen = RunLengthCompressor.compress(uncompressed, newAddr, DataConstants.CHUNK_UNCOMPRESSED);
+            
+            // Still fails, need to fall back to uncompressed chunk format
+            if (compressedLen == -1) {
+                alloc.free(newAddr, DataConstants.CHUNK_UNCOMPRESSED);
+                return new ChunkFormat.ProcessResult(DataConstants.CHUNK_UNCOMPRESSED, ChunkType.UNCOMPRESSED, uncompressed);
+            }
+            
+            // Potentially reallocate, third time. If it is "worth it"
+            if (DataConstants.CHUNK_UNCOMPRESSED - compressedLen > REALLOC_SIZE) {
+                long addr3 = alloc.alloc(compressedLen);
+                mem.copyMemory(newAddr, addr3, compressedLen);
+                alloc.free(newAddr, DataConstants.CHUNK_UNCOMPRESSED);
+                alloc.free(uncompressed, DataConstants.CHUNK_UNCOMPRESSED);
+                newAddr = addr3;
+            } else { // It isn't. Just free uncompressed data and return
+                alloc.free(uncompressed, DataConstants.CHUNK_UNCOMPRESSED);
+                return new ChunkFormat.ProcessResult(DataConstants.CHUNK_UNCOMPRESSED, ChunkType.RLE_2_2, newAddr);
+            }
+        }
+        
+        // Everything went well. How wonderful (and lucky)
+        alloc.free(uncompressed, DataConstants.CHUNK_UNCOMPRESSED);
+        return new ChunkFormat.ProcessResult(chunkLen, ChunkType.RLE_2_2, chunk);
     }
 
     @Override

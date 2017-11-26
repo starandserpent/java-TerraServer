@@ -37,8 +37,38 @@ public interface ChunkFormat extends WorldDataFormat {
      * needed, it can be requested from chunk buffer.
      * @param queue Address to query queue.
      * @param size Size of query data.
+     * @return Result indicating new length and type of the chunk. They are not
+     * necessarily different than input values.
      */
-    void processQueries(long chunk, int chunkLen, ChunkBuffer.Allocator alloc, long queue, int size);
+    ProcessResult processQueries(long chunk, int chunkLen, ChunkBuffer.Allocator alloc, long queue, int size);
+    
+    /**
+     * Returned as result from processQueries call.
+     * 
+     */
+    public static class ProcessResult {
+        
+        public ProcessResult(int length, int type, long addr) {
+            this.length = length;
+            this.type = type;
+            this.address = addr;
+        }
+        
+        /**
+         * Length of chunk after processing the queries.
+         */
+        public int length;
+        
+        /**
+         * Type of chunk after processing the queries.
+         */
+        public int type;
+        
+        /**
+         * Memory addresss for the data.
+         */
+        public long address;
+    }
 
     void getBlocks(long chunk, int[] indices, short[] ids, int beginIndex, int endIndex);
     

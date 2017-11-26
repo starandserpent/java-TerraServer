@@ -14,12 +14,17 @@ public class RunLengthCompressor {
     private static final Memory mem = OS.memory();
     static final int MAX_COUNT = Character.MAX_VALUE + 1;
     
-    public static int compress(long in, long out) {
+    public static int compress(long in, long out, int quota) {
         short previous = mem.readShort(in); // Read first block in
         int count = 0;
         int outIndex = 0;
         
         for (int i = 0; i < DataConstants.CHUNK_UNCOMPRESSED; i += 2) {
+            // Oops. Out of space...
+            if (outIndex == quota) {
+                return -1;
+            }
+            
             short newId = mem.readShort(in + i);
             if (previous != newId || count == MAX_COUNT) { // Write what we had here
                 mem.writeInt(out + outIndex, (count - 1) << 16 | previous);

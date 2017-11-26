@@ -186,8 +186,13 @@ public class ChunkBuffer {
                     ChunkFormat format = ChunkFormat.forType(getChunkType(i));
                     
                     // Ask format to process queries (and hope it handles that correctly)
-                    format.processQueries(getChunkAddr(i), getChunkLength(i),
+                    ChunkFormat.ProcessResult result = format.processQueries(getChunkAddr(i), getChunkLength(i),
                             allocator, queueAddr, queriesSize);
+                    
+                    // TODO maybe wrap these in if and have -1 as default (do not change anything) value
+                    setChunkLength(i, result.length);
+                    setChunkType(i, (byte) result.type);
+                    setChunkAddr(i, result.address);
                 }
             }
 

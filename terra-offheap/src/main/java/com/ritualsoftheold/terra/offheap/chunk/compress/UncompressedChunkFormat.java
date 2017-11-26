@@ -17,15 +17,19 @@ public class UncompressedChunkFormat implements ChunkFormat {
     public boolean convert(long from, long to, int type) {
         switch (type) {
             case ChunkType.RLE_2_2:
-                RunLengthCompressor.compress(from, to);
-                break;
+                int len = RunLengthCompressor.compress(from, to, DataConstants.CHUNK_UNCOMPRESSED);
+                if (len == -1) {
+                    return false;
+                } else {
+                    return true;
+                }
         }
         
         return false;
     }
 
     @Override
-    public void processQueries(long chunk, int chunkLen, ChunkBuffer.Allocator alloc, long queue, int size) {
+    public ChunkFormat.ProcessResult processQueries(long chunk, int chunkLen, ChunkBuffer.Allocator alloc, long queue, int size) {
         long end = queue + size;
         for (long addr = queue; addr < end; addr += 8) {
             long query = mem.readVolatileLong(addr);
@@ -35,6 +39,8 @@ public class UncompressedChunkFormat implements ChunkFormat {
             
             mem.writeShort(chunk + block * 2, newId);
         }
+        
+        return new ChunkFormat.ProcessResult(chunkLen, ChunkType.UNCOMPRESSED, chunk);
     }
 
     @Override

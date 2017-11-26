@@ -28,9 +28,9 @@ public class Palette1ChunkFormat implements ChunkFormat {
     }
 
     @Override
-    public void processQueries(long chunk, int chunkLen, Allocator alloc, long queue, int size) {
+    public ChunkFormat.ProcessResult processQueries(long chunk, int chunkLen, Allocator alloc, long queue, int size) {
         // TODO Auto-generated method stub
-        
+        return null;
     }
 
     @Override
