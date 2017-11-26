@@ -246,7 +246,7 @@ public class ChunkStorage {
                 int bufId = curChunk >>> 16;
                 markUsed(bufId);
                 ChunkBuffer buf = getOrLoadBuffer(bufId); // Get buffer where chunk is
-                buf.getBlocks(curChunk, blocks, ids, chunkStart, i);
+                buf.getBlocks(curChunk, blocks, ids, chunkStart, i + 1);
                 markUnused(bufId);
                 
                 chunkStart = i; // Update chunk start here

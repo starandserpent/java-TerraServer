@@ -35,8 +35,32 @@ public class RLE22ChunkFormat implements ChunkFormat {
     @Override
     public void getBlocks(long chunk, int[] indices, short[] ids,
             int beginIndex, int endIndex) {
-        // TODO Auto-generated method stub
+        int blockIndex = 0;
+        int curLookupIndex = beginIndex;
         
+        for (int i = 0; true; i++) {
+            // Get material and how many of that there are
+            short mat = mem.readShort(chunk + i * 4);
+            int len = Short.toUnsignedInt(mem.readShort(chunk + i * 4 + 2));
+            blockIndex += len;
+            
+            // Check which of indices we're looking for match
+            for (int j = curLookupIndex; true; j++) {
+                // Stop there, might be other data in this array!
+                if (curLookupIndex == endIndex) {
+                    return; // Time to return
+                }
+                
+                int target = indices[j];
+                if (target <= blockIndex) { // Hey, this matches
+                    // Set material to ids
+                    ids[j] = mat;
+                } else { // Not there... Next RLE batch, please
+                    break;
+                }
+                curLookupIndex = j; // We'll continue there with next batch of RLE'd data
+            }
+        }
     }
 
     @Override
