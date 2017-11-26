@@ -28,8 +28,16 @@ public class RLE22ChunkFormat implements ChunkFormat {
 
     @Override
     public void processQueries(long chunk, int chunkLen, ChunkBuffer.Allocator alloc, long queue, int size) {
-        // TODO Auto-generated method stub
+        // TODO figure out a way to avoid uncompress-compress (it might be quite costly)
+        // This is still better than nothing; uncompress - for all of queue: apply - compress
+        // is far better than; for all of queue: uncompress - apply one change - compress
         
+        // Delegate stuff to uncompressed chunk format
+        long uncompressed = alloc.alloc(DataConstants.CHUNK_UNCOMPRESSED);
+        convert(chunk, uncompressed, ChunkType.UNCOMPRESSED);
+        UncompressedChunkFormat.INSTANCE.processQueries(uncompressed, DataConstants.CHUNK_UNCOMPRESSED, alloc, queue, size);
+        
+        UncompressedChunkFormat.INSTANCE.convert(uncompressed, chunk, ChunkType.RLE_2_2);
     }
 
     @Override
