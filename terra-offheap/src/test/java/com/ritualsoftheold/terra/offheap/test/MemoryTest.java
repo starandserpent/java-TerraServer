@@ -159,7 +159,7 @@ public class MemoryTest {
                 .generator(new TestWorldGenerator())
                 .generatorExecutor(ForkJoinPool.commonPool())
                 .materialRegistry(new MaterialRegistry())
-                .memorySettings(0, 10000000, new MemoryPanicHandler() {
+                .memorySettings(10000000, 10000000, new MemoryPanicHandler() {
             
                     @Override
                     public PanicResult outOfMemory(long max, long used, long possible) {

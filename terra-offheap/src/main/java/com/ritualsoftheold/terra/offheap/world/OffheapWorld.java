@@ -6,6 +6,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
+import java.util.function.IntToLongFunction;
 
 import com.ritualsoftheold.terra.material.MaterialRegistry;
 import com.ritualsoftheold.terra.node.Chunk;
@@ -213,7 +214,6 @@ public class OffheapWorld implements TerraWorld {
         return 0; // TODO redo this
     }
     
-    
     public OctreeStorage getOctreeStorage() {
         return octreeStorage;
     }
@@ -282,14 +282,26 @@ public class OffheapWorld implements TerraWorld {
         marker.markUpdated(); // Tell it we updated it
     }
     
+    /**
+     * Sets default load listener for this world. It will be used when loading
+     * world with TerraWorld's API; this implementation also allows you to
+     * override the load listener.
+     * @param listener Load listener.
+     */
     public void setLoadListener(WorldLoadListener listener) {
         this.loadListener = listener;
     }
     
+    /**
+     * Requests memory manager to start unloading data if that is needed.
+     */
     public void requestUnload() {
         memManager.queueUnload();
     }
     
+    /**
+     * Updates master octree data from offheap data storage.
+     */
     public void updateMasterOctree() {
         System.out.println("masterIndex: " + octreeStorage.getMasterIndex());
         int masterIndex = octreeStorage.getMasterIndex();
@@ -305,8 +317,53 @@ public class OffheapWorld implements TerraWorld {
         worldLoader.worldConfig(centerX, centerY, centerZ, masterIndex, masterScale);
     }
 
+    /**
+     * Gets current scale of master octree of this world.
+     * @return Master octree scale.
+     */
     public float getMasterScale() {
         return masterScale;
+    }
+    
+    /**
+     * Resulting data from chunk (potentially failed) copy operation.
+     *
+     */
+    public static class CopyChunkResult {
+        
+        private byte type;
+        private int length;
+        private boolean success;
+        
+        public CopyChunkResult(boolean success, byte type, int length) {
+            this.success = success;
+            this.type = type;
+            this.length = length;
+        }
+        
+        /**
+         * Checks if the copy operation was successful.
+         * @return If it succeeded.
+         */
+        public boolean isSuccess() {
+            return success;
+        }
+        
+        /**
+         * Gets the type of chunk.
+         * @return Type of chunk.
+         */
+        public byte getType() {
+            return type;
+        }
+        
+        /**
+         * Gets length of chunk data.
+         * @return Length of chunk data.
+         */
+        public int getLength() {
+            return length;
+        }
     }
     
     /**
@@ -314,9 +371,9 @@ public class OffheapWorld implements TerraWorld {
      * Make sure there is enough space allocated!
      * @param id Chunk id.
      * @param target Target memory address
-     * @return How much data (in bytes) chunk was.
+     * @return Relevant information about copied chunk.
      */
-    public int copyChunkData(int id, long target) {
+    public CopyChunkResult copyChunkData(int id, long target) {
         int bufId = id >>> 16;
         chunkStorage.markUsed(bufId);
         
@@ -325,6 +382,7 @@ public class OffheapWorld implements TerraWorld {
         int index = id & 0xffff;
         long addr = buf.getChunkAddr(index);
         int length = buf.getChunkLength(index);
+        byte type = buf.getChunkType(index);
         
         // Only copy if there is something to copy
         if (length > 0) {
@@ -333,7 +391,46 @@ public class OffheapWorld implements TerraWorld {
         
         chunkStorage.markUnused(bufId);
         
-        return length;
+        return new CopyChunkResult(true, type, length);
+    }
+    
+    /**
+     * Attempts to copy data of given chunk. You'll provide a function which
+     * can give memory addresses based on length of data.
+     * @param id Chunk id.
+     * @param handler Function to provide target memory address. It will
+     * receive chunk data length as an argument. If it returns 0, copy
+     * operation will fail (but no exception is thrown).
+     * @return Relevant information about copied chunk, or indication of
+     * failure to copy it.
+     */
+    public CopyChunkResult copyChunkData(int id, IntToLongFunction handler) {
+        int bufId = id >>> 16;
+        chunkStorage.markUsed(bufId);
+        
+        // Get buffer and relevant memory addresses
+        ChunkBuffer buf = chunkStorage.getOrLoadBuffer(bufId);
+        int index = id & 0xffff;
+        long addr = buf.getChunkAddr(index);
+        int length = buf.getChunkLength(index);
+        byte type = buf.getChunkType(index);
+        
+        // Offer chunk length to function, and take target as result
+        long target = handler.applyAsLong(length);
+        
+        // Target not available for some reason
+        if (target == 0) {
+            return new CopyChunkResult(false, type, length);
+        }
+        
+        // Only copy if there is something to copy
+        if (length > 0) {
+            mem.copyMemory(addr, target, length);
+        }
+        
+        chunkStorage.markUnused(bufId);
+        
+        return new CopyChunkResult(false, type, length);
     }
     
     /**
