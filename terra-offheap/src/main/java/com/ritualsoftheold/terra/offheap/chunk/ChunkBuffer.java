@@ -2,7 +2,7 @@ package com.ritualsoftheold.terra.offheap.chunk;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
-import com.ritualsoftheold.terra.offheap.chunk.ChunkBuffer.Allocator;
+import com.ritualsoftheold.terra.offheap.Pointer;
 import com.ritualsoftheold.terra.offheap.chunk.compress.ChunkFormat;
 import com.ritualsoftheold.terra.offheap.memory.MemoryUseListener;
 
@@ -20,24 +20,24 @@ public class ChunkBuffer {
     /**
      * Chunk memory addresses. Pointer to data.
      */
-    private long addrs;
+    private @Pointer long addrs;
     
     /**
      * Chunk data lengths. Pointer to data.
      */
-    private long lengths;
+    private @Pointer long lengths;
     
     /**
      * Chunk types. Note that not all chunk types have associated address!
      * Pointer to data.
      */
-    private long types;
+    private @Pointer long types;
     
     /**
      * Change queues for all chunks.
      * Pointer to data.
      */
-    private long queues;
+    private @Pointer long queues;
     
     private int queueSize;
     
@@ -89,12 +89,12 @@ public class ChunkBuffer {
         /**
          * Queue data address.
          */
-        private long addr;
+        private @Pointer long addr;
         
         /**
          * When flushing, data is copied here.
          */
-        private long flushAddr;
+        private @Pointer long flushAddr;
         
         /**
          * How many elements fit into the queue at same time.
@@ -222,7 +222,7 @@ public class ChunkBuffer {
          * @param length Length of data.
          * @return Memory address where to put it.
          */
-        public long alloc(int length) {
+        public @Pointer long alloc(int length) {
             memListener.onAllocate(length);
             return mem.allocate(length);
         }
@@ -233,7 +233,7 @@ public class ChunkBuffer {
          * @param addr
          * @param length
          */
-        public void free(long addr, int length) {
+        public void free(@Pointer long addr, int length) {
             mem.freeMemory(addr, length);
             memListener.onFree(length);
             
@@ -247,7 +247,7 @@ public class ChunkBuffer {
          * @param length Length of new chunk.
          * @param used How much of new space is used.
          */
-        public void swap(int chunk, long oldAddr, long newAddr, int length, int used) {
+        public void swap(int chunk, @Pointer long oldAddr, @Pointer long newAddr, int length, int used) {
             int oldLength = mem.readVolatileInt(lengths + chunk * 4); // Get old length
             
             setChunkAddr(chunk, newAddr);
@@ -265,7 +265,7 @@ public class ChunkBuffer {
          * @param addr Address where there is free.
          * @param length Length of free space.
          */
-        public Allocator createDummy(long addr, int length) {
+        public Allocator createDummy(@Pointer long addr, int length) {
             return new DummyAllocator(addr, length);
         }
         
@@ -280,7 +280,7 @@ public class ChunkBuffer {
             /**
              * Address for memory this will try to provide.
              */
-            private long dummyAddr;
+            private @Pointer long dummyAddr;
             
             private int dummyLength;
             
@@ -319,12 +319,12 @@ public class ChunkBuffer {
         // Initialize memory blocks for metadata
         int allocLen = maxChunks * 13 + 2 * globalQueueLen + chunkQueueLen;
         staticDataLength = allocLen;
-        long baseAddr = mem.allocate(allocLen);
+        @Pointer long baseAddr = mem.allocate(allocLen);
         addrs = baseAddr; // 8 bytes per chunk
         lengths = baseAddr + 8 * maxChunks; // 4 bytes per chunk
         types = baseAddr + 12 * maxChunks; // 1 byte per chunk
         
-        long globalData = baseAddr + 13 * maxChunks;
+        @Pointer long globalData = baseAddr + 13 * maxChunks;
         
         // Zero/generally set memory that needs it
         mem.setMemory(baseAddr, maxChunks * 16, (byte) 0); // Zero some chunk specific data
@@ -483,7 +483,7 @@ public class ChunkBuffer {
      * @param addr Address of data's start.
      * @param count How many chunks are in that data.
      */
-    public void load(long addr, int count) {
+    public void load(@Pointer long addr, int count) {
         for (int i = 0; i < count; i++) {
             // Read metadata
             byte type = mem.readByte(addr);
@@ -518,7 +518,7 @@ public class ChunkBuffer {
         return getContentSize() + count * 5;
     }
     
-    public void save(long addr) {
+    public void save(@Pointer long addr) {
         int count = chunkCount.get();
         for (int i = 0; i < count; i++) {
             byte type = getChunkType(i);

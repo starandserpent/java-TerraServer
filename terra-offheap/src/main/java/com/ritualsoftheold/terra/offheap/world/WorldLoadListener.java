@@ -1,5 +1,6 @@
 package com.ritualsoftheold.terra.offheap.world;
 
+import com.ritualsoftheold.terra.offheap.Pointer;
 import com.ritualsoftheold.terra.offheap.node.OffheapChunk;
 
 /**
@@ -10,7 +11,7 @@ import com.ritualsoftheold.terra.offheap.node.OffheapChunk;
  */
 public interface WorldLoadListener {
     
-    void octreeLoaded(long addr, long groupAddr, int id, float x, float y, float z, float scale);
+    void octreeLoaded(@Pointer long addr, @Pointer long groupAddr, int id, float x, float y, float z, float scale);
     
     void chunkLoaded(OffheapChunk chunk, float x, float y, float z);
 }

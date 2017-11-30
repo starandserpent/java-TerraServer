@@ -13,6 +13,7 @@ import com.ritualsoftheold.terra.node.Chunk;
 import com.ritualsoftheold.terra.node.Node;
 import com.ritualsoftheold.terra.node.Octree;
 import com.ritualsoftheold.terra.offheap.DataConstants;
+import com.ritualsoftheold.terra.offheap.Pointer;
 import com.ritualsoftheold.terra.offheap.chunk.ChunkBuffer;
 import com.ritualsoftheold.terra.offheap.chunk.ChunkStorage;
 import com.ritualsoftheold.terra.offheap.chunk.ChunkType;
@@ -373,7 +374,7 @@ public class OffheapWorld implements TerraWorld {
      * @param target Target memory address
      * @return Relevant information about copied chunk.
      */
-    public CopyChunkResult copyChunkData(int id, long target) {
+    public CopyChunkResult copyChunkData(int id, @Pointer long target) {
         int bufId = id >>> 16;
         chunkStorage.markUsed(bufId);
         
@@ -416,7 +417,7 @@ public class OffheapWorld implements TerraWorld {
         byte type = buf.getChunkType(index);
         
         // Offer chunk length to function, and take target as result
-        long target = handler.applyAsLong(length);
+        @Pointer long target = handler.applyAsLong(length);
         
         // Target not available for some reason
         if (target == 0) {
@@ -443,7 +444,7 @@ public class OffheapWorld implements TerraWorld {
      * are interpreted as last octree of the group
      * @return How much bytes were eventually copied.
      */
-    public int copyOctreeGroup(int index, long target, int beginIndex, int endIndex) {
+    public int copyOctreeGroup(int index, @Pointer long target, int beginIndex, int endIndex) {
         if (endIndex < 0) { // Default to last octree in group
             endIndex = octreeStorage.getGroupSize() - 1;
         }

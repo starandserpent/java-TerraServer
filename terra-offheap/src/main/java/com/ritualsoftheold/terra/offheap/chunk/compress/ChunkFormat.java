@@ -1,5 +1,6 @@
 package com.ritualsoftheold.terra.offheap.chunk.compress;
 
+import com.ritualsoftheold.terra.offheap.Pointer;
 import com.ritualsoftheold.terra.offheap.chunk.ChunkBuffer;
 import com.ritualsoftheold.terra.offheap.chunk.ChunkType;
 import com.ritualsoftheold.terra.offheap.data.WorldDataFormat;
@@ -27,7 +28,7 @@ public interface ChunkFormat extends WorldDataFormat {
      * @param type Chunk type.
      * @return If given type is unsupported, false is returned.
      */
-    boolean convert(long from, long to, int type);
+    boolean convert(@Pointer long from, @Pointer long to, int type);
     
     /**
      * Processes given queries for given chunk. Note that chunk must have
@@ -40,7 +41,7 @@ public interface ChunkFormat extends WorldDataFormat {
      * @return Result indicating new length and type of the chunk. They are not
      * necessarily different than input values.
      */
-    ProcessResult processQueries(long chunk, int chunkLen, ChunkBuffer.Allocator alloc, long queue, int size);
+    ProcessResult processQueries(@Pointer long chunk, int chunkLen, ChunkBuffer.Allocator alloc, long queue, int size);
     
     /**
      * Returned as result from processQueries call.
@@ -48,7 +49,7 @@ public interface ChunkFormat extends WorldDataFormat {
      */
     public static class ProcessResult {
         
-        public ProcessResult(int length, int type, long addr) {
+        public ProcessResult(int length, int type, @Pointer long addr) {
             this.length = length;
             this.type = type;
             this.address = addr;
@@ -67,12 +68,12 @@ public interface ChunkFormat extends WorldDataFormat {
         /**
          * Memory addresss for the data.
          */
-        public long address;
+        public @Pointer long address;
     }
 
-    void getBlocks(long chunk, int[] indices, short[] ids, int beginIndex, int endIndex);
+    void getBlocks(@Pointer long chunk, int[] indices, short[] ids, int beginIndex, int endIndex);
     
-    default short getBlock(long chunk, int index) {
+    default short getBlock(@Pointer long chunk, int index) {
         // This is simplistic/bad implementation. Please override for any serious usage
         
         int[] indices = new int[]{index};
@@ -90,12 +91,12 @@ public interface ChunkFormat extends WorldDataFormat {
      */
     public static class SetAllResult {
         
-        public SetAllResult(long addr, int length) {
+        public SetAllResult(@Pointer long addr, int length) {
             this.addr = addr;
             this.length = length;
         }
         
-        public SetAllResult(long addr, int length, int typeSwap) {
+        public SetAllResult(@Pointer long addr, int length, int typeSwap) {
             this.addr = addr;
             this.length = length;
             this.typeSwap = typeSwap;
@@ -104,7 +105,7 @@ public interface ChunkFormat extends WorldDataFormat {
         /**
          * Memory address where data is.
          */
-        public long addr;
+        public @Pointer long addr;
         
         /**
          * Length of data.

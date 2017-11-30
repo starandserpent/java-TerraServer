@@ -8,6 +8,7 @@ import java.util.concurrent.atomic.AtomicLongArray;
 
 import com.ritualsoftheold.terra.material.MaterialRegistry;
 import com.ritualsoftheold.terra.offheap.DataConstants;
+import com.ritualsoftheold.terra.offheap.Pointer;
 import com.ritualsoftheold.terra.offheap.io.OctreeLoader;
 import com.ritualsoftheold.terra.offheap.memory.MemoryUseListener;
 import com.ritualsoftheold.terra.offheap.node.OffheapOctree;
@@ -82,7 +83,7 @@ public class OctreeStorage {
      * @param addr Memory address for data.
      * @return If it succeeded or failed.
      */
-    public boolean addOctrees(int index, long addr) {
+    public boolean addOctrees(int index, @Pointer long addr) {
         return groups.compareAndSet(index, 0, addr);
     }
     
@@ -148,7 +149,7 @@ public class OctreeStorage {
         return getGroup(groupIndex) - DataConstants.OCTREE_GROUP_META;
     }
     
-    public CompletableFuture<Long> saveGroup(int groupIndex, long addr) {
+    public CompletableFuture<Long> saveGroup(int groupIndex, @Pointer long addr) {
         if (addr == 0) {
             // The group is not there, perhaps it was made inactive
             return null;
