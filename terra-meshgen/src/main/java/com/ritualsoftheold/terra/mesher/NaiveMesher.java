@@ -1,6 +1,5 @@
 package com.ritualsoftheold.terra.mesher;
 
-import com.ritualsoftheold.terra.material.MaterialRegistry;
 import com.ritualsoftheold.terra.material.TerraTexture;
 import com.ritualsoftheold.terra.mesher.resource.TextureManager;
 import com.ritualsoftheold.terra.offheap.DataConstants;
@@ -18,30 +17,30 @@ import it.unimi.dsi.fastutil.ints.IntList;
  *
  */
 public class NaiveMesher implements VoxelMesher {
-    
+
     private FloatList verts;
     private IntList indices;
     private FloatList texCoords;
-    
+
     public NaiveMesher() {
-       verts = new FloatArrayList();
-       indices = new IntArrayList();
-       texCoords = new FloatArrayList();
+        verts = new FloatArrayList();
+        indices = new IntArrayList();
+        texCoords = new FloatArrayList();
     }
 
     @Override
     public void chunk(ChunkIterator it, TextureManager textures) {
         assert it != null;
         assert textures != null;
-        
+
         // Clear previous lists
         verts.clear();
         indices.clear();
         texCoords.clear();
-        
+
         byte[] hidden = new byte[DataConstants.CHUNK_MAX_BLOCKS]; // Visibility mappings for cubes
         //Arrays.fill(hidden, (byte) 0);
-        
+
         // Generate mappings for culling
         while (!it.isDone()) {
             int begin = it.getOffset();
@@ -49,11 +48,11 @@ public class NaiveMesher implements VoxelMesher {
             if (blockId == 0) { // TODO better AIR check
                 continue;
             }
-            
+
             //System.out.println("begin: " + begin);
             for (int i = 0; i < it.getCount(); i++) { // Loop blocks from what we just read
                 int index = begin + i;
-                    
+
                 int rightIndex = index - 1;
                 if (rightIndex > -1 && index % 64 != 0)
                     hidden[rightIndex] |= 0b00010000; // RIGHT
@@ -74,12 +73,12 @@ public class NaiveMesher implements VoxelMesher {
                     hidden[frontIndex] |= 0b00000010; // FRONT
             }
         }
-        
+
         // Reset iterator to starting position
         it.reset();
-        
+
         int atlasSize = textures.getAtlasSize();
-        
+
         int block = 0;
         int vertIndex = 0;
         while (!it.isDone()) {
@@ -89,7 +88,7 @@ public class NaiveMesher implements VoxelMesher {
                 continue;
             }
             //System.out.println(blockId);
-            
+
             float scale = 0.125f;
             for (int i = 0; i < it.getCount(); i++) { // Loop blocks from what we just read
                 //System.out.println((48 - j * 16) + ": " + Long.toBinaryString(id));
@@ -104,68 +103,68 @@ public class NaiveMesher implements VoxelMesher {
                     block++; // To next block!
                     continue;
                 }
-                
+
                 int z0 = block / 4096; // Integer division: current z index
                 float z = z0 * scale * 2; // Z coordinate, considering the scale
                 float y = (block - 4096 * z0) / 64 * scale * 2;
                 float x = block % 64 * scale * 2;
-                
+
                 // Reduce coordinates to have chunk center be where is needs to be
                 x -= 8;
                 y -= 8;
                 z -= 8;
-                
+
                 //System.out.println("x: " + x + ", y: " + y + ", z: " + z);
-                
+
                 // Calculate texture coordinates...
                 float texMinX = texture.getTexCoordX();
                 float texMinY = texture.getTexCoordY() ;
                 float texMaxX = texMinX + texture.getScale() * texture.getWidth() / atlasSize;
                 float texMaxY = texMinY + texture.getScale() * texture.getHeight() / atlasSize;
                 float texArray = texture.getTexCoordZ();
-                
+
                 //System.out.println("texMinX: " + texMinX + ", texMinY: " + texMinY + ", texMaxX: " + texMaxX + ", texMaxY: " + texMaxY);
-                
+
                 if ((faces & 0b00100000) == 0) { // RIGHT
                     //System.out.println("Draw RIGHT");
                     verts.add(x - scale);
                     verts.add(y + scale);
                     verts.add(z + scale);
-                    
+
                     verts.add(x - scale);
                     verts.add(y + scale);
                     verts.add(z - scale);
-                    
+
                     verts.add(x - scale);
                     verts.add(y - scale);
                     verts.add(z - scale);
-                    
+
                     verts.add(x - scale);
                     verts.add(y - scale);
                     verts.add(z + scale);
-                    
+
                     indices.add(vertIndex + 0);
                     indices.add(vertIndex + 1);
                     indices.add(vertIndex + 2);
-                    
+
                     indices.add(vertIndex + 2);
                     indices.add(vertIndex + 3);
                     indices.add(vertIndex + 0);
-                    
+
                     vertIndex += 4;
-                    
+
                     texCoords.add(texMaxX);
                     texCoords.add(texMaxY);
                     texCoords.add(texArray);
-                    
+
                     texCoords.add(texMinX);
                     texCoords.add(texMaxY);
                     texCoords.add(texArray);
-                    
+
                     texCoords.add(texMinX);
                     texCoords.add(texMinY);
                     texCoords.add(texArray);
-                    
+
                     texCoords.add(texMaxX);
                     texCoords.add(texMinY);
                     texCoords.add(texArray);
@@ -174,41 +173,41 @@ public class NaiveMesher implements VoxelMesher {
                     verts.add(x + scale);
                     verts.add(y - scale);
                     verts.add(z - scale);
-                    
+
                     verts.add(x + scale);
                     verts.add(y + scale);
                     verts.add(z - scale);
-                    
+
                     verts.add(x + scale);
                     verts.add(y + scale);
                     verts.add(z + scale);
-                    
+
                     verts.add(x + scale);
                     verts.add(y - scale);
                     verts.add(z + scale);
-                    
+
                     indices.add(vertIndex + 0);
                     indices.add(vertIndex + 1);
                     indices.add(vertIndex + 2);
-                    
+
                     indices.add(vertIndex + 2);
                     indices.add(vertIndex + 3);
                     indices.add(vertIndex + 0);
-                    
+
                     vertIndex += 4;
-                    
+
                     texCoords.add(texMinX);
                     texCoords.add(texMinY);
                     texCoords.add(texArray);
-                    
+
                     texCoords.add(texMinX);
                     texCoords.add(texMaxY);
                     texCoords.add(texArray);
-                    
+
                     texCoords.add(texMaxX);
                     texCoords.add(texMaxY);
                     texCoords.add(texArray);
-                    
+
                     texCoords.add(texMaxX);
                     texCoords.add(texMinY);
                     texCoords.add(texArray);
@@ -217,41 +216,41 @@ public class NaiveMesher implements VoxelMesher {
                     verts.add(x - scale);
                     verts.add(y + scale);
                     verts.add(z - scale);
-                    
+
                     verts.add(x - scale);
                     verts.add(y + scale);
                     verts.add(z + scale);
-                    
+
                     verts.add(x + scale);
                     verts.add(y + scale);
                     verts.add(z + scale);
-                    
+
                     verts.add(x + scale);
                     verts.add(y + scale);
                     verts.add(z - scale);
-                    
+
                     indices.add(vertIndex + 0);
                     indices.add(vertIndex + 1);
                     indices.add(vertIndex + 2);
-                    
+
                     indices.add(vertIndex + 2);
                     indices.add(vertIndex + 3);
                     indices.add(vertIndex + 0);
-                    
+
                     vertIndex += 4;
-                    
+
                     texCoords.add(texMinX);
                     texCoords.add(texMinY);
                     texCoords.add(texArray);
-                    
+
                     texCoords.add(texMinX);
                     texCoords.add(texMaxY);
                     texCoords.add(texArray);
-                    
+
                     texCoords.add(texMaxX);
                     texCoords.add(texMaxY);
                     texCoords.add(texArray);
-                    
+
                     texCoords.add(texMaxX);
                     texCoords.add(texMinY);
                     texCoords.add(texArray);
@@ -260,41 +259,41 @@ public class NaiveMesher implements VoxelMesher {
                     verts.add(x - scale);
                     verts.add(y - scale);
                     verts.add(z + scale);
-                    
+
                     verts.add(x - scale);
                     verts.add(y - scale);
                     verts.add(z - scale);
-                    
+
                     verts.add(x + scale);
                     verts.add(y - scale);
                     verts.add(z - scale);
-                    
+
                     verts.add(x + scale);
                     verts.add(y - scale);
                     verts.add(z + scale);
-                    
+
                     indices.add(vertIndex + 0);
                     indices.add(vertIndex + 1);
                     indices.add(vertIndex + 2);
-                    
+
                     indices.add(vertIndex + 2);
                     indices.add(vertIndex + 3);
                     indices.add(vertIndex + 0);
-                    
+
                     vertIndex += 4;
-                    
+
                     texCoords.add(texMinX);
                     texCoords.add(texMinY);
                     texCoords.add(texArray);
-                    
+
                     texCoords.add(texMinX);
                     texCoords.add(texMaxY);
                     texCoords.add(texArray);
-                    
+
                     texCoords.add(texMaxX);
                     texCoords.add(texMaxY);
                     texCoords.add(texArray);
-                    
+
                     texCoords.add(texMaxX);
                     texCoords.add(texMinY);
                     texCoords.add(texArray);
@@ -303,41 +302,41 @@ public class NaiveMesher implements VoxelMesher {
                     verts.add(x + scale);
                     verts.add(y - scale);
                     verts.add(z + scale);
-                    
+
                     verts.add(x + scale);
                     verts.add(y + scale);
                     verts.add(z + scale);
-                    
+
                     verts.add(x - scale);
                     verts.add(y + scale);
                     verts.add(z + scale);
-                    
+
                     verts.add(x - scale);
                     verts.add(y - scale);
                     verts.add(z + scale);
-                    
+
                     indices.add(vertIndex + 0);
                     indices.add(vertIndex + 1);
                     indices.add(vertIndex + 2);
-                    
+
                     indices.add(vertIndex + 2);
                     indices.add(vertIndex + 3);
                     indices.add(vertIndex + 0);
-                    
+
                     vertIndex += 4;
-                    
+
                     texCoords.add(texMinX);
                     texCoords.add(texMinY);
                     texCoords.add(texArray);
-                    
+
                     texCoords.add(texMinX);
                     texCoords.add(texMaxY);
                     texCoords.add(texArray);
-                    
+
                     texCoords.add(texMaxX);
                     texCoords.add(texMaxY);
                     texCoords.add(texArray);
-                    
+
                     texCoords.add(texMaxX);
                     texCoords.add(texMinY);
                     texCoords.add(texArray);
@@ -346,46 +345,46 @@ public class NaiveMesher implements VoxelMesher {
                     verts.add(x - scale);
                     verts.add(y - scale);
                     verts.add(z - scale);
-                    
+
                     verts.add(x - scale);
                     verts.add(y + scale);
                     verts.add(z - scale);
-                    
+
                     verts.add(x + scale);
                     verts.add(y + scale);
                     verts.add(z - scale);
-                    
+
                     verts.add(x + scale);
                     verts.add(y - scale);
                     verts.add(z - scale);
-                    
+
                     indices.add(vertIndex + 0);
                     indices.add(vertIndex + 1);
                     indices.add(vertIndex + 2);
-                    
+
                     indices.add(vertIndex + 2);
                     indices.add(vertIndex + 3);
                     indices.add(vertIndex + 0);
-                    
+
                     vertIndex += 4;
-                    
+
                     texCoords.add(texMinX);
                     texCoords.add(texMinY);
                     texCoords.add(texArray);
-                    
+
                     texCoords.add(texMinX);
                     texCoords.add(texMaxY);
                     texCoords.add(texArray);
-                    
+
                     texCoords.add(texMaxX);
                     texCoords.add(texMaxY);
                     texCoords.add(texArray);
-                    
+
                     texCoords.add(texMaxX);
                     texCoords.add(texMinY);
                     texCoords.add(texArray);
                 }
-                
+
                 block++; // Go to next block
             }
         }
@@ -408,10 +407,32 @@ public class NaiveMesher implements VoxelMesher {
 
     @Override
     public void cube(short id, float scale, TextureManager textures) {
-        // TODO Auto-generated method stub
+        // TODO TODO TODO
         
-    }
-    
-    
+        TerraTexture texture = textures.getTexture(id);
+        int atlasSize = textures.getAtlasSize();
 
+        float texScale = texture.getScale();
+        float maxSideLength = 0.25f / texScale; // Maximum length of triangle side we can draw
+        // (without texture overlapping "fun")
+        int quadsPerAxis = (int) (scale / maxSideLength); // How many separate quads we need per axis
+        int quadsRequired = quadsPerAxis * quadsPerAxis;
+        
+        float x = 0, y = 0, z = 0;
+        float texArray = texture.getTexCoordZ();
+        
+        // RIGHT
+        for (int i = 0; i < quadsRequired; i++) {
+            // Calculate texture coordinates...
+            float texMinX = texture.getTexCoordX();
+            float texMinY = texture.getTexCoordY();
+            float texMaxX = texMinX + texture.getScale() * texture.getWidth() / atlasSize;
+            float texMaxY = texMinY + texture.getScale() * texture.getHeight() / atlasSize;
+
+            // TODO fill data for all quads of right face
+        }
+    }
 }
+
+
+
