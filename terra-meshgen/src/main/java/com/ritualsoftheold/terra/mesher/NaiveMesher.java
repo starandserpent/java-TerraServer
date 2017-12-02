@@ -392,11 +392,6 @@ public class NaiveMesher implements VoxelMesher {
     }
 
     @Override
-    public void octree(long addr, MaterialRegistry reg) {
-        // TODO octree meshing (simple to do, probably)
-    }
-
-    @Override
     public FloatList getVertices() {
         return verts;
     }
@@ -409,6 +404,12 @@ public class NaiveMesher implements VoxelMesher {
     @Override
     public FloatList getTextureCoords() {
         return texCoords;
+    }
+
+    @Override
+    public void cube(short id, float scale, TextureManager textures) {
+        // TODO Auto-generated method stub
+        
     }
     
     
