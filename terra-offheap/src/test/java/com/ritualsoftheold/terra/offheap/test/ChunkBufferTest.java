@@ -139,4 +139,59 @@ public class ChunkBufferTest {
             assertEquals(0, buf.getBlock(i, 2));
         }
     }
+    
+    @Test
+    public void queueCompressedTest() {
+        int count = 1;
+        for (int i = 0; i < count; i++) {
+            buf.newChunk();
+            
+            // Configure chunks we use for testing
+            long addr = mem.allocate(16);
+            mem.writeShort(addr, (short) 0);
+            mem.writeShort(addr + 2, (short) 0xffff);
+            mem.writeShort(addr + 4, (short) 0);
+            mem.writeShort(addr + 6, (short) 0xffff);
+            mem.writeShort(addr + 8, (short) 0);
+            mem.writeShort(addr + 10, (short) 0xffff);
+            mem.writeShort(addr + 12, (short) 0);
+            mem.writeShort(addr + 14, (short) 0xffff);
+            buf.setChunkType(i, ChunkType.RLE_2_2);
+            buf.setChunkAddr(i, addr);
+            buf.setChunkLength(i, 16);
+            
+            // Verify we did stuff correctly in this test
+            assertEquals(0, buf.getBlock(i, 0));
+            assertEquals(0, buf.getBlock(i, 1));
+            assertEquals(0, buf.getBlock(i, DataConstants.CHUNK_MAX_BLOCKS - 1)); // And that there is enough memory...
+        }
+        
+        for (int i = 0; i < count; i++) {
+            buf.queueChange(i, 1, (short) 3);
+        }
+        buf.flushChanges();
+        
+        // Check that changes were made to CORRECT block
+        for (int i = 0; i < count; i++) {
+            assertEquals(0, buf.getBlock(i, 0));
+            assertEquals(3, buf.getBlock(i, 1));
+            assertEquals(0, buf.getBlock(i, 2));
+        }
+        
+//        // Test saving data...
+        int saveSize = buf.getSaveSize();
+        long saveAddr = mem.allocate(saveSize);
+        buf.save(saveAddr);
+        buf.unload(); // And unloading!
+        
+        init(); // Get new chunk buffer!
+        buf.load(saveAddr, count);
+        
+        // Check that loading didn't corrupt stuff
+        for (int i = 0; i < count; i++) {
+            assertEquals(0, buf.getBlock(i, 0));
+            assertEquals(3, buf.getBlock(i, 1));
+            assertEquals(0, buf.getBlock(i, 2));
+        }
+    }
 }

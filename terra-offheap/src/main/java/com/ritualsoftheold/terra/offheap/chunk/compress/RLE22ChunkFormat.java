@@ -55,7 +55,7 @@ public class RLE22ChunkFormat implements ChunkFormat {
                 mem.copyMemory(newAddr, addr3, compressedLen);
                 alloc.free(newAddr, DataConstants.CHUNK_UNCOMPRESSED);
                 alloc.free(uncompressed, DataConstants.CHUNK_UNCOMPRESSED);
-                newAddr = addr3;
+                return new ChunkFormat.ProcessResult(compressedLen, ChunkType.RLE_2_2, addr3);
             } else { // It isn't. Just free uncompressed data and return
                 alloc.free(uncompressed, DataConstants.CHUNK_UNCOMPRESSED);
                 return new ChunkFormat.ProcessResult(DataConstants.CHUNK_UNCOMPRESSED, ChunkType.RLE_2_2, newAddr);
@@ -75,19 +75,21 @@ public class RLE22ChunkFormat implements ChunkFormat {
         
         for (int i = 0; true; i++) {
             // Get material and how many of that there are
-            short mat = mem.readShort(chunk + i * 4);
-            int len = Short.toUnsignedInt(mem.readShort(chunk + i * 4 + 2));
+            int entry = mem.readInt(chunk + i * 4);
+            short mat = (short) (entry & 0xffff);
+            int len = Short.toUnsignedInt((short) (entry >>> 16)) + 1;
+            int minIndex = blockIndex;
             blockIndex += len;
             
             // Check which of indices we're looking for match
             for (int j = curLookupIndex; true; j++) {
                 // Stop there, might be other data in this array!
-                if (curLookupIndex == endIndex) {
+                if (j == endIndex) {
                     return; // Time to return
                 }
                 
                 int target = indices[j];
-                if (target <= blockIndex) { // Hey, this matches
+                if (target >= minIndex && target < blockIndex) { // Hey, this matches
                     // Set material to ids
                     ids[j] = mat;
                 } else { // Not there... Next RLE batch, please
