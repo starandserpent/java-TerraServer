@@ -42,8 +42,11 @@ public class ChunkTest2 extends SimpleApplication {
             mem.writeShort(origin + i, (short) 1);
         }
         long addr = mem.allocate(DataConstants.CHUNK_UNCOMPRESSED);
+        System.out.println("origin value pre-compression: "+origin+" addr value pre-compression"+addr);
+        System.out.println(Long.toBinaryString(mem.readLong(addr)));
         RunLengthCompressor.compress(origin, addr);
-        //System.out.println(Long.toBinaryString(mem.readLong(addr)));
+        System.out.println("origin value post-compression: "+origin+" addr value post-compression"+addr);
+        System.out.println(Long.toBinaryString(mem.readLong(addr)));
         
         // Register materials
         TextureManager manager = new TextureManager(assetManager); // jME provides asset manager
@@ -52,7 +55,7 @@ public class ChunkTest2 extends SimpleApplication {
         TerraModule mod = new TerraModule("test");
         mod.newMaterial().name("grass").texture(new TerraTexture(32, 32, "grass.png"));
         mod.newMaterial().name("dirt").texture(new TerraTexture(32, 32, "dirt.png"));
-        //mod.newMaterial().name("dirt-256").texture(new TerraTexture(32, 32, "NorthenForestDirt256px.png"));
+//        mod.newMaterial().name("dirt-256").texture(new TerraTexture(32, 32, "NorthenForestDirt256px.png"));
         mod.registerMaterials(registry);
         
         manager.loadMaterials(registry);
