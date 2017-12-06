@@ -16,9 +16,6 @@ public class ChunkVerticle extends AbstractVerticle {
 
     @Override
     public void start() throws Exception {
-        super.start();
-
-        //Get the eventbus instance within our verticle
         EventBus eb = vertx.eventBus();
 
         //handler for when the player initially joins
