@@ -13,22 +13,22 @@ public class BuildConfig {
      */
     public static final boolean CHECK_BOUNDS = true;
     
-    public static long inBounds(long pos, @Pointer long start, long length) {
+    public static long inBounds(long addr, @Pointer long start, long length) {
         // Check if bounds checks are enabled at all
         if (CHECK_BOUNDS) {
-            return pos;
+            return addr;
         }
         
         if (start == 0) {
             throw new IllegalAccessError("start cannot be NULL");
         }
-        if (pos < 0) {
-            throw new IllegalAccessError("pos cannot be negative");
+        if (addr < start) {
+            throw new IllegalAccessError("out of bounds (pos = " + addr + " exceeds max = " + (start + length));
         }
-        if (start + pos > start + length) {
-            throw new IllegalAccessError("out of bounds (pos = " + pos + " exceeds max = " + (start + length));
+        if (addr > start + length) {
+            throw new IllegalAccessError("out of bounds (pos = " + addr + " exceeds max = " + (start + length));
         }
         
-        return pos;
+        return addr;
     }
 }
