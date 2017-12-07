@@ -1,7 +1,6 @@
 package com.ritualsoftheold.terra.net.codec;
 
 import com.esotericsoftware.kryo.Kryo;
-import com.esotericsoftware.kryo.io.Input;
 import com.esotericsoftware.kryo.io.UnsafeMemoryInput;
 import com.esotericsoftware.kryo.pool.KryoPool;
 
