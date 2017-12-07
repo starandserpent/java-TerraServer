@@ -1,8 +1,11 @@
 package com.ritualsoftheold.terra.net.codec;
 
 import com.esotericsoftware.kryo.Kryo;
+import com.esotericsoftware.kryo.io.Input;
+import com.esotericsoftware.kryo.io.UnsafeMemoryInput;
 import com.esotericsoftware.kryo.pool.KryoPool;
 
+import io.netty.buffer.ByteBuf;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.eventbus.MessageCodec;
 
@@ -25,15 +28,23 @@ public class KryoCodec implements MessageCodec<Object, Object> {
     public void encodeToWire(Buffer buffer, Object s) {
         Kryo kryo = kryoPool.borrow();
         
-        // TODO implement VertxBufferOutput
+        kryo.writeClassAndObject(new VertxBufferOutput(buffer), s);
         
         kryoPool.release(kryo);
     }
 
     @Override
     public Object decodeFromWire(int pos, Buffer buffer) {
-        // TODO Auto-generated method stub
-        return null;
+        Kryo kryo = kryoPool.borrow();
+        
+        ByteBuf nettyBuf = buffer.getByteBuf();
+        // TODO verify memory safety (no segfaults) with testing!
+        UnsafeMemoryInput input = new UnsafeMemoryInput(nettyBuf.memoryAddress() + pos, nettyBuf.capacity() - pos);
+        Object object = kryo.readClassAndObject(input);
+        
+        kryoPool.release(kryo);
+        
+        return object;
     }
 
     @Override
