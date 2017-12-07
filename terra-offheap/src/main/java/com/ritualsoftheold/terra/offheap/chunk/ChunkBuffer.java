@@ -2,6 +2,7 @@ package com.ritualsoftheold.terra.offheap.chunk;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
+import com.ritualsoftheold.terra.offheap.BuildConfig;
 import com.ritualsoftheold.terra.offheap.Pointer;
 import com.ritualsoftheold.terra.offheap.chunk.compress.ChunkFormat;
 import com.ritualsoftheold.terra.offheap.memory.MemoryUseListener;
@@ -380,27 +381,27 @@ public class ChunkBuffer {
     }
     
     public long getChunkAddr(int index) {
-        return mem.readVolatileLong(addrs + index * 8);
+        return mem.readVolatileLong(BuildConfig.inBounds(addrs + index * 8, addrs, maxCount * 8));
     }
     
     public void setChunkAddr(int index, long addr) {
-        mem.writeVolatileLong(addrs + index * 8, addr);
+        mem.writeVolatileLong(BuildConfig.inBounds(addrs + index * 8, addrs, maxCount * 8), addr);
     }
     
     public byte getChunkType(int index) {
-        return mem.readVolatileByte(types + index * 4);
+        return mem.readVolatileByte(BuildConfig.inBounds(types + index, types, maxCount));
     }
     
     public void setChunkType(int index, byte type) {
-        mem.writeVolatileByte(types + index * 4, type);
+        mem.writeVolatileByte(BuildConfig.inBounds(types + index, types, maxCount), type);
     }
     
     public int getChunkLength(int index) {
-        return mem.readVolatileInt(lengths + index * 4);
+        return mem.readVolatileInt(BuildConfig.inBounds(lengths + index * 4, lengths, maxCount * 4));
     }
     
     public void setChunkLength(int index, int length) {
-        mem.writeVolatileInt(lengths + index * 4, length);
+        mem.writeVolatileInt(BuildConfig.inBounds(lengths + index * 4, lengths, maxCount * 4), length);
     }
     
     /**
