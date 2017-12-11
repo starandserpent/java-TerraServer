@@ -1,4 +1,4 @@
-package com.ritualsoftheold.terra.net.udp;
+package com.ritualsoftheold.terra.net.server.udp;
 
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;

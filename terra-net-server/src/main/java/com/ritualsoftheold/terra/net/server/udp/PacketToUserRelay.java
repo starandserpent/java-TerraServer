@@ -1,7 +1,9 @@
-package com.ritualsoftheold.terra.net.udp;
+package com.ritualsoftheold.terra.net.server.udp;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentMap;
+
+import com.ritualsoftheold.terra.net.udp.NetMagicValues;
 
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.datagram.DatagramPacket;
@@ -28,6 +30,8 @@ public class PacketToUserRelay {
         
         UserPacketHandler handler = handlers.get(sender);
         if (handler == null) { // That user is not connected
+            tryCreateConnection(sender, data);
+        } else {
             
         }
     }
