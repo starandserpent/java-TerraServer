@@ -1,17 +1,14 @@
-package com.ritualsoftheold.terra.net.server.udp;
+package com.ritualsoftheold.terra.net.udp;
 
-import com.ritualsoftheold.terra.net.udp.PartialMessage;
-
-import io.netty.buffer.ByteBuf;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.net.SocketAddress;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 
 /**
- * Handles packets from specific user. Big packets are stitched together.
+ * Manages an UDP based connection.
  *
  */
-public class UserPacketHandler {
+public class UdpConnection {
     
     /**
      * Address of user connection this represents.

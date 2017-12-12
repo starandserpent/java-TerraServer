@@ -4,6 +4,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentMap;
 
 import com.ritualsoftheold.terra.net.udp.NetMagicValues;
+import com.ritualsoftheold.terra.net.udp.UdpConnection;
 
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.datagram.DatagramPacket;
@@ -17,7 +18,7 @@ import io.vertx.core.net.SocketAddress;
  */
 public class PacketToUserRelay {
     
-    private ConcurrentMap<SocketAddress, UserPacketHandler> handlers;
+    private ConcurrentMap<SocketAddress, UdpConnection> handlers;
     
     /**
      * Socket, which is used to send responses to users.
@@ -28,7 +29,7 @@ public class PacketToUserRelay {
         SocketAddress sender = packet.sender();
         Buffer data = packet.data();
         
-        UserPacketHandler handler = handlers.get(sender);
+        UdpConnection handler = handlers.get(sender);
         if (handler == null) { // That user is not connected
             tryCreateConnection(sender, data);
         } else {
@@ -44,7 +45,7 @@ public class PacketToUserRelay {
         // TODO handle other packet types
     }
     
-    public UserPacketHandler createUserPacketHandler(SocketAddress address) {
+    public UdpConnection createUserPacketHandler(SocketAddress address) {
         return null; // TODO
     }
 }
