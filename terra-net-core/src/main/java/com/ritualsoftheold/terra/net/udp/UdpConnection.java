@@ -8,7 +8,7 @@ import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
  * Manages an UDP based connection.
  *
  */
-public class UdpConnection {
+public class UdpConnection implements NetMagicValues {
     
     /**
      * Address of user connection this represents.
@@ -24,6 +24,9 @@ public class UdpConnection {
     private Long2ObjectMap<PartialMessage> partialMessages;
     
     public void handlePacket(Buffer data) {
+        byte type = data.getByte(0);
+        switch (type) {
         
+        }
     }
 }
