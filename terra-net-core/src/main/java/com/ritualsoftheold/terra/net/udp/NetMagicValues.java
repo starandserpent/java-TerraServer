@@ -9,7 +9,7 @@ public interface NetMagicValues {
     /**
      * Terra's internal (low level) message ids.
      */
-    public static final byte ID_CONNECT = 0, ID_KEEP_ALIVE = 1, ID_DISCONNECT = 2;
+    public static final byte ID_CONNECT = 0, ID_KEEP_ALIVE = 1, ID_DISCONNECT = 2, ID_DATA = 3;
     
     /**
      * Instructs connection to verify packet contents. Packet must contain
@@ -26,8 +26,12 @@ public interface NetMagicValues {
     
     /**
      * Indicates that the message has been split in multiple packets.
-     * Packet must contain length of total data and its own offset
-     * in said data.
+     * Packet must contain following header:
+     * <ol>
+     * <li>4 bytes: packet id
+     * <li>4 bytes: total packet count of message
+     * <li>4 bytes: index of this packet
+     * </ol>
      */
     public static final int FLAG_PARTIAL = 1 << 5;
     
