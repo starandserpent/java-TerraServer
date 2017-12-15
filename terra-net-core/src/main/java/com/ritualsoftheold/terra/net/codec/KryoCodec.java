@@ -3,6 +3,7 @@ package com.ritualsoftheold.terra.net.codec;
 import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryo.io.UnsafeMemoryInput;
 import com.esotericsoftware.kryo.pool.KryoPool;
+import com.starandserpent.venom.serialize.VertxBufferOutput;
 
 import io.netty.buffer.ByteBuf;
 import io.vertx.core.buffer.Buffer;
