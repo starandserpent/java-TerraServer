@@ -1,0 +1,5 @@
+rootProject.name = 'venom-network'
+
+include 'venom-core'
+include 'venom-client'
+include 'venom-server'

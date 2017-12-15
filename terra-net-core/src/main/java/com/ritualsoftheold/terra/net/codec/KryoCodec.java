@@ -12,6 +12,7 @@ import io.vertx.core.eventbus.MessageCodec;
  * Uses Kryo to serialize POJOs.
  *
  */
+// TODO remove, probably cannot use with UDP
 public class KryoCodec implements MessageCodec<Object, Object> {
     
     /**
