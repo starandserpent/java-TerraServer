@@ -13,9 +13,9 @@ import it.unimi.dsi.fastutil.ints.IntList;
 public interface VoxelMesher {
     
     /**
-     * Creates a mesh for chunk at given address.
-     * @param it
-     * @param textures
+     * Creates a mesh for chunk data that given iterator provides.
+     * @param it Chunk iterator.
+     * @param textures Texture manager.
      */
     void chunk(ChunkIterator it, TextureManager textures);
     
