@@ -76,7 +76,7 @@ public class TerraTexture {
         return texCoordY;
     }
     
-    public float getTexCoordZ() {
+    public int getTexCoordZ() {
         return texCoordZ;
     }
     

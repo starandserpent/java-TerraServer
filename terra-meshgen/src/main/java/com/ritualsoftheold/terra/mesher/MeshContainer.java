@@ -26,8 +26,7 @@ public class MeshContainer {
         vertices.writeFloat(packed);
     }
     
-    public void triangle(int i, int j, int k) {
-        int vertIndex = vertices.writerIndex() - 3;
+    public void triangle(int vertIndex, int i, int j, int k) {
         indices.writeShort(vertIndex + i);
         indices.writeShort(vertIndex + j);
         indices.writeShort(vertIndex +  k);
@@ -36,5 +35,17 @@ public class MeshContainer {
     public void texture(int page, int tile, int x, int y) {
         float packed = Float.intBitsToFloat(tile << 24 | x << 16 | y << 8 | page);
         texCoords.writeFloat(packed);
+    }
+    
+    public ByteBuf getVertices() {
+        return vertices;
+    }
+    
+    public ByteBuf getIndices() {
+        return indices;
+    }
+    
+    public ByteBuf getTextureCoordinates() {
+        return texCoords;
     }
 }

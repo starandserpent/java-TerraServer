@@ -3,9 +3,6 @@ package com.ritualsoftheold.terra.mesher;
 import com.ritualsoftheold.terra.mesher.resource.TextureManager;
 import com.ritualsoftheold.terra.offheap.chunk.iterator.ChunkIterator;
 
-import it.unimi.dsi.fastutil.floats.FloatList;
-import it.unimi.dsi.fastutil.ints.IntList;
-
 /**
  * Creates a mesh based on Terra's voxel data.
  *
@@ -17,7 +14,7 @@ public interface VoxelMesher {
      * @param it Chunk iterator.
      * @param textures Texture manager.
      */
-    void chunk(ChunkIterator it, TextureManager textures);
+    void chunk(ChunkIterator it, TextureManager textures, MeshContainer mesh);
     
     /**
      * Creates a mesh for a simple cube, perhaps an octree node.
@@ -25,12 +22,5 @@ public interface VoxelMesher {
      * @param scale
      * @param textures
      */
-    void cube(short id, float scale, TextureManager textures);
-    
-    FloatList getVertices();
-    
-    IntList getIndices();
-    
-    FloatList getTextureCoords();
-
+    void cube(short id, float scale, TextureManager textures, MeshContainer mesh);
 }

@@ -12,31 +12,18 @@ import it.unimi.dsi.fastutil.ints.IntList;
 
 /**
  * Naive mesher does culling, but doesn't try to merge same blocks into bigger faces.
- * 
- * Note: doesn't support multithreading. Please use one mesher per thread.
  *
  */
 public class NaiveMesher implements VoxelMesher {
 
-    private FloatList verts;
-    private IntList indices;
-    private FloatList texCoords;
-
     public NaiveMesher() {
-        verts = new FloatArrayList();
-        indices = new IntArrayList();
-        texCoords = new FloatArrayList();
     }
 
     @Override
-    public void chunk(ChunkIterator it, TextureManager textures) {
+    public void chunk(ChunkIterator it, TextureManager textures, MeshContainer mesh) {
         assert it != null;
         assert textures != null;
-
-        // Clear previous lists
-        verts.clear();
-        indices.clear();
-        texCoords.clear();
+        assert mesh != null;
 
         byte[] hidden = new byte[DataConstants.CHUNK_MAX_BLOCKS]; // Visibility mappings for cubes
         //Arrays.fill(hidden, (byte) 0);
@@ -104,15 +91,9 @@ public class NaiveMesher implements VoxelMesher {
                     continue;
                 }
 
-                int z0 = block / 4096; // Integer division: current z index
-                float z = z0 * scale * 2; // Z coordinate, considering the scale
-                float y = (block - 4096 * z0) / 64 * scale * 2;
-                float x = block % 64 * scale * 2;
-
-                // Reduce coordinates to have chunk center be where is needs to be
-                x -= 8;
-                y -= 8;
-                z -= 8;
+                int z = block / 4096; // Integer division: current z index
+                int y = block - 4096 * z;
+                int x = block % 64;
 
                 //System.out.println("x: " + x + ", y: " + y + ", z: " + z);
 
@@ -127,133 +108,19 @@ public class NaiveMesher implements VoxelMesher {
 
                 if ((faces & 0b00100000) == 0) { // RIGHT
                     //System.out.println("Draw RIGHT");
-                    verts.add(x - scale);
-                    verts.add(y + scale);
-                    verts.add(z + scale);
-
-                    verts.add(x - scale);
-                    verts.add(y + scale);
-                    verts.add(z - scale);
-
-                    verts.add(x - scale);
-                    verts.add(y - scale);
-                    verts.add(z - scale);
-
-                    verts.add(x - scale);
-                    verts.add(y - scale);
-                    verts.add(z + scale);
-
-                    indices.add(vertIndex + 0);
-                    indices.add(vertIndex + 1);
-                    indices.add(vertIndex + 2);
-
-                    indices.add(vertIndex + 2);
-                    indices.add(vertIndex + 3);
-                    indices.add(vertIndex + 0);
-
-                    vertIndex += 4;
-
-                    texCoords.add(texMaxX);
-                    texCoords.add(texMaxY);
-                    texCoords.add(texArray);
-
-                    texCoords.add(texMinX);
-                    texCoords.add(texMaxY);
-                    texCoords.add(texArray);
-
-                    texCoords.add(texMinX);
-                    texCoords.add(texMinY);
-                    texCoords.add(texArray);
-
-                    texCoords.add(texMaxX);
-                    texCoords.add(texMinY);
-                    texCoords.add(texArray);
+                    // TODO figure this face out, has always been a mess for some reason
                 } if ((faces & 0b00010000) == 0) { // LEFT
                     //System.out.println("Draw LEFT");
-                    verts.add(x + scale);
-                    verts.add(y - scale);
-                    verts.add(z - scale);
-
-                    verts.add(x + scale);
-                    verts.add(y + scale);
-                    verts.add(z - scale);
-
-                    verts.add(x + scale);
-                    verts.add(y + scale);
-                    verts.add(z + scale);
-
-                    verts.add(x + scale);
-                    verts.add(y - scale);
-                    verts.add(z + scale);
-
-                    indices.add(vertIndex + 0);
-                    indices.add(vertIndex + 1);
-                    indices.add(vertIndex + 2);
-
-                    indices.add(vertIndex + 2);
-                    indices.add(vertIndex + 3);
-                    indices.add(vertIndex + 0);
-
-                    vertIndex += 4;
-
-                    texCoords.add(texMinX);
-                    texCoords.add(texMinY);
-                    texCoords.add(texArray);
-
-                    texCoords.add(texMinX);
-                    texCoords.add(texMaxY);
-                    texCoords.add(texArray);
-
-                    texCoords.add(texMaxX);
-                    texCoords.add(texMaxY);
-                    texCoords.add(texArray);
-
-                    texCoords.add(texMaxX);
-                    texCoords.add(texMinY);
-                    texCoords.add(texArray);
+                    mesh.vertex(x + 1, y, z);
+                    mesh.vertex(x + 1, y + 1, z);
+                    mesh.vertex(x + 1, y + 1, z + 1);
+                    mesh.vertex(x + 1, y - 1, z + 1);
                 } if ((faces & 0b00001000) == 0) { // UP
                     //System.out.println("Draw UP");
-                    verts.add(x - scale);
-                    verts.add(y + scale);
-                    verts.add(z - scale);
-
-                    verts.add(x - scale);
-                    verts.add(y + scale);
-                    verts.add(z + scale);
-
-                    verts.add(x + scale);
-                    verts.add(y + scale);
-                    verts.add(z + scale);
-
-                    verts.add(x + scale);
-                    verts.add(y + scale);
-                    verts.add(z - scale);
-
-                    indices.add(vertIndex + 0);
-                    indices.add(vertIndex + 1);
-                    indices.add(vertIndex + 2);
-
-                    indices.add(vertIndex + 2);
-                    indices.add(vertIndex + 3);
-                    indices.add(vertIndex + 0);
-
-                    vertIndex += 4;
-
-                    texCoords.add(texMinX);
-                    texCoords.add(texMinY);
-                    texCoords.add(texArray);
-
-                    texCoords.add(texMinX);
-                    texCoords.add(texMaxY);
-                    texCoords.add(texArray);
-
-                    texCoords.add(texMaxX);
-                    texCoords.add(texMaxY);
-                    texCoords.add(texArray);
-
-                    texCoords.add(texMaxX);
-                    texCoords.add(texMinY);
-                    texCoords.add(texArray);
+                    mesh.vertex(x, y + 1, z);
+                    mesh.vertex(x, y + 1, z + 1);
+                    mesh.vertex(x + 1, y + 1, z + 1);
+                    mesh.vertex(x + 1, y + 1, z);
                 } if ((faces & 0b00000100) == 0) { // DOWN
                     //System.out.println("Draw DOWN");
                     verts.add(x - scale);
@@ -271,32 +138,6 @@ public class NaiveMesher implements VoxelMesher {
                     verts.add(x + scale);
                     verts.add(y - scale);
                     verts.add(z + scale);
-
-                    indices.add(vertIndex + 0);
-                    indices.add(vertIndex + 1);
-                    indices.add(vertIndex + 2);
-
-                    indices.add(vertIndex + 2);
-                    indices.add(vertIndex + 3);
-                    indices.add(vertIndex + 0);
-
-                    vertIndex += 4;
-
-                    texCoords.add(texMinX);
-                    texCoords.add(texMinY);
-                    texCoords.add(texArray);
-
-                    texCoords.add(texMinX);
-                    texCoords.add(texMaxY);
-                    texCoords.add(texArray);
-
-                    texCoords.add(texMaxX);
-                    texCoords.add(texMaxY);
-                    texCoords.add(texArray);
-
-                    texCoords.add(texMaxX);
-                    texCoords.add(texMinY);
-                    texCoords.add(texArray);
                 } if ((faces & 0b00000010) == 0) { // BACK
                     //System.out.println("Draw BACK");
                     verts.add(x + scale);
@@ -314,32 +155,6 @@ public class NaiveMesher implements VoxelMesher {
                     verts.add(x - scale);
                     verts.add(y - scale);
                     verts.add(z + scale);
-
-                    indices.add(vertIndex + 0);
-                    indices.add(vertIndex + 1);
-                    indices.add(vertIndex + 2);
-
-                    indices.add(vertIndex + 2);
-                    indices.add(vertIndex + 3);
-                    indices.add(vertIndex + 0);
-
-                    vertIndex += 4;
-
-                    texCoords.add(texMinX);
-                    texCoords.add(texMinY);
-                    texCoords.add(texArray);
-
-                    texCoords.add(texMinX);
-                    texCoords.add(texMaxY);
-                    texCoords.add(texArray);
-
-                    texCoords.add(texMaxX);
-                    texCoords.add(texMaxY);
-                    texCoords.add(texArray);
-
-                    texCoords.add(texMaxX);
-                    texCoords.add(texMinY);
-                    texCoords.add(texArray);
                 } if ((faces & 0b00000001) == 0) { // FRONT
                     //System.out.println("Draw FRONT");
                     verts.add(x - scale);
@@ -357,33 +172,20 @@ public class NaiveMesher implements VoxelMesher {
                     verts.add(x + scale);
                     verts.add(y - scale);
                     verts.add(z - scale);
-
-                    indices.add(vertIndex + 0);
-                    indices.add(vertIndex + 1);
-                    indices.add(vertIndex + 2);
-
-                    indices.add(vertIndex + 2);
-                    indices.add(vertIndex + 3);
-                    indices.add(vertIndex + 0);
-
-                    vertIndex += 4;
-
-                    texCoords.add(texMinX);
-                    texCoords.add(texMinY);
-                    texCoords.add(texArray);
-
-                    texCoords.add(texMinX);
-                    texCoords.add(texMaxY);
-                    texCoords.add(texArray);
-
-                    texCoords.add(texMaxX);
-                    texCoords.add(texMaxY);
-                    texCoords.add(texArray);
-
-                    texCoords.add(texMaxX);
-                    texCoords.add(texMinY);
-                    texCoords.add(texArray);
                 }
+                
+                // While doing only cubes, indices are same for all faces
+                mesh.triangle(vertIndex, 0, 1, 2);
+                mesh.triangle(vertIndex, 2, 3, 0);
+
+                vertIndex += 4; // Next thing is next face
+                
+                // Texture coordinates are same for all faces
+                // TODO tile
+                mesh.texture(texArray, 0, 0, 0);
+                mesh.texture(texArray, 0, 0, 1);
+                mesh.texture(texArray, 0, 1, 1);
+                mesh.texture(texArray, 0, 1, 0);
 
                 block++; // Go to next block
             }
@@ -391,22 +193,7 @@ public class NaiveMesher implements VoxelMesher {
     }
 
     @Override
-    public FloatList getVertices() {
-        return verts;
-    }
-
-    @Override
-    public IntList getIndices() {
-        return indices;
-    }
-
-    @Override
-    public FloatList getTextureCoords() {
-        return texCoords;
-    }
-
-    @Override
-    public void cube(short id, float scale, TextureManager textures) {
+    public void cube(short id, float scale, TextureManager textures, MeshContainer mesh) {
         // TODO TODO TODO
         
         TerraTexture texture = textures.getTexture(id);
