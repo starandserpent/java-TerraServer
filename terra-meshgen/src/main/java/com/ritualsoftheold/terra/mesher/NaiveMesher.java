@@ -97,13 +97,6 @@ public class NaiveMesher implements VoxelMesher {
 
                 //System.out.println("x: " + x + ", y: " + y + ", z: " + z);
 
-                // Calculate texture coordinates...
-                float texMinX = texture.getTexCoordX();
-                float texMinY = texture.getTexCoordY() ;
-                float texMaxX = texMinX + texture.getScale() * texture.getWidth() / atlasSize;
-                float texMaxY = texMinY + texture.getScale() * texture.getHeight() / atlasSize;
-                float texArray = texture.getTexCoordZ();
-
                 //System.out.println("texMinX: " + texMinX + ", texMinY: " + texMinY + ", texMaxX: " + texMaxX + ", texMaxY: " + texMaxY);
 
                 if ((faces & 0b00100000) == 0) { // RIGHT
@@ -123,55 +116,22 @@ public class NaiveMesher implements VoxelMesher {
                     mesh.vertex(x + 1, y + 1, z);
                 } if ((faces & 0b00000100) == 0) { // DOWN
                     //System.out.println("Draw DOWN");
-                    verts.add(x - scale);
-                    verts.add(y - scale);
-                    verts.add(z + scale);
-
-                    verts.add(x - scale);
-                    verts.add(y - scale);
-                    verts.add(z - scale);
-
-                    verts.add(x + scale);
-                    verts.add(y - scale);
-                    verts.add(z - scale);
-
-                    verts.add(x + scale);
-                    verts.add(y - scale);
-                    verts.add(z + scale);
+                    mesh.vertex(x, y, z + 1);
+                    mesh.vertex(x, y, z);
+                    mesh.vertex(x + 1, y, z);
+                    mesh.vertex(x + 1, y, z + 1);
                 } if ((faces & 0b00000010) == 0) { // BACK
                     //System.out.println("Draw BACK");
-                    verts.add(x + scale);
-                    verts.add(y - scale);
-                    verts.add(z + scale);
-
-                    verts.add(x + scale);
-                    verts.add(y + scale);
-                    verts.add(z + scale);
-
-                    verts.add(x - scale);
-                    verts.add(y + scale);
-                    verts.add(z + scale);
-
-                    verts.add(x - scale);
-                    verts.add(y - scale);
-                    verts.add(z + scale);
+                    mesh.vertex(x + 1, y, z + 1);
+                    mesh.vertex(x + 1, y + 1, z + 1);
+                    mesh.vertex(x, y + 1, z + 1);
+                    mesh.vertex(x, y, z + 1);
                 } if ((faces & 0b00000001) == 0) { // FRONT
                     //System.out.println("Draw FRONT");
-                    verts.add(x - scale);
-                    verts.add(y - scale);
-                    verts.add(z - scale);
-
-                    verts.add(x - scale);
-                    verts.add(y + scale);
-                    verts.add(z - scale);
-
-                    verts.add(x + scale);
-                    verts.add(y + scale);
-                    verts.add(z - scale);
-
-                    verts.add(x + scale);
-                    verts.add(y - scale);
-                    verts.add(z - scale);
+                    mesh.vertex(x, y, z);
+                    mesh.vertex(x, y + 1, z);
+                    mesh.vertex(x + 1, y + 1, z);
+                    mesh.vertex(x + 1, y, z);
                 }
                 
                 // While doing only cubes, indices are same for all faces
@@ -180,12 +140,15 @@ public class NaiveMesher implements VoxelMesher {
 
                 vertIndex += 4; // Next thing is next face
                 
+                // Calculate texture coordinates...
+                int page = texture.getPage();
+                int tile = texture.getTileId();
+                
                 // Texture coordinates are same for all faces
-                // TODO tile
-                mesh.texture(texArray, 0, 0, 0);
-                mesh.texture(texArray, 0, 0, 1);
-                mesh.texture(texArray, 0, 1, 1);
-                mesh.texture(texArray, 0, 1, 0);
+                mesh.texture(page, tile, 0, 0);
+                mesh.texture(page, tile, 0, 1);
+                mesh.texture(page, tile, 1, 1);
+                mesh.texture(page, tile, 1, 0);
 
                 block++; // Go to next block
             }

@@ -112,7 +112,6 @@ public class TextureManager {
             }
             
             int atlasStart = x * size * BYTES_PER_PIXEL + y * size * ATLAS_SIZE_IMAGE;
-            System.out.println(atlasStart);
             
             ByteBuffer imgData = img.getData(0);
             for (int i = 0; i < size; i++) {
@@ -123,10 +122,9 @@ public class TextureManager {
                 atlasBuf.put(row); // Set a row of data to atlas
             }
             
-            // Set correct texture coordinates
-            // X,Y=X and Y planes, Z=texture array index
-            texture.assignTexCoords(x * 1.0f * size / ATLAS_SIZE, y * 1.0f * size / ATLAS_SIZE, atlases.size());
-            System.out.println("Assign texture coordinates: " + texture.getTexCoordX() + ", " + texture.getTexCoordY() + ", " + texture.getTexCoordZ() + " for " + texture.getAsset());
+            // Assign texture data for shader
+            texture.setPage(atlases.size()); // Texture array id, "page"
+            texture.setTileId(y * texturesPerSide + x); // Texture tile id
             
             x++;
         }

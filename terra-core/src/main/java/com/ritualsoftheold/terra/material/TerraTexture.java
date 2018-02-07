@@ -15,7 +15,9 @@ public class TerraTexture {
     
     private String asset;
     
-    private float texCoordX, texCoordY, texCoordZ;
+    private int tileId;
+    
+    private int page;
     
     public TerraTexture(int width, int height, float scale, String asset) {
         this.width = width;
@@ -62,22 +64,20 @@ public class TerraTexture {
         return asset;
     }
     
-    public void assignTexCoords(float x, float y, float z) {
-        texCoordX = x;
-        texCoordY = y;
-        texCoordZ = z;
+    public int getTileId() {
+        return tileId;
     }
     
-    public float getTexCoordX() {
-        return texCoordX;
+    public void setTileId(int tileId) {
+        this.tileId = tileId;
     }
     
-    public float getTexCoordY() {
-        return texCoordY;
+    public int getPage() {
+        return page;
     }
     
-    public int getTexCoordZ() {
-        return texCoordZ;
+    public void setPage(int page) {
+        this.page = page;
     }
     
     @Override
