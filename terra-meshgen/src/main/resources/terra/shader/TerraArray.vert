@@ -6,15 +6,15 @@ in float inPosition;
 in float inTexCoord;
 
 out vec3 texCoord;
-out flat float tile;
+flat out float tile;
 
 void main() {
   // Calculate real position
   uint posBits = floatBitsToUint(inPosition);
   float posX = float(posBits >> 22);
   float posY = float(posBits >> 12 & 0x3ff);
-  float posZ = float(postBits & 0x3ff);
-  gl_Position = g_WorldViewProjectionMatrix * vec4(posX * 0.015625f, posY * 0.015625f, posZ * 0.015625f, 1.0); // Position for fragment shader
+  float posZ = float(posBits & 0x3ff);
+  gl_Position = g_WorldViewProjectionMatrix * vec4(posX * 0.25f, posY * 0.25f, posZ * 0.25f, 1.0); // Position for fragment shader
 
   // Calculate real texture coordinates
   uint texBits = floatBitsToUint(inTexCoord);

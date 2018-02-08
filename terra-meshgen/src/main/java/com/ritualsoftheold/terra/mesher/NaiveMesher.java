@@ -157,30 +157,7 @@ public class NaiveMesher implements VoxelMesher {
 
     @Override
     public void cube(short id, float scale, TextureManager textures, MeshContainer mesh) {
-        // TODO TODO TODO
-        
-        TerraTexture texture = textures.getTexture(id);
-        int atlasSize = textures.getAtlasSize();
-
-        float texScale = texture.getScale();
-        float maxSideLength = 0.25f / texScale; // Maximum length of triangle side we can draw
-        // (without texture overlapping "fun")
-        int quadsPerAxis = (int) (scale / maxSideLength); // How many separate quads we need per axis
-        int quadsRequired = quadsPerAxis * quadsPerAxis;
-        
-        float x = 0, y = 0, z = 0;
-        float texArray = texture.getTexCoordZ();
-        
-        // RIGHT
-        for (int i = 0; i < quadsRequired; i++) {
-            // Calculate texture coordinates...
-            float texMinX = texture.getTexCoordX();
-            float texMinY = texture.getTexCoordY();
-            float texMaxX = texMinX + texture.getScale() * texture.getWidth() / atlasSize;
-            float texMaxY = texMinY + texture.getScale() * texture.getHeight() / atlasSize;
-
-            // TODO fill data for all quads of right face
-        }
+        // TODO implement this
     }
 }
 

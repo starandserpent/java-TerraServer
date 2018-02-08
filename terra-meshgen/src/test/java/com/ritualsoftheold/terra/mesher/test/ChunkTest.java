@@ -3,6 +3,7 @@ package com.ritualsoftheold.terra.mesher.test;
 import com.jme3.app.SimpleApplication;
 import com.jme3.light.PointLight;
 import com.jme3.material.Material;
+import com.jme3.material.RenderState.FaceCullMode;
 import com.jme3.scene.Geometry;
 import com.jme3.scene.Mesh;
 import com.jme3.scene.Spatial.CullHint;
@@ -12,6 +13,7 @@ import com.jme3.util.BufferUtils;
 import com.ritualsoftheold.terra.TerraModule;
 import com.ritualsoftheold.terra.material.MaterialRegistry;
 import com.ritualsoftheold.terra.material.TerraTexture;
+import com.ritualsoftheold.terra.mesher.MeshContainer;
 import com.ritualsoftheold.terra.mesher.NaiveMesher;
 import com.ritualsoftheold.terra.mesher.VoxelMesher;
 import com.ritualsoftheold.terra.mesher.culling.OcclusionQueryProcessor;
@@ -21,6 +23,7 @@ import com.ritualsoftheold.terra.offheap.DataConstants;
 import com.ritualsoftheold.terra.offheap.chunk.ChunkType;
 import com.ritualsoftheold.terra.offheap.chunk.iterator.ChunkIterator;
 
+import io.netty.buffer.ByteBufAllocator;
 import net.openhft.chronicle.core.Memory;
 import net.openhft.chronicle.core.OS;
 
@@ -77,22 +80,23 @@ public class ChunkTest extends SimpleApplication {
         manager.loadMaterials(registry);
         
         VoxelMesher mesher = new NaiveMesher(); // Create mesher
-        mesher.chunk(ChunkIterator.forChunk(addr, ChunkType.RLE_2_2), manager);
+        MeshContainer meshContainer = new MeshContainer(100, ByteBufAllocator.DEFAULT);
+        mesher.chunk(ChunkIterator.forChunk(addr, ChunkType.RLE_2_2), manager, meshContainer);
         
         // Create mesh
         Mesh mesh = new Mesh();
         //System.out.println(mesher.getVertices());
         //System.out.println(mesher.getIndices());
-        mesh.setBuffer(Type.Position, 3, BufferUtils.createFloatBuffer(mesher.getVertices().toFloatArray()));
-        mesh.setBuffer(Type.Index, 3, BufferUtils.createIntBuffer(mesher.getIndices().toIntArray()));
-        mesh.setBuffer(Type.TexCoord, 3, BufferUtils.createFloatBuffer(mesher.getTextureCoords().toFloatArray()));
+        mesh.setBuffer(Type.Position, 1, meshContainer.getVertices().nioBuffer().asFloatBuffer());
+        mesh.setBuffer(Type.Index, 3, meshContainer.getIndices().nioBuffer().asIntBuffer());
+        mesh.setBuffer(Type.TexCoord, 1, meshContainer.getTextureCoordinates().nioBuffer().asFloatBuffer());
         
         // Create geometry
         Geometry geom = new Geometry("test_chunk", mesh);
         Material mat = new Material(assetManager, "terra/shader/TerraArray.j3md");
-        //mat.getAdditionalRenderState().setWireframe(true);
-        //mat.getAdditionalRenderState().setFaceCullMode(FaceCullMode.Off);
-        mat.setTexture("DiffuseMap", manager.getGroundTexture());
+        mat.getAdditionalRenderState().setWireframe(true);
+        mat.getAdditionalRenderState().setFaceCullMode(FaceCullMode.Off);
+        mat.setTexture("ColorMap", manager.getGroundTexture());
         //mat.setParam("SeparateTexCoord", VarType.Boolean, true);
         geom.setMaterial(mat);
         //geom.setLocalScale(0.5f);
@@ -106,14 +110,14 @@ public class ChunkTest extends SimpleApplication {
         light.setPosition(cam.getLocation());
         rootNode.addLight(light);
         
-        OcclusionQueryProcessor queryProcessor = new OcclusionQueryProcessor(1, 1, assetManager);
-        VisualObject obj = new VisualObject();
-        obj.linkedGeom = geom;
-        obj.posMod = 8;
-        obj.pos = geom.getLocalTranslation();
-        queryProcessor.addObject(obj);
-        
-        viewPort.addProcessor(queryProcessor);
+//        OcclusionQueryProcessor queryProcessor = new OcclusionQueryProcessor(1, 1, assetManager);
+//        VisualObject obj = new VisualObject();
+//        obj.linkedGeom = geom;
+//        obj.posMod = 8;
+//        obj.pos = geom.getLocalTranslation();
+//        queryProcessor.addObject(obj);
+//        
+//        viewPort.addProcessor(queryProcessor);
     }
     
     @Override

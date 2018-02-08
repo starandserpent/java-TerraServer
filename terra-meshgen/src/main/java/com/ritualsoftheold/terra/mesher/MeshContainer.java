@@ -27,9 +27,9 @@ public class MeshContainer {
     }
     
     public void triangle(int vertIndex, int i, int j, int k) {
-        indices.writeShort(vertIndex + i);
-        indices.writeShort(vertIndex + j);
-        indices.writeShort(vertIndex +  k);
+        indices.writeInt(vertIndex + i);
+        indices.writeInt(vertIndex + j);
+        indices.writeInt(vertIndex +  k);
     }
     
     public void texture(int page, int tile, int x, int y) {
