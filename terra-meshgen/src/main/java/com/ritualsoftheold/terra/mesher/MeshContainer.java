@@ -34,7 +34,7 @@ public class MeshContainer {
     
     public void texture(int page, int tile, int x, int y) {
         float packed = Float.intBitsToFloat(tile << 24 | x << 16 | y << 8 | page);
-        texCoords.writeFloat(packed);
+        texCoords.writeFloatLE(packed);
     }
     
     public ByteBuf getVertices() {

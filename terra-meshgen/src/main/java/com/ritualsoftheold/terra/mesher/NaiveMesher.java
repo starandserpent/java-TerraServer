@@ -99,16 +99,16 @@ public class NaiveMesher implements VoxelMesher {
                 int y = (block - 4096 * z) / 64;
                 int x = block % 64;
 
-                System.out.println("x: " + x + ", y: " + y + ", z: " + z);
+                //System.out.println("x: " + x + ", y: " + y + ", z: " + z);
 
                 //System.out.println("texMinX: " + texMinX + ", texMinY: " + texMinY + ", texMaxX: " + texMaxX + ", texMaxY: " + texMaxY);
 
                 if ((faces & 0b00100000) == 0) { // RIGHT
                     //System.out.println("Draw RIGHT");
-                    mesh.vertex(x, y, z);
-                    mesh.vertex(x, y + 1, z);
-                    mesh.vertex(x, y + 1, z + 1);
                     mesh.vertex(x, y, z + 1);
+                    mesh.vertex(x, y + 1, z + 1);
+                    mesh.vertex(x, y + 1, z);
+                    mesh.vertex(x, y, z);
                     
                     mesh.triangle(vertIndex, 0, 1, 2);
                     mesh.triangle(vertIndex, 2, 3, 0);
@@ -202,7 +202,6 @@ public class NaiveMesher implements VoxelMesher {
                 }
 
                 block++; // Go to next block
-                System.out.println("BLOCK DONE");
             }
         }
     }

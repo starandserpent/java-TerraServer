@@ -98,7 +98,7 @@ public class ChunkTest extends SimpleApplication {
         // Create geometry
         Geometry geom = new Geometry("test_chunk", mesh);
         Material mat = new Material(assetManager, "terra/shader/TerraArray.j3md");
-        mat.getAdditionalRenderState().setWireframe(true);
+//        mat.getAdditionalRenderState().setWireframe(true);
 //        mat.getAdditionalRenderState().setFaceCullMode(FaceCullMode.Off);
         mat.setTexture("ColorMap", manager.getGroundTexture());
         //mat.setParam("SeparateTexCoord", VarType.Boolean, true);
