@@ -101,44 +101,71 @@ public class NaiveMesher implements VoxelMesher {
 
                 if ((faces & 0b00100000) == 0) { // RIGHT
                     //System.out.println("Draw RIGHT");
-                    // TODO figure this face out, has always been a mess for some reason
+                    mesh.vertex(x, y, z);
+                    mesh.vertex(x, y + 1, z + 1);
+                    mesh.vertex(x, y + 1, z + 1);
+                    mesh.vertex(x, y, z + 1);
+                    
+                    mesh.triangle(vertIndex, 0, 1, 2);
+                    mesh.triangle(vertIndex, 2, 3, 0);
+
+                    vertIndex += 4; // Next thing is next face
                 } if ((faces & 0b00010000) == 0) { // LEFT
                     //System.out.println("Draw LEFT");
                     mesh.vertex(x + 1, y, z);
                     mesh.vertex(x + 1, y + 1, z);
                     mesh.vertex(x + 1, y + 1, z + 1);
-                    mesh.vertex(x + 1, y - 1, z + 1);
+                    mesh.vertex(x + 1, y, z + 1);
+                    
+                    mesh.triangle(vertIndex, 0, 1, 2);
+                    mesh.triangle(vertIndex, 2, 3, 0);
+
+                    vertIndex += 4; // Next thing is next face
                 } if ((faces & 0b00001000) == 0) { // UP
                     //System.out.println("Draw UP");
                     mesh.vertex(x, y + 1, z);
                     mesh.vertex(x, y + 1, z + 1);
                     mesh.vertex(x + 1, y + 1, z + 1);
                     mesh.vertex(x + 1, y + 1, z);
+                    
+                    mesh.triangle(vertIndex, 0, 1, 2);
+                    mesh.triangle(vertIndex, 2, 3, 0);
+
+                    vertIndex += 4; // Next thing is next face
                 } if ((faces & 0b00000100) == 0) { // DOWN
                     //System.out.println("Draw DOWN");
                     mesh.vertex(x, y, z + 1);
                     mesh.vertex(x, y, z);
                     mesh.vertex(x + 1, y, z);
                     mesh.vertex(x + 1, y, z + 1);
+                    
+                    mesh.triangle(vertIndex, 0, 1, 2);
+                    mesh.triangle(vertIndex, 2, 3, 0);
+
+                    vertIndex += 4; // Next thing is next face
                 } if ((faces & 0b00000010) == 0) { // BACK
                     //System.out.println("Draw BACK");
                     mesh.vertex(x + 1, y, z + 1);
                     mesh.vertex(x + 1, y + 1, z + 1);
                     mesh.vertex(x, y + 1, z + 1);
                     mesh.vertex(x, y, z + 1);
+                    
+                    mesh.triangle(vertIndex, 0, 1, 2);
+                    mesh.triangle(vertIndex, 2, 3, 0);
+
+                    vertIndex += 4; // Next thing is next face
                 } if ((faces & 0b00000001) == 0) { // FRONT
                     //System.out.println("Draw FRONT");
                     mesh.vertex(x, y, z);
                     mesh.vertex(x, y + 1, z);
                     mesh.vertex(x + 1, y + 1, z);
                     mesh.vertex(x + 1, y, z);
-                }
-                
-                // While doing only cubes, indices are same for all faces
-                mesh.triangle(vertIndex, 0, 1, 2);
-                mesh.triangle(vertIndex, 2, 3, 0);
+                    
+                    mesh.triangle(vertIndex, 0, 1, 2);
+                    mesh.triangle(vertIndex, 2, 3, 0);
 
-                vertIndex += 4; // Next thing is next face
+                    vertIndex += 4; // Next thing is next face
+                }
                 
                 // Calculate texture coordinates...
                 int page = texture.getPage();
