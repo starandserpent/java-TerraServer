@@ -92,14 +92,14 @@ public class ChunkTest extends SimpleApplication {
         //System.out.println(mesher.getVertices());
         //System.out.println(mesher.getIndices());
         mesh.setBuffer(Type.Position, 1, meshContainer.getVertices().nioBuffer().asFloatBuffer());
-        mesh.setBuffer(Type.Index, 3, meshContainer.getIndices().nioBuffer().asShortBuffer());
+        mesh.setBuffer(Type.Index, 3, meshContainer.getIndices().nioBuffer().asIntBuffer());
         mesh.setBuffer(Type.TexCoord, 1, meshContainer.getTextureCoordinates().nioBuffer().asFloatBuffer());
         
         // Create geometry
         Geometry geom = new Geometry("test_chunk", mesh);
         Material mat = new Material(assetManager, "terra/shader/TerraArray.j3md");
         mat.getAdditionalRenderState().setWireframe(true);
-        mat.getAdditionalRenderState().setFaceCullMode(FaceCullMode.Off);
+//        mat.getAdditionalRenderState().setFaceCullMode(FaceCullMode.Off);
         mat.setTexture("ColorMap", manager.getGroundTexture());
         //mat.setParam("SeparateTexCoord", VarType.Boolean, true);
         geom.setMaterial(mat);
