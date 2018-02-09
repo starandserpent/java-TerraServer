@@ -35,7 +35,7 @@ public class RunLengthIterator implements ChunkIterator {
         // Increase offset AFTER we used it
         offset += 4;
         
-        if (blocksDone == DataConstants.CHUNK_MAX_BLOCKS) {
+        if (blocksDone >= DataConstants.CHUNK_MAX_BLOCKS) {
             done = true;
         }
         

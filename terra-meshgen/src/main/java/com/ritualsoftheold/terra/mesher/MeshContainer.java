@@ -22,14 +22,14 @@ public class MeshContainer {
     }
     
     public void vertex(int x, int y, int z) {
-        float packed = Float.intBitsToFloat(x << 22 | y << y | z);
+        float packed = Float.intBitsToFloat(x << 22 | y << 12 | z);
         vertices.writeFloat(packed);
     }
     
     public void triangle(int vertIndex, int i, int j, int k) {
-        indices.writeInt(vertIndex + i);
-        indices.writeInt(vertIndex + j);
-        indices.writeInt(vertIndex +  k);
+        indices.writeShort(vertIndex + i);
+        indices.writeShort(vertIndex + j);
+        indices.writeShort(vertIndex +  k);
     }
     
     public void texture(int page, int tile, int x, int y) {

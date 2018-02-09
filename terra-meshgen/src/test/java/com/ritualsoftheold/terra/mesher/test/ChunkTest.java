@@ -58,13 +58,17 @@ public class ChunkTest extends SimpleApplication {
         long addr = mem.allocate(DataConstants.CHUNK_UNCOMPRESSED);
         mem.setMemory(addr, DataConstants.CHUNK_UNCOMPRESSED, (byte) 0);
         mem.writeShort(addr, (short) 2); // Add some stuff to chunk
-        mem.writeShort(addr + 2, (short) 0xffff);
-        mem.writeShort(addr + 4, (short) 1);
+        mem.writeShort(addr + 2, (short) 0xff);
+        mem.writeShort(addr + 4, (short) 0);
         mem.writeShort(addr + 6, (short) 0xffff);
-        mem.writeShort(addr + 8, (short) 1);
+        mem.writeShort(addr + 8, (short) 0);
         mem.writeShort(addr + 10, (short) 0xffff);
-        mem.writeShort(addr + 12, (short) 1);
+        mem.writeShort(addr + 12, (short) 0);
         mem.writeShort(addr + 14, (short) 0xffff);
+        mem.writeShort(addr + 16, (short) 0);
+        mem.writeShort(addr + 18, (short) 0xffff);
+        mem.writeShort(addr + 20, (short) 0);
+        mem.writeShort(addr + 22, (short) 0xffff);
         //System.out.println(Long.toBinaryString(mem.readLong(addr)));
         
         // Register materials
@@ -88,7 +92,7 @@ public class ChunkTest extends SimpleApplication {
         //System.out.println(mesher.getVertices());
         //System.out.println(mesher.getIndices());
         mesh.setBuffer(Type.Position, 1, meshContainer.getVertices().nioBuffer().asFloatBuffer());
-        mesh.setBuffer(Type.Index, 3, meshContainer.getIndices().nioBuffer().asIntBuffer());
+        mesh.setBuffer(Type.Index, 3, meshContainer.getIndices().nioBuffer().asShortBuffer());
         mesh.setBuffer(Type.TexCoord, 1, meshContainer.getTextureCoordinates().nioBuffer().asFloatBuffer());
         
         // Create geometry

@@ -90,6 +90,10 @@ public class NaiveMesher implements VoxelMesher {
                     block++; // To next block!
                     continue;
                 }
+                
+                // Calculate texture coordinates...
+                int page = texture.getPage();
+                int tile = texture.getTileId();
 
                 int z = block / 4096; // Integer division: current z index
                 int y = block - 4096 * z;
@@ -110,6 +114,11 @@ public class NaiveMesher implements VoxelMesher {
                     mesh.triangle(vertIndex, 2, 3, 0);
 
                     vertIndex += 4; // Next thing is next face
+                    
+                    mesh.texture(page, tile, 0, 0);
+                    mesh.texture(page, tile, 0, 1);
+                    mesh.texture(page, tile, 1, 1);
+                    mesh.texture(page, tile, 1, 0);
                 } if ((faces & 0b00010000) == 0) { // LEFT
                     //System.out.println("Draw LEFT");
                     mesh.vertex(x + 1, y, z);
@@ -121,6 +130,11 @@ public class NaiveMesher implements VoxelMesher {
                     mesh.triangle(vertIndex, 2, 3, 0);
 
                     vertIndex += 4; // Next thing is next face
+                    
+                    mesh.texture(page, tile, 0, 0);
+                    mesh.texture(page, tile, 0, 1);
+                    mesh.texture(page, tile, 1, 1);
+                    mesh.texture(page, tile, 1, 0);
                 } if ((faces & 0b00001000) == 0) { // UP
                     //System.out.println("Draw UP");
                     mesh.vertex(x, y + 1, z);
@@ -132,6 +146,11 @@ public class NaiveMesher implements VoxelMesher {
                     mesh.triangle(vertIndex, 2, 3, 0);
 
                     vertIndex += 4; // Next thing is next face
+                    
+                    mesh.texture(page, tile, 0, 0);
+                    mesh.texture(page, tile, 0, 1);
+                    mesh.texture(page, tile, 1, 1);
+                    mesh.texture(page, tile, 1, 0);
                 } if ((faces & 0b00000100) == 0) { // DOWN
                     //System.out.println("Draw DOWN");
                     mesh.vertex(x, y, z + 1);
@@ -143,6 +162,11 @@ public class NaiveMesher implements VoxelMesher {
                     mesh.triangle(vertIndex, 2, 3, 0);
 
                     vertIndex += 4; // Next thing is next face
+                    
+                    mesh.texture(page, tile, 0, 0);
+                    mesh.texture(page, tile, 0, 1);
+                    mesh.texture(page, tile, 1, 1);
+                    mesh.texture(page, tile, 1, 0);
                 } if ((faces & 0b00000010) == 0) { // BACK
                     //System.out.println("Draw BACK");
                     mesh.vertex(x + 1, y, z + 1);
@@ -154,6 +178,11 @@ public class NaiveMesher implements VoxelMesher {
                     mesh.triangle(vertIndex, 2, 3, 0);
 
                     vertIndex += 4; // Next thing is next face
+                    
+                    mesh.texture(page, tile, 0, 0);
+                    mesh.texture(page, tile, 0, 1);
+                    mesh.texture(page, tile, 1, 1);
+                    mesh.texture(page, tile, 1, 0);
                 } if ((faces & 0b00000001) == 0) { // FRONT
                     //System.out.println("Draw FRONT");
                     mesh.vertex(x, y, z);
@@ -165,17 +194,12 @@ public class NaiveMesher implements VoxelMesher {
                     mesh.triangle(vertIndex, 2, 3, 0);
 
                     vertIndex += 4; // Next thing is next face
+                    
+                    mesh.texture(page, tile, 0, 0);
+                    mesh.texture(page, tile, 0, 1);
+                    mesh.texture(page, tile, 1, 1);
+                    mesh.texture(page, tile, 1, 0);
                 }
-                
-                // Calculate texture coordinates...
-                int page = texture.getPage();
-                int tile = texture.getTileId();
-                
-                // Texture coordinates are same for all faces
-                mesh.texture(page, tile, 0, 0);
-                mesh.texture(page, tile, 0, 1);
-                mesh.texture(page, tile, 1, 1);
-                mesh.texture(page, tile, 1, 0);
 
                 block++; // Go to next block
             }
