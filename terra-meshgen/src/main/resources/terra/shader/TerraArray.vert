@@ -3,10 +3,10 @@ uniform mat4 g_WorldViewProjectionMatrix;
 in float inPosition;
 
 // Packed texture coordinates and tile index
-in float inTexCoord;
+in vec2 inTexCoord;
 
 out vec3 texCoord;
-flat out float tile;
+flat out vec2 tile;
 
 void main() {
   // Calculate real position
@@ -16,12 +16,16 @@ void main() {
   float posZ = float(posBits & 0x3ff);
   gl_Position = g_WorldViewProjectionMatrix * vec4(posX * 0.25f, posY * 0.25f, posZ * 0.25f, 1.0); // Position for fragment shader
 
-  // Calculate real texture coordinates
-  uint texBits = floatBitsToUint(inTexCoord);
-  tile = float(texBits >> 24);
-  float texX = float(texBits >> 16 & 0xff);
-  float texY = float(texBits >> 8 & 0xff);
-  float texZ = float(texBits & 0xff); // Texture array index, not normalized
+  // Calculate real texture coordinates (normalized)
+  uint texBits = floatBitsToUint(inTexCoord.x);
+  float texX = float(texBits >> 16 & 0xffff) * 0.00390625f;
+  float texY = float(texBits & 0xffff) * 0.00390625f;
+  
+  uint tileBits = floatBitsToUint(inTexCoord.y);
+  float page = float(tileBits >> 24); // Texture array index, "page"
+  float tileIndex = float(tileBits >> 12 & 0xfff); // Tile index
+  float numTiles = float(tileBits & 0xfff); // Number of tiles per side
 
-  texCoord = vec3(1024f / texX, 1024f / texY, texZ); // Write outgoing texCoord for frag shader
+  texCoord = vec3(texX, texY, page); // Multiplication is a bit faster than division
+  tile = vec2(tileIndex, numTiles); // Tile and how many tiles per side in page
 }

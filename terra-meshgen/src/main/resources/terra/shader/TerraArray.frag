@@ -2,25 +2,20 @@
 // Texture array contains all textures in multiple atlases
 uniform sampler2DArray m_ColorMap;
 
-// Interpolated texture coordinates and an array index
+// Interpolated texture coordinates and page index
 in vec3 texCoord;
 
-// Tile id and tile size packed together
-flat in float tile;
+// Tile id and tile size
+flat in vec2 tile;
 
 void main() {
   vec4 color = vec4(1.0); // TODO support alpha channel
 
-  // Extract data from tile
-  uint bits = floatBitsToUint(tile);
-  float numTiles = float(bits >> 16); // Tiles per side
-  float tileId = float(bits & 0xffff); // Id of this tile
+  vec2 tex = vec2(fract(texCoord.x), fract(texCoord.y)); // We repeat, so take only decimal part
+  tex += vec2(mod(tile.x, tile.y), floor(tile.x / tile.y)); // Make it go to our tile
+  tex /= tile.y; // Divide texture coordinates by number of tiles so we only end inside our tile
 
-  vec3 tex = texCoord; // This is interpolated, not yet useful for us
-  tex += vec3(mod(tile, numTiles), floor(tile / numTiles), 0); // Make it go to our tile
-  tex /= numTiles; // Divide texture (yeah, weird) to make repeating work correctly
-
-  color.rgb = texture(m_ColorMap, tex).rgb; // Now that we have the point, just draw
+  color.rgb = texture(m_ColorMap, vec3(tex, texCoord.z)).rgb; // Draw for correct texture array page (Z)
 
   gl_FragColor = color;
 }

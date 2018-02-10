@@ -93,7 +93,7 @@ public class ChunkTest extends SimpleApplication {
         //System.out.println(mesher.getIndices());
         mesh.setBuffer(Type.Position, 1, meshContainer.getVertices().nioBuffer().asFloatBuffer());
         mesh.setBuffer(Type.Index, 3, meshContainer.getIndices().nioBuffer().asIntBuffer());
-        mesh.setBuffer(Type.TexCoord, 1, meshContainer.getTextureCoordinates().nioBuffer().asFloatBuffer());
+        mesh.setBuffer(Type.TexCoord, 2, meshContainer.getTextureCoordinates().nioBuffer().asFloatBuffer());
         
         // Create geometry
         Geometry geom = new Geometry("test_chunk", mesh);
