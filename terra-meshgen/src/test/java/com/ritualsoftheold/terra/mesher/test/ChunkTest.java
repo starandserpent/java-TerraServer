@@ -58,7 +58,7 @@ public class ChunkTest extends SimpleApplication {
         long addr = mem.allocate(DataConstants.CHUNK_UNCOMPRESSED);
         mem.setMemory(addr, DataConstants.CHUNK_UNCOMPRESSED, (byte) 0);
         mem.writeShort(addr, (short) 2); // Add some stuff to chunk
-        mem.writeShort(addr + 2, (short) 0xff);
+        mem.writeShort(addr + 2, (short) 0xfff);
         mem.writeShort(addr + 4, (short) 0);
         mem.writeShort(addr + 6, (short) 0xffff);
         mem.writeShort(addr + 8, (short) 0);

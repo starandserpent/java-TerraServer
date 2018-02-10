@@ -78,7 +78,7 @@ public class NaiveMesher implements VoxelMesher {
 
             float scale = 0.125f;
             for (int i = 0; i < it.getCount(); i++) { // Loop blocks from what we just read
-                //System.out.println((48 - j * 16) + ": " + Long.toBinaryString(id));
+                System.out.println("count: " + it.getCount());
                 byte faces = hidden[begin + i]; // Read hidden faces of this block
                 if (blockId == 0 || faces == 0b00111111) { // TODO better "is-air" check
                     block++; // To next block!
@@ -115,10 +115,10 @@ public class NaiveMesher implements VoxelMesher {
 
                     vertIndex += 4; // Next thing is next face
                     
-                    mesh.texture(page, tile, 0, 0);
-                    mesh.texture(page, tile, 0, 1);
                     mesh.texture(page, tile, 1, 1);
                     mesh.texture(page, tile, 1, 0);
+                    mesh.texture(page, tile, 0, 0);
+                    mesh.texture(page, tile, 0, 1);
                 } if ((faces & 0b00010000) == 0) { // LEFT
                     //System.out.println("Draw LEFT");
                     mesh.vertex(x + 1, y, z);
