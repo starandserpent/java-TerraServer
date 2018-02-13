@@ -38,7 +38,7 @@ public class MeshContainer {
         float packed1 = Float.intBitsToFloat(nX << 16 | nY);
         texCoords.writeFloatLE(packed1);
         
-        float packed2 = Float.intBitsToFloat(page << 24 | tile << 12 | 128);
+        float packed2 = Float.intBitsToFloat(page << 24 | tile << 12 | 32);
         texCoords.writeFloatLE(packed2);
     }
     

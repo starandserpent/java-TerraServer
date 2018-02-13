@@ -76,9 +76,8 @@ public class NaiveMesher implements VoxelMesher {
             }
             //System.out.println(blockId);
 
-            float scale = 0.125f;
             for (int i = 0; i < it.getCount(); i++) { // Loop blocks from what we just read
-                System.out.println("count: " + it.getCount());
+                //System.out.println("count: " + it.getCount());
                 byte faces = hidden[begin + i]; // Read hidden faces of this block
                 if (blockId == 0 || faces == 0b00111111) { // TODO better "is-air" check
                     block++; // To next block!
@@ -94,7 +93,9 @@ public class NaiveMesher implements VoxelMesher {
                 // Calculate texture coordinates...
                 int page = texture.getPage();
                 int tile = texture.getTileId();
+                float texScale = texture.getScale();
 
+                // Calculate current block position (normalized by shader)
                 int z = block / 4096; // Integer division: current z index
                 int y = (block - 4096 * z) / 64;
                 int x = block % 64;
@@ -103,8 +104,8 @@ public class NaiveMesher implements VoxelMesher {
 
                 //System.out.println("texMinX: " + texMinX + ", texMinY: " + texMinY + ", texMaxX: " + texMaxX + ", texMaxY: " + texMaxY);
 
-                if ((faces & 0b00100000) == 0) { // RIGHT
-                    //System.out.println("Draw RIGHT");
+                if ((faces & 0b00100000) == 0) { // LEFT
+                    //System.out.println("Draw LEFT");
                     mesh.vertex(x, y, z + 1);
                     mesh.vertex(x, y + 1, z + 1);
                     mesh.vertex(x, y + 1, z);
@@ -115,12 +116,12 @@ public class NaiveMesher implements VoxelMesher {
 
                     vertIndex += 4; // Next thing is next face
                     
-                    mesh.texture(page, tile, 1, 1);
-                    mesh.texture(page, tile, 1, 0);
                     mesh.texture(page, tile, 0, 0);
                     mesh.texture(page, tile, 0, 1);
-                } if ((faces & 0b00010000) == 0) { // LEFT
-                    //System.out.println("Draw LEFT");
+                    mesh.texture(page, tile, 1, 1);
+                    mesh.texture(page, tile, 1, 0);
+                } if ((faces & 0b00010000) == 0) { // RIGHT
+                    //System.out.println("Draw RIGHT");
                     mesh.vertex(x + 1, y, z);
                     mesh.vertex(x + 1, y + 1, z);
                     mesh.vertex(x + 1, y + 1, z + 1);
@@ -147,10 +148,10 @@ public class NaiveMesher implements VoxelMesher {
 
                     vertIndex += 4; // Next thing is next face
                     
-                    mesh.texture(page, tile, 0, 0);
-                    mesh.texture(page, tile, 0, 1);
                     mesh.texture(page, tile, 1, 1);
                     mesh.texture(page, tile, 1, 0);
+                    mesh.texture(page, tile, 0, 0);
+                    mesh.texture(page, tile, 0, 1);
                 } if ((faces & 0b00000100) == 0) { // DOWN
                     //System.out.println("Draw DOWN");
                     mesh.vertex(x, y, z + 1);

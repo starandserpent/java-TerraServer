@@ -4,6 +4,7 @@ import com.jme3.app.SimpleApplication;
 import com.jme3.light.PointLight;
 import com.jme3.material.Material;
 import com.jme3.material.RenderState.FaceCullMode;
+import com.jme3.math.ColorRGBA;
 import com.jme3.scene.Geometry;
 import com.jme3.scene.Mesh;
 import com.jme3.scene.Spatial.CullHint;
@@ -53,11 +54,12 @@ public class ChunkTest extends SimpleApplication {
     public void simpleInitApp() {
         //setDisplayFps(false);
         //setDisplayStatView(false);
+        viewPort.setBackgroundColor(ColorRGBA.White); // Easier to debug
         
         // Create chunk data
         long addr = mem.allocate(DataConstants.CHUNK_UNCOMPRESSED);
         mem.setMemory(addr, DataConstants.CHUNK_UNCOMPRESSED, (byte) 0);
-        mem.writeShort(addr, (short) 2); // Add some stuff to chunk
+        mem.writeShort(addr, (short) 1); // Add some stuff to chunk
         mem.writeShort(addr + 2, (short) 0xfff);
         mem.writeShort(addr + 4, (short) 0);
         mem.writeShort(addr + 6, (short) 0xffff);
@@ -76,8 +78,9 @@ public class ChunkTest extends SimpleApplication {
         MaterialRegistry registry = new MaterialRegistry();
         
         TerraModule mod = new TerraModule("test");
-        mod.newMaterial().name("grass").texture(new TerraTexture(32, 32, "grass.png"));
-        mod.newMaterial().name("dirt").texture(new TerraTexture(32, 32, "dirt.png"));
+//        mod.newMaterial().name("grass").texture(new TerraTexture(32, 32, "grass.png"));
+//        mod.newMaterial().name("dirt").texture(new TerraTexture(32, 32, "dirt.png"));
+        mod.newMaterial().name("arrow").texture(new TerraTexture(128, 128, "arrow.png"));
         //mod.newMaterial().name("dirt-256").texture(new TerraTexture(32, 32, "NorthenForestDirt256px.png"));
         mod.registerMaterials(registry);
         
