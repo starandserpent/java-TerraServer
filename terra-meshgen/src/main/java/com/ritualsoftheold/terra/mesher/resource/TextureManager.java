@@ -8,6 +8,7 @@ import com.jme3.asset.AssetManager;
 import com.jme3.texture.Image;
 import com.jme3.texture.Image.Format;
 import com.jme3.texture.Texture.MagFilter;
+import com.jme3.texture.Texture.MinFilter;
 import com.jme3.texture.TextureArray;
 import com.ritualsoftheold.terra.material.MaterialRegistry;
 import com.ritualsoftheold.terra.material.TerraMaterial;
@@ -89,8 +90,10 @@ public class TextureManager {
             generateAtlases(e.getValue(), e.getIntKey(), atlases); // Generate atlases...
         }
         
+        // TODO make these configurable, Rituals art style already changed a bit since I wrote this
         array = new TextureArray(atlases);
-        array.setMagFilter(MagFilter.Nearest); // We want blocky style
+        array.setMagFilter(MagFilter.Nearest);
+        array.setMinFilter(MinFilter.NearestNoMipMaps);
         this.atlases = atlases;
     }
     
