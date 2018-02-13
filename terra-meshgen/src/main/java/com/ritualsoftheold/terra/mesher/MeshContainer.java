@@ -32,13 +32,13 @@ public class MeshContainer {
         indices.writeIntLE(vertIndex +  k);
     }
     
-    public void texture(int page, int tile, float x, float y) {
+    public void texture(int page, int tile, int texturesPerSide, float x, float y) {
         int nX = (int) (x * 256);
         int nY = (int) (y * 256);
         float packed1 = Float.intBitsToFloat(nX << 16 | nY);
         texCoords.writeFloatLE(packed1);
         
-        float packed2 = Float.intBitsToFloat(page << 24 | tile << 12 | 32);
+        float packed2 = Float.intBitsToFloat(page << 24 | tile << 12 | texturesPerSide);
         texCoords.writeFloatLE(packed2);
     }
     

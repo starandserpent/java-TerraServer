@@ -19,6 +19,8 @@ public class TerraTexture {
     
     private int page;
     
+    private int texturesPerSide;
+    
     public TerraTexture(int width, int height, float scale, String asset) {
         this.width = width;
         this.height = height;
@@ -78,6 +80,14 @@ public class TerraTexture {
     
     public void setPage(int page) {
         this.page = page;
+    }
+
+    public int getTexturesPerSide() {
+        return texturesPerSide;
+    }
+
+    public void setTexturesPerSide(int texturesPerPage) {
+        this.texturesPerSide = texturesPerPage;
     }
     
     @Override

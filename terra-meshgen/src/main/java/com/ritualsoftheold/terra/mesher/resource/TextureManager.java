@@ -46,7 +46,7 @@ public class TextureManager {
     
     /**
      * Returns texture array used for ground texture.
-     * @return
+     * @return Ground texture array.
      */
     public TextureArray getGroundTexture() {
         return array;
@@ -128,6 +128,7 @@ public class TextureManager {
             // Assign texture data for shader
             texture.setPage(atlases.size()); // Texture array id, "page"
             texture.setTileId(y * texturesPerSide + x); // Texture tile id
+            texture.setTexturesPerSide(texturesPerSide); // For MeshContainer
             
             x++;
         }
