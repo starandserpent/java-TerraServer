@@ -80,8 +80,8 @@ public class ChunkTest extends SimpleApplication {
         TerraModule mod = new TerraModule("test");
 //        mod.newMaterial().name("grass").texture(new TerraTexture(32, 32, "grass.png"));
 //        mod.newMaterial().name("dirt").texture(new TerraTexture(32, 32, "dirt.png"));
-        mod.newMaterial().name("arrow").texture(new TerraTexture(128, 128, "arrow.png"));
-        //mod.newMaterial().name("dirt-256").texture(new TerraTexture(32, 32, "NorthenForestDirt256px.png"));
+        //mod.newMaterial().name("arrow").texture(new TerraTexture(128, 128, "arrow.png"));
+        mod.newMaterial().name("dirt-256").texture(new TerraTexture(256, 256, 0.25f, "NorthenForestDirt256px.png"));
         mod.registerMaterials(registry);
         
         manager.loadMaterials(registry);
