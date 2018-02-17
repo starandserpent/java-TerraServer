@@ -16,9 +16,6 @@ import it.unimi.dsi.fastutil.ints.IntList;
  */
 public class NaiveMesher implements VoxelMesher {
 
-    public NaiveMesher() {
-    }
-
     @Override
     public void chunk(ChunkIterator it, TextureManager textures, MeshContainer mesh) {
         assert it != null;

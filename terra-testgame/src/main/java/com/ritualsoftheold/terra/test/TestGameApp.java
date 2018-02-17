@@ -22,6 +22,7 @@ import com.jme3.util.BufferUtils;
 import com.ritualsoftheold.terra.TerraModule;
 import com.ritualsoftheold.terra.material.MaterialRegistry;
 import com.ritualsoftheold.terra.material.TerraTexture;
+import com.ritualsoftheold.terra.mesher.MeshContainer;
 import com.ritualsoftheold.terra.mesher.NaiveMesher;
 import com.ritualsoftheold.terra.mesher.VoxelMesher;
 import com.ritualsoftheold.terra.mesher.culling.OcclusionQueryProcessor;
@@ -36,6 +37,8 @@ import com.ritualsoftheold.terra.offheap.world.OffheapWorld;
 import com.ritualsoftheold.terra.offheap.world.WorldLoadListener;
 import com.ritualsoftheold.terra.world.LoadMarker;
 import com.ritualsoftheold.terra.world.gen.WorldGenerator;
+
+import io.netty.buffer.ByteBufAllocator;
 
 public class TestGameApp extends SimpleApplication implements ActionListener {
     
@@ -52,7 +55,9 @@ public class TestGameApp extends SimpleApplication implements ActionListener {
         TestGameApp app = new TestGameApp();
         app.showSettings = false;
         app.settings = new AppSettings(true);
-        app.settings.setResolution(1024, 768);
+        app.settings.setResolution(1920, 1080);
+        app.settings.setTitle("Terra testgame");
+        app.settings.setFullscreen(true);
         app.start();
     }
     
@@ -109,7 +114,9 @@ public class TestGameApp extends SimpleApplication implements ActionListener {
         Material mat = new Material(assetManager, "terra/shader/TerraArray.j3md");
         //mat.getAdditionalRenderState().setWireframe(true);
         //mat.getAdditionalRenderState().setFaceCullMode(FaceCullMode.Off);
-        mat.setTexture("DiffuseMap", texManager.getGroundTexture());
+        mat.setTexture("ColorMap", texManager.getGroundTexture());
+        
+        VoxelMesher mesher = new NaiveMesher();
         
         world.setLoadListener(new WorldLoadListener() {
 
@@ -130,16 +137,16 @@ public class TestGameApp extends SimpleApplication implements ActionListener {
                 }
                 
                 //System.out.println("Loaded chunk: " + chunk.memoryAddress());
-                VoxelMesher mesher = new NaiveMesher(); // Not thread safe, but this is still performance hog!
-                mesher.chunk(chunk.newIterator(), texManager);
+                MeshContainer container = new MeshContainer(200, ByteBufAllocator.DEFAULT);
+                mesher.chunk(chunk.newIterator(), texManager, container);
                 
                 // Create mesh
                 Mesh mesh = new Mesh();
                 //System.out.println(mesher.getVertices());
                 //System.out.println(mesher.getIndices());
-                mesh.setBuffer(Type.Position, 3, BufferUtils.createFloatBuffer(mesher.getVertices().toFloatArray()));
-                mesh.setBuffer(Type.Index, 3, BufferUtils.createIntBuffer(mesher.getIndices().toIntArray()));
-                mesh.setBuffer(Type.TexCoord, 3, BufferUtils.createFloatBuffer(mesher.getTextureCoords().toFloatArray()));
+                mesh.setBuffer(Type.Position, 1, container.getVertices().nioBuffer().asFloatBuffer());
+                mesh.setBuffer(Type.Index, 3, container.getIndices().nioBuffer().asIntBuffer());
+                mesh.setBuffer(Type.TexCoord, 2, container.getTextureCoordinates().nioBuffer().asFloatBuffer());
                 
                 // Create geometry
                 Geometry geom = new Geometry("chunk:" + x + "," + y + "," + z, mesh);
