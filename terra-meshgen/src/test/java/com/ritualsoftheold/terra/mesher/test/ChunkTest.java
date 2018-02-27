@@ -71,8 +71,7 @@ public class ChunkTest extends SimpleApplication {
         mem.writeShort(addr + 18, (short) 0xffff);
         mem.writeShort(addr + 20, (short) 0);
         mem.writeShort(addr + 22, (short) 0xffff);
-        //System.out.println(Long.toBinaryString(mem.readLong(addr)));
-        
+                
         // Register materials
         TextureManager manager = new TextureManager(assetManager); // jME provides asset manager
         MaterialRegistry registry = new MaterialRegistry();
