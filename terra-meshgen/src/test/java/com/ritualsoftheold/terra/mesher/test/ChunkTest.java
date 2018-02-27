@@ -60,7 +60,7 @@ public class ChunkTest extends SimpleApplication {
         long addr = mem.allocate(DataConstants.CHUNK_UNCOMPRESSED);
         mem.setMemory(addr, DataConstants.CHUNK_UNCOMPRESSED, (byte) 0);
         mem.writeShort(addr, (short) 1); // Add some stuff to chunk
-        mem.writeShort(addr + 2, (short) 0xfff);
+        mem.writeShort(addr + 2, (short) 0xffff);
         mem.writeShort(addr + 4, (short) 0);
         mem.writeShort(addr + 6, (short) 0xffff);
         mem.writeShort(addr + 8, (short) 0);
@@ -80,8 +80,8 @@ public class ChunkTest extends SimpleApplication {
         TerraModule mod = new TerraModule("test");
 //        mod.newMaterial().name("grass").texture(new TerraTexture(32, 32, "grass.png"));
 //        mod.newMaterial().name("dirt").texture(new TerraTexture(32, 32, "dirt.png"));
-        //mod.newMaterial().name("arrow").texture(new TerraTexture(128, 128, "arrow.png"));
-        mod.newMaterial().name("dirt-256").texture(new TerraTexture(256, 256, 0.25f, "NorthenForestDirt256px.png"));
+        mod.newMaterial().name("arrow").texture(new TerraTexture(128, 128, 0.25f, "arrow.png"));
+        //mod.newMaterial().name("dirt-256").texture(new TerraTexture(256, 256, 0.25f, "NorthenForestDirt256px.png"));
         mod.registerMaterials(registry);
         
         manager.loadMaterials(registry);

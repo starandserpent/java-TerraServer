@@ -104,7 +104,7 @@ public class TestGameApp extends SimpleApplication implements ActionListener {
                 })
                 .build();
                 
-        player = new LoadMarker(0, 0, 0, 32, 32, 0);
+        player = new LoadMarker(0, 0, 0, 64, 64, 0);
         world.addLoadMarker(player);
         
         TextureManager texManager = new TextureManager(assetManager); // Initialize texture atlas/array manager
@@ -129,9 +129,9 @@ public class TestGameApp extends SimpleApplication implements ActionListener {
             @Override
             public void chunkLoaded(OffheapChunk chunk, float x, float y, float z) {
                 Vector3f center = cam.getLocation();
-                if (Math.abs(x - center.x) > 32
-                        || Math.abs(y - center.y) > 32
-                        || Math.abs(z - center.z) > 32) {
+                if (Math.abs(x - center.x) > 128
+                        || Math.abs(y - center.y) > 128
+                        || Math.abs(z - center.z) > 128) {
                     //System.out.println("too far away: " + x + ", " + y + ", " + z);
                     return;
                 }
