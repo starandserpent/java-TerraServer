@@ -6,7 +6,6 @@ allprojects {
     // Apply the java plugin to add support for Java
     apply plugin: 'java'
     apply plugin: 'eclipse'
-    apply plugin: "me.champeau.gradle.jmh"
 
     // In this section you declare where to find the dependencies of your project
     repositories {
@@ -17,7 +16,17 @@ allprojects {
     dependencies {
         compile 'org.slf4j:slf4j-api:1.7.21'
         testCompile 'junit:junit:4.12'
-        jmh 'org.openjdk.jmh:jmh-core:1.20'
-        jmh 'org.openjdk.jmh:jmh-generator-annprocess:1.20'
+    }
+}
+
+// Define JMH for all subprojects that need it
+allprojects.findAll { it.name in ['terra-meshgen'] }. each { p ->
+    configure(p) {
+        apply plugin: "me.champeau.gradle.jmh"
+
+        dependencies {
+            jmh 'org.openjdk.jmh:jmh-core:1.20'
+            jmh 'org.openjdk.jmh:jmh-generator-annprocess:1.20'
+        }
     }
 }
