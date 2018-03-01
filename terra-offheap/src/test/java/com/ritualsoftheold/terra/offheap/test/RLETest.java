@@ -24,7 +24,7 @@ public class RLETest {
         mem.setMemory(origin, DataConstants.CHUNK_UNCOMPRESSED, (byte) 0xf);
         
         long compressed = mem.allocate(DataConstants.CHUNK_UNCOMPRESSED);
-        RunLengthCompressor.compress(origin, compressed);
+        RunLengthCompressor.compress(origin, compressed, DataConstants.CHUNK_UNCOMPRESSED);
         
         long newData = mem.allocate(DataConstants.CHUNK_UNCOMPRESSED);
         RunLengthCompressor.decompress(compressed, newData);
