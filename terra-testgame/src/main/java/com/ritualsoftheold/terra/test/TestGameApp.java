@@ -18,15 +18,12 @@ import com.jme3.scene.Mesh;
 import com.jme3.scene.Spatial.CullHint;
 import com.jme3.scene.VertexBuffer.Type;
 import com.jme3.system.AppSettings;
-import com.jme3.util.BufferUtils;
 import com.ritualsoftheold.terra.TerraModule;
 import com.ritualsoftheold.terra.material.MaterialRegistry;
 import com.ritualsoftheold.terra.material.TerraTexture;
 import com.ritualsoftheold.terra.mesher.MeshContainer;
 import com.ritualsoftheold.terra.mesher.NaiveMesher;
 import com.ritualsoftheold.terra.mesher.VoxelMesher;
-import com.ritualsoftheold.terra.mesher.culling.OcclusionQueryProcessor;
-import com.ritualsoftheold.terra.mesher.culling.VisualObject;
 import com.ritualsoftheold.terra.mesher.resource.TextureManager;
 import com.ritualsoftheold.terra.offheap.chunk.ChunkBuffer;
 import com.ritualsoftheold.terra.offheap.io.dummy.DummyChunkLoader;
@@ -48,8 +45,6 @@ public class TestGameApp extends SimpleApplication implements ActionListener {
     private BlockingQueue<Geometry> geomCreateQueue = new ArrayBlockingQueue<>(10000);
     
     private float loadMarkersUpdated;
-    
-    private OcclusionQueryProcessor queryProcessor;
     
     public static void main(String... args) {
         TestGameApp app = new TestGameApp();
@@ -188,9 +183,6 @@ public class TestGameApp extends SimpleApplication implements ActionListener {
         inputManager.addListener(this, "RELOAD");
         
         rootNode.addLight(new AmbientLight());
-        
-        queryProcessor = new OcclusionQueryProcessor(0, 10, assetManager);
-        //viewPort.addProcessor(queryProcessor);
     }
     
     @Override
@@ -212,12 +204,6 @@ public class TestGameApp extends SimpleApplication implements ActionListener {
             Geometry geom = geomCreateQueue.poll();
             //System.out.println("create geom: " + geom.getLocalTranslation());
             rootNode.attachChild(geom);
-            
-            VisualObject vis = new VisualObject();
-            vis.linkedGeom = geom;
-            vis.posMod = 10;
-            vis.pos = geom.getLocalTranslation();
-            queryProcessor.addObject(vis);
         }
     }
 
