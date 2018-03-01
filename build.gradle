@@ -1,18 +1,11 @@
-allprojects {
-    buildscript {
-        repositories {
-            jcenter()
-            maven {
-                url "https://plugins.gradle.org/m2/"
-            }
-        }
-        dependencies {
-            classpath "me.champeau.gradle:jmh-gradle-plugin:0.4.5"
-        }
-    }
+plugins {
+    id "me.champeau.gradle.jmh" version "0.4.5" apply false
+}
 
+allprojects {
     // Apply the java plugin to add support for Java
     apply plugin: 'java'
+    apply plugin: "me.champeau.gradle.jmh"
 
     // In this section you declare where to find the dependencies of your project
     repositories {
@@ -23,5 +16,6 @@ allprojects {
     dependencies {
         compile 'org.slf4j:slf4j-api:1.7.21'
         testCompile 'junit:junit:4.12'
+        jmh 'org.openjdk.jmh:jmh-core:1.20'
     }
 }
