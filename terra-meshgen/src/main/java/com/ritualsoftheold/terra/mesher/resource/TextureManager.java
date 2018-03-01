@@ -109,7 +109,7 @@ public class TextureManager {
                 x = 0;
                 y++;
             } if (y == texturesPerSide) { // Out of y values... need next atlas
-                Image readyAtlas = new Image(Format.ABGR8, ATLAS_SIZE, ATLAS_SIZE, atlasBuf, null, com.jme3.texture.image.ColorSpace.sRGB);
+                Image readyAtlas = new Image(Format.ABGR8, ATLAS_SIZE, ATLAS_SIZE, atlasBuf, null, com.jme3.texture.image.ColorSpace.Linear);
                 atlases.add(readyAtlas);
                 atlasBuf = ByteBuffer.allocateDirect(ATLAS_SIZE * ATLAS_SIZE * BYTES_PER_PIXEL);
             }
@@ -136,7 +136,7 @@ public class TextureManager {
         // Not full atlas, but not empty either
         if (atlasBuf.position() != 0) {
             System.out.println("Incomplete atlas");
-            Image incompleteAtlas = new Image(Format.ABGR8, ATLAS_SIZE, ATLAS_SIZE, atlasBuf, null, com.jme3.texture.image.ColorSpace.sRGB);
+            Image incompleteAtlas = new Image(Format.ABGR8, ATLAS_SIZE, ATLAS_SIZE, atlasBuf, null, com.jme3.texture.image.ColorSpace.Linear);
             atlases.add(incompleteAtlas);
         }
     }
