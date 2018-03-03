@@ -1,5 +1,4 @@
 dependencies {
     compile project(':terra-core')
-    compile 'net.openhft:chronicle-core:1.7.16'
-    compile 'com.github.ben-manes.caffeine:caffeine:2.5.5'
+    compile 'net.openhft:chronicle-core:1.11.0'
 }

@@ -1,6 +1,6 @@
-repositories {
-    maven { url 'https://jitpack.io' }
-}
+//repositories {
+//    maven { url 'https://jitpack.io' }
+//}
 
 dependencies {
     // TODO don't compile against master snapshots, as they're basically time bombs waiting to detonate (crash)
