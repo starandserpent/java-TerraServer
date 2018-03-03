@@ -23,6 +23,8 @@ import net.openhft.chronicle.core.OS;
  */
 public class MesherBenchmark {
     
+    private static final Memory mem = OS.memory();
+    
     @State(Scope.Thread)
     public static class ChunkData {
         public long chunkData;
@@ -30,8 +32,6 @@ public class MesherBenchmark {
         public MeshContainer container;
         
         public ChunkData() {
-            Memory mem = OS.memory();
-            
             long addr = mem.allocate(DataConstants.CHUNK_UNCOMPRESSED);
             mem.setMemory(addr, DataConstants.CHUNK_UNCOMPRESSED, (byte) 0);
             mem.writeShort(addr, (short) 1); // Add some stuff to chunk
@@ -47,7 +47,7 @@ public class MesherBenchmark {
             mem.writeShort(addr + 20, (short) 0);
             mem.writeShort(addr + 22, (short) 0xffff);
             
-            chunkData = addr + 1;
+            chunkData = addr;
             
             textures = new TextureManager(null);
         }
@@ -59,5 +59,6 @@ public class MesherBenchmark {
         NaiveMesher mesher = new NaiveMesher();
         data.container = new MeshContainer(100, ByteBufAllocator.DEFAULT);
         mesher.chunk(ChunkIterator.forChunk(data.chunkData, ChunkType.RLE_2_2), data.textures, data.container);
+        data.container.release();
     }
 }

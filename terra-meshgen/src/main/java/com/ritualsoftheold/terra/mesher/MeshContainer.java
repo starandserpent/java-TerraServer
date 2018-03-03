@@ -15,6 +15,12 @@ public class MeshContainer {
     
     private ByteBuf texCoords;
     
+    /**
+     * Creates a new mesh container.
+     * @param startSize Starting number of vertices that the container may
+     * hold. Buffers will get enlarged if this is exceeded.
+     * @param allocator Buffer allocator.
+     */
     public MeshContainer(int startSize, ByteBufAllocator allocator) {
         this.vertices = allocator.directBuffer(startSize * 4);
         this.indices = allocator.directBuffer(startSize * 6);
@@ -52,5 +58,16 @@ public class MeshContainer {
     
     public ByteBuf getTextureCoordinates() {
         return texCoords;
+    }
+    
+    /**
+     * Releases the underlying Netty buffers. Make sure you have no NIO
+     * buffers that refer to them. Failure to do so will likely result
+     * a JVM segfault or other nasty behavior.
+     */
+    public void release() {
+        vertices.release();
+        indices.release();
+        texCoords.release();
     }
 }

@@ -28,5 +28,11 @@ allprojects.findAll { it.name in ['terra-meshgen'] }. each { p ->
             jmh 'org.openjdk.jmh:jmh-core:1.20'
             jmh 'org.openjdk.jmh:jmh-generator-annprocess:1.20'
         }
+        
+        tasks.getByName('jmhJar').doFirst() {duplicatesStrategy(DuplicatesStrategy.EXCLUDE)}
+        
+        jmh {
+            duplicateClassesStrategy = 'exclude' // See https://github.com/melix/jmh-gradle-plugin/issues/125
+        }
     }
 }
