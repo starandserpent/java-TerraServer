@@ -33,6 +33,7 @@ allprojects.findAll { it.name in ['terra-meshgen'] }. each { p ->
         
         jmh {
             duplicateClassesStrategy = 'exclude' // See https://github.com/melix/jmh-gradle-plugin/issues/125
+            fork = 1 // Fork only once to save time
         }
     }
 }
