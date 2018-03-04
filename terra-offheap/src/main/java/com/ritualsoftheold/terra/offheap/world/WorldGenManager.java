@@ -42,6 +42,17 @@ public class WorldGenManager {
         this.chunkStorage = chunkStorage;
     }
     
+    /**
+     * Generates a piece of world at given coordinates with given scale.
+     * The parent octree will be modified to include reference to
+     * data once generation is complete.
+     * @param addr Address of parent octree.
+     * @param index Index of the piece in its parent octree.
+     * @param x X coordinate of center.
+     * @param y Y coordinate of center.
+     * @param z Z coordinate of center.
+     * @param scale Scale.
+     */
     public void generate(long addr, int index, float x, float y, float z, float scale) {
         System.out.println("Handle generate: " + x + ", " + y + ", " + z);
         short[] data = new short[DataConstants.CHUNK_MAX_BLOCKS];
@@ -95,8 +106,8 @@ public class WorldGenManager {
     /**
      * Calculates number of materials which are used in data.
      * Terribly inefficient, but sometimes world generators can't do better.
-     * @param data
-     * @return
+     * @param data World data as short array.
+     * @return Number of different materials used.
      */
     private int getMaterialCount(short[] data) {
         ShortSet usedIds = new ShortLinkedOpenHashSet();
