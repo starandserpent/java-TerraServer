@@ -48,10 +48,10 @@ public class NaiveMesher implements VoxelMesher {
                 if (leftIndex < DataConstants.CHUNK_MAX_BLOCKS && (leftIndex & 63) != 0)
                     hidden[leftIndex] |= 0b00100000; // LEFT
                 int upIndex = index - 64;
-                if (upIndex > -1 && index - index / 16777216 > 64) // 16777216 == 4096^2
+                if (upIndex > -1 && index - index / 4096 * 4096 > 64)
                     hidden[upIndex] |= 0b00001000; // UP
                 int downIndex = index + 64;
-                if (downIndex < DataConstants.CHUNK_MAX_BLOCKS && downIndex - downIndex / 16777216 > 64)
+                if (downIndex < DataConstants.CHUNK_MAX_BLOCKS && downIndex - downIndex / 4096 * 4096 > 64)
                     hidden[downIndex] |= 0b00000100; // DOWN
                 int backIndex = index + 4096;
                 if (backIndex < DataConstants.CHUNK_MAX_BLOCKS)
