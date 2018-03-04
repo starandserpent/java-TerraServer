@@ -147,3 +147,6 @@ gradle-app.setting
 # Terra data files
 terra-testgame/chunks
 terra-testgame/octrees
+
+# Subproject build folders
+*/build/
