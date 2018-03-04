@@ -8,15 +8,22 @@ import net.openhft.chronicle.core.Memory;
 import net.openhft.chronicle.core.OS;
 
 /**
- * Handles loading parts of offheap world.
+ * Handles loading of offheap worlds. Usually this class is used by load
+ * markers; direct usage is not recommended for application developers.
  *
  */
 public class WorldLoader {
     
     private static final Memory mem = OS.memory();
     
+    /**
+     * Reference to octree storage of the world this that operates with.
+     */
     private OctreeStorage octreeStorage;
     
+    /**
+     * Reference to chunk storage of the world that this operates with.
+     */
     private ChunkStorage chunkStorage;
     
     /**
@@ -46,6 +53,13 @@ public class WorldLoader {
      */
     private WorldSizeManager sizeManager;
     
+    /**
+     * Initializes a new world loader.
+     * @param octreeStorage Octree storage of the world.
+     * @param chunkStorage Chunk storage of the world.
+     * @param genManager World generation manager.
+     * @param sizeManager World size manager.
+     */
     public WorldLoader(OctreeStorage octreeStorage, ChunkStorage chunkStorage, WorldGenManager genManager, WorldSizeManager sizeManager) {
         this.octreeStorage = octreeStorage;
         this.chunkStorage = chunkStorage;
@@ -53,6 +67,14 @@ public class WorldLoader {
         this.sizeManager = sizeManager;
     }
     
+    /**
+     * Sets world center, master octree and world scale.
+     * @param x Center X.
+     * @param y Center Y.
+     * @param z Center Z.
+     * @param octree Master octree index.
+     * @param scale Scale of the world.
+     */
     public void worldConfig(float x, float y, float z, int octree, float scale) {
         this.centerX = x;
         this.centerY = y;
@@ -61,6 +83,17 @@ public class WorldLoader {
         this.worldScale = scale;
     }
     
+    /**
+     * Seeks the smallest possible octree in the world which can hold
+     * area with given center and range. After that, it is loaded.
+     * @param x X coordinate of area center.
+     * @param y Y coordinate of area center.
+     * @param z Z coordinate of area center.
+     * @param range Range of area.
+     * @param listener World load listener, which is notified for everything
+     * that is loaded.
+     * @param generate If new terrain should be generated.
+     */
     public void seekArea(float x, float y, float z, float range, WorldLoadListener listener, boolean generate) {
         System.out.println("I WAS CALLED, scale: " + worldScale);
         /**
@@ -237,6 +270,25 @@ public class WorldLoader {
         sizeManager.enlarge(newScale, oldIndex);
     }
     
+    /**
+     * Loads given node and its children which are closer than given range
+     * from the center of the area. Note that node center and area center
+     * are probably different. If you do not have a node if and its center
+     * coordinates, use {@link #seekArea(float, float, float, float, WorldLoadListener, boolean)}
+     * instead; it will call this method once it has figured those out.
+     * @param x X coordinate of center of area.
+     * @param y Y coordinate of center of area.
+     * @param z Z coordinate of center of area.
+     * @param range Range of area.
+     * @param nodeId Node id. It will be first node that is loaded, and some of
+     * its child nodes and their children will be loaded.
+     * @param scale Scale of node where to start loading.
+     * @param nodeX Node center X coordinate.
+     * @param nodeY Node center Y coordinate.
+     * @param nodeZ Node center Z coordinate.
+     * @param listener World load listener.
+     * @param generate If new terrain should be generated when needed.
+     */
     public void loadArea(float x, float y, float z, float range, int nodeId, float scale,
             float nodeX, float nodeY, float nodeZ, WorldLoadListener listener, boolean generate) {
         //System.out.println("loadArea, scale: " + scale);
