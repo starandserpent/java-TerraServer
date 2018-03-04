@@ -6,6 +6,7 @@ allprojects {
     // Apply the java plugin to add support for Java
     apply plugin: 'java'
     apply plugin: 'eclipse'
+    apply plugin: 'maven-publish'
 
     // In this section you declare where to find the dependencies of your project
     repositories {
@@ -16,6 +17,36 @@ allprojects {
     dependencies {
         compile 'org.slf4j:slf4j-api:1.7.21'
         testCompile 'junit:junit:4.12'
+    }
+    
+    task sourceJar(type: Jar) {
+        from sourceSets.main.allJava
+    }
+    
+    publishing {
+        publications {
+            mavenJava(MavenPublication) {
+                groupId "com.ritualsoftheold"
+                artifactId project.name
+                version project.property("version")
+    
+                from components.java
+    
+                artifact sourceJar {
+                    classifier "sources"
+                }
+            }
+        }
+        
+        repositories {
+            maven {
+                url ritualsMavenServer
+                credentials {
+                    username ritualsMavenUser
+                    password ritualsMavenPassword
+                }
+            }
+        }
     }
 }
 
