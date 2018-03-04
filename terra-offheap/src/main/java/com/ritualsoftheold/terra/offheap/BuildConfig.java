@@ -15,7 +15,7 @@ public class BuildConfig {
     
     public static long inBounds(long addr, @Pointer long start, long length) {
         // Check if bounds checks are enabled at all
-        if (CHECK_BOUNDS) {
+        if (!CHECK_BOUNDS) {
             return addr;
         }
         
