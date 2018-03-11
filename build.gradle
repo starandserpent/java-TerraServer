@@ -11,6 +11,13 @@ allprojects {
     // In this section you declare where to find the dependencies of your project
     repositories {
         jcenter()
+        maven {
+            url ritualsMavenServer
+            credentials {
+                username ritualsMavenUser
+                password ritualsMavenPassword
+            }
+        }
     }
     
     // In this section you declare the dependencies for your production and test code
