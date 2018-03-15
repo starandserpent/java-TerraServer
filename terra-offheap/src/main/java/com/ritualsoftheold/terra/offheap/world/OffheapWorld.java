@@ -16,7 +16,6 @@ import com.ritualsoftheold.terra.offheap.DataConstants;
 import com.ritualsoftheold.terra.offheap.Pointer;
 import com.ritualsoftheold.terra.offheap.chunk.ChunkBuffer;
 import com.ritualsoftheold.terra.offheap.chunk.ChunkStorage;
-import com.ritualsoftheold.terra.offheap.chunk.ChunkType;
 import com.ritualsoftheold.terra.offheap.data.DataHeuristics;
 import com.ritualsoftheold.terra.offheap.io.ChunkLoader;
 import com.ritualsoftheold.terra.offheap.io.OctreeLoader;
@@ -279,7 +278,8 @@ public class OffheapWorld implements TerraWorld {
      */
     private void updateLoadMarker(LoadMarker marker, WorldLoadListener listener, boolean soft) {
         System.out.println("Update load marker...");
-        worldLoader.seekArea(marker.getX(), marker.getY(), marker.getZ(), soft ? marker.getSoftRadius() : marker.getHardRadius(), listener, !soft);
+        worldLoader.seekArea(marker.getX(), marker.getY(), marker.getZ(),
+                soft ? marker.getSoftRadius() : marker.getHardRadius(), listener, !soft, marker);
         marker.markUpdated(); // Tell it we updated it
     }
     

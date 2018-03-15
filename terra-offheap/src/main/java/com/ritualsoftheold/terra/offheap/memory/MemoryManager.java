@@ -13,6 +13,7 @@ import com.ritualsoftheold.terra.offheap.node.OffheapChunk;
 import com.ritualsoftheold.terra.offheap.octree.OctreeStorage;
 import com.ritualsoftheold.terra.offheap.world.OffheapWorld;
 import com.ritualsoftheold.terra.offheap.world.WorldLoadListener;
+import com.ritualsoftheold.terra.world.LoadMarker;
 
 import it.unimi.dsi.fastutil.ints.IntArraySet;
 import it.unimi.dsi.fastutil.ints.IntSet;
@@ -163,13 +164,13 @@ public class MemoryManager implements MemoryUseListener {
             
             @Override
             public void octreeLoaded(long addr, long groupAddr, int id, float x, float y, float z,
-                    float scale) {
+                    float scale, LoadMarker trigger) {
                 System.out.println("Used group: " + (id >>> 24));
                 usedOctreeGroups.add(id >>> 24);
             }
             
             @Override
-            public void chunkLoaded(OffheapChunk chunk, float x, float y, float z) {
+            public void chunkLoaded(OffheapChunk chunk, float x, float y, float z, LoadMarker trigger) {
                 usedChunkBufs.add(chunk.getBuffer());
             }
         }, true, true).forEach((f) -> f.join()); // Need to complete all futures returned by updateLoadMarkers

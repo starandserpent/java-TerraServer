@@ -2,6 +2,7 @@ package com.ritualsoftheold.terra.offheap.world;
 
 import com.ritualsoftheold.terra.offheap.Pointer;
 import com.ritualsoftheold.terra.offheap.node.OffheapChunk;
+import com.ritualsoftheold.terra.world.LoadMarker;
 
 /**
  * Methods in in this interface will be called when world data is loaded.
@@ -19,8 +20,9 @@ public interface WorldLoadListener {
      * @param y Y coordinate of center of the octree.
      * @param z Z coordinate of center of the octree.
      * @param scale Scale of the octree.
+     * @param trigger Load marker that triggered this operation or null.
      */
-    void octreeLoaded(@Pointer long addr, @Pointer long groupAddr, int id, float x, float y, float z, float scale);
+    void octreeLoaded(@Pointer long addr, @Pointer long groupAddr, int id, float x, float y, float z, float scale, LoadMarker trigger);
     
     /**
      * This method is called when a chunk is loaded to storage.
@@ -29,6 +31,7 @@ public interface WorldLoadListener {
      * @param x X coordinate of the chunk.
      * @param y Y coordinate of the chunk
      * @param z Z coordinate of the chunk.
+     * @param trigger Load marker that triggered this operation or null.
      */
-    void chunkLoaded(OffheapChunk chunk, float x, float y, float z);
+    void chunkLoaded(OffheapChunk chunk, float x, float y, float z, LoadMarker trigger);
 }

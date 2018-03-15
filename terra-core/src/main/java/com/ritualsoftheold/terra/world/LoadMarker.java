@@ -16,12 +16,26 @@ public class LoadMarker implements Comparable<LoadMarker> {
      */
     private float x, y, z;
     
+    /**
+     * The radius which this marker will force the world to be loaded.
+     * Squared to avoid sqrt.
+     */
     private float hardRadius;
     
+    /**
+     * The radius in which this marker will make world to not be loaded.
+     * Squared to avoid sqrt.
+     */
     private float softRadius;
     
+    /**
+     * If this marked has been processed after it moved last time.
+     */
     private boolean hasMoved;
     
+    /**
+     * Priority of the marker.
+     */
     private int priority;
     
     public LoadMarker(float x, float y, float z, float hardRadius, float softRadius, int priority) {
