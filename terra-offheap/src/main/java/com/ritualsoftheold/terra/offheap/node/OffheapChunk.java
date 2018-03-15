@@ -42,6 +42,11 @@ public class OffheapChunk implements Chunk, OffheapNode {
     public long memoryAddress() {
         return buf.getChunkAddr(chunkId);
     }
+    
+    @Override
+    public int memoryLength() {
+        return buf.getChunkLength(chunkId);
+    }
 
     @Override
     public int getMaxBlockCount() {
@@ -109,6 +114,10 @@ public class OffheapChunk implements Chunk, OffheapNode {
     public ChunkIterator newIterator() {
         byte type = buf.getChunkType(chunkId);
         return ChunkIterator.forChunk(buf.getChunkAddr(chunkId), type);
+    }
+
+    public int getBufferId() {
+        return chunkId;
     }
 
 }

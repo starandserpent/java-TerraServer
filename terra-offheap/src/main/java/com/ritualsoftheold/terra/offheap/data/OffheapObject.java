@@ -9,4 +9,6 @@ import com.ritualsoftheold.terra.offheap.Pointer;
 public interface OffheapObject extends AutoCloseable {
     
     @Pointer long memoryAddress();
+    
+    int memoryLength();
 }
