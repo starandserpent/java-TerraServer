@@ -117,12 +117,12 @@ public class TestGameApp extends SimpleApplication implements ActionListener {
 
             @Override
             public void octreeLoaded(long addr, long groupAddr, int id, float x,
-                    float y, float z, float scale) {
+                    float y, float z, float scale, LoadMarker trigger) {
                 // For now, just ignore octrees
             }
 
             @Override
-            public void chunkLoaded(OffheapChunk chunk, float x, float y, float z) {
+            public void chunkLoaded(OffheapChunk chunk, float x, float y, float z, LoadMarker trigger) {
                 Vector3f center = cam.getLocation();
                 if (Math.abs(x - center.x) > 128
                         || Math.abs(y - center.y) > 128
