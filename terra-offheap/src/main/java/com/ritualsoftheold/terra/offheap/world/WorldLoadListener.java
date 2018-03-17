@@ -34,4 +34,13 @@ public interface WorldLoadListener {
      * @param trigger Load marker that triggered this operation or null.
      */
     void chunkLoaded(OffheapChunk chunk, float x, float y, float z, LoadMarker trigger);
+    
+    /**
+     * Called when loading world is finished.
+     * @param trigger Load marker that originally triggered the loading that
+     * is now completed.
+     */
+    default void finished(LoadMarker trigger) {
+        
+    }
 }

@@ -1,6 +1,7 @@
 package com.ritualsoftheold.terra.net.server;
 
-import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 import com.ritualsoftheold.terra.offheap.node.OffheapChunk;
 import com.ritualsoftheold.terra.offheap.world.OffheapWorld;
@@ -10,8 +11,6 @@ import com.starandserpent.venom.NetMagicValues;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
-import net.openhft.chronicle.core.Memory;
-import net.openhft.chronicle.core.OS;
 
 /**
  * Sends world data to onservers.
@@ -19,13 +18,34 @@ import net.openhft.chronicle.core.OS;
  */
 public class SendingLoadListener implements WorldLoadListener, NetMagicValues {
     
-    private static final Memory mem = OS.memory();
-    
+    /**
+     * World which we are handling sending for.
+     */
     private OffheapWorld world;
     
-    private Map<LoadMarker,WorldObserver> markersToObservers;
+    /**
+     * Our observers, mapped by their load markers.
+     */
+    private ConcurrentMap<LoadMarker,WorldObserver> markersToObservers;
     
+    /**
+     * Netty buffer allocator.
+     */
     private ByteBufAllocator alloc;
+    
+    public SendingLoadListener(OffheapWorld world, ByteBufAllocator alloc) {
+        this.world = world;
+        this.markersToObservers = new ConcurrentHashMap<>();
+        this.alloc = alloc;
+    }
+    
+    public void addObserver(WorldObserver observer) {
+        markersToObservers.put(observer.getLoadMarker(), observer);
+    }
+    
+    public void removeObserver(WorldObserver observer) {
+        markersToObservers.remove(observer.getLoadMarker());
+    }
 
     @Override
     public void octreeLoaded(long addr, long groupAddr, int id, float x, float y, float z, float scale,
@@ -35,7 +55,7 @@ public class SendingLoadListener implements WorldLoadListener, NetMagicValues {
             return;
         }
         
-        // TODO merge many octrees to one packet
+        observer.octreeLoaded(alloc, addr, id); // Observer does bulk sending
     }
 
     @Override
@@ -54,7 +74,16 @@ public class SendingLoadListener implements WorldLoadListener, NetMagicValues {
         msg.writerIndex(len + 5); // Move writer index to end of data
         
         // Push data to observer, potentially in multiple parts, reliably and don't forget to get a receipt
-        observer.getConnection().sendMessage(msg, (byte) (FLAG_PARTIAL | FLAG_RELIABLE | FLAG_VERIFY));
+        observer.getConnection().sendMessage(msg, FLAG_PARTIAL | FLAG_RELIABLE | FLAG_VERIFY);
+        observer.getConnection().flush(); // FLAG_RELIABLE mandates immediate flushing currently
     }
     
+    @Override
+    public void finished(LoadMarker trigger) {
+        WorldObserver observer = markersToObservers.get(trigger);
+        if (observer == null) {
+            return;
+        }
+        observer.octreesFinished(alloc);
+    }
 }

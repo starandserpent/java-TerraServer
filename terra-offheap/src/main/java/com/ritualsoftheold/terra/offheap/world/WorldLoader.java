@@ -242,6 +242,9 @@ public class WorldLoader {
             // And since this is not master octree anymore, remember to fire an event
             listener.octreeLoaded(addr, octreeStorage.getGroup(nodeId >>> 24), nodeId, subNodeX, subNodeY, subNodeZ, scale, trigger);
         }
+        
+        // Finally, tell listener we are done (mainly to support network batching)
+        listener.finished(trigger);
     }
     
     private void checkEnlarge(float nodeX, float nodeY, float nodeZ, float rX, float rY, float rZ, float scale, float range) {

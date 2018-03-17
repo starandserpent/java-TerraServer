@@ -90,6 +90,11 @@ public class OffheapOctree implements Octree, OffheapNode {
     public long memoryAddress() {
         return addr;
     }
+    
+    @Override
+    public int memoryLength() {
+        return DataConstants.OCTREE_SIZE;
+    }
 
     @Override
     public void close() throws Exception {
