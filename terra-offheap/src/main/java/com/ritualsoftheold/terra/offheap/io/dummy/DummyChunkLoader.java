@@ -15,9 +15,4 @@ public class DummyChunkLoader implements ChunkLoader {
         return buf;
     }
 
-    @Override
-    public int countBuffers() {
-        return 0;
-    }
-
 }

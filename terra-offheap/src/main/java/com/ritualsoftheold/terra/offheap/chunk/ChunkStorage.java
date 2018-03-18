@@ -58,16 +58,17 @@ public class ChunkStorage {
         boolean secondTry = true;
         while (true) {
             for (int i = 0; i < buffers.length(); i++) {
-                ChunkBuffer buf = buffers.get(i); // TODO performance
+                ChunkBuffer buf = buffers.get(i);
                 
                 if (buf == null) { // Oh, that buffer is not loaded
                     if (secondTry) {
-                        loadBuffer(i); // Load it, now
-                        buf = buffers.get(i);
-                    } else { // Ignore if there is potential to not have load anything
+                        buf = loadBuffer(i); // Load it, now
+                    } else { // Ignore if there is potential to not have load new buffers
                         continue;
                     }
                 }
+                
+                buf.waitLoading(); // Make sure it is safe to use
                 
                 if (buf.getFreeCapacity() > 0) {
                     int index = buf.newChunk();
@@ -81,31 +82,38 @@ public class ChunkStorage {
             
             // We failed to find free space even after loading null buffers
             if (secondTry) {
-                throw new IllegalStateException("cannot create a new chunk");
+                throw new IllegalStateException("chunk buffers exhausted, cannot create new chunk");
             }
             
             secondTry = true;
-            // ... until success
+            // Try again, this time with loading more buffers enabled
         }
     }
 
     /**
-     * Loads given chunk buffer.
+     * Loads the chunk buffer with given index.
      * @param index Index for buffer.
+     * @return The buffer.
      */
-    private void loadBuffer(int index) {
+    private ChunkBuffer loadBuffer(int index) {
         boolean success = createBuffer(index);
         if (!success) {
-            return; // Someone else is loading the buffer
+            // Someone else created the buffer
+            ChunkBuffer buf = buffers.get(index);
+            buf.waitLoading();
+            return buf;
         }
         
         loader.loadChunks(index, buffers.get(index));
+        ChunkBuffer buf = buffers.get(index);
+        buf.loadingReady(); // We're done, other threads can access the buffer now
+        return buf;
     }
     
     /**
      * Creates a chunk buffer and assigns to given index. Note that this
      * operation is synchronous to prevent creation of conflicting chunk
-     * buffers. If it returns true,
+     * buffers. If it returns false, someone else created the buffer.
      * @param index Index for new buffer.
      * @return If creation succeeded.
      */
@@ -153,6 +161,7 @@ public class ChunkStorage {
             loadBuffer(index);
             buf = buffers.get(index);
         }
+        buf.waitLoading();
         return buf;
     }
 

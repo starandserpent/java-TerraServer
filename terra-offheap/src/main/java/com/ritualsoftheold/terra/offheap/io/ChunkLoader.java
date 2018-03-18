@@ -16,11 +16,4 @@ public interface ChunkLoader {
     ChunkBuffer loadChunks(int index, ChunkBuffer buf);
     
     ChunkBuffer saveChunks(int i, ChunkBuffer buf);
-    
-    /**
-     * Counts buffers that currently exist for this loader. Note that
-     * this might literally count them so performance might vary.
-     * @return Number of existing buffers.
-     */
-    int countBuffers();
 }

@@ -36,6 +36,7 @@ public class TerraMessages {
      * Delivers a single chunk.
      * <ul>
      * <li>1 byte: chunk type
+     * <li>4 bytes: chunk id
      * <li>4 bytes: data length
      * <li>rest: the chunk data
      * </ul>

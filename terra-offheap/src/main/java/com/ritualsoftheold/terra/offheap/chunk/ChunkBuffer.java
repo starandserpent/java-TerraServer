@@ -311,6 +311,13 @@ public class ChunkBuffer {
     
     private int staticDataLength;
     
+    /**
+     * ChunkStorage waits on this before performing actions on the buffer.
+     * Not volatile, because getting previous value just makes the wait
+     * a tiny bit longer.
+     */
+    private boolean ready;
+    
     public ChunkBuffer(int id, int maxChunks, int globalQueueSize, int chunkQueueSize, MemoryUseListener memListener) {
         int globalQueueLen = globalQueueSize * 8;
         int chunkQueueLen = chunkQueueSize * 8 * maxChunks;
@@ -565,5 +572,20 @@ public class ChunkBuffer {
 
     public Allocator getAllocator() {
         return allocator;
+    }
+
+    public boolean isReady() {
+        return ready;
+    }
+    
+    public void loadingReady() {
+        ready = true;
+    }
+
+    public void waitLoading() {
+        while (!ready) {
+            // Block until ready
+            // TODO Java 9 spinlock hint
+        }
     }
 }

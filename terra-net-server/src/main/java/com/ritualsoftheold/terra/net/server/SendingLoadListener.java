@@ -66,11 +66,12 @@ public class SendingLoadListener implements WorldLoadListener, NetMagicValues {
         }
         
         int len = chunk.memoryLength();
-        ByteBuf msg = alloc.buffer(len + 5); // 5 for header
+        ByteBuf msg = alloc.buffer(len + 9); // 9 for header
         
         msg.writeByte(chunk.getBuffer().getChunkType(chunk.getBufferId())); // Chunk type
+        msg.writeInt(chunk.getBuffer().getId() << 16 | chunk.getBufferId()); // Full id of the chunk
         msg.writeInt(len); // Chunk data length
-        world.copyChunkData(chunk.getBufferId(), msg.memoryAddress() + 5); // World helper to copy the chunk
+        world.copyChunkData(chunk.getBufferId(), msg.memoryAddress() + 9); // World helper to copy the chunk
         msg.writerIndex(len + 5); // Move writer index to end of data
         
         // Push data to observer, potentially in multiple parts, reliably and don't forget to get a receipt

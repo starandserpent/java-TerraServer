@@ -86,17 +86,4 @@ public class FileChunkLoader implements ChunkLoader {
         return buf;
     }
 
-    @Override
-    public int countBuffers() {
-        int count = 0;
-        try {
-            for (@SuppressWarnings("unused") Path file : Files.newDirectoryStream(dir)) {
-                count++;
-            }
-        } catch (IOException e) {
-            throw new IORuntimeException(e);
-        }
-        return count;
-    }
-
 }

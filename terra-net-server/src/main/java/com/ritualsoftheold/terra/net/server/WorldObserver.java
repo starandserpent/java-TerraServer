@@ -1,9 +1,9 @@
 package com.ritualsoftheold.terra.net.server;
 
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
 import com.ritualsoftheold.terra.offheap.DataConstants;
+import com.ritualsoftheold.terra.offheap.Pointer;
 import com.ritualsoftheold.terra.world.LoadMarker;
 import com.starandserpent.venom.NetMagicValues;
 import com.starandserpent.venom.UdpConnection;
@@ -25,7 +25,7 @@ public class WorldObserver implements NetMagicValues {
     
     private UdpConnection conn;
     
-    private AtomicLong pendingOctrees;
+    private @Pointer AtomicLong pendingOctrees;
     
     private int octreesPerPacket;
     
@@ -91,7 +91,9 @@ public class WorldObserver implements NetMagicValues {
         // Put address back, thus ending spin wait
         unlockOctrees(addr);
         
-        conn.flush(); // Flush after unlocking, might allow better concurrency
+        if (doFlush) {
+            conn.flush(); // Flush after unlocking, might allow better concurrency
+        }
     }
 
     void octreesFinished(ByteBufAllocator alloc) {
