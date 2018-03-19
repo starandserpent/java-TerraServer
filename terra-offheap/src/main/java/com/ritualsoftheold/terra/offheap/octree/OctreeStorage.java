@@ -25,9 +25,14 @@ public class OctreeStorage {
     private static final Memory mem = OS.memory();
     
     /**
-     * Memory address of data (kinda array) which stores memory addresses.
+     * Memory address of octree groups.
      */
     private AtomicLongArray groups;
+    
+    /**
+     * Availability data addresses for octree groups.
+     */
+    private AtomicLongArray availability;
     
     /**
      * Memory address of data which contains timestamps for when
@@ -60,7 +65,7 @@ public class OctreeStorage {
     
     private long countAddr;
     
-    public OctreeStorage(int blockSize, OctreeLoader loader, Executor executor, MemoryUseListener memListener) {
+    public OctreeStorage(int blockSize, OctreeLoader loader, Executor executor, MemoryUseListener memListener, boolean availibility) {
         this.loader = loader;
         this.loaderExecutor = executor;
         this.memListener = memListener;
@@ -73,6 +78,11 @@ public class OctreeStorage {
         countAddr = getGroupMeta(0);
         if (mem.readVolatileInt(countAddr) == 0) { // Point over master group, we don't add octrees there normally
             mem.writeVolatileInt(countAddr, blockSize - 1);
+        }
+        
+        // Enable availibility checking if needed
+        if (availibility) {
+            this.availability = new AtomicLongArray(256);
         }
     }
     
@@ -131,11 +141,22 @@ public class OctreeStorage {
     public long getGroup(int group) {
         long addr = groups.get(group);
         if (addr == 0) {
-            addr = loader.loadOctrees(group, 0);
+            addr = loader.loadOctrees(group, 0); // Loader will assign the address for now
             if (groups.compareAndSet(group, 0, addr)) {
-                memListener.onAllocate(blockSize);
+                memListener.onAllocate(blockSize * DataConstants.OCTREE_SIZE + DataConstants.OCTREE_GROUP_META);
+                // Tell the memory listener, we'll keep this RAM
+                
+                // Availability storage
+                if (availability != null) {
+                    long avAddr = availability.get(group);
+                    if (avAddr == 0) { // Need to allocate
+                        avAddr = mem.allocate(blockSize); // 1 byte per octree
+                    }
+                    mem.setMemory(avAddr, blockSize, (byte) 0); // Clear whatever was there
+                    availability.set(group, avAddr);
+                }
             } else { // Another thread was quicker, we should just free memory now
-                mem.freeMemory(addr, blockSize + DataConstants.OCTREE_GROUP_META);
+                mem.freeMemory(addr, blockSize * DataConstants.OCTREE_SIZE + DataConstants.OCTREE_GROUP_META);
             }
         }
         
@@ -237,7 +258,30 @@ public class OctreeStorage {
         int groupIndex = index >>> 24;
         int octreeIndex = index & 0xffffff;
         long groupAddr = getGroup(groupIndex);
+        
+        // Ensure that octree is available
+        if (availability != null) { // Optimized: either triggered always (client) or never (server)
+            while (true) {
+                long avData = availability.get(groupIndex);
+                if (avData == 0) {
+                    // Not yet ready. Spin-wait
+                    continue;
+                }
+                while (mem.readVolatileByte(avData + octreeIndex) == 0) {
+                    // Wait for it to become available
+                    // TODO Java 9 spin wait
+                }
+            }
+        }
         return groupAddr + octreeIndex * DataConstants.OCTREE_SIZE;
+    }
+    
+    public void setAvailability(int index, byte available) {
+        int groupIndex = index >>> 24;
+        int octreeIndex = index & 0xffffff;
+        
+        long avData = availability.get(groupIndex);
+        mem.writeVolatileByte(avData + octreeIndex, available);
     }
 
     public AtomicLongArray getGroups() {
