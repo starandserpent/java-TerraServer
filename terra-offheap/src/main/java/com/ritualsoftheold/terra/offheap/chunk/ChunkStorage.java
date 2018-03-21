@@ -171,7 +171,8 @@ public class ChunkStorage {
      */
     public void ensureLoaded(int chunkId) {
         int bufIndex = chunkId >>> 16;
-        getOrLoadBuffer(bufIndex);
+        // Wait buffer ready, then wait chunk ready
+        getOrLoadBuffer(bufIndex).waitChunkReady(chunkId & 0xffff);;
     }
     
     /**

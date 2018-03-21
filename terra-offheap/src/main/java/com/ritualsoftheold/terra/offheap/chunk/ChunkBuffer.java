@@ -318,7 +318,13 @@ public class ChunkBuffer {
      */
     private boolean ready;
     
-    public ChunkBuffer(int id, int maxChunks, int globalQueueSize, int chunkQueueSize, MemoryUseListener memListener) {
+    /**
+     * If we should perform ready checks on individual chunks. If false, they
+     * will do nothing.
+     */
+    private boolean perChunkReady;
+    
+    public ChunkBuffer(int id, int maxChunks, int globalQueueSize, int chunkQueueSize, MemoryUseListener memListener, boolean perChunkReady) {
         int globalQueueLen = globalQueueSize * 8;
         int chunkQueueLen = chunkQueueSize * 8 * maxChunks;
         
@@ -356,6 +362,8 @@ public class ChunkBuffer {
         
         // Initialize chunk memory allocator
         this.allocator = new Allocator();
+        
+        this.perChunkReady = perChunkReady;
     }
     
     /**
@@ -458,6 +466,7 @@ public class ChunkBuffer {
         private int maxChunks;
         private int globalQueueSize;
         private int chunkQueueSize;
+        private boolean perChunkReady;
         private MemoryUseListener memListener;
         
         public Builder maxChunks(int maxChunks) {
@@ -480,8 +489,13 @@ public class ChunkBuffer {
             return this;
         }
         
+        public Builder perChunkReady(boolean enabled) {
+            this.perChunkReady = enabled;
+            return this;
+        }
+        
         public ChunkBuffer build(int index) {
-            return new ChunkBuffer(index, maxChunks, globalQueueSize, chunkQueueSize, memListener);
+            return new ChunkBuffer(index, maxChunks, globalQueueSize, chunkQueueSize, memListener, perChunkReady);
         }
     }
     
@@ -586,6 +600,19 @@ public class ChunkBuffer {
         while (!ready) {
             // Block until ready
             // TODO Java 9 spinlock hint
+        }
+    }
+    
+    public boolean isChunkReady(int index) {
+        if (perChunkReady) // Hopefully JIT will get rid of this check entirely (branch prediction)
+            return getChunkAddr(index) != 0;
+        return true;
+    }
+    
+    public void waitChunkReady(int index) {
+        while (!isChunkReady(index)) {
+            // Block until that chunk is received
+            // TODO Java 9 spin wait
         }
     }
 }

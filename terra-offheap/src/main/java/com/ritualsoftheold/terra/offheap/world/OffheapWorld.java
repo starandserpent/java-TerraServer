@@ -87,6 +87,8 @@ public class OffheapWorld implements TerraWorld {
         private ChunkBuffer.Builder chunkBufferBuilder;
         private int chunkMaxBuffers;
         
+        private boolean perNodeReady;
+        
         public Builder() {
             world = new OffheapWorld();
         }
@@ -141,6 +143,11 @@ public class OffheapWorld implements TerraWorld {
             return this;
         }
         
+        public Builder perNodeReady(boolean enabled) {
+            this.perNodeReady = enabled;
+            return this;
+        }
+        
         public OffheapWorld build() {
             // Initialize some internal structures AFTER all user-controller initialization
             world.loadMarkers = new ArrayList<>();
@@ -150,8 +157,9 @@ public class OffheapWorld implements TerraWorld {
             world.memManager = new MemoryManager(world, memPreferred, memMax, memPanicHandler);
             
             // Initialize stuff that needs memory manager
-            world.octreeStorage = new OctreeStorage(octreeGroupSize, world.octreeLoader, world.storageExecutor, world.memManager);
+            world.octreeStorage = new OctreeStorage(octreeGroupSize, world.octreeLoader, world.storageExecutor, world.memManager, perNodeReady);
             chunkBufferBuilder.memListener(world.memManager);
+            chunkBufferBuilder.perChunkReady(perNodeReady);
             world.chunkStorage = new ChunkStorage(chunkBufferBuilder, chunkMaxBuffers, world.chunkLoader, world.storageExecutor);
             
             // Initialize memory manager with storages
