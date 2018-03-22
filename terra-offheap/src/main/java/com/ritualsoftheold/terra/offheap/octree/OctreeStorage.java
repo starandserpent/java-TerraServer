@@ -6,6 +6,7 @@ import java.util.concurrent.atomic.AtomicIntegerArray;
 import java.util.concurrent.atomic.AtomicLongArray;
 
 import com.ritualsoftheold.terra.material.MaterialRegistry;
+import com.ritualsoftheold.terra.offheap.BuildConfig;
 import com.ritualsoftheold.terra.offheap.DataConstants;
 import com.ritualsoftheold.terra.offheap.Pointer;
 import com.ritualsoftheold.terra.offheap.io.OctreeLoader;
@@ -147,7 +148,7 @@ public class OctreeStorage {
      * @return Address for group.
      */
     public long getGroup(int group) {
-        long addr = groups.get(group);
+        long addr = groups.get(group); // This does OOB check
         if (addr == 0) {
             addr = loader.loadOctrees(group, 0); // Loader will assign the address for now
             if (groups.compareAndSet(group, 0, addr)) {
@@ -263,8 +264,8 @@ public class OctreeStorage {
     }
     
     public long getOctreeAddr(int index) {
-        int groupIndex = index >>> 24;
-        int octreeIndex = index & 0xffffff;
+        int groupIndex = index >>> 24; // Unsigned shift!
+        int octreeIndex = index & 0xffffff; // Unsigned, but fits in to int: still 7 bits unused
         long groupAddr = getGroup(groupIndex);
         
         // Ensure that octree is available
@@ -305,7 +306,7 @@ public class OctreeStorage {
      * @return Octree index for master octree.
      */
     public int getMasterIndex() {
-        return mem.readInt(getGroupMeta((byte) 0) + 4);
+        return mem.readVolatileInt(getGroupMeta((byte) 0) + 4);
     }
     
     /**
@@ -328,8 +329,8 @@ public class OctreeStorage {
     }
 
     public float getCenterPoint(int type) {
-        long addr = getGroupMeta((byte) 0) + 12 + type * 4;
-        return mem.readFloat(addr);
+        long addr = getGroupMeta(0) + 12 + type * 4;
+        return mem.readVolatileFloat(addr);
     }
     
     public int markUsed(int index) {

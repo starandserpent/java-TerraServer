@@ -147,7 +147,7 @@ public class ChunkStorage {
      * @return Chunk buffer (or null).
      */
     public ChunkBuffer getBuffer(int index) {
-        return buffers.get(index);
+        return buffers.get(index); // Does OOB check
     }
     
     /**
@@ -156,7 +156,7 @@ public class ChunkStorage {
      * @return
      */
     public ChunkBuffer getOrLoadBuffer(int index) {
-        ChunkBuffer buf = buffers.get(index);
+        ChunkBuffer buf = buffers.get(index); // Does OOB check
         if (buf == null) { // Not available, load it
             loadBuffer(index);
             buf = buffers.get(index);
