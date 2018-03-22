@@ -2,7 +2,6 @@ package com.ritualsoftheold.terra.offheap.octree;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicIntegerArray;
 import java.util.concurrent.atomic.AtomicLongArray;
 
@@ -87,6 +86,15 @@ public class OctreeStorage {
     }
     
     /**
+     * Gets amount of memory (in bytes) that given amount of octrees uses.
+     * @param count How many octrees.
+     * @return Size of said octrees.
+     */
+    private int getOctreesSize(int count) {
+        return count * DataConstants.OCTREE_SIZE;
+    }
+    
+    /**
      * Adds octrees with given index from given address. After this has been
      * done, do NOT touch the data following the memory address.
      * @param index Octree group index.
@@ -115,7 +123,7 @@ public class OctreeStorage {
                 }
             }
             
-            int amount = blockSize + DataConstants.OCTREE_GROUP_META;
+            int amount = getOctreesSize(blockSize) + DataConstants.OCTREE_GROUP_META;
             if (saveFirst) {
                 saveGroup(index, addr).thenRun(() -> {
                     mem.freeMemory(addr, amount);
@@ -143,7 +151,7 @@ public class OctreeStorage {
         if (addr == 0) {
             addr = loader.loadOctrees(group, 0); // Loader will assign the address for now
             if (groups.compareAndSet(group, 0, addr)) {
-                memListener.onAllocate(blockSize * DataConstants.OCTREE_SIZE + DataConstants.OCTREE_GROUP_META);
+                memListener.onAllocate(getOctreesSize(blockSize) + DataConstants.OCTREE_GROUP_META);
                 // Tell the memory listener, we'll keep this RAM
                 
                 // Availability storage
@@ -156,7 +164,7 @@ public class OctreeStorage {
                     availability.set(group, avAddr);
                 }
             } else { // Another thread was quicker, we should just free memory now
-                mem.freeMemory(addr, blockSize * DataConstants.OCTREE_SIZE + DataConstants.OCTREE_GROUP_META);
+                mem.freeMemory(addr, getOctreesSize(blockSize) + DataConstants.OCTREE_GROUP_META);
             }
         }
         
@@ -307,9 +315,9 @@ public class OctreeStorage {
      */
     public float getMasterScale(float def) {
         long addr = getGroupMeta((byte) 0) + 8;
-        float val = mem.readFloat(addr);
+        float val = mem.readVolatileFloat(addr);
         if (val == 0) {
-            mem.writeFloat(addr, def);
+            mem.writeVolatileFloat(addr, def);
             return def;
         }
         return val;
