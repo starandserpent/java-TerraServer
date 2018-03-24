@@ -55,7 +55,7 @@ public class SendingLoadListener implements WorldLoadListener, NetMagicValues {
             return;
         }
         
-        observer.octreeLoaded(alloc, addr, id); // Observer does bulk sending
+        observer.octreeLoaded(alloc, addr, id, scale); // Observer does bulk sending
     }
 
     @Override
