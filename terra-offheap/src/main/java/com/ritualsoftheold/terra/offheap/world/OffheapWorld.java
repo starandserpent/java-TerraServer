@@ -23,6 +23,7 @@ import com.ritualsoftheold.terra.offheap.memory.MemoryManager;
 import com.ritualsoftheold.terra.offheap.memory.MemoryPanicHandler;
 import com.ritualsoftheold.terra.offheap.node.OffheapOctree;
 import com.ritualsoftheold.terra.offheap.octree.OctreeStorage;
+import com.ritualsoftheold.terra.offheap.verifier.TerraVerifier;
 import com.ritualsoftheold.terra.world.LoadMarker;
 import com.ritualsoftheold.terra.world.TerraWorld;
 import com.ritualsoftheold.terra.world.gen.WorldGenerator;
@@ -143,7 +144,7 @@ public class OffheapWorld implements TerraWorld {
             return this;
         }
         
-        public Builder perNodeReady(boolean enabled) {
+        public Builder perNodeReadyCheck(boolean enabled) {
             this.perNodeReady = enabled;
             return this;
         }
@@ -479,5 +480,15 @@ public class OffheapWorld implements TerraWorld {
         octreeStorage.markUnused(index); // Allow unloading again, copy finished
         
         return length;
+    }
+    
+    /**
+     * Creates a new data verifier, configured to work with settings of this
+     * world. It is not valid for any other worlds!
+     * @return A new Terra verifier for this world.
+     */
+    public TerraVerifier createVerifier() {
+        return new TerraVerifier(octreeStorage.getGroupSize(), chunkStorage.getBufferBuilder().maxChunks(),
+                chunkStorage.getAllBuffers().length());
     }
 }
