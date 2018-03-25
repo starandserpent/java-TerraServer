@@ -43,6 +43,12 @@ public class TerraMessages {
      */
     public static final MessageType CHUNK_DELIVERY = types.create();
     
+    /**
+     * TODO implement support for replicating world changes to clients.
+     * That should come after not-so-changeable world works reliably.
+     */
+    public static final MessageType BLOCK_DELTAS = types.create();
+    
     public static MessageTypes getTypes() {
         return types;
     }
