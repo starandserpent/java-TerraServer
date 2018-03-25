@@ -10,6 +10,10 @@ import io.netty.buffer.ByteBuf;
 import net.openhft.chronicle.core.Memory;
 import net.openhft.chronicle.core.OS;
 
+/**
+ * Handles chunks sent over network.
+ *
+ */
 public class ChunkMsgHandler implements MessageHandler {
     
     private static final Memory mem = OS.memory();
@@ -17,6 +21,11 @@ public class ChunkMsgHandler implements MessageHandler {
     private ChunkStorage storage;
     
     private TerraVerifier verifier;
+    
+    public ChunkMsgHandler(ChunkStorage storage, TerraVerifier verifier) {
+        this.storage = storage;
+        this.verifier = verifier;
+    }
     
     @Override
     public void receive(UdpConnection conn, ByteBuf msg, byte flags) {
