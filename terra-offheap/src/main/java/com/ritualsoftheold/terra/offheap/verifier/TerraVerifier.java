@@ -58,34 +58,52 @@ public class TerraVerifier {
             for (int i = 0; i < 8; i++) {
                 if ((flags >>> i & 1) == 1) { // Must verify: chunk
                     int node = mem.readVolatileInt(dataAddr + i * DataConstants.OCTREE_NODE_SIZE);
-                    int bufId = node >>> 16;
-                    int chunkId = node & 0xffff;
-                    
-                    // Potential over or underflows
-                    if (bufId < 0 || bufId >= maxChunkBuffers) {
-                        throw new VerifyFailedError("chunkptr, bufId: " + bufId);
-                    }
-                    if (chunkId < 0 || chunkId >= chunkBufferSize) {
-                        throw new VerifyFailedError("chunkptr, id: " + chunkId);
-                    }
+                    verifyChunkId(node);
                 } // Else: need not verify: material id
             }
         } else { // Children are octrees or single nodes
             for (int i = 0; i < 8; i++) {
                 if ((flags >>> i & 1) == 1) { // Must verify: octree
                     int node = mem.readVolatileInt(dataAddr + i * DataConstants.OCTREE_NODE_SIZE);
-                    int groupId = node >>> 24;
-                    int octreeId = node & 0xffffff;
-                    
-                    // Potential over or underflows
-                    if (groupId < 0 || groupId >= 256) {
-                        throw new VerifyFailedError("octreeptr, groupId: " + groupId);
-                    }
-                    if (octreeId < 0 || octreeId >= octreeBlockSize) {
-                        throw new VerifyFailedError("octreeptr, id: " + octreeId);
-                    }
+                    verifyOctreeId(node);
                 } // Else: need not verify: material id
             }
+        }
+    }
+    
+    /**
+     * Verifies that a the given chunk id is safe. If it is not,
+     * a {@link VerifyFailedError} is thrown.
+     * @param id Full chunk id.
+     */
+    public void verifyChunkId(int id) {
+        int bufId = id >>> 16;
+        int chunkId = id & 0xffff;
+        
+        // Potential over or underflows
+        if (bufId < 0 || bufId >= maxChunkBuffers) {
+            throw new VerifyFailedError("chunkptr, bufId: " + bufId);
+        }
+        if (chunkId < 0 || chunkId >= chunkBufferSize) {
+            throw new VerifyFailedError("chunkptr, id: " + chunkId);
+        }
+    }
+    
+    /**
+     * Verifies that a the given octree id is safe. If it is not,
+     * a {@link VerifyFailedError} is thrown.
+     * @param id Full octree id.
+     */
+    public void verifyOctreeId(int id) {
+        int groupId = id >>> 24;
+        int octreeId = id & 0xffffff;
+        
+        // Potential over or underflows
+        if (groupId < 0 || groupId >= 256) {
+            throw new VerifyFailedError("octreeptr, groupId: " + groupId);
+        }
+        if (octreeId < 0 || octreeId >= octreeBlockSize) {
+            throw new VerifyFailedError("octreeptr, id: " + octreeId);
         }
     }
 }

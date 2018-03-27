@@ -60,7 +60,7 @@ public class WorldObserver implements NetMagicValues {
         pendingOctrees.set(addr);
     }
     
-    void octreeLoaded(ByteBufAllocator alloc, long octree, int id) {
+    void octreeLoaded(ByteBufAllocator alloc, long octree, int id, float scale) {
         // Get exclusive access to address
         long addr = lockOctrees();
         
@@ -84,8 +84,9 @@ public class WorldObserver implements NetMagicValues {
         }
         
         // Write octree id and data to address we have
-        mem.writeInt(addr + pendingIndex * entrySize, id);
-        mem.copyMemory(octree, addr + pendingIndex * entrySize + 4, DataConstants.OCTREE_SIZE);
+        mem.writeInt(addr + pendingIndex * entrySize, id); // Octree id
+        mem.writeByte(addr + pendingIndex * entrySize + 4, (byte) (scale < DataConstants.CHUNK_SCALE * 2 ? 1 : 0)); // If subnodes are chunks
+        mem.copyMemory(octree, addr + pendingIndex * entrySize + 5, DataConstants.OCTREE_SIZE); // Octree data
         pendingIndex++; // Next free slot
         
         // Put address back, thus ending spin wait

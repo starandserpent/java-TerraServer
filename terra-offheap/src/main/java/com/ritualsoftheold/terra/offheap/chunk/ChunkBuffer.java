@@ -474,9 +474,17 @@ public class ChunkBuffer {
             return this;
         }
         
+        public int maxChunks() {
+            return maxChunks;
+        }
+        
         public Builder globalQueue(int size) {
             this.globalQueueSize = size;
             return this;
+        }
+        
+        public int globaQueue() {
+            return globalQueueSize;
         }
         
         public Builder chunkQueue(int size) {
@@ -484,14 +492,26 @@ public class ChunkBuffer {
             return this;
         }
         
+        public int chunkQueue() {
+            return chunkQueueSize;
+        }
+        
         public Builder memListener(MemoryUseListener listener) {
             this.memListener = listener;
             return this;
         }
         
+        public MemoryUseListener memListener() {
+            return memListener;
+        }
+        
         public Builder perChunkReady(boolean enabled) {
             this.perChunkReady = enabled;
             return this;
+        }
+        
+        public boolean perChunkReady() {
+            return perChunkReady;
         }
         
         public ChunkBuffer build(int index) {

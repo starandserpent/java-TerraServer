@@ -308,4 +308,13 @@ public class ChunkStorage {
             // And then buffer "wrapper" object is left for GC to claim
         }, executor);
     }
+
+    /**
+     * Gets the chunk buffer builder that this storage uses to
+     * create new buffers. Modifications to it are not recommended.
+     * @return Buffer builder.
+     */
+    public ChunkBuffer.Builder getBufferBuilder() {
+        return bufferBuilder;
+    }
 }
