@@ -178,7 +178,7 @@ public class ChunkBufferTest {
             assertEquals(0, buf.getBlock(i, 2));
         }
         
-//        // Test saving data...
+        // Test saving data...
         int saveSize = buf.getSaveSize();
         long saveAddr = mem.allocate(saveSize);
         buf.save(saveAddr);

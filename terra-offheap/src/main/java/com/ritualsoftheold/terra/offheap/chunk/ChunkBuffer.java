@@ -1,6 +1,7 @@
 package com.ritualsoftheold.terra.offheap.chunk;
 
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.locks.LockSupport;
 
 import com.ritualsoftheold.terra.offheap.BuildConfig;
 import com.ritualsoftheold.terra.offheap.Pointer;

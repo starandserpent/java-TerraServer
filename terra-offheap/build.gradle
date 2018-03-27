@@ -2,3 +2,8 @@ dependencies {
     compile project(':terra-core')
     compile 'net.openhft:chronicle-core:1.11.0'
 }
+
+// Exclude the SLOW tests from Gradle build
+test {
+    exclude 'com/ritualsoftheold/terra/offheap/test/MemoryTest.class'
+}
