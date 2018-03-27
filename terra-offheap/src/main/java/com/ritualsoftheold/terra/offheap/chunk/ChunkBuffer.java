@@ -131,6 +131,11 @@ public class ChunkBuffer {
             // Zero beginning block (data is flushed already)
             mem.setMemory(addr, oldCount * 8, (byte) 0);
             
+            // Fences are necessary, otherwise unloading this buffer VERY soon
+            // (in unit tests, mostly) would crash the JVM
+            mem.loadFence();
+            mem.storeFence();
+            
             // Zero the position
             int newCount = pos.getAndSet(0);
             
