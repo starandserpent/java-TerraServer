@@ -165,7 +165,7 @@ public class MemoryManager implements MemoryUseListener {
             @Override
             public void octreeLoaded(long addr, long groupAddr, int id, float x, float y, float z,
                     float scale, LoadMarker trigger) {
-                System.out.println("Used group: " + (id >>> 24));
+                //System.out.println("Used group: " + (id >>> 24));
                 usedOctreeGroups.add(id >>> 24);
             }
             

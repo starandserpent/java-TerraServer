@@ -54,7 +54,6 @@ public class WorldGenManager {
      * @param scale Scale.
      */
     public void generate(long addr, int index, float x, float y, float z, float scale) {
-        System.out.println("Handle generate: " + x + ", " + y + ", " + z);
         short[] data = new short[DataConstants.CHUNK_MAX_BLOCKS];
         WorldGenerator.Metadata meta = new WorldGenerator.Metadata();
         
@@ -78,7 +77,6 @@ public class WorldGenManager {
             // TODO fix potential race conditions
         } else {
             int id = chunkStorage.newChunk();
-            System.out.println("Created chunk: " + id);
             if (!mem.compareAndSwapInt(addr + index * 4, 0, id)) {
                 // Someone got there before us!
                 return; // -> they get to do this

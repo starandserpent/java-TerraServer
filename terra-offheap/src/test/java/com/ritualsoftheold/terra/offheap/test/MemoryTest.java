@@ -4,6 +4,7 @@ import static org.junit.Assert.*;
 
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -13,7 +14,9 @@ import com.ritualsoftheold.terra.offheap.chunk.ChunkBuffer;
 import com.ritualsoftheold.terra.offheap.io.dummy.DummyChunkLoader;
 import com.ritualsoftheold.terra.offheap.io.dummy.DummyOctreeLoader;
 import com.ritualsoftheold.terra.offheap.memory.MemoryPanicHandler;
+import com.ritualsoftheold.terra.offheap.node.OffheapChunk;
 import com.ritualsoftheold.terra.offheap.world.OffheapWorld;
+import com.ritualsoftheold.terra.offheap.world.WorldLoadListener;
 import com.ritualsoftheold.terra.world.LoadMarker;
 import com.ritualsoftheold.terra.world.gen.EmptyWorldGenerator;
 
@@ -65,12 +68,27 @@ public class MemoryTest {
                     }
                 })
                 .build();
-        world.setLoadListener(new DummyLoadListener());
+        AtomicInteger loadedCount = new AtomicInteger(0);
+        world.setLoadListener(new WorldLoadListener() {
+            
+            @Override
+            public void octreeLoaded(long addr, long groupAddr, int id, float x,
+                    float y, float z, float scale, LoadMarker trigger) {
+                loadedCount.incrementAndGet();
+            }
+            
+            @Override
+            public void chunkLoaded(OffheapChunk chunk, float x, float y, float z,
+                    LoadMarker trigger) {
+                
+            }
+        });
         
         world.addLoadMarker(new LoadMarker(0, 0, 0, 256, 256, 0));
         world.updateLoadMarkers().forEach((future) -> future.join());
         System.out.println("Load markers up to date!");
         world.requestUnload();
+        System.out.println("loaded: " + loadedCount);
         
         int counter = 0;
         while (called.get() != true) {
@@ -205,7 +223,7 @@ public class MemoryTest {
                 .generator(new TestWorldGenerator())
                 .generatorExecutor(ForkJoinPool.commonPool())
                 .materialRegistry(new MaterialRegistry())
-                .memorySettings(10000, 10000000, new MemoryPanicHandler() {
+                .memorySettings(1100000, 10000000, new MemoryPanicHandler() {
                     
                     @Override
                     public PanicResult outOfMemory(long max, long used, long possible) {
@@ -217,7 +235,7 @@ public class MemoryTest {
                     @Override
                     public PanicResult goalNotMet(long goal, long possible) {
                         called.set(true);
-                        System.out.println("Goal not met");
+                        System.out.println("Goal not met; goal: " + goal + ", possible: " + possible);
                         return PanicResult.CONTINUE;
                     }
                 })

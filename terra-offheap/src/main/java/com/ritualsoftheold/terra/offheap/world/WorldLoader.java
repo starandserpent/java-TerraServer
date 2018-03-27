@@ -97,7 +97,6 @@ public class WorldLoader {
      * @param trigger Load marker that triggered this operation or null.
      */
     public void seekArea(float x, float y, float z, float range, WorldLoadListener listener, boolean generate, LoadMarker trigger) {
-        System.out.println("I WAS CALLED, scale: " + worldScale);
         /**
          * Node coordinates, start at world center.
          */
@@ -148,7 +147,6 @@ public class WorldLoader {
         int nodeId = masterOctree;
         
         while (true) {
-            System.out.println("LOOPY LOOP");
             // Figure out some stuff about current node
             long addr = octreeStorage.getOctreeAddr(nodeId);
             byte flags = mem.readVolatileByte(addr); // Tells information about child nodes
@@ -229,7 +227,6 @@ public class WorldLoader {
                     || rY + range > subNodeY + posMod || rY - range < subNodeY - posMod // Y coordinate
                     || rZ + range > subNodeZ + posMod || rZ - range < subNodeZ - posMod) { // Z coordinate
                 // When ANY fails: we have found the node over which we must load all
-                System.out.println("First call to loadArea with scale: " + scale + ", range: " + range);
                 loadArea(x, y, z, range, nodeId, scale, nodeX, nodeY, nodeZ, listener, generate, trigger);
                 break;
             }
@@ -363,6 +360,14 @@ public class WorldLoader {
                         subNodeY = nodeY + posMod;
                         subNodeZ = nodeZ + posMod;
                         break;
+                }
+                
+                // Check if we should load this (range)
+                float hitRange = range + scale;
+                if (Math.abs(subNodeX - x) > hitRange
+                        || Math.abs(subNodeY - y) > hitRange
+                        || Math.abs(subNodeZ - z) > hitRange) {
+                    continue; // Range exceeded, do not load
                 }
                 
                 long nodeAddr = addr + i * 4;
