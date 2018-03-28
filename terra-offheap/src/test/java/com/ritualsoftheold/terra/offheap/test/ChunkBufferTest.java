@@ -87,6 +87,7 @@ public class ChunkBufferTest {
         buf.flushChanges();
         
         // Check that changes were made to CORRECT block
+        mem.loadFence(); // TODO memory visibility...
         assertEquals(0, buf.getBlock(2, 0));
         assertEquals(3, buf.getBlock(2, 1));
         assertEquals(0, buf.getBlock(2, 2));

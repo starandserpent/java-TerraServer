@@ -75,7 +75,7 @@ public class RLE22ChunkFormat implements ChunkFormat {
         
         for (int i = 0; true; i++) {
             // Get material and how many of that there are
-            int entry = mem.readInt(chunk + i * 4);
+            int entry = mem.readVolatileInt(chunk + i * 4);
             short mat = (short) (entry & 0xffff);
             int len = Short.toUnsignedInt((short) (entry >>> 16)) + 1;
             int minIndex = blockIndex;

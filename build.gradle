@@ -10,6 +10,7 @@ allprojects {
 
     // In this section you declare where to find the dependencies of your project
     repositories {
+        mavenLocal() // Mainly for snapshot Venom builds
         jcenter()
         maven {
             url ritualsMavenServer
