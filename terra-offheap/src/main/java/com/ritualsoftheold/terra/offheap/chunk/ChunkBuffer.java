@@ -625,7 +625,7 @@ public class ChunkBuffer {
     public void waitLoading() {
         while (!ready) {
             // Block until ready
-            // TODO Java 9 spinlock hint
+            Thread.onSpinWait();
         }
     }
     
@@ -638,7 +638,7 @@ public class ChunkBuffer {
     public void waitChunkReady(int index) {
         while (!isChunkReady(index)) {
             // Block until that chunk is received
-            // TODO Java 9 spin wait
+            Thread.onSpinWait();
         }
     }
 }

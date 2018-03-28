@@ -285,7 +285,7 @@ public class ChunkStorage {
             ChunkBuffer buf = buffers.getAndSet(index, null); // Get buffer, set it to null
             // Once used mark gets to zero, we can unload
             while (true) { // Spin loop until used < 1
-                // TODO Java 9 Thread.onSpinWait
+                Thread.onSpinWait();
                 int used = getUsedCount(index);
                 if (used < 1) {
                     break;

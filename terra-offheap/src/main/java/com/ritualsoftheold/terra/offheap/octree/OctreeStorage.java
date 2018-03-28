@@ -117,7 +117,7 @@ public class OctreeStorage {
         if (addr != 0) {
             // Once used mark gets to zero, we can unload
             while (true) { // Spin loop until used < 1
-                // TODO Java 9 Thread.onSpinWait
+                Thread.onSpinWait();
                 int used = getUsedCount(index);
                 if (used < 1) {
                     break;
@@ -278,7 +278,7 @@ public class OctreeStorage {
                 }
                 while (mem.readVolatileByte(avData + octreeIndex) == 0) {
                     // Wait for it to become available
-                    // TODO Java 9 spin wait
+                    Thread.onSpinWait();
                 }
             }
         }
