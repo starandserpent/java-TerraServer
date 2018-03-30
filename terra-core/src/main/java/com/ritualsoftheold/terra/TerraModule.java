@@ -17,6 +17,10 @@ public class TerraModule {
         this.materials = new HashSet<>();
     }
     
+    /**
+     * Gets unique identifier of this module.
+     * @return Module id.
+     */
     public String getUniqueId() {
         return uniqueId;
     }
