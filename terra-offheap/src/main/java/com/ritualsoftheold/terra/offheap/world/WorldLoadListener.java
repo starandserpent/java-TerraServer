@@ -12,7 +12,7 @@ public interface WorldLoadListener {
     
     /**
      * This method is called when an octree is loaded to storage.
-     * @param addr Address of octree that was loaded.
+     * @param address Address of octree that was loaded.
      * @param groupAddr Address of an octree group where the octree
      * was loaded to.
      * @param id Full id of the octree.

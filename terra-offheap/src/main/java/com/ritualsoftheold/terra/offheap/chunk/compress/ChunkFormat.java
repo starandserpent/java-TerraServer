@@ -37,35 +37,8 @@ public interface ChunkFormat extends WorldDataFormat {
      * @param queue
      * @param size
      */
-    ProcessResult processQueries(OffheapChunk chunk, long queue, int size);
+    OffheapChunk.Storage processQueries(OffheapChunk chunk, long queue, int size);
     
-    /**
-     * Returned as result from processQueries call.
-     * 
-     */
-    public static class ProcessResult {
-        
-        public ProcessResult(int length, int type, @Pointer long addr) {
-            this.length = length;
-            this.type = type;
-            this.address = addr;
-        }
-        
-        /**
-         * Length of chunk after processing the queries.
-         */
-        public final int length;
-        
-        /**
-         * Type of chunk after processing the queries.
-         */
-        public final int type;
-        
-        /**
-         * Memory addresss for the data.
-         */
-        public final @Pointer long address;
-    }
 
     void getBlocks(@Pointer long chunk, int[] indices, short[] ids, int beginIndex, int endIndex);
     

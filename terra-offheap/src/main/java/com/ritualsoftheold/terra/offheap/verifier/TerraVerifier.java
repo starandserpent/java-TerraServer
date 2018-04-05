@@ -46,7 +46,7 @@ public class TerraVerifier {
     /**
      * Verified given octree. If it contains unsafe data, a
      * {@link VerifyFailedError} is thrown.
-     * @param addr Address to octree data.
+     * @param address Address to octree data.
      * @param subChunks If octrees children could be chunks
      * (usually scale ~16 meters).
      */

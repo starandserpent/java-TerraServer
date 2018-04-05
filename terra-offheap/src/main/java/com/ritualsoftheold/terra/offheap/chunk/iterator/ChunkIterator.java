@@ -12,7 +12,7 @@ public interface ChunkIterator {
     /**
      * Gets an iterator for given chunk type id. Throws an exception if no
      * applicable implementation was found.
-     * @param addr Data address.
+     * @param address Data address.
      * @param type Type flag.
      * @return Iterator instance.
      */

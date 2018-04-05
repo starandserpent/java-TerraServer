@@ -237,7 +237,7 @@ public class ChunkBuffer {
         /**
          * Frees memory from chunk data. This is rather low level utily;
          * be careful to NOT free data which may be used
-         * @param addr
+         * @param address
          * @param length
          */
         public void free(@Pointer long addr, int length) {
@@ -269,7 +269,7 @@ public class ChunkBuffer {
         /**
          * Creates a dummy allocator, which will try to use given address
          * if length of first allocation matches length given here.
-         * @param addr Address where there is free.
+         * @param address Address where there is free.
          * @param length Length of free space.
          */
         public Allocator createDummy(@Pointer long addr, int length) {
@@ -528,7 +528,7 @@ public class ChunkBuffer {
     /**
      * Attempts to load given amount of chunks from data for which there is
      * provided a memory address.
-     * @param addr Address of data's start.
+     * @param address Address of data's start.
      * @param count How many chunks are in that data.
      */
     public void load(@Pointer long addr, int count) {

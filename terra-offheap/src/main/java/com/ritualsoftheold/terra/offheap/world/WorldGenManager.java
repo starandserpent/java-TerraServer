@@ -46,7 +46,7 @@ public class WorldGenManager {
      * Generates a piece of world at given coordinates with given scale.
      * The parent octree will be modified to include reference to
      * data once generation is complete.
-     * @param addr Address of parent octree.
+     * @param address Address of parent octree.
      * @param index Index of the piece in its parent octree.
      * @param x X coordinate of center.
      * @param y Y coordinate of center.
@@ -96,7 +96,7 @@ public class WorldGenManager {
             }
             buf.setChunkType(bufIndex, (byte) chunkFormat.getChunkType()); // Type is set last for a good reason
             // Empty chunk will block most calls until it is no longer empty
-            // (so we can safely mess with addr and length before we set type)
+            // (so we can safely mess with address and length before we set type)
         }
         
     }

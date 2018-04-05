@@ -297,7 +297,7 @@ public class WorldLoader {
         //System.out.println("loadArea, scale: " + scale);
         // Fetch data about given node
         long addr = octreeStorage.getOctreeAddr(nodeId); // This also loads the octree with group it is in
-        //System.out.println("loadArea addr: " + addr);
+        //System.out.println("loadArea address: " + address);
         byte flags = mem.readVolatileByte(addr);
         addr += 1; // Skip the flags to data
         

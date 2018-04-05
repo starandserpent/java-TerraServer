@@ -1,6 +1,7 @@
 package com.ritualsoftheold.terra.offheap.node;
 
-import java.util.concurrent.atomic.AtomicBoolean;
+import java.lang.invoke.MethodHandles;
+import java.lang.invoke.VarHandle;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import com.ritualsoftheold.terra.buffer.BlockBuffer;
@@ -9,7 +10,6 @@ import com.ritualsoftheold.terra.node.Chunk;
 import com.ritualsoftheold.terra.offheap.Pointer;
 import com.ritualsoftheold.terra.offheap.chunk.ChunkBuffer;
 import com.ritualsoftheold.terra.offheap.chunk.compress.ChunkFormat;
-import com.ritualsoftheold.terra.offheap.chunk.compress.ChunkFormat.ProcessResult;
 import com.ritualsoftheold.terra.offheap.data.OffheapNode;
 
 import net.openhft.chronicle.core.Memory;
@@ -24,20 +24,54 @@ public class OffheapChunk implements Chunk, OffheapNode {
      */
     private final ChunkBuffer buffer;
     
-    /**
-     * Data format that this chunk uses.
-     */
-    private final ChunkFormat format;
+    public static class Storage implements AutoCloseable {
+        
+        private static final VarHandle userCountHandle;
+        
+        static {
+            try {
+                userCountHandle = MethodHandles
+                    .privateLookupIn(Storage.class, MethodHandles.lookup())
+                    .findVarHandle(Storage.class, "userCount", int.class);
+            } catch (NoSuchFieldException | IllegalAccessException e) {
+                throw new AssertionError("failed to get var handle");
+            }
+        }
+        
+        /**
+         * Data format that this chunk uses.
+         */
+        public final ChunkFormat format;
+        
+        /**
+         * Memory address of data.
+         */
+        public final @Pointer long address;
+        
+        /**
+         * Length of data at the address.
+         */
+        public final int length;
+        
+        private volatile int userCount;
+        
+        public Storage(ChunkFormat format, @Pointer long addr, int length) {
+            this.format = format;
+            this.address = addr;
+            this.length = length;
+        }
+
+        @Override
+        public void close() throws Exception {
+            userCountHandle.getAndAdd(this, -1);
+        }
+        
+        void open() {
+            userCountHandle.getAndAdd(this, -1);
+        }
+    }
     
-    /**
-     * Memory address of data.
-     */
-    private final @Pointer long addr;
-    
-    /**
-     * Length of data at the address.
-     */
-    private final int length;
+    private volatile Storage storage;
     
     /**
      * Change queue for this chunk.
@@ -101,9 +135,14 @@ public class OffheapChunk implements Chunk, OffheapNode {
         }
         
         private void doFlush() {
+            Storage storage = chunk.storage; // Take old storage
+            Storage result = storage.format.processQueries(chunk, addr, size); // Process _> new storage
             
-            ProcessResult result = chunk.format.processQueries(chunk, addr, size);
+            // Swap new storage in place of the old one
+            chunk.storage = result; // Field is volatile so this is safe
             
+            // Give old storage back to chunk buffer for future use
+            // TODO implement this
         }
         
         private void cleanup() {
@@ -116,17 +155,15 @@ public class OffheapChunk implements Chunk, OffheapNode {
      */
     private final ChangeQueue queue;
     
-    public OffheapChunk(ChunkBuffer buffer, ChunkFormat format, long addr, int length, long queueAddr, int queueSize) {
+    public OffheapChunk(ChunkBuffer buffer, long queueAddr, int queueSize) {
         this.buffer = buffer;
-        this.format = format;
-        this.addr = addr;
-        this.length = length;
         this.queue = new ChangeQueue(this, queueAddr, queueSize);
     }
 
     @Override
     public Type getNodeType() {
-        return Type.CHUNK;
+        // TODO Auto-generated method stub
+        return null;
     }
 
     @Override
@@ -137,12 +174,12 @@ public class OffheapChunk implements Chunk, OffheapNode {
 
     @Override
     public long memoryAddress() {
-        return addr;
+        return storage.address;
     }
 
     @Override
     public int memoryLength() {
-        return length;
+        return storage.length;
     }
 
     @Override
@@ -163,4 +200,9 @@ public class OffheapChunk implements Chunk, OffheapNode {
         return null;
     }
 
+    public Storage getStorage() {
+        Storage storage = this.storage; // Acquire from field so it won't change
+        storage.open();
+        return storage;
+    }
 }

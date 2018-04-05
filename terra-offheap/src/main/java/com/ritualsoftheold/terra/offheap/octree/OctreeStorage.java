@@ -99,7 +99,7 @@ public class OctreeStorage {
      * Adds octrees with given index from given address. After this has been
      * done, do NOT touch the data following the memory address.
      * @param index Octree group index.
-     * @param addr Memory address for data.
+     * @param address Memory address for data.
      * @return If it succeeded or failed.
      */
     public boolean addOctrees(int index, @Pointer long addr) {

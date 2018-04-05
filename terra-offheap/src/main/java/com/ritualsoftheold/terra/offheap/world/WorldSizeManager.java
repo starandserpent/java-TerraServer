@@ -24,7 +24,7 @@ public class WorldSizeManager {
     }
     
     public synchronized void enlarge(float scale, int oldIndex) {
-        // Get metadata addr for group 0 (where all master octrees originate)
+        // Get metadata address for group 0 (where all master octrees originate)
         long metaAddr = storage.getGroupMeta(0);
         float oldScale = mem.readVolatileFloat(metaAddr + 8);
         
