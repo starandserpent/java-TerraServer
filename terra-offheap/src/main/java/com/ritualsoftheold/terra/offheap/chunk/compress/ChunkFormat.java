@@ -4,6 +4,7 @@ import com.ritualsoftheold.terra.offheap.Pointer;
 import com.ritualsoftheold.terra.offheap.chunk.ChunkBuffer;
 import com.ritualsoftheold.terra.offheap.chunk.ChunkType;
 import com.ritualsoftheold.terra.offheap.data.WorldDataFormat;
+import com.ritualsoftheold.terra.offheap.node.OffheapChunk;
 
 public interface ChunkFormat extends WorldDataFormat {
     
@@ -31,45 +32,12 @@ public interface ChunkFormat extends WorldDataFormat {
     boolean convert(@Pointer long from, @Pointer long to, int type);
     
     /**
-     * Processes given queries for given chunk. Note that chunk must have
-     * type which this format is meant for.
-     * @param chunk Address to chunk data.
-     * @param chunkLen Length of allocated memory for chunk. If more than this is
-     * needed, it can be requested from chunk buffer.
-     * @param queue Address to query queue.
-     * @param size Size of query data.
-     * @return Result indicating new length and type of the chunk. They are not
-     * necessarily different than input values.
-     */
-    ProcessResult processQueries(@Pointer long chunk, int chunkLen, ChunkBuffer.Allocator alloc, long queue, int size);
-    
-    /**
-     * Returned as result from processQueries call.
      * 
+     * @param chunk
+     * @param queue
+     * @param size
      */
-    public static class ProcessResult {
-        
-        public ProcessResult(int length, int type, @Pointer long addr) {
-            this.length = length;
-            this.type = type;
-            this.address = addr;
-        }
-        
-        /**
-         * Length of chunk after processing the queries.
-         */
-        public int length;
-        
-        /**
-         * Type of chunk after processing the queries.
-         */
-        public int type;
-        
-        /**
-         * Memory addresss for the data.
-         */
-        public @Pointer long address;
-    }
+    void processQueries(OffheapChunk chunk, long queue, int size);
 
     void getBlocks(@Pointer long chunk, int[] indices, short[] ids, int beginIndex, int endIndex);
     
