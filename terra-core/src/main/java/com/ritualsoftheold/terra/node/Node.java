@@ -1,5 +1,7 @@
 package com.ritualsoftheold.terra.node;
 
+import com.ritualsoftheold.terra.buffer.BlockBuffer;
+
 /**
  * Represents a world data type - might be a block, an octree or a chunk.
  *
@@ -23,4 +25,11 @@ public interface Node {
         
         OTHER
     }
+    
+    /**
+     * Accesses block buffer of this node, if possible.
+     * If it is not possible, null is returned.
+     * @return Block buffer or null.
+     */
+    BlockBuffer getBuffer();
 }

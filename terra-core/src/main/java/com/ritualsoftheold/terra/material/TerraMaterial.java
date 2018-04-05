@@ -7,7 +7,7 @@ import com.ritualsoftheold.terra.node.Node;
  * Represents a material of block.
  *
  */
-public class TerraMaterial implements Node {
+public class TerraMaterial {
     
     /**
      * Constructs a new material builder.
@@ -91,10 +91,5 @@ public class TerraMaterial implements Node {
         public TerraMaterial build() {
             return material;
         }
-    }
-
-    @Override
-    public Type getNodeType() {
-        return Type.BLOCK;
     }
 }
