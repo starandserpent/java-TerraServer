@@ -27,11 +27,10 @@ public interface TerraRef {
     void set(Object o);
     
     /**
-     * Creates a copy of this reference that is mutable. Changes to it
-     * will also be reflected in this reference.
-     * @return Mutable reference.
+     * Creates an immutable copy of this reference.
+     * @return Immutable reference.
      */
-    TerraRef mutableRef();
+    TerraRef immutableRef();
     
     /**
      * Checks if this is a mutable reference.

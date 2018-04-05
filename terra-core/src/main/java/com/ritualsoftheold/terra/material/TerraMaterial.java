@@ -1,7 +1,6 @@
 package com.ritualsoftheold.terra.material;
 
 import com.ritualsoftheold.terra.TerraModule;
-import com.ritualsoftheold.terra.node.Node;
 
 /**
  * Represents a material of block.
@@ -20,7 +19,7 @@ public class TerraMaterial {
     private TerraMaterial() {} // Only builder can create this
     
     // Set by material registry
-    private short worldId;
+    private int worldId;
     private String fullName;
     
     // Set by builder
@@ -34,7 +33,7 @@ public class TerraMaterial {
      * Gets this material's id in world data.
      * @return Material id.
      */
-    public short getWorldId() {
+    public int getWorldId() {
         return worldId;
     }
     

@@ -1,10 +1,14 @@
 package com.ritualsoftheold.terra.offheap.node;
 
+import java.util.concurrent.atomic.AtomicInteger;
+
 import com.ritualsoftheold.terra.material.MaterialRegistry;
 import com.ritualsoftheold.terra.material.TerraMaterial;
 import com.ritualsoftheold.terra.node.Chunk;
 import com.ritualsoftheold.terra.offheap.DataConstants;
+import com.ritualsoftheold.terra.offheap.Pointer;
 import com.ritualsoftheold.terra.offheap.chunk.ChunkBuffer;
+import com.ritualsoftheold.terra.offheap.chunk.compress.ChunkFormat;
 import com.ritualsoftheold.terra.offheap.chunk.iterator.ChunkIterator;
 import com.ritualsoftheold.terra.offheap.data.OffheapNode;
 
@@ -16,108 +20,54 @@ public class OffheapChunk implements Chunk, OffheapNode {
     private static final Memory mem = OS.memory();
     
     /**
-     * Buffer which holds this chunk.
+     * Chunk buffer that contains this chunk.
      */
-    private ChunkBuffer buf;
+    private ChunkBuffer buffer;
     
     /**
-     * Index of this chunk IN the buffer.
+     * Data format that this chunk uses.
      */
-    private int chunkId;
+    private volatile ChunkFormat format;
     
-    private MaterialRegistry materialRegistry;
+    /**
+     * Memory address of data.
+     */
+    private volatile @Pointer long addr;
     
-    public OffheapChunk(ChunkBuffer buf, int chunkId, MaterialRegistry materialRegistry) {
-        this.buf = buf;
-        this.chunkId = chunkId;
-        this.materialRegistry = materialRegistry;
-    }
-
-    @Override
-    public Type getNodeType() {
-        return Type.CHUNK;
-    }
-
-    @Override
-    public long memoryAddress() {
-        return buf.getChunkAddr(chunkId);
-    }
+    /**
+     * Length of data at the address.
+     */
+    private volatile int length;
     
-    @Override
-    public int memoryLength() {
-        return buf.getChunkLength(chunkId);
-    }
-
-    @Override
-    public int getMaxBlockCount() {
-        return DataConstants.CHUNK_MAX_BLOCKS;
-    }
-
-    @Override
-    public void getData(short[] data) {
-        // TODO Auto-generated method stub
+    /**
+     * How much memory is allocated for the data. This might be
+     * quite a lot more than length of data in some cases.
+     */
+    private volatile int allocated;
+    
+    /**
+     * Change queue for this chunk.
+     *
+     */
+    public static class ChangeQueue {
         
-    }
-
-    @Override
-    public void setData(short[] data) {
-        // TODO Auto-generated method stub
+        /**
+         * Memory address of queue data.
+         */
+        private volatile @Pointer long addr;
         
-    }
-
-    @Override
-    public short getBlockId(int index) {
-        return buf.getBlock(index, chunkId);
-    }
-
-    @Override
-    public void setBlockId(int index, short id) {
-        buf.queueChange(chunkId, index, id);
-    }
-
-    @Override
-    public void getBlockIds(int[] indices, short[] ids) {
-        buf.getBlocks(chunkId, indices, ids, 0, ids.length);
-    }
-
-    @Override
-    public void setBlockIds(int[] indices, short[] ids) {
-        // TODO multi-change queries
-        for (int i = 0; i < indices.length; i++) {
-            buf.queueChange(chunkId, indices[i], ids[i]);
+        /**
+         * First free index in the queue.
+         */
+        private AtomicInteger index;
+        
+        private volatile long size;
+        
+        public void addQuery(long query) {
+            int i = index.getAndIncrement();
+            
+            mem.writeVolatileLong(addr + i * 8, i);
         }
-    }
-
-    @Override
-    public TerraMaterial getBlock(int index) {
-        return materialRegistry.getForWorldId(getBlockId(index));
-    }
-
-    @Override
-    public void setBlock(int index, TerraMaterial material) {
-        setBlockId(index, material.getWorldId());
-    }
-
-    @Override
-    public void close() throws Exception {
-        // Do nothing. No need to close this
-    }
-
-    public ChunkBuffer getBuffer() {
-        return buf;
-    }
-    
-    /**
-     * Creates new low-level iterator for this chunk.
-     * @return Iterator.
-     */
-    public ChunkIterator newIterator() {
-        byte type = buf.getChunkType(chunkId);
-        return ChunkIterator.forChunk(buf.getChunkAddr(chunkId), type);
-    }
-
-    public int getBufferId() {
-        return chunkId;
     }
 
 }
