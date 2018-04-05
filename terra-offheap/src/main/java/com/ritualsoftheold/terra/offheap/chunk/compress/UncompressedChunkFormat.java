@@ -37,7 +37,7 @@ public class UncompressedChunkFormat implements ChunkFormat {
             int block = (int) (query >>> 16 & 0xffffff);
             short newId = (short) (query & 0xffff);
             
-            mem.writeShort(chunk + block * 2, newId);
+            mem.writeVolatileShort(chunk + block * 2, newId);
         }
         
         return new ChunkFormat.ProcessResult(chunkLen, ChunkType.UNCOMPRESSED, chunk);
@@ -46,7 +46,7 @@ public class UncompressedChunkFormat implements ChunkFormat {
     @Override
     public void getBlocks(long chunk, int[] indices, short[] ids, int beginIndex, int endIndex) {
         for (int i = beginIndex; i < endIndex; i++) {
-            ids[i] = mem.readShort(chunk + indices[i] * 2);
+            ids[i] = mem.readVolatileShort(chunk + indices[i] * 2);
         }
     }
 
@@ -56,7 +56,7 @@ public class UncompressedChunkFormat implements ChunkFormat {
         
         // Copy data there
         for (int i = 0; i < data.length; i++) {
-            mem.writeShort(addr + i * 2, data[i]);
+            mem.writeVolatileShort(addr + i * 2, data[i]);
         }
         
         return new ChunkFormat.SetAllResult(addr, DataConstants.CHUNK_UNCOMPRESSED);
