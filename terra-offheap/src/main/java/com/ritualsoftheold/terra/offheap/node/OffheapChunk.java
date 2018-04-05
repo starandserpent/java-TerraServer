@@ -1,17 +1,15 @@
 package com.ritualsoftheold.terra.offheap.node;
 
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import com.ritualsoftheold.terra.buffer.BlockBuffer;
 import com.ritualsoftheold.terra.buffer.TerraRef;
-import com.ritualsoftheold.terra.material.MaterialRegistry;
-import com.ritualsoftheold.terra.material.TerraMaterial;
 import com.ritualsoftheold.terra.node.Chunk;
-import com.ritualsoftheold.terra.offheap.DataConstants;
 import com.ritualsoftheold.terra.offheap.Pointer;
 import com.ritualsoftheold.terra.offheap.chunk.ChunkBuffer;
 import com.ritualsoftheold.terra.offheap.chunk.compress.ChunkFormat;
-import com.ritualsoftheold.terra.offheap.chunk.iterator.ChunkIterator;
+import com.ritualsoftheold.terra.offheap.chunk.compress.ChunkFormat.ProcessResult;
 import com.ritualsoftheold.terra.offheap.data.OffheapNode;
 
 import net.openhft.chronicle.core.Memory;
@@ -29,23 +27,17 @@ public class OffheapChunk implements Chunk, OffheapNode {
     /**
      * Data format that this chunk uses.
      */
-    private volatile ChunkFormat format;
+    private final ChunkFormat format;
     
     /**
      * Memory address of data.
      */
-    private volatile @Pointer long addr;
+    private final @Pointer long addr;
     
     /**
      * Length of data at the address.
      */
-    private volatile int length;
-    
-    /**
-     * How much memory is allocated for the data. This might be
-     * quite a lot more than length of data in some cases.
-     */
-    private volatile int allocated;
+    private final int length;
     
     /**
      * Change queue for this chunk.
@@ -105,10 +97,17 @@ public class OffheapChunk implements Chunk, OffheapNode {
             
             // If we're the first one, do actual flushing
             doFlush();
+            cleanup();
         }
         
         private void doFlush() {
-            chunk.format.processQueries(chunk, addr, size);
+            
+            ProcessResult result = chunk.format.processQueries(chunk, addr, size);
+            
+        }
+        
+        private void cleanup() {
+            index.set(0);
         }
     }
     
@@ -117,15 +116,17 @@ public class OffheapChunk implements Chunk, OffheapNode {
      */
     private final ChangeQueue queue;
     
-    public OffheapChunk(ChunkBuffer buffer, long queueAddr, int queueSize) {
+    public OffheapChunk(ChunkBuffer buffer, ChunkFormat format, long addr, int length, long queueAddr, int queueSize) {
         this.buffer = buffer;
+        this.format = format;
+        this.addr = addr;
+        this.length = length;
         this.queue = new ChangeQueue(this, queueAddr, queueSize);
     }
 
     @Override
     public Type getNodeType() {
-        // TODO Auto-generated method stub
-        return null;
+        return Type.CHUNK;
     }
 
     @Override
@@ -141,8 +142,7 @@ public class OffheapChunk implements Chunk, OffheapNode {
 
     @Override
     public int memoryLength() {
-        // TODO Auto-generated method stub
-        return 0;
+        return length;
     }
 
     @Override
