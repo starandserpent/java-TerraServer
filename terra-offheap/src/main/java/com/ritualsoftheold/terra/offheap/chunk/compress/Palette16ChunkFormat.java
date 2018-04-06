@@ -21,7 +21,19 @@ public class Palette16ChunkFormat implements ChunkFormat {
      * @return
      */
     private int byteIndex(int index) {
-        return index >> 1;
+        return index >> 1; // Quick integer divide positive by 2
+    }
+    
+    /**
+     * Gets the bit offset in the byte towards which the value should be
+     * shifted from right to left.
+     * @param index
+     * @return
+     */
+    private int shiftOffset(int index) {
+        // Quick modulo positive by 2
+        // Then some normal math
+        return ((index & 1) - 1) * -4;
     }
     
     /**
@@ -55,14 +67,14 @@ public class Palette16ChunkFormat implements ChunkFormat {
     }
 
     @Override
-    public ProcessResult processQueries(OffheapChunk chunk, long queue, int size) {
+    public OffheapChunk.Storage processQueries(OffheapChunk chunk, OffheapChunk.ChangeIterator changes) {
         long palette = chunk.memoryAddress(); // Palette is at beginning
         long blocks = palette + 16 * 4;
         
-        for (int i = 0; i < size * 8; i += 8) {
-            long query = mem.readVolatileLong(queue + i); // Read the query
-            int index = (int) (query >>> 16);
-            int id = (int) (query & 0xffff);
+        while (changes.hasNext()) {
+            changes.next();
+            int index = changes.getIndex();
+            int id = changes.getBlockId();
             
             // Figure out correct palette id
             int paletteId = findPaletteId(palette, id);
@@ -71,7 +83,34 @@ public class Palette16ChunkFormat implements ChunkFormat {
             }
             
             int byteIndex = byteIndex(index);
+            int bitOffset = shiftOffset(index);
+            
+            long blockAddr = blocks + byteIndex;
+            int value = mem.readVolatileByte(blockAddr);
+            
+            /* Clearing a half of byte without branches!
+             * 
+             * When no shifting is done (bitOffset==0), the first 4
+             * bits are AND'd with 0xf and second 0x0, thus clearing
+             * the second 4 bits.
+             * 
+             * When shifting is done by 4, first shift will rearrange
+             * the byte in int in a way that the reverse is true.
+             * first 4 bits and AND'd with 0x0 and second with 0x0.
+             * The second shift will then arrange them back.
+             */
+            // Clear the part of byte where we will write
+            value = value << bitOffset & 0xfffff0f0 >>> bitOffset;
+            
+            // Write the 4 byte palette id to first 4 bytes or last 4 bytes
+            value = value | (paletteId << bitOffset);
+            
+            // Write our new value in place of old one
+            // One block was changed, one not
+            mem.writeVolatileByte(blockAddr, (byte) value);
         }
+        
+        return null;
     }
 
     @Override

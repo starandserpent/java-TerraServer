@@ -37,7 +37,7 @@ public interface ChunkFormat extends WorldDataFormat {
      * @param queue
      * @param size
      */
-    OffheapChunk.Storage processQueries(OffheapChunk chunk, long queue, int size);
+    OffheapChunk.Storage processQueries(OffheapChunk chunk, OffheapChunk.ChangeIterator changes);
     
 
     void getBlocks(@Pointer long chunk, int[] indices, short[] ids, int beginIndex, int endIndex);

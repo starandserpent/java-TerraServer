@@ -2,6 +2,7 @@ package com.ritualsoftheold.terra.offheap.node;
 
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.VarHandle;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import com.ritualsoftheold.terra.buffer.BlockBuffer;
@@ -69,20 +70,42 @@ public class OffheapChunk implements Chunk, OffheapNode {
         void open() {
             userCountHandle.getAndAdd(this, -1);
         }
+        
+        public int getUserCount() {
+            return userCount;
+        }
     }
     
     private volatile Storage storage;
     
     /**
-     * Change queue for this chunk.
-     *
+     * Implements a queue with minimal amount of blocking that I could
+     * somewhat make work.
+     * 
+     * During normal usage (there is space in queue), no blocking is done.
+     * When the queue is full, however, it must be flushed.
+     * That causes some blocking:
+     * 
+     * 1) Queue is completely blocked for a very short amount of time,
+     * before it is swapped to another. VERY SHORT amount of time!
+     * 2) One calling threads is blocked during the flush operation.
+     * Even that shouldn't take very long time.
+     * 
+     * But there is a worse scenario, if queue size is miscofigured:
+     * 3) Queue is completely blocked, waiting for swap queue to be
+     * completely flushed. This might cause significant slowdowns!
      */
     public static class ChangeQueue {
         
         /**
-         * Memory address of queue data.
+         * Initial memory address of queue.
          */
-        private final @Pointer long addr;
+        private volatile @Pointer long addr;
+        
+        /**
+         * Memory address will be swapped with this.
+         */
+        private volatile @Pointer long swapAddr;
         
         /**
          * First free index in the queue.
@@ -96,11 +119,18 @@ public class OffheapChunk implements Chunk, OffheapNode {
         
         private final OffheapChunk chunk;
         
-        public ChangeQueue(OffheapChunk chunk, @Pointer long addr, int size) {
+        /**
+         * If swapping buffers right now would be safe.
+         */
+        private final AtomicBoolean canSwap;
+        
+        public ChangeQueue(OffheapChunk chunk, @Pointer long addr, @Pointer long swapAddr, int size) {
             this.addr = addr;
+            this.swapAddr = swapAddr;
             this.index = new AtomicInteger(0);
             this.size = size;
             this.chunk = chunk;
+            this.canSwap = new AtomicBoolean(true);
         }
         
         /**
@@ -109,45 +139,107 @@ public class OffheapChunk implements Chunk, OffheapNode {
          * @param query
          */
         public void addQuery(long query) {
+            long curAddr;
             int i;
             while (true) { // Acquire a slot
+                curAddr = addr;
                 i = index.getAndIncrement();
                 if (i >= size) { // No space available
-                    // Flush immediately
+                    // Attempt to swap queues
                     requestFlush();
                 } else { // Got space
                     break;
                 }
             }
             
-            // Write query to its slot, which is quaranteed to be valid now
-            mem.writeVolatileLong(addr + i * 8, query);
+            // Write query to its slot, which is guaranteed to be valid now
+            mem.writeVolatileLong(curAddr + i * 8, query);
         }
         
-        private synchronized void requestFlush() {
-            if (index.get() < size) { // Someone else flushed before us
-                return; // No action needed
+        private void requestFlush() {
+            while (true) {
+                Thread.onSpinWait();
+                if (index.get() < size) {
+                    return; // Someone managed to flush
+                }
+                if (canSwap.compareAndSet(true, false)) {
+                    break; // We're going to flush!
+                }
             }
             
-            // If we're the first one, do actual flushing
+            swapQueues();
             doFlush();
-            cleanup();
+        }
+        
+        private void swapQueues() {            
+            // Swap addr and swapAddr
+            long processAddr = addr;
+            addr = swapAddr;
+            swapAddr = processAddr;
+            
+            // Set index to 0, because queue space is now available
+            index.set(0);
         }
         
         private void doFlush() {
             Storage storage = chunk.storage; // Take old storage
-            Storage result = storage.format.processQueries(chunk, addr, size); // Process _> new storage
+            Storage result = storage.format.processQueries(chunk, new ChangeIterator(swapAddr, size)); // Process -> new storage
             
-            // Swap new storage in place of the old one
-            chunk.storage = result; // Field is volatile so this is safe
+            // Swap new storage in place of the old one if needed
+            if (result != null) {
+                chunk.storage = result; // Field is volatile so this is safe
+            }
             
             // Give old storage back to chunk buffer for future use
             // TODO implement this
+            
+            // Zero the memory at swapAddr
+            for (long i = swapAddr; i < swapAddr + size; i += 8) {
+                mem.writeVolatileLong(i, 0);
+            }
+            // TODO use release/acquire, if possible
+            // It should work, since canSwap is set using volatile, which
+            // features same guarantees
+            // Alternatively: RA fence
+            
+            // Signal that swapAddr could be now swapped in place of addr
+            canSwap.set(true);
+        }
+    }
+    
+    public static class ChangeIterator {
+        
+        private final @Pointer long queue;
+        
+        private final int size;
+        
+        private int index;
+        
+        private long entry;
+        
+        public ChangeIterator(long queue, int size) {
+            this.queue = queue;
+            this.size = 8 * size;
         }
         
-        private void cleanup() {
-            index.set(0);
+        public boolean hasNext() {
+            return index < size;
         }
+        
+        public void next() {
+            entry = mem.readVolatileLong(queue + index);
+            index += 8;
+        }
+        
+        public int getIndex() {
+            return (int) (entry >>> 32 & 0x3ffff); // Bits 13-31 from left
+        }
+        
+        public int getBlockId() {
+            return (int) (entry & 0xffffffff);
+        }
+        
+        // When other query types are added, add accessors to their data here
     }
     
     /**
@@ -155,9 +247,9 @@ public class OffheapChunk implements Chunk, OffheapNode {
      */
     private final ChangeQueue queue;
     
-    public OffheapChunk(ChunkBuffer buffer, long queueAddr, int queueSize) {
+    public OffheapChunk(ChunkBuffer buffer, long queueAddr, long swapAddr, int queueSize) {
         this.buffer = buffer;
-        this.queue = new ChangeQueue(this, queueAddr, queueSize);
+        this.queue = new ChangeQueue(this, queueAddr, swapAddr, queueSize);
     }
 
     @Override
