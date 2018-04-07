@@ -1,5 +1,6 @@
 package com.ritualsoftheold.terra.offheap.chunk.compress;
 
+import com.ritualsoftheold.terra.buffer.BlockBuffer;
 import com.ritualsoftheold.terra.offheap.Pointer;
 import com.ritualsoftheold.terra.offheap.chunk.ChunkBuffer;
 import com.ritualsoftheold.terra.offheap.chunk.ChunkType;
@@ -39,56 +40,9 @@ public interface ChunkFormat extends WorldDataFormat {
      */
     OffheapChunk.Storage processQueries(OffheapChunk chunk, OffheapChunk.ChangeIterator changes);
     
-
-    void getBlocks(@Pointer long chunk, int[] indices, short[] ids, int beginIndex, int endIndex);
-    
-    default short getBlock(@Pointer long chunk, int index) {
-        // This is simplistic/bad implementation. Please override for any serious usage
-        
-        int[] indices = new int[]{index};
-        short[] ids = new short[1];
-        getBlocks(chunk, indices, ids, 0, 1);
-        
-        return ids[0];
-    }
-    
-    SetAllResult setAllBlocks(short[] data, ChunkBuffer.Allocator allocator);
-    
-    /**
-     * Returned as a result for setAllBlocks call.
-     *
-     */
-    public static class SetAllResult {
-        
-        public SetAllResult(@Pointer long addr, int length) {
-            this.addr = addr;
-            this.length = length;
-        }
-        
-        public SetAllResult(@Pointer long addr, int length, int typeSwap) {
-            this.addr = addr;
-            this.length = length;
-            this.typeSwap = typeSwap;
-        }
-        
-        /**
-         * Memory address where data is.
-         */
-        public @Pointer long addr;
-        
-        /**
-         * Length of data.
-         */
-        public int length;
-        
-        /**
-         * If the format implementation decides that using given type is not
-         * so great idea after all, it can change the type.
-         */
-        public int typeSwap = -1;
-    }
-    
     int getChunkType();
+    
+    BlockBuffer createBuffer(OffheapChunk chunk);
     
     @Override
     default boolean isOctree() {

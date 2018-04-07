@@ -64,7 +64,7 @@ public class OffheapChunk implements Chunk, OffheapNode {
         }
 
         @Override
-        public void close() throws Exception {
+        public void close() {
             userCountHandle.getAndAdd(this, -1);
         }
         

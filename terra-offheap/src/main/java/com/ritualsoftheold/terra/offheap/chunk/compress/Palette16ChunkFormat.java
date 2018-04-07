@@ -1,5 +1,8 @@
 package com.ritualsoftheold.terra.offheap.chunk.compress;
 
+import com.ritualsoftheold.terra.buffer.BlockBuffer;
+import com.ritualsoftheold.terra.material.TerraMaterial;
+import com.ritualsoftheold.terra.offheap.DataConstants;
 import com.ritualsoftheold.terra.offheap.Pointer;
 import com.ritualsoftheold.terra.offheap.chunk.ChunkBuffer.Allocator;
 import com.ritualsoftheold.terra.offheap.node.OffheapChunk;
@@ -114,22 +117,67 @@ public class Palette16ChunkFormat implements ChunkFormat {
     }
 
     @Override
-    public void getBlocks(long chunk, int[] indices, short[] ids,
-            int beginIndex, int endIndex) {
+    public int getChunkType() {
         // TODO Auto-generated method stub
+        return 0;
+    }
+    
+    public static class Palette16BlockBuffer implements BlockBuffer {
+        
+        private final OffheapChunk chunk;
+        private int index;
+        
+        public Palette16BlockBuffer(OffheapChunk chunk) {
+            this.chunk = chunk;
+        }
+        
+        @Override
+        public void close() throws Exception {
+            // TODO buffer tracking in chunk
+        }
+
+        @Override
+        public void seek(int index) {
+            this.index = index;
+        }
+
+        @Override
+        public void next() {
+            index++;
+        }
+
+        @Override
+        public boolean hasNext() {
+            return index < DataConstants.CHUNK_MAX_BLOCKS;
+        }
+
+        @Override
+        public void write(TerraMaterial material) {
+            // TODO direct access to buffer, as it is safe here!
+        }
+
+        @Override
+        public TerraMaterial read() {
+            try (OffheapChunk.Storage storage = chunk.getStorage()) {
+                return null; // TODO generic read API or something
+            }
+        }
+
+        @Override
+        public Object readRef() {
+            return chunk.getRefMap().get(index);
+        }
+
+        @Override
+        public void writeRef(Object ref) {
+            chunk.getRefMap().put(index, ref);
+        }
         
     }
 
     @Override
-    public SetAllResult setAllBlocks(short[] data, Allocator allocator) {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-    @Override
-    public int getChunkType() {
-        // TODO Auto-generated method stub
-        return 0;
+    public BlockBuffer createBuffer(OffheapChunk chunk) {
+        return new Palette16BlockBuffer(chunk);
     }
 
 }

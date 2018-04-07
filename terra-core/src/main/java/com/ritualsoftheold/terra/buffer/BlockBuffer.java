@@ -7,7 +7,7 @@ import com.ritualsoftheold.terra.material.TerraMaterial;
  * equals to chunk scale.
  *
  */
-public interface BlockBuffer {
+public interface BlockBuffer extends AutoCloseable {
     
     /**
      * Sets current index to given index.
