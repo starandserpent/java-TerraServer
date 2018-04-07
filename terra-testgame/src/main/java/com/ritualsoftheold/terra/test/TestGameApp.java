@@ -74,7 +74,7 @@ public class TestGameApp extends SimpleApplication implements ActionListener {
         ChunkBuffer.Builder bufferBuilder = new ChunkBuffer.Builder()
                 .maxChunks(128)
                 .globalQueue(8)
-                .chunkQueue(4);
+                .queueSize(4);
         
         world = new OffheapWorld.Builder()
                 .chunkLoader(new DummyChunkLoader())

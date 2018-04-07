@@ -30,7 +30,7 @@ public class ChunkStorageTest {
         ChunkBuffer.Builder builder = new ChunkBuffer.Builder()
                 .maxChunks(64)
                 .globalQueue(8)
-                .chunkQueue(4)
+                .queueSize(4)
                 .memListener(new DummyMemoryUseListener());
         storage = new ChunkStorage(builder, 256, new DummyChunkLoader(), Executors.newCachedThreadPool());
         registry = new MaterialRegistry();

@@ -28,7 +28,7 @@ public class ChunkBufferTest {
         buf = new ChunkBuffer.Builder()
                 .maxChunks(64)
                 .globalQueue(8)
-                .chunkQueue(4)
+                .queueSize(4)
                 .memListener(new DummyMemoryUseListener())
                 .build((short) 1);
     }

@@ -194,7 +194,7 @@ public class OffheapChunk implements Chunk, OffheapNode {
             // TODO implement this
             
             // Zero the memory at swapAddr
-            for (long i = swapAddr; i < swapAddr + size; i += 8) {
+            for (@Pointer long i = swapAddr; i < swapAddr + size; i += 8) {
                 mem.writeVolatileLong(i, 0);
             }
             // TODO use release/acquire, if possible
@@ -296,5 +296,9 @@ public class OffheapChunk implements Chunk, OffheapNode {
         Storage storage = this.storage; // Acquire from field so it won't change
         storage.open();
         return storage;
+    }
+    
+    public void queueChange(long entry) {
+        queue.addQuery(entry);
     }
 }

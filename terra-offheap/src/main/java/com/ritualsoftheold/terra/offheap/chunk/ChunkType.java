@@ -7,14 +7,14 @@ package com.ritualsoftheold.terra.offheap.chunk;
 public class ChunkType {
     
     /**
-     * RLE compressed chunk. 2 bytes for count, 2 for id.
-     */
-    public static final byte RLE_2_2 = 0;
-    
-    /**
      * Empty chunk.
      */
-    public static final byte EMPTY = 1;
+    public static final byte EMPTY = 0;
+    
+    /**
+     * RLE compressed chunk. 2 bytes for count, 2 for id.
+     */
+    public static final byte RLE_2_2 = 1;
     
     /**
      * Uncompressed chunk. 2 bytes for id for ALL blocks.
