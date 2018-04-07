@@ -42,11 +42,11 @@ public interface BlockBuffer {
      * Gets the reference that current block has, or null if it has none.
      * @return Reference of the block or null.
      */
-    TerraRef readRef();
+    Object readRef();
     
     /**
      * Sets reference of current block.
      * @param ref New reference.
      */
-    void writeRef(TerraRef ref);
+    void writeRef(Object ref);
 }

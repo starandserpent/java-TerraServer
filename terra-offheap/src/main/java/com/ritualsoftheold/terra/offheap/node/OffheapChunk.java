@@ -2,11 +2,12 @@ package com.ritualsoftheold.terra.offheap.node;
 
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.VarHandle;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import com.ritualsoftheold.terra.buffer.BlockBuffer;
-import com.ritualsoftheold.terra.buffer.TerraRef;
 import com.ritualsoftheold.terra.node.Chunk;
 import com.ritualsoftheold.terra.offheap.Pointer;
 import com.ritualsoftheold.terra.offheap.chunk.ChunkBuffer;
@@ -247,15 +248,22 @@ public class OffheapChunk implements Chunk, OffheapNode {
      */
     private final ChangeQueue queue;
     
+    /**
+     * Contains references that blocks have. Key is block id, value is the ref.
+     * TODO implement this in smarter way, ConcurrentHashMap doesn't work
+     * ideally with primitive keys.
+     */
+    private ConcurrentMap<Integer,Object> refs;
+    
     public OffheapChunk(ChunkBuffer buffer, long queueAddr, long swapAddr, int queueSize) {
         this.buffer = buffer;
         this.queue = new ChangeQueue(this, queueAddr, swapAddr, queueSize);
+        this.refs = new ConcurrentHashMap<>();
     }
 
     @Override
     public Type getNodeType() {
-        // TODO Auto-generated method stub
-        return null;
+        return Type.CHUNK;
     }
 
     @Override
@@ -280,18 +288,6 @@ public class OffheapChunk implements Chunk, OffheapNode {
         
     }
 
-    @Override
-    public TerraRef createStaticRef(int size) {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-    @Override
-    public TerraRef createDynamicRef(int initialSize) {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
     public Storage getStorage() {
         Storage storage = this.storage; // Acquire from field so it won't change
         storage.open();
@@ -300,5 +296,13 @@ public class OffheapChunk implements Chunk, OffheapNode {
     
     public void queueChange(long entry) {
         queue.addQuery(entry);
+    }
+    
+    /**
+     * For internal use only.
+     * @return Ref map as it is.
+     */
+    public ConcurrentMap<Integer,Object> getRefMap() {
+        return refs;
     }
 }
