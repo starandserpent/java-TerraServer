@@ -8,6 +8,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import com.ritualsoftheold.terra.buffer.BlockBuffer;
+import com.ritualsoftheold.terra.material.MaterialRegistry;
 import com.ritualsoftheold.terra.node.Chunk;
 import com.ritualsoftheold.terra.offheap.Pointer;
 import com.ritualsoftheold.terra.offheap.chunk.ChunkBuffer;
@@ -255,6 +256,8 @@ public class OffheapChunk implements Chunk, OffheapNode {
      */
     private ConcurrentMap<Integer,Object> refs;
     
+    private MaterialRegistry materialRegistry;
+    
     public OffheapChunk(ChunkBuffer buffer, long queueAddr, long swapAddr, int queueSize) {
         this.buffer = buffer;
         this.queue = new ChangeQueue(this, queueAddr, swapAddr, queueSize);
@@ -298,11 +301,29 @@ public class OffheapChunk implements Chunk, OffheapNode {
         queue.addQuery(entry);
     }
     
+    public void queueChange(int index, int blockId) {
+        queueChange(index << 32 | blockId);
+    }
+    
     /**
      * For internal use only.
      * @return Ref map as it is.
      */
     public ConcurrentMap<Integer,Object> getRefMap() {
         return refs;
+    }
+
+    @Override
+    public Object getRef(int blockId) {
+        return refs.get(blockId);
+    }
+
+    @Override
+    public void setRef(int blockId, Object ref) {
+        refs.put(blockId, ref);
+    }
+    
+    public MaterialRegistry getWorldMaterialRegistry() {
+        return materialRegistry;
     }
 }

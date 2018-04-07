@@ -1,10 +1,10 @@
 package com.ritualsoftheold.terra.offheap.chunk.compress;
 
 import com.ritualsoftheold.terra.buffer.BlockBuffer;
+import com.ritualsoftheold.terra.material.MaterialRegistry;
 import com.ritualsoftheold.terra.material.TerraMaterial;
 import com.ritualsoftheold.terra.offheap.DataConstants;
 import com.ritualsoftheold.terra.offheap.Pointer;
-import com.ritualsoftheold.terra.offheap.chunk.ChunkBuffer.Allocator;
 import com.ritualsoftheold.terra.offheap.node.OffheapChunk;
 
 import net.openhft.chronicle.core.Memory;
@@ -15,6 +15,12 @@ import net.openhft.chronicle.core.OS;
  *
  */
 public class Palette16ChunkFormat implements ChunkFormat {
+    
+    private static final int PALETTE_SIZE = 16;
+    
+    private static final int PALETTE_ENTRY_LENGTH = 4;
+    
+    private static final int PALETTE_LENGTH = PALETTE_SIZE * PALETTE_ENTRY_LENGTH;
     
     private static final Memory mem = OS.memory();
     
@@ -35,7 +41,8 @@ public class Palette16ChunkFormat implements ChunkFormat {
      */
     private int shiftOffset(int index) {
         // Quick modulo positive by 2
-        // Then some normal math
+        // Get shift offset by reducing (0 -> -1, 1 -> 0)
+        // and then multiplying by -4 to get shift offset in bits, positive
         return ((index & 1) - 1) * -4;
     }
     
@@ -46,21 +53,32 @@ public class Palette16ChunkFormat implements ChunkFormat {
      * @return Palette id or -1 if palette is exhausted.
      */
     private int findPaletteId(@Pointer long palette, int id) {
-        for (int i = 0; i < 16; i++) {
-            int worldId = mem.readVolatileInt(palette + i * 4);
+        for (int i = 0; i < PALETTE_LENGTH; i++) {
+            int worldId = mem.readVolatileInt(palette + i * PALETTE_ENTRY_LENGTH);
             if (worldId == id) { // Found our palette id!
                 return i;
             }
             
             if (worldId == 0) { // Previous one was last id
                 // Allocate new palette id
-                mem.writeVolatileInt(palette + i * 4, id);
+                mem.writeVolatileInt(palette + i * PALETTE_ENTRY_LENGTH, id);
                 return i;
             }
         }
         
         // If we get this far, palette is exhausted
         return -1; // Must change chunk type
+    }
+    
+    /**
+     * Gets world id for given palette id.
+     * @param palette Palette to search the id from.
+     * Note that it MUST be between 0 and 15 to avoid memory corruption.
+     * @param paletteId Palette id.
+     * @return World id.
+     */
+    private int getWorldId(@Pointer long palette, int paletteId) {
+        return mem.readVolatileInt(palette + paletteId);
     }
     
     @Override
@@ -72,7 +90,7 @@ public class Palette16ChunkFormat implements ChunkFormat {
     @Override
     public OffheapChunk.Storage processQueries(OffheapChunk chunk, OffheapChunk.ChangeIterator changes) {
         long palette = chunk.memoryAddress(); // Palette is at beginning
-        long blocks = palette + 16 * 4;
+        long blocks = palette + PALETTE_LENGTH;
         
         while (changes.hasNext()) {
             changes.next();
@@ -122,13 +140,15 @@ public class Palette16ChunkFormat implements ChunkFormat {
         return 0;
     }
     
-    public static class Palette16BlockBuffer implements BlockBuffer {
+    public class Palette16BlockBuffer implements BlockBuffer {
         
         private final OffheapChunk chunk;
+        private final MaterialRegistry registry;
         private int index;
         
         public Palette16BlockBuffer(OffheapChunk chunk) {
             this.chunk = chunk;
+            this.registry = chunk.getWorldMaterialRegistry();
         }
         
         @Override
@@ -153,24 +173,34 @@ public class Palette16ChunkFormat implements ChunkFormat {
 
         @Override
         public void write(TerraMaterial material) {
-            // TODO direct access to buffer, as it is safe here!
+            // TODO make direct writes work, chunk buffers are supposed to be FAST!
+            chunk.queueChange(index, material.getWorldId());
         }
 
         @Override
         public TerraMaterial read() {
             try (OffheapChunk.Storage storage = chunk.getStorage()) {
-                return null; // TODO generic read API or something
+                @Pointer long addr = storage.address;
+                
+                int byteIndex = byteIndex(index);
+                int bitOffset = shiftOffset(index);
+
+                byte data = mem.readVolatileByte(addr + PALETTE_LENGTH + byteIndex);
+                int paletteId = data >>> bitOffset & 0xf;
+                
+                int worldId = getWorldId(addr, paletteId);
+                return registry.getForWorldId(worldId);
             }
         }
 
         @Override
         public Object readRef() {
-            return chunk.getRefMap().get(index);
+            return chunk.getRef(index);
         }
 
         @Override
         public void writeRef(Object ref) {
-            chunk.getRefMap().put(index, ref);
+            chunk.setRef(index, ref);
         }
         
     }

@@ -7,6 +7,8 @@ import java.util.List;
 
 import com.ritualsoftheold.terra.TerraModule;
 
+import it.unimi.dsi.fastutil.ints.Int2ObjectArrayMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.shorts.Short2ObjectArrayMap;
@@ -17,12 +19,12 @@ public class MaterialRegistry {
     // Preferred ids for materials
     private List<String> preferredIds;
     
-    private Short2ObjectMap<TerraMaterial> idToMaterial;
+    private Int2ObjectMap<TerraMaterial> idToMaterial;
     private Object2ObjectMap<String, TerraMaterial> nameToMaterial;
     
     public MaterialRegistry(List<String> preferredIds) {
         this.preferredIds = new ArrayList<>(preferredIds);
-        idToMaterial = new Short2ObjectArrayMap<>(preferredIds.size());
+        idToMaterial = new Int2ObjectArrayMap<>(preferredIds.size());
         nameToMaterial = new Object2ObjectOpenHashMap<>(preferredIds.size());
         registerDefaultMaterials();
     }
@@ -73,7 +75,7 @@ public class MaterialRegistry {
         }
         
         // Finally, assign world id to material
-        material.setWorldId((short) worldId);
+        material.setWorldId(worldId);
         
         // Put it to few other maps for ease of use
         nameToMaterial.put(fullName, material);
@@ -87,7 +89,7 @@ public class MaterialRegistry {
      * @param id World id.
      * @return The material.
      */
-    public TerraMaterial getForWorldId(short id) {
+    public TerraMaterial getForWorldId(int id) {
         return idToMaterial.get(id);
     }
     

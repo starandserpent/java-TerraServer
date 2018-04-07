@@ -37,7 +37,7 @@ public class TerraMaterial {
         return worldId;
     }
     
-    void setWorldId(short id) {
+    void setWorldId(int id) {
         worldId = id;
     }
     
