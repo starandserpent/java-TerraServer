@@ -8,6 +8,7 @@ import java.util.concurrent.locks.LockSupport;
 import com.ritualsoftheold.terra.offheap.BuildConfig;
 import com.ritualsoftheold.terra.offheap.Pointer;
 import com.ritualsoftheold.terra.offheap.chunk.compress.ChunkFormat;
+import com.ritualsoftheold.terra.offheap.chunk.compress.EmptyChunkFormat;
 import com.ritualsoftheold.terra.offheap.memory.MemoryUseListener;
 import com.ritualsoftheold.terra.offheap.node.OffheapChunk;
 import com.ritualsoftheold.terra.offheap.node.OffheapChunk.Storage;
@@ -394,7 +395,7 @@ public class ChunkBuffer {
     
     public boolean isChunkReady(int index) {
         if (perChunkReady) // Hopefully JIT will get rid of this check entirely (branch prediction)
-            return chunks.get(index).getStorage() != null;
+            return chunks.get(index).getStorage().format != EmptyChunkFormat.INSTANCE;
         return true;
     }
     
