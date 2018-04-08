@@ -13,6 +13,7 @@ import com.ritualsoftheold.terra.node.Chunk;
 import com.ritualsoftheold.terra.offheap.Pointer;
 import com.ritualsoftheold.terra.offheap.chunk.ChunkBuffer;
 import com.ritualsoftheold.terra.offheap.chunk.compress.ChunkFormat;
+import com.ritualsoftheold.terra.offheap.chunk.compress.EmptyChunkFormat;
 import com.ritualsoftheold.terra.offheap.data.OffheapNode;
 
 import net.openhft.chronicle.core.Memory;
@@ -114,6 +115,8 @@ public class OffheapChunk implements Chunk, OffheapNode {
          */
         private final AtomicInteger index;
         
+        private final AtomicInteger writtenIndex;
+        
         /**
          * Size of this change queue.
          */
@@ -130,6 +133,7 @@ public class OffheapChunk implements Chunk, OffheapNode {
             this.addr = addr;
             this.swapAddr = swapAddr;
             this.index = new AtomicInteger(0);
+            this.writtenIndex = new AtomicInteger(0);
             this.size = size;
             this.chunk = chunk;
             this.canSwap = new AtomicBoolean(true);
@@ -156,6 +160,7 @@ public class OffheapChunk implements Chunk, OffheapNode {
             
             // Write query to its slot, which is guaranteed to be valid now
             mem.writeVolatileLong(curAddr + i * 8, query);
+            writtenIndex.incrementAndGet();
         }
         
         private void requestFlush() {
@@ -167,6 +172,11 @@ public class OffheapChunk implements Chunk, OffheapNode {
                 if (canSwap.compareAndSet(true, false)) {
                     break; // We're going to flush!
                 }
+            }
+            
+            // Wait for any volatile writes to queue
+            while (writtenIndex.get() != index.get()) {
+                Thread.onSpinWait();
             }
             
             swapQueues();
@@ -181,6 +191,7 @@ public class OffheapChunk implements Chunk, OffheapNode {
             
             // Set index to 0, because queue space is now available
             index.set(0);
+            writtenIndex.set(0);
         }
         
         private void doFlush() {
@@ -194,15 +205,6 @@ public class OffheapChunk implements Chunk, OffheapNode {
             
             // Give old storage back to chunk buffer for future use
             // TODO implement this
-            
-            // Zero the memory at swapAddr
-            for (@Pointer long i = swapAddr; i < swapAddr + size; i += 8) {
-                mem.writeVolatileLong(i, 0);
-            }
-            // TODO use release/acquire, if possible
-            // It should work, since canSwap is set using volatile, which
-            // features same guarantees
-            // Alternatively: RA fence
             
             // Signal that swapAddr could be now swapped in place of addr
             canSwap.set(true);
@@ -229,16 +231,17 @@ public class OffheapChunk implements Chunk, OffheapNode {
         }
         
         public void next() {
+            // TODO potentially just use readLong, it should work on x86
             entry = mem.readVolatileLong(queue + index);
             index += 8;
         }
         
         public int getIndex() {
-            return (int) (entry >>> 32 & 0x3ffff); // Bits 13-31 from left
+            return (int) (entry >>> 24 & 0x3ffff);
         }
         
         public int getBlockId() {
-            return (int) (entry & 0xffffffff);
+            return (int) (entry & 0xffffff);
         }
         
         // When other query types are added, add accessors to their data here
@@ -259,9 +262,13 @@ public class OffheapChunk implements Chunk, OffheapNode {
     private MaterialRegistry materialRegistry;
     
     public OffheapChunk(ChunkBuffer buffer, long queueAddr, long swapAddr, int queueSize) {
+        // Permanent (final) chunk parameters
         this.buffer = buffer;
         this.queue = new ChangeQueue(this, queueAddr, swapAddr, queueSize);
         this.refs = new ConcurrentHashMap<>();
+        
+        // Initially empty chunk, will change later
+        this.storage = new Storage(EmptyChunkFormat.INSTANCE, 0, 0);
     }
 
     @Override
@@ -302,7 +309,7 @@ public class OffheapChunk implements Chunk, OffheapNode {
     }
     
     public void queueChange(int index, int blockId) {
-        queueChange(index << 32 | blockId);
+        queueChange(index << 24 | blockId);
     }
     
     /**

@@ -1,5 +1,6 @@
 package com.ritualsoftheold.terra.offheap.chunk;
 
+import java.lang.invoke.VarHandle;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReferenceArray;
 import java.util.concurrent.locks.LockSupport;
@@ -9,6 +10,7 @@ import com.ritualsoftheold.terra.offheap.Pointer;
 import com.ritualsoftheold.terra.offheap.chunk.compress.ChunkFormat;
 import com.ritualsoftheold.terra.offheap.memory.MemoryUseListener;
 import com.ritualsoftheold.terra.offheap.node.OffheapChunk;
+import com.ritualsoftheold.terra.offheap.node.OffheapChunk.Storage;
 
 import net.openhft.chronicle.core.Memory;
 import net.openhft.chronicle.core.OS;
@@ -23,8 +25,14 @@ public class ChunkBuffer {
     
     private AtomicReferenceArray<OffheapChunk> chunks;
     
+    /**
+     * How many changes can be queued per chunk.
+     */
     private final int queueSize;
     
+    /**
+     * Address the continuous block of memory where change queues are stored.
+     */
     private final @Pointer long changeQueues;
     
     /**
@@ -210,18 +218,6 @@ public class ChunkBuffer {
     }
     
     /**
-     * Queues a single block change to happen soon in given place.
-     * @param chunk Chunk index in this buffer.
-     * @param block Block index in the chunk.
-     * @param newId New id for the block
-     */
-    public void queueChange(long chunk, long block, short newId) {
-        long query = (0L << 56) | (chunk << 40) | (block << 16) | newId;
-        
-        changeQueue.add(query);
-    }
-    
-    /**
      * Allows building chunk buffers. One builder can create as many buffers
      * as required. Settings may be altered between building buffers, but that
      * is NOT recommended.
@@ -322,16 +318,24 @@ public class ChunkBuffer {
     public void save(@Pointer long addr) {
         int count = chunkCount.get();
         for (int i = 0; i < count; i++) {
-            // TODO reimplement
-            byte type = getChunkType(i);
-            int len = getChunkLength(i);
+            OffheapChunk chunk = chunks.get(i);
+            Storage storage = chunk.getStorage();
+            
+            byte type = (byte) storage.format.getChunkType();
+            int len = storage.length;
             mem.writeByte(addr, type);
             mem.writeInt(addr + 1, len);
             addr += 5; // To actual data
             
-            mem.copyMemory(getChunkAddr(i), addr, len); // Copy chunk contents
-            addr += len; // Address to next chunk!
+            if (len != 0) {
+                mem.copyMemory(storage.address, addr, len); // Copy chunk contents
+                addr += len; // Address to next chunk!
+            }
         }
+        
+        // Make sure no loads are reordered before writing this has been completely done
+        // Especially copyMemory, we can't replace that with volatile writes!
+        VarHandle.fullFence();
     }
     
     /**
@@ -339,20 +343,24 @@ public class ChunkBuffer {
      * or after it has been unloaded will probably crash your JVM.
      */
     public void unload() {
-        // TODO very much reimplement
-        int freed = staticDataLength;
+        int freed = 0;
+        int queueMemUsed = 2 * 8 * queueSize;
         
         // Free chunk data
         int count = chunkCount.get();
         for (int i = 0; i < count; i++) {
-            int len = getChunkLength(i);
+            OffheapChunk chunk = chunks.get(i);
+            Storage storage = chunk.getStorage();
+            
+            int len = storage.length;
             freed += len;
-            long addr = getChunkAddr(i);
+            long addr = storage.address;
             mem.freeMemory(addr, len);
         }
         
         // Free static data region
-        mem.freeMemory(addrs, staticDataLength);
+        mem.freeMemory(changeQueues, queueMemUsed);
+        freed += queueMemUsed;
         
         memListener.onFree(freed); // Notify memory listener once for whole unload
     }
