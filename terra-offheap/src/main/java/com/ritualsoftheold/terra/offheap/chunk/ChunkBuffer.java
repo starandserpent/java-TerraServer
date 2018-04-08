@@ -143,10 +143,8 @@ public class ChunkBuffer {
     
     /**
      * ChunkStorage waits on this before performing actions on the buffer.
-     * Not volatile, because getting previous value just makes the wait
-     * a tiny bit longer.
      */
-    private boolean ready;
+    private volatile boolean ready;
     
     /**
      * If we should perform ready checks on individual chunks. If false, they
