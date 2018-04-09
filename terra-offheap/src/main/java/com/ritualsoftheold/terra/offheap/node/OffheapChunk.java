@@ -327,4 +327,8 @@ public class OffheapChunk implements Chunk, OffheapNode {
     public MaterialRegistry getWorldMaterialRegistry() {
         return materialRegistry;
     }
+
+    public ChunkBuffer getChunkBuffer() {
+        return buffer;
+    }
 }

@@ -8,7 +8,6 @@ import java.util.concurrent.atomic.AtomicReferenceArray;
 import com.ritualsoftheold.terra.material.MaterialRegistry;
 import com.ritualsoftheold.terra.offheap.io.ChunkLoader;
 import com.ritualsoftheold.terra.offheap.node.OffheapChunk;
-import com.ritualsoftheold.terra.offheap.node.UserOffheapChunk;
 
 /**
  * Manages all chunks of a single world using chunk buffers.

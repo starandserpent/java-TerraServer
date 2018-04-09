@@ -1,5 +1,6 @@
 package com.ritualsoftheold.terra.offheap.node;
 
+import com.ritualsoftheold.terra.buffer.BlockBuffer;
 import com.ritualsoftheold.terra.material.MaterialRegistry;
 import com.ritualsoftheold.terra.material.TerraMaterial;
 import com.ritualsoftheold.terra.node.Chunk;
@@ -11,6 +12,7 @@ import com.ritualsoftheold.terra.offheap.data.OffheapNode;
 import net.openhft.chronicle.core.Memory;
 import net.openhft.chronicle.core.OS;
 
+// TODO implement this class or figure out something better
 public class OffheapOctree implements Octree, OffheapNode {
     
     private static final Memory mem = OS.memory();
@@ -97,8 +99,9 @@ public class OffheapOctree implements Octree, OffheapNode {
     }
 
     @Override
-    public void close() throws Exception {
-        // Nothing to be done here...
+    public BlockBuffer getBuffer() {
+        return null; // Buffers for octrees would be pretty quite useless
+        // TODO implement them to have same API for everything
     }
 
 }
