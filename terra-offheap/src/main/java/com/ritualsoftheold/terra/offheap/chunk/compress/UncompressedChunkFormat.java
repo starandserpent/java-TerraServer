@@ -16,7 +16,7 @@ public class UncompressedChunkFormat implements ChunkFormat {
     private static final Memory mem = OS.memory();
 
     @Override
-    public Storage convert(Storage origin, OffheapChunk.ChangeIterator changes, ChunkFormat format, ChunkBuffer.Allocator allocator) {
+    public Storage convert(Storage origin, ChunkFormat format, ChunkBuffer.Allocator allocator) {
         
         
         return null; // Conversion not supported

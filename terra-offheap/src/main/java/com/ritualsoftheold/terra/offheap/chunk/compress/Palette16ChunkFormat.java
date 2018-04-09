@@ -89,7 +89,7 @@ public class Palette16ChunkFormat implements ChunkFormat {
     }
     
     @Override
-    public Storage convert(Storage origin, OffheapChunk.ChangeIterator changes, ChunkFormat format, ChunkBuffer.Allocator allocator) {
+    public Storage convert(Storage origin, ChunkFormat format, ChunkBuffer.Allocator allocator) {
         long palette = origin.address;
         if (format == UncompressedChunkFormat.INSTANCE) {
             long addr = allocator.alloc(DataConstants.CHUNK_MAX_BLOCKS * 4);
@@ -128,7 +128,7 @@ public class Palette16ChunkFormat implements ChunkFormat {
                 // Fallback to next best compressed format
                 // FIXME don't fallback to uncompressed!
                 changes.ignoreNext();
-                return convert(storage, changes, UncompressedChunkFormat.INSTANCE, chunk.getChunkBuffer().getAllocator());
+                return convert(storage, UncompressedChunkFormat.INSTANCE, chunk.getChunkBuffer().getAllocator());
             }
             
             int byteIndex = byteIndex(index);

@@ -12,8 +12,7 @@ public class EmptyChunkFormat implements ChunkFormat {
     public static final EmptyChunkFormat INSTANCE = new EmptyChunkFormat();
 
     @Override
-    public Storage convert(Storage origin, ChangeIterator changes,
-            ChunkFormat format, Allocator allocator) {
+    public Storage convert(Storage origin, ChunkFormat format, Allocator allocator) {
         return null; // Conversion FAILED
     }
 
