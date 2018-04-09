@@ -1,6 +1,8 @@
 package com.ritualsoftheold.terra.offheap.chunk.compress;
 
 import com.ritualsoftheold.terra.buffer.BlockBuffer;
+import com.ritualsoftheold.terra.offheap.chunk.ChunkType;
+import com.ritualsoftheold.terra.offheap.chunk.ChunkBuffer.Allocator;
 import com.ritualsoftheold.terra.offheap.node.OffheapChunk;
 import com.ritualsoftheold.terra.offheap.node.OffheapChunk.ChangeIterator;
 import com.ritualsoftheold.terra.offheap.node.OffheapChunk.Storage;
@@ -10,27 +12,24 @@ public class EmptyChunkFormat implements ChunkFormat {
     public static final EmptyChunkFormat INSTANCE = new EmptyChunkFormat();
 
     @Override
-    public boolean convert(long from, long to, int type) {
-        // TODO Auto-generated method stub
-        return false;
+    public Storage convert(Storage origin, ChangeIterator changes,
+            ChunkFormat format, Allocator allocator) {
+        return null; // Conversion FAILED
     }
 
     @Override
     public Storage processQueries(OffheapChunk chunk, ChangeIterator changes) {
-        // TODO Auto-generated method stub
-        return null;
+        throw new UnsupportedOperationException("empty chunk");
     }
 
     @Override
     public int getChunkType() {
-        // TODO Auto-generated method stub
-        return 0;
+        return ChunkType.EMPTY;
     }
 
     @Override
     public BlockBuffer createBuffer(OffheapChunk chunk) {
-        // TODO Auto-generated method stub
-        return null;
+        return null; // Nope!
     }
 
 }

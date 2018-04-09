@@ -11,15 +11,7 @@ public class ChunkType {
      */
     public static final byte EMPTY = 0;
     
-    /**
-     * RLE compressed chunk. 2 bytes for count, 2 for id.
-     */
-    public static final byte RLE_2_2 = 1;
+    public static final byte UNCOMPRESSED = 1;
     
-    /**
-     * Uncompressed chunk. 2 bytes for id for ALL blocks.
-     */
-    public static final byte UNCOMPRESSED = 2;
-    
-    public static final byte PALETTE_1 = 3;
+    public static final byte PALETTE16 = 2;
 }

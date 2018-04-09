@@ -236,6 +236,10 @@ public class OffheapChunk implements Chunk, OffheapNode {
             index += 8;
         }
         
+        public void ignoreNext() {
+            index -= 8;
+        }
+        
         public int getIndex() {
             return (int) (entry >>> 24 & 0x3ffff);
         }

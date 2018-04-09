@@ -5,7 +5,10 @@ import com.ritualsoftheold.terra.material.MaterialRegistry;
 import com.ritualsoftheold.terra.material.TerraMaterial;
 import com.ritualsoftheold.terra.offheap.DataConstants;
 import com.ritualsoftheold.terra.offheap.Pointer;
+import com.ritualsoftheold.terra.offheap.chunk.ChunkBuffer;
+import com.ritualsoftheold.terra.offheap.chunk.ChunkType;
 import com.ritualsoftheold.terra.offheap.node.OffheapChunk;
+import com.ritualsoftheold.terra.offheap.node.OffheapChunk.Storage;
 
 import net.openhft.chronicle.core.Memory;
 import net.openhft.chronicle.core.OS;
@@ -16,11 +19,15 @@ import net.openhft.chronicle.core.OS;
  */
 public class Palette16ChunkFormat implements ChunkFormat {
     
+    public static final Palette16ChunkFormat INSTANCE = new Palette16ChunkFormat();
+    
     private static final int PALETTE_SIZE = 16;
     
     private static final int PALETTE_ENTRY_LENGTH = 4;
     
     private static final int PALETTE_LENGTH = PALETTE_SIZE * PALETTE_ENTRY_LENGTH;
+    
+    private static final int CHUNK_LENGTH = DataConstants.CHUNK_MAX_BLOCKS / 2;
     
     private static final Memory mem = OS.memory();
     
@@ -82,9 +89,27 @@ public class Palette16ChunkFormat implements ChunkFormat {
     }
     
     @Override
-    public boolean convert(long from, long to, int type) {
-        // TODO Auto-generated method stub
-        return false;
+    public Storage convert(Storage origin, OffheapChunk.ChangeIterator changes, ChunkFormat format, ChunkBuffer.Allocator allocator) {
+        long palette = origin.address;
+        if (format == UncompressedChunkFormat.INSTANCE) {
+            long addr = allocator.alloc(DataConstants.CHUNK_MAX_BLOCKS * 4);
+            long blocks = palette + PALETTE_LENGTH;
+            
+            int offset = 0;
+            for (int i = 0; i < CHUNK_LENGTH; i++) {
+                byte values = mem.readVolatileByte(blocks + i);
+                int block1 = getWorldId(palette, values >>> 4);
+                int block2 = getWorldId(palette, values & 0xf);
+                
+                mem.writeVolatileInt(addr + offset, block1);
+                mem.writeVolatileInt(addr + offset + 4, block2);
+                offset += 8;
+            }
+            
+            return new Storage(format, addr, DataConstants.CHUNK_MAX_BLOCKS * 4);
+        }
+        
+        return null; // Conversion not supported
     }
 
     @Override
@@ -100,7 +125,9 @@ public class Palette16ChunkFormat implements ChunkFormat {
             // Figure out correct palette id
             int paletteId = findPaletteId(palette, id);
             if (paletteId == -1) { // Palette has been exhausted
-                // TODO handle failure
+                // Fallback to next best compressed format
+                // FIXME don't fallback to uncompressed!
+                changes.ignoreNext();
             }
             
             int byteIndex = byteIndex(index);
@@ -136,8 +163,7 @@ public class Palette16ChunkFormat implements ChunkFormat {
 
     @Override
     public int getChunkType() {
-        // TODO Auto-generated method stub
-        return 0;
+        return ChunkType.PALETTE16;
     }
     
     public class Palette16BlockBuffer implements BlockBuffer {
@@ -153,7 +179,7 @@ public class Palette16ChunkFormat implements ChunkFormat {
         
         @Override
         public void close() throws Exception {
-            // TODO buffer tracking in chunk
+            // Not needed
         }
 
         @Override
