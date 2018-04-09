@@ -23,11 +23,6 @@ public class ChunkStorage {
     private AtomicReferenceArray<ChunkBuffer> buffers;
     
     /**
-     * Lists non-closed wrappers for chunks per buffer.
-     */
-    private AtomicIntegerArray aliveWrappers;
-    
-    /**
      * Lists user counts for all chunk buffers. 0 means that the buffer is not
      * in use; anything above it means that it is not safe to unload!
      */
@@ -49,7 +44,6 @@ public class ChunkStorage {
         this.bufferBuilder = bufferBuilder;
         this.loader = loader;
         this.buffers = new AtomicReferenceArray<>(maxBuffers);
-        this.aliveWrappers = new AtomicIntegerArray(maxBuffers);
         this.userCounts = new AtomicIntegerArray(maxBuffers);
         this.executor = executor;
     }
@@ -129,15 +123,14 @@ public class ChunkStorage {
     }
     
     /**
-     * Creates temporary chunk object. Only for internal use, might mess with
-     * memory manager if used in wrong place!
+     * Gets a chunk without checking if the buffer is loaded.
      * @param chunkId
      * @param materialRegistry
      * @return Chunk.
      */
-    public OffheapChunk getTemporaryChunk(int chunkId, MaterialRegistry materialRegistry) {
-        ChunkBuffer buf = buffers.get(chunkId >>> 16);
-        return new OffheapChunk(buf, chunkId & 0xffff, materialRegistry);
+    public OffheapChunk getChunkInternal(int chunkId) {
+        ChunkBuffer buf = getBuffer(chunkId >>> 16);
+        return buf.getChunk(chunkId & 0xffff);
     }
     
     /**
@@ -183,14 +176,13 @@ public class ChunkStorage {
      * @param materialRegistry
      * @return Chunk wrapper.
      */
-    public OffheapChunk getChunk(int chunkId, MaterialRegistry materialRegistry) {
+    public OffheapChunk getChunk(int chunkId) {
         int bufIndex = chunkId >>> 16;
         markUsed(bufIndex);
         ChunkBuffer buf = buffers.get(bufIndex);
-        OffheapChunk wrapper = new UserOffheapChunk(buf, chunkId, materialRegistry, aliveWrappers, bufIndex);
-        markUnused(bufIndex); // Must be after constructing wrapper
-        // Constructor places buffer in aliveWrappers, so after it we can mark it "unused"
-        return wrapper;
+        OffheapChunk chunk = buf.getChunk(chunkId & 0xffff);
+        markUnused(bufIndex);
+        return chunk;
     }
 
     public AtomicReferenceArray<ChunkBuffer> getAllBuffers() {
@@ -208,70 +200,6 @@ public class ChunkStorage {
     public int getUsedCount(int index) {
         return userCounts.get(index);
     }
-    
-    /**
-     * Gets given block from given chunk.
-     * @param chunk Chunk id.
-     * @param block Block index.
-     * @return Block id.
-     */
-    public short getBlock(int chunk, int block) {
-        int bufId = chunk >>> 16;
-        markUsed(bufId);
-        ChunkBuffer buf = getOrLoadBuffer(bufId);
-        short id = buf.getBlock(chunk, block);
-        markUnused(bufId);
-        
-        return id;
-    }
-    
-    /**
-     * Gets blocks from given chunk.
-     * @param chunk Chunk id.
-     * @param blocks Block indices.
-     * @param ids Array where to place ids.
-     */
-    public void getBlocks(int chunk, int[] blocks, short[] ids) {
-        int bufId = chunk >>> 16;
-        markUsed(bufId);
-        ChunkBuffer buf = getOrLoadBuffer(bufId);
-        buf.getBlocks(chunk, blocks, ids, 0, blocks.length);
-        markUnused(bufId);
-    }
-    
-    /**
-     * Gets blocks from given chunks.
-     * @param chunks Chunk ids.
-     * @param blocks Block indices.
-     * @param ids Array where to place ids.
-     */
-    public void getBlocks(int[] chunks, int[] blocks, short[] ids) {
-        int chunkStart = 0; // Where chunk began
-        int curChunk = chunks[0];
-        
-        // Go through all chunks and blocks inside them while batching queries
-        for (int i = 0; i < chunks.length; i++) {
-            int chunk = chunks[i];
-            if (chunk != curChunk) {
-                int bufId = curChunk >>> 16;
-                markUsed(bufId);
-                ChunkBuffer buf = getOrLoadBuffer(bufId); // Get buffer where chunk is
-                buf.getBlocks(curChunk, blocks, ids, chunkStart, i + 1);
-                markUnused(bufId);
-                
-                chunkStart = i; // Update chunk start here
-                curChunk = chunk;
-            }
-        }
-        
-        if (chunkStart != chunks.length - 1) { // Still something to lookup?
-            int bufId = curChunk >>> 16;
-            markUsed(bufId);
-            ChunkBuffer buf = getOrLoadBuffer(bufId); // Get buffer where chunk is
-            buf.getBlocks(curChunk, blocks, ids, chunkStart, blocks.length);
-            markUnused(bufId);
-        }
-    }
 
     public CompletableFuture<ChunkBuffer> saveBuffer(ChunkBuffer buf) {
         return CompletableFuture.supplyAsync(() -> {
@@ -288,12 +216,6 @@ public class ChunkStorage {
                 Thread.onSpinWait();
                 int used = getUsedCount(index);
                 if (used < 1) {
-                    break;
-                }
-            }
-            while (true) { // Spin loop until aliveWrappers < 1
-                int alive = aliveWrappers.get(index);
-                if (alive < 1) {
                     break;
                 }
             }

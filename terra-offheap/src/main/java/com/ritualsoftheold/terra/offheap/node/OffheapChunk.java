@@ -292,12 +292,6 @@ public class OffheapChunk implements Chunk, OffheapNode {
         return storage.length;
     }
 
-    @Override
-    public void close() throws Exception {
-        // TODO Auto-generated method stub
-        
-    }
-
     public Storage getStorage() {
         Storage storage = this.storage; // Acquire from field so it won't change
         storage.open();
