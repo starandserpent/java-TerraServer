@@ -318,17 +318,17 @@ public class ChunkBuffer {
         int count = chunkCount.get();
         for (int i = 0; i < count; i++) {
             OffheapChunk chunk = chunks.get(i);
-            Storage storage = chunk.getStorage();
-            
-            byte type = (byte) storage.format.getChunkType();
-            int len = storage.length;
-            mem.writeByte(addr, type);
-            mem.writeInt(addr + 1, len);
-            addr += 5; // To actual data
-            
-            if (len != 0) {
-                mem.copyMemory(storage.address, addr, len); // Copy chunk contents
-                addr += len; // Address to next chunk!
+            try (Storage storage = chunk.getStorage()) {
+                byte type = (byte) storage.format.getChunkType();
+                int len = storage.length;
+                mem.writeByte(addr, type);
+                mem.writeInt(addr + 1, len);
+                addr += 5; // To actual data
+                
+                if (len != 0) {
+                    mem.copyMemory(storage.address, addr, len); // Copy chunk contents
+                    addr += len; // Address to next chunk!
+                }
             }
         }
         
@@ -349,7 +349,11 @@ public class ChunkBuffer {
         int count = chunkCount.get();
         for (int i = 0; i < count; i++) {
             OffheapChunk chunk = chunks.get(i);
-            Storage storage = chunk.getStorage();
+            Storage storage = chunk.getStorageInternal(); // Memory manager usually CALLS this...
+            while (storage.getUserCount() > 0) { // Wait for all users to give up the storage
+                // (to avoid segfaults and other nasty stuff)
+                Thread.onSpinWait();
+            }
             
             int len = storage.length;
             freed += len;
@@ -393,7 +397,7 @@ public class ChunkBuffer {
     
     public boolean isChunkReady(int index) {
         if (perChunkReady) // Hopefully JIT will get rid of this check entirely (branch prediction)
-            return chunks.get(index).getStorage().format != EmptyChunkFormat.INSTANCE;
+            return chunks.get(index).getStorageInternal().format != EmptyChunkFormat.INSTANCE;
         return true;
     }
     

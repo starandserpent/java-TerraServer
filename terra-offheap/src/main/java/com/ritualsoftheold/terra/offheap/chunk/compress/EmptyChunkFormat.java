@@ -18,7 +18,7 @@ public class EmptyChunkFormat implements ChunkFormat {
     }
 
     @Override
-    public Storage processQueries(OffheapChunk chunk, ChangeIterator changes) {
+    public Storage processQueries(OffheapChunk chunk, Storage storage, ChangeIterator changes) {
         throw new UnsupportedOperationException("empty chunk");
     }
 

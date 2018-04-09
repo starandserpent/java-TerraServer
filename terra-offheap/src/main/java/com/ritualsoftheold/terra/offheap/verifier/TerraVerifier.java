@@ -11,6 +11,7 @@ import net.openhft.chronicle.core.OS;
  * potentially not trustworthy.
  *
  */
+// FIXME review security with new chunk buffer stuff!
 public class TerraVerifier {
     
     private static final Memory mem = OS.memory();

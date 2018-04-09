@@ -307,6 +307,10 @@ public class OffheapChunk implements Chunk, OffheapNode {
         storage.open();
         return storage;
     }
+
+    public Storage getStorageInternal() {
+        return storage;
+    }
     
     public void queueChange(long entry) {
         queue.addQuery(entry);
