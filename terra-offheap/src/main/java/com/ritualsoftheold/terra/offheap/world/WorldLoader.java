@@ -216,7 +216,7 @@ public class WorldLoader {
             if (scale == DataConstants.CHUNK_SCALE) { // Dereference a chunk
                 chunkStorage.ensureLoaded(node); // Use node content as chunk id and load it
                 node = mem.readVolatileInt(nodeAddr);
-                listener.chunkLoaded(chunkStorage.getTemporaryChunk(node, null), subNodeX, subNodeY, subNodeZ, trigger);
+                listener.chunkLoaded(chunkStorage.getChunkInternal(node), subNodeX, subNodeY, subNodeZ, trigger);
                 break; // No further action necessary
             } else { // "Dereference" an octree
                 nodeId = node; // New node id to content of current node
@@ -409,7 +409,7 @@ public class WorldLoader {
                     //System.out.println("Chunk path...");
                     // Load chunk and then fire event to listener
                     chunkStorage.ensureLoaded(node);
-                    listener.chunkLoaded(chunkStorage.getTemporaryChunk(node, null), subNodeX, subNodeY, subNodeZ, trigger);
+                    listener.chunkLoaded(chunkStorage.getChunkInternal(node), subNodeX, subNodeY, subNodeZ, trigger);
                 } else { // Octree. Here comes recursion...
                     // TODO multithreading
                     //System.out.println("Octree path, node: " + node);
