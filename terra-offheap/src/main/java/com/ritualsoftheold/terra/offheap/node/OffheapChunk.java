@@ -142,7 +142,7 @@ public class OffheapChunk implements Chunk, OffheapNode {
         /**
          * Adds a change query to this queue. If there is no space, queue
          * will be flushed and the call will block for that amount of time.
-         * @param query
+         * @param query Query to add.
          */
         public void addQuery(long query) {
             long curAddr;
@@ -160,7 +160,7 @@ public class OffheapChunk implements Chunk, OffheapNode {
             
             // Write query to its slot, which is guaranteed to be valid now
             mem.writeVolatileLong(curAddr + i * 8, query);
-            writtenIndex.incrementAndGet();
+            writtenIndex.incrementAndGet(); // TODO reduce amount of atomic operations here
         }
         
         private void requestFlush() {
@@ -195,19 +195,25 @@ public class OffheapChunk implements Chunk, OffheapNode {
         }
         
         private void doFlush() {
-            Storage storage = chunk.storage; // Take old storage
-            Storage result = storage.format.processQueries(chunk, new ChangeIterator(swapAddr, size)); // Process -> new storage
-            
-            // Swap new storage in place of the old one if needed
-            if (result != null) {
-                chunk.storage = result; // Field is volatile so this is safe
+            Storage result = applyQueries(chunk.storage, new ChangeIterator(swapAddr, size));
+            if (result != null) { // Swap new storage there if needed
+                chunk.storage = result;
             }
-            
-            // Give old storage back to chunk buffer for future use
-            // TODO implement this
-            
+
             // Signal that swapAddr could be now swapped in place of addr
             canSwap.set(true);
+        }
+        
+        private Storage applyQueries(Storage storage, ChangeIterator iterator) {
+            Storage result = storage.format.processQueries(chunk, storage, iterator); // Process -> new storage
+            
+            // Apply changes recursively until all of them have been applied
+            if (iterator.hasNext()) {
+                return applyQueries(result, iterator);
+                // TODO don't leak memory...
+            }
+            
+            return result;
         }
     }
     

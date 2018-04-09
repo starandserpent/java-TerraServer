@@ -24,7 +24,7 @@ public interface ChunkFormat extends WorldDataFormat {
     
     Storage convert(Storage origin, OffheapChunk.ChangeIterator changes, ChunkFormat format, ChunkBuffer.Allocator allocator);
     
-    OffheapChunk.Storage processQueries(OffheapChunk chunk, OffheapChunk.ChangeIterator changes);
+    OffheapChunk.Storage processQueries(OffheapChunk chunk, Storage storage, OffheapChunk.ChangeIterator changes);
     
     int getChunkType();
     

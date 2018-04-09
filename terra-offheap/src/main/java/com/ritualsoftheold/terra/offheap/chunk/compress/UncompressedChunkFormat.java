@@ -23,8 +23,8 @@ public class UncompressedChunkFormat implements ChunkFormat {
     }
 
     @Override
-    public Storage processQueries(OffheapChunk chunk, ChangeIterator changes) {
-        long blocks = chunk.memoryAddress();
+    public Storage processQueries(OffheapChunk chunk, Storage storage, ChangeIterator changes) {
+        long blocks = storage.address;
         
         while (changes.hasNext()) {
             changes.next();

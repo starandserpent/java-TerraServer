@@ -33,14 +33,14 @@ public class TextureManager {
     
     private static final int IMAGE_UP_LEFT = ATLAS_SIZE * ATLAS_SIZE * BYTES_PER_PIXEL;
     
-    private Short2ObjectMap<TerraTexture> textures;
+    private Int2ObjectMap<TerraTexture> textures;
     private AssetManager assetManager;
     
     private TextureArray array;
     private List<Image> atlases;
     
     public TextureManager(AssetManager assetManager) {
-        textures = new Short2ObjectArrayMap<>();
+        textures = new Int2ObjectArrayMap<>();
         this.assetManager = assetManager;
     }
     
@@ -56,7 +56,7 @@ public class TextureManager {
         return atlases.get(index);
     }
     
-    public TerraTexture getTexture(short worldId) {
+    public TerraTexture getTexture(int worldId) {
         return textures.get(worldId);
     }
     
