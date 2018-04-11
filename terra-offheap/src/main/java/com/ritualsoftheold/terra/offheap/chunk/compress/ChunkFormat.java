@@ -52,7 +52,7 @@ public interface ChunkFormat extends WorldDataFormat {
      */
     OffheapChunk.Storage processQueries(OffheapChunk chunk, Storage storage, OffheapChunk.ChangeIterator changes);
     
-    int getChunkType();
+    byte getChunkType();
     
     /**
      * Creates a normal block buffer for this format. Writes are done using

@@ -21,6 +21,7 @@ import com.ritualsoftheold.terra.offheap.io.ChunkLoader;
 import com.ritualsoftheold.terra.offheap.io.OctreeLoader;
 import com.ritualsoftheold.terra.offheap.memory.MemoryManager;
 import com.ritualsoftheold.terra.offheap.memory.MemoryPanicHandler;
+import com.ritualsoftheold.terra.offheap.node.OffheapChunk;
 import com.ritualsoftheold.terra.offheap.node.OffheapOctree;
 import com.ritualsoftheold.terra.offheap.octree.OctreeStorage;
 import com.ritualsoftheold.terra.offheap.verifier.TerraVerifier;
@@ -200,7 +201,7 @@ public class OffheapWorld implements TerraWorld {
         int nodeId = (int) (nodeData & 0xffffff);
         
         if (isChunk) {
-            return chunkStorage.getChunk(nodeId, registry);
+            return chunkStorage.getChunk(nodeId);
         } else {
             return octreeStorage.getOctree(nodeId, registry);
         }
@@ -390,13 +391,17 @@ public class OffheapWorld implements TerraWorld {
         // Get buffer and relevant memory addresses
         ChunkBuffer buf = chunkStorage.getOrLoadBuffer(bufId);
         int index = id & 0xffff;
-        long addr = buf.getChunkAddr(index);
-        int length = buf.getChunkLength(index);
-        byte type = buf.getChunkType(index);
-        
-        // Only copy if there is something to copy
-        if (length > 0) {
-            mem.copyMemory(addr, target, length);
+        int length;
+        byte type;
+        try (OffheapChunk.Storage storage = buf.getChunk(index).getStorage()) {
+            long addr = storage.address;
+            length = storage.length;
+            type = storage.format.getChunkType();
+            
+            // Only copy if there is something to copy
+            if (length > 0) {
+                mem.copyMemory(addr, target, length);
+            }
         }
         
         chunkStorage.markUnused(bufId);
@@ -421,26 +426,26 @@ public class OffheapWorld implements TerraWorld {
         // Get buffer and relevant memory addresses
         ChunkBuffer buf = chunkStorage.getOrLoadBuffer(bufId);
         int index = id & 0xffff;
-        long addr = buf.getChunkAddr(index);
-        int length = buf.getChunkLength(index);
-        byte type = buf.getChunkType(index);
-        
-        // Offer chunk length to function, and take target as result
-        @Pointer long target = handler.applyAsLong(length);
-        
-        // Target not available for some reason
-        if (target == 0) {
-            return new CopyChunkResult(false, type, length);
-        }
-        
-        // Only copy if there is something to copy
-        if (length > 0) {
-            mem.copyMemory(addr, target, length);
+        int length;
+        byte type;
+        try (OffheapChunk.Storage storage = buf.getChunk(index).getStorage()) {
+            long addr = storage.address;
+            length = storage.length;
+            type = storage.format.getChunkType();
+            
+            // Only copy if there is something to copy
+            if (length > 0) {
+                long target = handler.applyAsLong(length);
+                if (target == 0) { // Chunk length is more than 0 but we got NULL pointer...
+                    return new CopyChunkResult(false, (byte) 0, 0); // Fail
+                }
+                mem.copyMemory(addr, target, length);
+            }
         }
         
         chunkStorage.markUnused(bufId);
         
-        return new CopyChunkResult(false, type, length);
+        return new CopyChunkResult(true, type, length);
     }
     
     /**
