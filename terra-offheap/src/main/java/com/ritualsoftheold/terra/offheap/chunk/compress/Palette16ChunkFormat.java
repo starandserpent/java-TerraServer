@@ -163,7 +163,7 @@ public class Palette16ChunkFormat implements ChunkFormat {
     }
 
     @Override
-    public int getChunkType() {
+    public byte getChunkType() {
         return ChunkType.PALETTE16;
     }
     

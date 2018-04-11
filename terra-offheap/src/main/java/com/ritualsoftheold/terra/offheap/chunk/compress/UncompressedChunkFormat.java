@@ -39,7 +39,7 @@ public class UncompressedChunkFormat implements ChunkFormat {
     }
 
     @Override
-    public int getChunkType() {
+    public byte getChunkType() {
         // TODO Auto-generated method stub
         return 0;
     }

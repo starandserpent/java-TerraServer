@@ -22,7 +22,7 @@ public class EmptyChunkFormat implements ChunkFormat {
     }
 
     @Override
-    public int getChunkType() {
+    public byte getChunkType() {
         return ChunkType.EMPTY;
     }
 
