@@ -25,6 +25,7 @@ import com.ritualsoftheold.terra.offheap.node.OffheapChunk;
 import com.ritualsoftheold.terra.offheap.node.OffheapOctree;
 import com.ritualsoftheold.terra.offheap.octree.OctreeStorage;
 import com.ritualsoftheold.terra.offheap.verifier.TerraVerifier;
+import com.ritualsoftheold.terra.offheap.world.gen.WorldGenManager;
 import com.ritualsoftheold.terra.world.LoadMarker;
 import com.ritualsoftheold.terra.world.TerraWorld;
 import com.ritualsoftheold.terra.world.gen.WorldGenerator;

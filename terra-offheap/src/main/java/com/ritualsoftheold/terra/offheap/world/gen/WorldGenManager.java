@@ -1,4 +1,4 @@
-package com.ritualsoftheold.terra.offheap.world;
+package com.ritualsoftheold.terra.offheap.world.gen;
 
 import com.ritualsoftheold.terra.offheap.DataConstants;
 import com.ritualsoftheold.terra.offheap.chunk.ChunkBuffer;

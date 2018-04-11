@@ -3,6 +3,7 @@ package com.ritualsoftheold.terra.offheap.world;
 import com.ritualsoftheold.terra.offheap.DataConstants;
 import com.ritualsoftheold.terra.offheap.chunk.ChunkStorage;
 import com.ritualsoftheold.terra.offheap.octree.OctreeStorage;
+import com.ritualsoftheold.terra.offheap.world.gen.WorldGenManager;
 import com.ritualsoftheold.terra.world.LoadMarker;
 
 import net.openhft.chronicle.core.Memory;
