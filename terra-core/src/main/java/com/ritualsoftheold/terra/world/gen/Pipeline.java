@@ -11,7 +11,7 @@ import java.util.List;
  */
 public abstract class Pipeline<T> {
     
-    private List<TriConsumer<GenerationTask, GeneratorControl, T>> methods;
+    protected List<TriConsumer<GenerationTask, GeneratorControl, T>> methods;
     
     /**
      * Adds a method to end of the pipeline.
@@ -32,12 +32,4 @@ public abstract class Pipeline<T> {
         methods.add(0, method);
         return this;
     }
-    
-    /**
-     * Called by implementation to execute the pipeline.
-     * @param task Generation task.
-     * @param control Control for the operation.
-     * @param meta Original metadata from initialization method.
-     */
-    protected abstract void execute(GenerationTask task, GeneratorControl control, T meta);
 }

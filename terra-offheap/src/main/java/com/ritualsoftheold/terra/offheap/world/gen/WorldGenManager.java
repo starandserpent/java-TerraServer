@@ -1,5 +1,6 @@
 package com.ritualsoftheold.terra.offheap.world.gen;
 
+import com.ritualsoftheold.terra.buffer.BlockBuffer;
 import com.ritualsoftheold.terra.offheap.DataConstants;
 import com.ritualsoftheold.terra.offheap.chunk.ChunkBuffer;
 import com.ritualsoftheold.terra.offheap.chunk.ChunkStorage;
@@ -113,5 +114,10 @@ public class WorldGenManager {
             usedIds.add(data[i]);
         }
         return usedIds.size();
+    }
+
+    public BlockBuffer createBuffer(int size) {
+        // TODO Auto-generated method stub
+        return null;
     }
 }
