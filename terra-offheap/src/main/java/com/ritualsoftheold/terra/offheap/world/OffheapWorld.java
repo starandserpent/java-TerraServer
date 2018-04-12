@@ -16,7 +16,7 @@ import com.ritualsoftheold.terra.offheap.DataConstants;
 import com.ritualsoftheold.terra.offheap.Pointer;
 import com.ritualsoftheold.terra.offheap.chunk.ChunkBuffer;
 import com.ritualsoftheold.terra.offheap.chunk.ChunkStorage;
-import com.ritualsoftheold.terra.offheap.data.DataHeuristics;
+import com.ritualsoftheold.terra.offheap.data.TypeSelector;
 import com.ritualsoftheold.terra.offheap.io.ChunkLoader;
 import com.ritualsoftheold.terra.offheap.io.OctreeLoader;
 import com.ritualsoftheold.terra.offheap.memory.MemoryManager;
@@ -169,7 +169,7 @@ public class OffheapWorld implements TerraWorld {
             world.memManager.initialize(world.octreeStorage, world.chunkStorage);
             
             // Initialize world generation
-            world.genManager = new WorldGenManager(world.generator, new DataHeuristics(), world.chunkStorage);
+            world.genManager = new WorldGenManager(world.generator, new TypeSelector(), world.chunkStorage);
             
             // ... and world loading
             world.worldLoader = new WorldLoader(world.octreeStorage, world.chunkStorage, world.genManager, new WorldSizeManager(world));

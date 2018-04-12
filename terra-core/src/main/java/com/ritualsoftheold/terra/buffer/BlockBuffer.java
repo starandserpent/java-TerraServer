@@ -16,6 +16,12 @@ public interface BlockBuffer extends AutoCloseable {
     void seek(int index);
     
     /**
+     * Gets current position in buffer.
+     * @return Current position.
+     */
+    int position();
+    
+    /**
      * Goes to next block.
      */
     void next();

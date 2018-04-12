@@ -1,6 +1,7 @@
 package com.ritualsoftheold.terra.offheap.chunk.compress;
 
 import com.ritualsoftheold.terra.buffer.BlockBuffer;
+import com.ritualsoftheold.terra.material.MaterialRegistry;
 import com.ritualsoftheold.terra.offheap.chunk.ChunkBuffer;
 import com.ritualsoftheold.terra.offheap.chunk.ChunkType;
 import com.ritualsoftheold.terra.offheap.data.WorldDataFormat;
@@ -56,16 +57,28 @@ public interface ChunkFormat extends WorldDataFormat {
     
     /**
      * Creates a normal block buffer for this format. Writes are done using
-     * change queries, reads may be cached or done immediately.
-     * <p>
-     * Performance critical <b>readers</b> can usually use this block buffer
+     * change queries, reads may be cached or done immediately. This means
+     * that contents of buffer may (but are not necessarily) outdated to the
+     * point of its creation.
+     * 
+     * <p>Performance critical <b>readers</b> can usually use this block buffer
      * without any trouble, provided that the accesses are not random.
      * Writers, on the other hand, should acquire exclusive access to data.
      * TODO exclusive access acquire in OffheapChunk
      * @param chunk Chunk whose data is accessed.
+     * @param storage Storage where said data is.
      * @return New block buffer.
      */
-    BlockBuffer createBuffer(OffheapChunk chunk);
+    BlockBuffer createBuffer(OffheapChunk chunk, Storage storage);
+    
+    /**
+     * Calculates how much memory should be allocated when a new chunk this
+     * is created.
+     * @return Data length.
+     */
+    int newDataLength();
+    
+    BlockBuffer createCriticalBuffer(Storage storage, MaterialRegistry materialRegistry);
     
     @Override
     default boolean isOctree() {

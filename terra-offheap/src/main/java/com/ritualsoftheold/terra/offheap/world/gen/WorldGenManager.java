@@ -5,7 +5,7 @@ import com.ritualsoftheold.terra.offheap.DataConstants;
 import com.ritualsoftheold.terra.offheap.chunk.ChunkBuffer;
 import com.ritualsoftheold.terra.offheap.chunk.ChunkStorage;
 import com.ritualsoftheold.terra.offheap.chunk.compress.ChunkFormat;
-import com.ritualsoftheold.terra.offheap.data.DataHeuristics;
+import com.ritualsoftheold.terra.offheap.data.TypeSelector;
 import com.ritualsoftheold.terra.offheap.data.WorldDataFormat;
 import com.ritualsoftheold.terra.offheap.octree.OctreeNodeFormat;
 import com.ritualsoftheold.terra.world.gen.WorldGenerator;
@@ -33,11 +33,11 @@ public class WorldGenManager {
     /**
      * Some "clever" code to determine what data format to use.
      */
-    private DataHeuristics heuristics;
+    private TypeSelector heuristics;
     
     private ChunkStorage chunkStorage;
     
-    public WorldGenManager(WorldGenerator generator, DataHeuristics heuristics, ChunkStorage chunkStorage) {
+    public WorldGenManager(WorldGenerator generator, TypeSelector heuristics, ChunkStorage chunkStorage) {
         this.generator = generator;
         this.heuristics = heuristics;
         this.chunkStorage = chunkStorage;

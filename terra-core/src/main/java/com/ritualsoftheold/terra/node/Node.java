@@ -27,8 +27,14 @@ public interface Node {
     }
     
     /**
-     * Accesses block buffer of this node, if possible.
-     * If it is not possible, null is returned.
+     * Accesses block buffer of this node if possible. Otherwise null is
+     * returned. When a buffer is returned, it must be closed when user is done
+     * with it; otherwise, Terra may eventually run out of memory.
+     * 
+     * <p>Block buffers returned by this method represent contents of the chunk
+     * at their creation, or any time after that. Writes to buffers are not
+     * necessarily visible in same buffer. They may also be queued in a way
+     * that no one will immediately see the changes.
      * @return Block buffer or null.
      */
     BlockBuffer getBuffer();

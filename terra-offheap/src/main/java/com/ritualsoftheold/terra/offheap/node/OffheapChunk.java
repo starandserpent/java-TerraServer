@@ -196,8 +196,9 @@ public class OffheapChunk implements Chunk, OffheapNode {
         
         private void doFlush() {
             Storage result = applyQueries(chunk.storage, new ChangeIterator(swapAddr, size));
-            if (result != null) { // Swap new storage there if needed
+            if (result != null) { // Put new storage there if needed
                 chunk.storage = result;
+                chunk.buffer.getAllocator().free(result.address, result.length);
             }
 
             // Signal that swapAddr could be now swapped in place of addr
@@ -209,8 +210,9 @@ public class OffheapChunk implements Chunk, OffheapNode {
             
             // Apply changes recursively until all of them have been applied
             if (iterator.hasNext()) {
-                return applyQueries(result, iterator);
-                // TODO don't leak memory...
+                Storage ret = applyQueries(result, iterator);
+                chunk.buffer.getAllocator().free(result.address, result.length);
+                return ret;
             }
             
             return result;
@@ -288,8 +290,14 @@ public class OffheapChunk implements Chunk, OffheapNode {
 
     @Override
     public BlockBuffer getBuffer() {
-        // TODO Auto-generated method stub
-        return null;
+        /*
+         * Buffers created by OffheapChunk represent the latest data in reads,
+         * excluding yet-to-be-applied change queries, IF and ONLY IF the chunk
+         * format has not changed. This conforms with the API Javadoc
+         * of this method.
+         */
+        Storage storage = getStorage(); // Adds 1 to user count
+        return storage.format.createBuffer(this, storage);
     }
 
     @Override
