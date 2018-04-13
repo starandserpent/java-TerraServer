@@ -9,6 +9,7 @@ import com.ritualsoftheold.terra.offheap.BuildConfig;
 import com.ritualsoftheold.terra.offheap.Pointer;
 import com.ritualsoftheold.terra.offheap.chunk.compress.ChunkFormat;
 import com.ritualsoftheold.terra.offheap.chunk.compress.EmptyChunkFormat;
+import com.ritualsoftheold.terra.offheap.data.MemoryAllocator;
 import com.ritualsoftheold.terra.offheap.memory.MemoryUseListener;
 import com.ritualsoftheold.terra.offheap.node.OffheapChunk;
 import com.ritualsoftheold.terra.offheap.node.OffheapChunk.Storage;
@@ -66,38 +67,24 @@ public class ChunkBuffer {
      * Allocates and deallocates memory for chunks on demand.
      *
      */
-    public class Allocator {
+    public class Allocator implements MemoryAllocator {
         
         // TODO optimize to recycle memory
         
-        /**
-         * Allocates memory for a chunk with given length.
-         * @param length Length of data.
-         * @return Memory address where to put it.
-         */
+        @Override
         public @Pointer long alloc(int length) {
             memListener.onAllocate(length);
             return mem.allocate(length);
         }
         
-        /**
-         * Frees memory from chunk data. This is rather low level utily;
-         * be careful to NOT free data which may be used
-         * @param address
-         * @param length
-         */
+        @Override
         public void free(@Pointer long addr, int length) {
             mem.freeMemory(addr, length);
             memListener.onFree(length);
             
         }
         
-        /**
-         * Creates a dummy allocator, which will try to use given address
-         * if length of first allocation matches length given here.
-         * @param address Address where there is free.
-         * @param length Length of free space.
-         */
+        @Override
         public Allocator createDummy(@Pointer long addr, int length) {
             return new DummyAllocator(addr, length);
         }

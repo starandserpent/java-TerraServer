@@ -33,9 +33,7 @@ public class TypeSelector {
      * @return More or less suitable data provider for given data.
      */
     public WorldDataFormat getDataFormat(int matCount) {
-        if (matCount == 1) {
-            return octreeNode;
-        } else if (matCount < 17) {
+        if (matCount < 17) {
             return palette16Chunk;
         } else {
             return uncompressedChunk;

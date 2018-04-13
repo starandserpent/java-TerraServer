@@ -2,8 +2,8 @@ package com.ritualsoftheold.terra.offheap.chunk.compress;
 
 import com.ritualsoftheold.terra.buffer.BlockBuffer;
 import com.ritualsoftheold.terra.material.MaterialRegistry;
-import com.ritualsoftheold.terra.offheap.chunk.ChunkBuffer;
 import com.ritualsoftheold.terra.offheap.chunk.ChunkType;
+import com.ritualsoftheold.terra.offheap.data.MemoryAllocator;
 import com.ritualsoftheold.terra.offheap.data.WorldDataFormat;
 import com.ritualsoftheold.terra.offheap.node.OffheapChunk;
 import com.ritualsoftheold.terra.offheap.node.OffheapChunk.Storage;
@@ -27,11 +27,11 @@ public interface ChunkFormat extends WorldDataFormat {
      * Converts chunk data from given storage to another format.
      * @param origin Original storage of chunk data.
      * @param format New format.
-     * @param allocator Allocator of the buffer where chunk is located.
+     * @param allocator MemoryAllocator of the buffer where chunk is located.
      * @return Storage with converted data or null if conversion to given data
      * type is not supported.
      */
-    Storage convert(Storage origin, ChunkFormat format, ChunkBuffer.Allocator allocator);
+    Storage convert(Storage origin, ChunkFormat format, MemoryAllocator allocator);
     
     /**
      * Processes change queries in a chunk which has same type as this.

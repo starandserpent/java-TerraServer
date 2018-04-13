@@ -4,6 +4,7 @@ import com.ritualsoftheold.terra.buffer.BlockBuffer;
 import com.ritualsoftheold.terra.material.MaterialRegistry;
 import com.ritualsoftheold.terra.material.TerraMaterial;
 import com.ritualsoftheold.terra.offheap.chunk.compress.ChunkFormat;
+import com.ritualsoftheold.terra.offheap.data.MemoryAllocator;
 import com.ritualsoftheold.terra.offheap.data.TypeSelector;
 import com.ritualsoftheold.terra.offheap.node.OffheapChunk.Storage;
 
@@ -30,10 +31,9 @@ public class WrappedCriticalBuffer implements BlockBuffer {
     private Storage storage;
     
     /**
-     * Memory allocator of the chunk buffer where chunk that this block buffer
-     * belongs to is in.
+     * Memory allocator which we should use.
      */
-    private ChunkBuffer.Allocator allocator;
+    private MemoryAllocator allocator;
     
     /**
      * A way to select which chunk format is used next in case there are too
@@ -44,7 +44,7 @@ public class WrappedCriticalBuffer implements BlockBuffer {
     private MaterialRegistry materialRegistry;
     
     public WrappedCriticalBuffer(ChunkFormat format, BlockBuffer wrapped, Storage storage,
-            ChunkBuffer.Allocator allocator, TypeSelector typeSelector, MaterialRegistry registry) {
+            MemoryAllocator allocator, TypeSelector typeSelector, MaterialRegistry registry) {
         this.format = format;
         this.wrapped = wrapped;
         this.storage = storage;
@@ -87,6 +87,8 @@ public class WrappedCriticalBuffer implements BlockBuffer {
             ChunkFormat nextFormat = (ChunkFormat) typeSelector.nextFormat(format); // Chunk -> octree is not possible
             Storage newStorage = format.convert(storage, nextFormat, allocator);
             allocator.free(storage.address, storage.length);
+            
+            // TODO notify memory use listener
             
             BlockBuffer newBuf = nextFormat.createCriticalBuffer(newStorage, materialRegistry);
             newBuf.seek(position());

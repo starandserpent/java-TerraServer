@@ -17,14 +17,16 @@ public class OffheapGeneratorControl implements GeneratorControl {
     
     private boolean end;
     
-    public OffheapGeneratorControl() {
+    private SelfTrackAllocator allocator;
+    
+    public OffheapGeneratorControl(SelfTrackAllocator allocator) {
         this.materialHints = new HashSet<>();
     }
     
     @Override
     public BlockBuffer getBuffer() {
         if (buffer == null) {
-            buffer = manager.createBuffer(materialHints.size());
+            buffer = manager.createBuffer(materialHints.size(), allocator);
         }
         return buffer;
     }
@@ -43,4 +45,7 @@ public class OffheapGeneratorControl implements GeneratorControl {
         materialHints.add(material); // Adds only if it is not there yet
     }
 
+    public int getMemoryUsed() {
+        return allocator.getMemoryUsed();
+    }
 }

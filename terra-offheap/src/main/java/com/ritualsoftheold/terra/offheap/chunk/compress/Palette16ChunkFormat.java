@@ -5,9 +5,9 @@ import com.ritualsoftheold.terra.material.MaterialRegistry;
 import com.ritualsoftheold.terra.material.TerraMaterial;
 import com.ritualsoftheold.terra.offheap.DataConstants;
 import com.ritualsoftheold.terra.offheap.Pointer;
-import com.ritualsoftheold.terra.offheap.chunk.ChunkBuffer;
 import com.ritualsoftheold.terra.offheap.chunk.ChunkType;
 import com.ritualsoftheold.terra.offheap.chunk.TooManyMaterialsException;
+import com.ritualsoftheold.terra.offheap.data.MemoryAllocator;
 import com.ritualsoftheold.terra.offheap.node.OffheapChunk;
 import com.ritualsoftheold.terra.offheap.node.OffheapChunk.Storage;
 
@@ -140,7 +140,7 @@ public class Palette16ChunkFormat implements ChunkFormat {
     }
     
     @Override
-    public Storage convert(Storage origin, ChunkFormat format, ChunkBuffer.Allocator allocator) {
+    public Storage convert(Storage origin, ChunkFormat format, MemoryAllocator allocator) {
         long palette = origin.address;
         if (format == UncompressedChunkFormat.INSTANCE) {
             long addr = allocator.alloc(DataConstants.CHUNK_MAX_BLOCKS * 4);
