@@ -7,7 +7,10 @@ import com.ritualsoftheold.terra.offheap.DataConstants;
 import com.ritualsoftheold.terra.offheap.Pointer;
 import com.ritualsoftheold.terra.offheap.chunk.ChunkType;
 import com.ritualsoftheold.terra.offheap.chunk.TooManyMaterialsException;
+import com.ritualsoftheold.terra.offheap.data.BufferWithFormat;
+import com.ritualsoftheold.terra.offheap.data.CriticalBlockBuffer;
 import com.ritualsoftheold.terra.offheap.data.MemoryAllocator;
+import com.ritualsoftheold.terra.offheap.data.WorldDataFormat;
 import com.ritualsoftheold.terra.offheap.node.OffheapChunk;
 import com.ritualsoftheold.terra.offheap.node.OffheapChunk.Storage;
 
@@ -189,7 +192,7 @@ public class Palette16ChunkFormat implements ChunkFormat {
         return ChunkType.PALETTE16;
     }
     
-    public class Palette16BlockBuffer implements BlockBuffer {
+    public class Palette16BlockBuffer implements BufferWithFormat {
         
         private final OffheapChunk chunk;
         private final Storage storage;
@@ -248,10 +251,15 @@ public class Palette16ChunkFormat implements ChunkFormat {
         public void writeRef(Object ref) {
             chunk.setRef(index, ref);
         }
+
+        @Override
+        public WorldDataFormat getDataFormat() {
+            return INSTANCE;
+        }
         
     }
     
-    public class Palette16CriticalBuffer implements BlockBuffer {
+    public class Palette16CriticalBuffer implements CriticalBlockBuffer {
         
         private final @Pointer long addr;
         private final MaterialRegistry registry;
@@ -311,11 +319,21 @@ public class Palette16ChunkFormat implements ChunkFormat {
         public void writeRef(Object ref) {
             // TODO critical buffer ref support
         }
+
+        @Override
+        public WorldDataFormat getDataFormat() {
+            return INSTANCE;
+        }
+
+        @Override
+        public Storage getStorage() {
+            return null; // TODO
+        }
         
     }
 
     @Override
-    public BlockBuffer createBuffer(OffheapChunk chunk, Storage storage) {
+    public BufferWithFormat createBuffer(OffheapChunk chunk, Storage storage) {
         return new Palette16BlockBuffer(chunk, storage);
     }
 
@@ -325,9 +343,8 @@ public class Palette16ChunkFormat implements ChunkFormat {
     }
 
     @Override
-    public BlockBuffer createCriticalBuffer(Storage storage, MaterialRegistry materialRegistry) {
-        // TODO Auto-generated method stub
-        return null;
+    public CriticalBlockBuffer createCriticalBuffer(Storage storage, MaterialRegistry materialRegistry) {
+        return new Palette16CriticalBuffer(storage.address, materialRegistry);
     }
 
 }

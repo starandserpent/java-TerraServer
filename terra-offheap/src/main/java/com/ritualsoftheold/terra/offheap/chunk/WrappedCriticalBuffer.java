@@ -4,8 +4,11 @@ import com.ritualsoftheold.terra.buffer.BlockBuffer;
 import com.ritualsoftheold.terra.material.MaterialRegistry;
 import com.ritualsoftheold.terra.material.TerraMaterial;
 import com.ritualsoftheold.terra.offheap.chunk.compress.ChunkFormat;
+import com.ritualsoftheold.terra.offheap.data.BufferWithFormat;
+import com.ritualsoftheold.terra.offheap.data.CriticalBlockBuffer;
 import com.ritualsoftheold.terra.offheap.data.MemoryAllocator;
 import com.ritualsoftheold.terra.offheap.data.TypeSelector;
+import com.ritualsoftheold.terra.offheap.data.WorldDataFormat;
 import com.ritualsoftheold.terra.offheap.node.OffheapChunk.Storage;
 
 /**
@@ -13,7 +16,7 @@ import com.ritualsoftheold.terra.offheap.node.OffheapChunk.Storage;
  * format changes are gracefully handled.
  *
  */
-public class WrappedCriticalBuffer implements BlockBuffer {
+public class WrappedCriticalBuffer implements BufferWithFormat, CriticalBlockBuffer {
     
     /**
      * Format of the underlying buffer.
@@ -84,7 +87,7 @@ public class WrappedCriticalBuffer implements BlockBuffer {
             wrapped.write(material);
         } catch (TooManyMaterialsException e) {
             // Convert to different chunk format
-            ChunkFormat nextFormat = (ChunkFormat) typeSelector.nextFormat(format); // Chunk -> octree is not possible
+            ChunkFormat nextFormat = (ChunkFormat) typeSelector.nextFormat(format); // Chunk -> octree is not possible here
             Storage newStorage = format.convert(storage, nextFormat, allocator);
             allocator.free(storage.address, storage.length);
             
@@ -117,6 +120,14 @@ public class WrappedCriticalBuffer implements BlockBuffer {
     public void writeRef(Object ref) {
         wrapped.writeRef(ref);
     }
-    
-    
+
+    @Override
+    public WorldDataFormat getDataFormat() {
+        return format;
+    }
+
+    @Override
+    public Storage getStorage() {
+        return storage;
+    }
 }

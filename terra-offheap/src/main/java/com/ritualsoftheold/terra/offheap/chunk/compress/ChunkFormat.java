@@ -3,6 +3,8 @@ package com.ritualsoftheold.terra.offheap.chunk.compress;
 import com.ritualsoftheold.terra.buffer.BlockBuffer;
 import com.ritualsoftheold.terra.material.MaterialRegistry;
 import com.ritualsoftheold.terra.offheap.chunk.ChunkType;
+import com.ritualsoftheold.terra.offheap.data.BufferWithFormat;
+import com.ritualsoftheold.terra.offheap.data.CriticalBlockBuffer;
 import com.ritualsoftheold.terra.offheap.data.MemoryAllocator;
 import com.ritualsoftheold.terra.offheap.data.WorldDataFormat;
 import com.ritualsoftheold.terra.offheap.node.OffheapChunk;
@@ -69,7 +71,7 @@ public interface ChunkFormat extends WorldDataFormat {
      * @param storage Storage where said data is.
      * @return New block buffer.
      */
-    BlockBuffer createBuffer(OffheapChunk chunk, Storage storage);
+    BufferWithFormat createBuffer(OffheapChunk chunk, Storage storage);
     
     /**
      * Calculates how much memory should be allocated when a new chunk this
@@ -78,7 +80,7 @@ public interface ChunkFormat extends WorldDataFormat {
      */
     int newDataLength();
     
-    BlockBuffer createCriticalBuffer(Storage storage, MaterialRegistry materialRegistry);
+    CriticalBlockBuffer createCriticalBuffer(Storage storage, MaterialRegistry materialRegistry);
     
     @Override
     default boolean isOctree() {

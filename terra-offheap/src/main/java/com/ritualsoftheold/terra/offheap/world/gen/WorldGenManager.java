@@ -5,10 +5,13 @@ import com.ritualsoftheold.terra.material.MaterialRegistry;
 import com.ritualsoftheold.terra.offheap.chunk.ChunkStorage;
 import com.ritualsoftheold.terra.offheap.chunk.WrappedCriticalBuffer;
 import com.ritualsoftheold.terra.offheap.chunk.compress.ChunkFormat;
+import com.ritualsoftheold.terra.offheap.data.BufferWithFormat;
+import com.ritualsoftheold.terra.offheap.data.CriticalBlockBuffer;
 import com.ritualsoftheold.terra.offheap.data.MemoryAllocator;
 import com.ritualsoftheold.terra.offheap.data.TypeSelector;
 import com.ritualsoftheold.terra.offheap.data.WorldDataFormat;
 import com.ritualsoftheold.terra.offheap.node.OffheapChunk.Storage;
+import com.ritualsoftheold.terra.offheap.octree.OctreeNodeFormat;
 import com.ritualsoftheold.terra.offheap.world.OffheapWorld;
 import com.ritualsoftheold.terra.world.gen.GenerationTask;
 import com.ritualsoftheold.terra.world.gen.Pipeline;
@@ -70,9 +73,25 @@ public class WorldGenManager {
         
         // Execute the whole generation pipeline!
         pipeline.execute(task, control, (Object) meta);
+        
+        // Take results of the execution
+        CriticalBlockBuffer buf = control.getBuffer();
+        if (buf == null) { // Nothing was generated
+            // TODO handle it
+        } else {
+            WorldDataFormat format = buf.getDataFormat();
+            if (format.isOctree()) {
+                OctreeNodeFormat octreeFormat = (OctreeNodeFormat) format;
+                octreeFormat.setNode(addr, index, buf.read().getWorldId()); // World id to octree
+                octreeFormat.modifyFlag(addr, index, 0); // Single node
+            } else {
+                ChunkFormat chunkFormat = (ChunkFormat) format;
+                
+            }
+        }
     }
 
-    public BlockBuffer createBuffer(int size, MemoryAllocator allocator) {
+    public CriticalBlockBuffer createBuffer(int size, MemoryAllocator allocator) {
         WorldDataFormat format = typeSelector.getDataFormat(size);
         
         BlockBuffer wrapped; // Buffer we will wrap
