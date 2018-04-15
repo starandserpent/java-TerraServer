@@ -33,7 +33,6 @@ public class MemoryTest {
     public void init() {
         bufferBuilder = new ChunkBuffer.Builder()
                 .maxChunks(128)
-                .globalQueue(8)
                 .queueSize(4);
     }
     

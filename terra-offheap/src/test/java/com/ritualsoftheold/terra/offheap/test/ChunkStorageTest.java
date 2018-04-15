@@ -29,27 +29,10 @@ public class ChunkStorageTest {
     public void init() {
         ChunkBuffer.Builder builder = new ChunkBuffer.Builder()
                 .maxChunks(64)
-                .globalQueue(8)
                 .queueSize(4)
                 .memListener(new DummyMemoryUseListener());
         storage = new ChunkStorage(builder, 256, new DummyChunkLoader(), Executors.newCachedThreadPool());
         registry = new MaterialRegistry();
-    }
-    
-    @Test
-    public void newChunk() {
-        storage.newChunk();
-        ChunkBuffer buf = storage.getBuffer(0);
-        
-        long addr = mem.allocate(DataConstants.CHUNK_UNCOMPRESSED);
-        mem.setMemory(addr, DataConstants.CHUNK_UNCOMPRESSED, (byte) 0);
-        buf.setChunkType(0, ChunkType.UNCOMPRESSED);
-        buf.setChunkAddr(0, addr);
-        buf.setChunkLength(0, DataConstants.CHUNK_UNCOMPRESSED);
-        
-        OffheapChunk chunk = storage.getTemporaryChunk(0, registry);
-        assertNotNull(chunk);
-        assertEquals(registry.getMaterial("base:air"), chunk.getBlock(0));
     }
     
     @Test

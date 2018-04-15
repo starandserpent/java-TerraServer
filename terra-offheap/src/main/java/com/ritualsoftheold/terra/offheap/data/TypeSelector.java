@@ -1,7 +1,6 @@
 package com.ritualsoftheold.terra.offheap.data;
 
 import com.ritualsoftheold.terra.offheap.chunk.compress.Palette16ChunkFormat;
-import com.ritualsoftheold.terra.offheap.chunk.compress.RLE22ChunkFormat;
 import com.ritualsoftheold.terra.offheap.chunk.compress.UncompressedChunkFormat;
 import com.ritualsoftheold.terra.offheap.octree.OctreeNodeFormat;
 
