@@ -68,12 +68,11 @@ public class TestGameApp extends SimpleApplication implements ActionListener {
         MaterialRegistry reg = new MaterialRegistry();
         mod.registerMaterials(reg);
         
-        WorldGenerator gen = new TestWorldGenerator();
-        gen.initialize(0, reg);
+        WorldGenerator<?> gen = new TestWorldGenerator();
+        gen.setup(0, reg);
         
         ChunkBuffer.Builder bufferBuilder = new ChunkBuffer.Builder()
                 .maxChunks(128)
-                .globalQueue(8)
                 .queueSize(4);
         
         world = new OffheapWorld.Builder()
@@ -133,7 +132,7 @@ public class TestGameApp extends SimpleApplication implements ActionListener {
                 
                 //System.out.println("Loaded chunk: " + chunk.memoryAddress());
                 MeshContainer container = new MeshContainer(200, ByteBufAllocator.DEFAULT);
-                mesher.chunk(chunk.newIterator(), texManager, container);
+                mesher.chunk(chunk.getBuffer(), texManager, container);
                 
                 // Create mesh
                 Mesh mesh = new Mesh();

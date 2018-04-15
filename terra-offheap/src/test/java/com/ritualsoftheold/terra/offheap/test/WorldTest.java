@@ -34,7 +34,6 @@ public class WorldTest {
     public void init() {
         ChunkBuffer.Builder bufferBuilder = new ChunkBuffer.Builder()
                 .maxChunks(128)
-                .globalQueue(8)
                 .queueSize(4);
         
         world = new OffheapWorld.Builder()
@@ -68,16 +67,5 @@ public class WorldTest {
     @Test
     public void initTest() {
         // See init() above
-    }
-    
-    
-    @Test
-    public void extractChunkTest() {
-        long addr = mem.allocate(DataConstants.CHUNK_UNCOMPRESSED);
-        for (int i = 0; i < world.getChunkStorage().getBuffer(0).getChunkCount(); i++) {
-            world.copyChunkData(i, addr);
-            assertEquals("data mismatch", mem.readLong(world.getChunkStorage().getBuffer(0).getChunkAddr(i)), mem.readLong(addr));
-        }
-        mem.freeMemory(addr, DataConstants.CHUNK_UNCOMPRESSED);
     }
 }
