@@ -20,7 +20,7 @@ public class TypeSelector {
     private WorldDataFormat octreeNode;
     
     public TypeSelector() {
-        this.rle22Chunk = RLE22ChunkFormat.INSTANCE;
+        //this.rle22Chunk = RLE22ChunkFormat.INSTANCE;
         this.palette16Chunk = Palette16ChunkFormat.INSTANCE;
         this.uncompressedChunk = UncompressedChunkFormat.INSTANCE;
         
