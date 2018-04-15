@@ -48,10 +48,12 @@ public class WorldGenManager {
     
     private OffheapWorld world;
     
-    public WorldGenManager(WorldGenerator<Object> generator, TypeSelector typeSelector, ChunkStorage chunkStorage) {
-        this.generator = generator;
+    @SuppressWarnings("unchecked") // I hate generics
+    public WorldGenManager(WorldGenerator<?> generator, TypeSelector typeSelector, OffheapWorld world) {
+        this.generator = (WorldGenerator<Object>) generator;
         this.typeSelector = typeSelector;
-        this.chunkStorage = chunkStorage;
+        this.chunkStorage = world.getChunkStorage();
+        this.world = world;
     }
     
     /**
@@ -67,7 +69,7 @@ public class WorldGenManager {
      */
     public void generate(long addr, int index, float x, float y, float z, float scale) {
         SelfTrackAllocator trackedAllocator = new SelfTrackAllocator();
-        OffheapGeneratorControl control = new OffheapGeneratorControl(trackedAllocator);
+        OffheapGeneratorControl control = new OffheapGeneratorControl(this, trackedAllocator);
         GenerationTask task = new GenerationTask(x, y, z);
         OffheapPipeline<Object> pipeline = new OffheapPipeline<>();
         

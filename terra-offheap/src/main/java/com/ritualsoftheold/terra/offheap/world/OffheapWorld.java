@@ -54,7 +54,7 @@ public class OffheapWorld implements TerraWorld {
     private float masterScale;
     
     // World generation
-    private WorldGenerator generator;
+    private WorldGenerator<?> generator;
     private WorldGenManager genManager;
     private Executor generatorExecutor;
     
@@ -169,7 +169,7 @@ public class OffheapWorld implements TerraWorld {
             world.memManager.initialize(world.octreeStorage, world.chunkStorage);
             
             // Initialize world generation
-            world.genManager = new WorldGenManager(world.generator, new TypeSelector(), world.chunkStorage);
+            world.genManager = new WorldGenManager(world.generator, new TypeSelector(), world);
             
             // ... and world loading
             world.worldLoader = new WorldLoader(world.octreeStorage, world.chunkStorage, world.genManager, new WorldSizeManager(world));

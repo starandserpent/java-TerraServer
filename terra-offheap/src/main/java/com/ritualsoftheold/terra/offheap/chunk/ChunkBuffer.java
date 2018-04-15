@@ -137,6 +137,8 @@ public class ChunkBuffer {
     private boolean perChunkReady;
     
     public ChunkBuffer(int id, int maxChunks, int chunkQueueSize, MemoryUseListener memListener, boolean perChunkReady) {
+        chunks = new AtomicReferenceArray<>(maxChunks);
+        
         bufferId = id; // Set buffer id
         
         // Initialize counts (max: parameter, current: 0)

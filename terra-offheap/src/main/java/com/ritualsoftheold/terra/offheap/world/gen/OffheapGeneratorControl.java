@@ -19,8 +19,12 @@ public class OffheapGeneratorControl implements GeneratorControl {
     
     private SelfTrackAllocator allocator;
     
-    public OffheapGeneratorControl(SelfTrackAllocator allocator) {
+    public OffheapGeneratorControl(WorldGenManager manager, SelfTrackAllocator allocator) {
         this.materialHints = new HashSet<>();
+        this.buffer = null;
+        this.manager = manager;
+        this.end = false;
+        this.allocator = allocator;
     }
     
     @Override
