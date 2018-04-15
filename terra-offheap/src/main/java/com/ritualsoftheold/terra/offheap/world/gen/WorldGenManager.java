@@ -2,14 +2,16 @@ package com.ritualsoftheold.terra.offheap.world.gen;
 
 import com.ritualsoftheold.terra.buffer.BlockBuffer;
 import com.ritualsoftheold.terra.material.MaterialRegistry;
+import com.ritualsoftheold.terra.offheap.chunk.ChunkBuffer;
 import com.ritualsoftheold.terra.offheap.chunk.ChunkStorage;
 import com.ritualsoftheold.terra.offheap.chunk.WrappedCriticalBuffer;
 import com.ritualsoftheold.terra.offheap.chunk.compress.ChunkFormat;
-import com.ritualsoftheold.terra.offheap.data.BufferWithFormat;
 import com.ritualsoftheold.terra.offheap.data.CriticalBlockBuffer;
 import com.ritualsoftheold.terra.offheap.data.MemoryAllocator;
 import com.ritualsoftheold.terra.offheap.data.TypeSelector;
 import com.ritualsoftheold.terra.offheap.data.WorldDataFormat;
+import com.ritualsoftheold.terra.offheap.memory.MemoryUseListener;
+import com.ritualsoftheold.terra.offheap.node.OffheapChunk;
 import com.ritualsoftheold.terra.offheap.node.OffheapChunk.Storage;
 import com.ritualsoftheold.terra.offheap.octree.OctreeNodeFormat;
 import com.ritualsoftheold.terra.offheap.world.OffheapWorld;
@@ -64,7 +66,8 @@ public class WorldGenManager {
      * @param scale Scale.
      */
     public void generate(long addr, int index, float x, float y, float z, float scale) {
-        OffheapGeneratorControl control = new OffheapGeneratorControl(new SelfTrackAllocator());
+        SelfTrackAllocator trackedAllocator = new SelfTrackAllocator();
+        OffheapGeneratorControl control = new OffheapGeneratorControl(trackedAllocator);
         GenerationTask task = new GenerationTask(x, y, z);
         OffheapPipeline<Object> pipeline = new OffheapPipeline<>();
         
@@ -85,8 +88,26 @@ public class WorldGenManager {
                 octreeFormat.setNode(addr, index, buf.read().getWorldId()); // World id to octree
                 octreeFormat.modifyFlag(addr, index, 0); // Single node
             } else {
-                ChunkFormat chunkFormat = (ChunkFormat) format;
+                int id = chunkStorage.newChunk();
+                if (!mem.compareAndSwapInt(addr + index * 4, 0, id)) {
+                    // Someone got there before us!
+                    return; // -> they get to do this
+                }
+                // Flag for this is 1, because we are generating for first time
+                // (all flags are 1 at this point)
                 
+                // Notify memory use listener about memory we used
+                MemoryUseListener memListener = chunkStorage.getBufferBuilder().memListener();
+                memListener.onAllocate(trackedAllocator.getMemoryUsed());
+                
+                // Acquire the next chunk
+                int chunkId = chunkStorage.newChunk();
+                ChunkBuffer chunkBuf = chunkStorage.getBuffer(chunkId >>> 16);
+                OffheapChunk chunk = chunkBuf.getChunk(chunkId & 0xffff);
+                
+                // Set its storage to generated contents
+                Storage storage = buf.getStorage();
+                chunk.setStorageInternal(storage);
             }
         }
     }

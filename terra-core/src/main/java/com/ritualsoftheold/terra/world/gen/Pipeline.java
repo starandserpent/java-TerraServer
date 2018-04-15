@@ -1,5 +1,6 @@
 package com.ritualsoftheold.terra.world.gen;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -12,6 +13,10 @@ import java.util.List;
 public abstract class Pipeline<T> {
     
     protected List<TriConsumer<GenerationTask, GeneratorControl, T>> methods;
+    
+    public Pipeline() {
+        this.methods = new ArrayList<>();
+    }
     
     /**
      * Adds a method to end of the pipeline.

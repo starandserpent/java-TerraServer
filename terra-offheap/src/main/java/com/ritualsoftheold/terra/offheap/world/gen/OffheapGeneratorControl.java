@@ -4,7 +4,6 @@ import java.util.HashSet;
 import java.util.Set;
 
 import com.ritualsoftheold.terra.material.TerraMaterial;
-import com.ritualsoftheold.terra.offheap.data.BufferWithFormat;
 import com.ritualsoftheold.terra.offheap.data.CriticalBlockBuffer;
 import com.ritualsoftheold.terra.world.gen.GeneratorControl;
 
