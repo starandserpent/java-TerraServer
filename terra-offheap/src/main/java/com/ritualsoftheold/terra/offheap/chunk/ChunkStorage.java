@@ -15,6 +15,8 @@ import com.ritualsoftheold.terra.offheap.node.OffheapChunk;
  */
 public class ChunkStorage {
     
+    private MaterialRegistry materialRegistry;
+    
     /**
      * Array of all chunk buffers. May contain nulls for buffers which have not
      * been yet needed.
@@ -39,7 +41,8 @@ public class ChunkStorage {
     
     private Executor executor;
     
-    public ChunkStorage(ChunkBuffer.Builder bufferBuilder, int maxBuffers, ChunkLoader loader, Executor executor) {
+    public ChunkStorage(MaterialRegistry registry, ChunkBuffer.Builder bufferBuilder, int maxBuffers, ChunkLoader loader, Executor executor) {
+        this.materialRegistry = registry;
         this.bufferBuilder = bufferBuilder;
         this.loader = loader;
         this.buffers = new AtomicReferenceArray<>(maxBuffers);
@@ -116,7 +119,7 @@ public class ChunkStorage {
         }
         
         // Create buffer
-        buffers.set(index, bufferBuilder.build(index));
+        buffers.set(index, bufferBuilder.build(this, index));
         
         return true;
     }
@@ -237,5 +240,9 @@ public class ChunkStorage {
      */
     public ChunkBuffer.Builder getBufferBuilder() {
         return bufferBuilder;
+    }
+
+    public MaterialRegistry getMaterialRegistry() {
+        return materialRegistry;
     }
 }

@@ -71,7 +71,7 @@ public class OffheapChunk implements Chunk, OffheapNode {
         }
         
         void open() {
-            userCountHandle.getAndAdd(this, -1);
+            userCountHandle.getAndAdd(this, 1);
         }
         
         public int getUserCount() {
@@ -175,7 +175,7 @@ public class OffheapChunk implements Chunk, OffheapNode {
             }
             
             // Wait for any volatile writes to queue
-            while (writtenIndex.get() != index.get()) {
+            while (writtenIndex.get() != index.get() - 1) {
                 Thread.onSpinWait();
             }
             
@@ -195,7 +195,7 @@ public class OffheapChunk implements Chunk, OffheapNode {
         }
         
         private void doFlush() {
-            Storage result = applyQueries(chunk.storage, new ChangeIterator(swapAddr, size));
+            Storage result = applyQueries(chunk.storage, new ChangeIterator(swapAddr, writtenIndex.get()));
             if (result != null) { // Put new storage there if needed
                 chunk.storage = result;
                 chunk.buffer.getAllocator().free(result.address, result.length);
@@ -270,8 +270,6 @@ public class OffheapChunk implements Chunk, OffheapNode {
      * ideally with primitive keys.
      */
     private ConcurrentMap<Integer,Object> refs;
-    
-    private MaterialRegistry materialRegistry;
     
     public OffheapChunk(ChunkBuffer buffer, long queueAddr, long swapAddr, int queueSize) {
         // Permanent (final) chunk parameters
@@ -351,7 +349,7 @@ public class OffheapChunk implements Chunk, OffheapNode {
     }
     
     public MaterialRegistry getWorldMaterialRegistry() {
-        return materialRegistry;
+        return buffer.getStorage().getMaterialRegistry();
     }
 
     public ChunkBuffer getChunkBuffer() {

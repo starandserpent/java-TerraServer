@@ -22,6 +22,8 @@ public class ChunkBuffer {
     
     private static final Memory mem = OS.memory();
     
+    private ChunkStorage storage;
+    
     private AtomicReferenceArray<OffheapChunk> chunks;
     
     /**
@@ -136,7 +138,8 @@ public class ChunkBuffer {
      */
     private boolean perChunkReady;
     
-    public ChunkBuffer(int id, int maxChunks, int chunkQueueSize, MemoryUseListener memListener, boolean perChunkReady) {
+    public ChunkBuffer(ChunkStorage storage, int id, int maxChunks, int chunkQueueSize, MemoryUseListener memListener, boolean perChunkReady) {
+        this.storage = storage;
         chunks = new AtomicReferenceArray<>(maxChunks);
         
         bufferId = id; // Set buffer id
@@ -256,8 +259,8 @@ public class ChunkBuffer {
             return perChunkReady;
         }
         
-        public ChunkBuffer build(int index) {
-            return new ChunkBuffer(index, maxChunks, chunkQueueSize, memListener, perChunkReady);
+        public ChunkBuffer build(ChunkStorage storage, int index) {
+            return new ChunkBuffer(storage, index, maxChunks, chunkQueueSize, memListener, perChunkReady);
         }
     }
     
@@ -392,5 +395,9 @@ public class ChunkBuffer {
             // Block until that chunk is received
             Thread.onSpinWait();
         }
+    }
+
+    public ChunkStorage getStorage() {
+        return storage;
     }
 }

@@ -83,6 +83,7 @@ public class WorldGenManager {
         CriticalBlockBuffer buf = control.getBuffer();
         if (buf == null) { // Nothing was generated
             // TODO handle it
+            System.out.println("NULL");
         } else {
             WorldDataFormat format = buf.getDataFormat();
             if (format.isOctree()) {

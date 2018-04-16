@@ -123,7 +123,7 @@ public class OffheapWorld implements TerraWorld {
             return this;
         }
         
-        public Builder generator(WorldGenerator generator) {
+        public Builder generator(WorldGenerator<?> generator) {
             world.generator = generator;
             return this;
         }
@@ -163,7 +163,7 @@ public class OffheapWorld implements TerraWorld {
             world.octreeStorage = new OctreeStorage(octreeGroupSize, world.octreeLoader, world.storageExecutor, world.memManager, perNodeReady);
             chunkBufferBuilder.memListener(world.memManager);
             chunkBufferBuilder.perChunkReady(perNodeReady);
-            world.chunkStorage = new ChunkStorage(chunkBufferBuilder, chunkMaxBuffers, world.chunkLoader, world.storageExecutor);
+            world.chunkStorage = new ChunkStorage(world.registry, chunkBufferBuilder, chunkMaxBuffers, world.chunkLoader, world.storageExecutor);
             
             // Initialize memory manager with storages
             world.memManager.initialize(world.octreeStorage, world.chunkStorage);
