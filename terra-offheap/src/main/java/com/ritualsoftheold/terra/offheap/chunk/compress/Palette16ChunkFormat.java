@@ -89,7 +89,7 @@ public class Palette16ChunkFormat implements ChunkFormat {
      * @return World id.
      */
     public int getWorldId(@Pointer long palette, int paletteId) {
-        return mem.readVolatileInt(palette + paletteId);
+        return mem.readVolatileInt(palette + paletteId * 4);
     }
     
     public int readWorldId(@Pointer long addr, int index) {
@@ -97,14 +97,14 @@ public class Palette16ChunkFormat implements ChunkFormat {
         int bitOffset = shiftOffset(index);
 
         byte data = mem.readVolatileByte(addr + PALETTE_LENGTH + byteIndex);
-        int paletteId = data >>> bitOffset & 0xf;
+        int paletteId = (data >>> bitOffset) & 0xf;
         
         return getWorldId(addr, paletteId);
     }
     
     public boolean writeWorldId(@Pointer long addr, int index, int id) {
         long palette = addr;
-        long blocks = addr + PALETTE_SIZE;
+        long blocks = addr + PALETTE_LENGTH;
         
         // Figure out correct palette id
         int paletteId = findPaletteId(palette, id);
@@ -130,7 +130,7 @@ public class Palette16ChunkFormat implements ChunkFormat {
          * The second shift will then arrange them back.
          */
         // Clear the part of byte where we will write
-        value = value << bitOffset & 0xfffff0f0 >>> bitOffset;
+        value = ((value << bitOffset) & 0xfffff0f0) >>> bitOffset;
         
         // Write the 4 byte palette id to first 4 bytes or last 4 bytes
         value = value | (paletteId << bitOffset);

@@ -30,7 +30,7 @@ public class ChunkBufferTest {
                 .maxChunks(64)
                 .queueSize(4)
                 .memListener(new DummyMemoryUseListener())
-                .build((short) 1);
+                .build(null, (short) 1);
     }
     
     @Test

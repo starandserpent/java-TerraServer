@@ -99,6 +99,7 @@ public class ChunkTest {
         for (int i = 0; i < 11; i++) {
             mats[i] = mod.newMaterial().name("test" + i).build();
         }
+        mod.registerMaterials(reg);
         
         // 10 first fit to the queue
         for (int i = 0; i < 10; i++) {
@@ -110,8 +111,20 @@ public class ChunkTest {
         
         // Check chunk data
         BlockBuffer buf = chunk.getBuffer();
+        for (int i = 0; i < 10; i++) {
+            assertEquals(mats[i].getWorldId(), buf.read().getWorldId());
+            buf.next();
+        }
+        
+        // 10 more queries forces flush
+        for (int i = 0; i < 10; i++) {
+            chunk.queueChange(i, mats[i].getWorldId());
+        }
+        
+        // Check data... again
+        buf.seek(0);
         for (int i = 0; i < 11; i++) {
-            assertEquals(buf.read().getWorldId(), mats[i].getWorldId());
+            assertEquals(mats[i].getWorldId(), buf.read().getWorldId());
             buf.next();
         }
     }

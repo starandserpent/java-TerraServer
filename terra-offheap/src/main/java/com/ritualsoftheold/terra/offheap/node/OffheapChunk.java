@@ -178,9 +178,10 @@ public class OffheapChunk implements Chunk, OffheapNode {
             while (writtenIndex.get() != index.get() - 1) {
                 Thread.onSpinWait();
             }
+            int howMany = writtenIndex.get();
             
             swapQueues();
-            doFlush();
+            doFlush(howMany);
         }
         
         private void swapQueues() {            
@@ -194,8 +195,8 @@ public class OffheapChunk implements Chunk, OffheapNode {
             writtenIndex.set(0);
         }
         
-        private void doFlush() {
-            Storage result = applyQueries(chunk.storage, new ChangeIterator(swapAddr, writtenIndex.get()));
+        private void doFlush(int howMany) {
+            Storage result = applyQueries(chunk.storage, new ChangeIterator(swapAddr, howMany));
             if (result != null) { // Put new storage there if needed
                 chunk.storage = result;
                 chunk.buffer.getAllocator().free(result.address, result.length);
