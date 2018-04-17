@@ -36,17 +36,7 @@ public class ChunkTest {
         long queueAddr = mem.allocate(queueSize * 8 * 2);
         reg = new MaterialRegistry();
         ChunkStorage storage = new ChunkStorage(reg, null, 0, null, null);
-        ChunkBuffer buf = new ChunkBuffer(storage, 0, 0, queueSize, new MemoryUseListener() {
-            
-            @Override
-            public void onFree(long amount) {
-            }
-            
-            @Override
-            public void onAllocate(long amount) {
-                
-            }
-        }, false);
+        ChunkBuffer buf = new ChunkBuffer(storage, 0, 0, queueSize, new DummyMemoryUseListener(), false);
         chunk = new OffheapChunk(buf, queueAddr, queueAddr + queueSize * 8, queueSize);
     }
     
@@ -127,5 +117,11 @@ public class ChunkTest {
             assertEquals(mats[i].getWorldId(), buf.read().getWorldId());
             buf.next();
         }
+    }
+    
+    @Test
+    public void refTest() {
+        chunk.setRef(0, "foo");
+        assertEquals("foo", chunk.getRef(0));
     }
 }

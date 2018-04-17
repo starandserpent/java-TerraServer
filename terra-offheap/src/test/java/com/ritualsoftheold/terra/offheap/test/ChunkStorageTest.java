@@ -31,7 +31,7 @@ public class ChunkStorageTest {
                 .maxChunks(64)
                 .queueSize(4)
                 .memListener(new DummyMemoryUseListener());
-        storage = new ChunkStorage(builder, 256, new DummyChunkLoader(), Executors.newCachedThreadPool());
+        storage = new ChunkStorage(null, builder, 256, new DummyChunkLoader(), Executors.newCachedThreadPool());
         registry = new MaterialRegistry();
     }
     

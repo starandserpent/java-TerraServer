@@ -206,7 +206,7 @@ public class Palette16ChunkFormat implements ChunkFormat {
         }
         
         @Override
-        public void close() throws Exception {
+        public void close() {
            storage.close();
         }
 
@@ -271,7 +271,7 @@ public class Palette16ChunkFormat implements ChunkFormat {
         }
         
         @Override
-        public void close() throws Exception {
+        public void close() {
             // Not needed
         }
 

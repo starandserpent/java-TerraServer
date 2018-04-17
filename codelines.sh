@@ -1,2 +1,2 @@
 #!/bin/sh
-find */src/*/java/ -name '*.java' | xargs wc -l
+find */src/main/java/ -name '*.java' | xargs wc -l

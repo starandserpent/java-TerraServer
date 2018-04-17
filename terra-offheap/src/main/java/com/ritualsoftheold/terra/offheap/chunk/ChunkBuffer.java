@@ -5,6 +5,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReferenceArray;
 
 import com.ritualsoftheold.terra.offheap.Pointer;
+import com.ritualsoftheold.terra.offheap.chunk.compress.ChunkFormat;
 import com.ritualsoftheold.terra.offheap.chunk.compress.EmptyChunkFormat;
 import com.ritualsoftheold.terra.offheap.data.MemoryAllocator;
 import com.ritualsoftheold.terra.offheap.memory.MemoryUseListener;
@@ -277,10 +278,15 @@ public class ChunkBuffer {
             int length = mem.readInt(addr + 1);
             addr += 5; // To actual chunk data
             
-            // Copy data that needs to be copied
-            // TODO reimplement loading
+            // Copy chunk data
+            // Can't use the data in buffer, partial freeing of allocated memory is not safe
+            long copyAddr = allocator.alloc(length);
+            mem.copyMemory(addr, copyAddr, length);
             
-            // Note: avoid actually copying chunk contents as it is not really necessary
+            // Create storage and apply it to chunk
+            Storage storage = new Storage(ChunkFormat.forType(type), copyAddr, length);
+            OffheapChunk chunk = chunks.get(i);
+            chunk.setStorageInternal(storage);
             
             // Increment pointer to point to next chunk
             addr += length;
@@ -292,7 +298,7 @@ public class ChunkBuffer {
         
         int count = chunkCount.get();
         for (int i = 0; i < count; i++) {
-            // TODO reimplement
+            size += chunks.get(i).getStorageInternal().length;
         }
         
         return size;

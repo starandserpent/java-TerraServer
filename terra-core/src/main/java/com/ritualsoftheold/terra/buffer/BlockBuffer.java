@@ -55,4 +55,7 @@ public interface BlockBuffer extends AutoCloseable {
      * @param ref New reference.
      */
     void writeRef(Object ref);
+    
+    @Override
+    void close();
 }
