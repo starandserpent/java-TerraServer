@@ -35,14 +35,7 @@ public class ChunkBufferTest {
     private TerraMaterial[] mats;
     
     @Before
-    public void init() {
-        reg = new MaterialRegistry();
-        TerraModule mod = new TerraModule("test");
-        mats = new TerraMaterial[11];
-        for (int i = 0; i < 11; i++) {
-            mats[i] = mod.newMaterial().name("test" + i).build();
-        }
-        mod.registerMaterials(reg);
+    public void initBuf() {
         ChunkStorage storage = new ChunkStorage(reg, null, 0, null, null);
         
         buf = new ChunkBuffer.Builder()
@@ -50,6 +43,17 @@ public class ChunkBufferTest {
                 .queueSize(4)
                 .memListener(new DummyMemoryUseListener())
                 .build(storage, (short) 1);
+    }
+    
+    @Before
+    public void initMaterials() {
+        reg = new MaterialRegistry();
+        TerraModule mod = new TerraModule("test");
+        mats = new TerraMaterial[11];
+        for (int i = 0; i < 11; i++) {
+            mats[i] = mod.newMaterial().name("test" + i).build();
+        }
+        mod.registerMaterials(reg);
     }
     
     @Test
@@ -80,6 +84,12 @@ public class ChunkBufferTest {
             }
         }
         
-        // TODO write rest of test
+        long saveAddr = mem.allocate(buf.getSaveSize());
+        buf.save(saveAddr);
+        
+        buf.unload(); // Crashed yet?
+        
+        initBuf(); // Get new chunk buffer
+        buf.load(saveAddr, 64);
     }
 }

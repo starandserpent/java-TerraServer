@@ -151,7 +151,7 @@ public class ChunkBuffer {
         
         // Allocate some offheap memory for chunk change queues
         queueSize = chunkQueueSize;
-        int queueMemoryNeeded = 2 * 8 * queueSize; // Two queues (one for swapping), each entry is a long
+        int queueMemoryNeeded = 2 * 8 * queueSize * maxChunks; // Two queues (one for swapping), each entry is a long
         changeQueues = mem.allocate(queueMemoryNeeded);
         
         // Save ref to memory use listener and notify it

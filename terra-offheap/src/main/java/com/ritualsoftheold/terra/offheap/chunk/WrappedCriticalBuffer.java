@@ -57,7 +57,7 @@ public class WrappedCriticalBuffer implements BufferWithFormat, CriticalBlockBuf
     }
 
     @Override
-    public void close() throws Exception {
+    public void close() {
         wrapped.close();
     }
 

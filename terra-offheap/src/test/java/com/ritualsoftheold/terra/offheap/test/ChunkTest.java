@@ -120,6 +120,25 @@ public class ChunkTest {
     }
     
     @Test
+    public void queueStress() {
+        long addr = mem.allocate(DataConstants.CHUNK_MAX_BLOCKS / 2);
+        Storage storage = new Storage(Palette16ChunkFormat.INSTANCE, addr, DataConstants.CHUNK_MAX_BLOCKS / 2);
+        chunk.setStorageInternal(storage);
+        
+        // Create 11 new materials
+        TerraModule mod = new TerraModule("test");
+        TerraMaterial[] mats = new TerraMaterial[64];
+        for (int i = 0; i < 64; i++) {
+            mats[i] = mod.newMaterial().name("test" + i).build();
+        }
+        mod.registerMaterials(reg);
+        
+        for (int i = 0; i < 64; i++) {
+            chunk.queueChange(i, mats[i].getWorldId());
+        }
+    }
+    
+    @Test
     public void refTest() {
         chunk.setRef(0, "foo");
         assertEquals("foo", chunk.getRef(0));
