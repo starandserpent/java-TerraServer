@@ -152,7 +152,7 @@ public class OffheapChunk implements Chunk, OffheapNode {
                 i = index.getAndIncrement();
                 if (i >= size) { // No space available
                     // Attempt to swap queues
-                    requestFlush();
+                    requestFlush(false);
                 } else { // Got space
                     break;
                 }
@@ -163,10 +163,15 @@ public class OffheapChunk implements Chunk, OffheapNode {
             writtenIndex.incrementAndGet(); // TODO reduce amount of atomic operations here
         }
         
-        private void requestFlush() {
+        public void forceFlush() {
+            index.getAndIncrement();
+            requestFlush(true);
+        }
+        
+        private void requestFlush(boolean force) {
             while (true) {
                 Thread.onSpinWait();
-                if (index.get() < size) {
+                if (!force && index.get() < size) {
                     return; // Someone managed to flush
                 }
                 if (canSwap.compareAndSet(true, false)) {
@@ -329,6 +334,10 @@ public class OffheapChunk implements Chunk, OffheapNode {
     
     public void queueChange(int index, int blockId) {
         queueChange(index << 24 | blockId);
+    }
+    
+    public void flushChanges() {
+        queue.forceFlush();
     }
     
     /**

@@ -81,6 +81,7 @@ public class ChunkBufferTest {
             
             try (BlockBuffer buf = chunk.getBuffer()) {
                 buf.write(mats[1]);
+                chunk.flushChanges();
             }
         }
         
@@ -91,5 +92,12 @@ public class ChunkBufferTest {
         
         initBuf(); // Get new chunk buffer
         buf.load(saveAddr, 64);
+        
+        for (int i = 0; i < 64; i++) {
+            OffheapChunk chunk = buf.getChunk(i);
+            try (BlockBuffer buf = chunk.getBuffer()) {
+                assertEquals(mats[1].getWorldId(), buf.read().getWorldId());
+            }
+        }
     }
 }
