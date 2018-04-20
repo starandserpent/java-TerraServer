@@ -17,6 +17,10 @@ public class MeshContainer {
     
     /**
      * Creates a new mesh container.
+     * 
+     * <p><strong>Remember to {@link #release()} this container!</strong>
+     * Otherwise, it is easy to exhaust Netty's buffer allocation,
+     * which might cause freezes during mesh generation.
      * @param startSize Starting number of vertices that the container may
      * hold. Buffers will get enlarged if this is exceeded.
      * @param allocator Buffer allocator.
@@ -61,9 +65,10 @@ public class MeshContainer {
     }
     
     /**
-     * Releases the underlying Netty buffers. Make sure you have no NIO
-     * buffers that refer to them. Failure to do so will likely result
-     * a JVM segfault or other nasty behavior.
+     * Releases the underlying Netty buffers. Once you don't use them anymore,
+     * this should be called to ensure that Netty's buffer allocator is not
+     * exhausted. Because you don't want mesh generator to freeze randomly
+     * in future, do you?
      */
     public void release() {
         vertices.release();
