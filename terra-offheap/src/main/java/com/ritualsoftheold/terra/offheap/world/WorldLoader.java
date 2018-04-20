@@ -312,7 +312,7 @@ public class WorldLoader {
         // Loop through child nodes
         for (int i = 0; i < 8; i++) {
             int flag = flags >>> i & 1;
-            //System.out.println("flag == " + flag);
+            //System.out.println("flag == " + flag + ", scale == " + scale);
             
             // Octree or chunk
             if (flag == 1) {
@@ -382,16 +382,7 @@ public class WorldLoader {
                     
                     // Ok, this is something that has not been generated, so it is
                     // "octree null": flag is 1, but node is 0 (kind of null pointer)
-                    if (scale == DataConstants.CHUNK_SCALE) {
-                        // Check if this node is within range and does it, thus, need to be loaded
-                        // This is done only for chunks, since octree structure must always be fully loaded
-                        float subScale = 0.5f * scale;
-                        if (subNodeX + subScale < x - range || subNodeX - subScale > x + range
-                                || subNodeY + subScale < y - range || subNodeY - subScale > y + range
-                                || subNodeZ + subScale < z - range|| subNodeZ - subScale > z + range) {
-                            continue; // Apparently no, go straight to next one
-                        }
-                        
+                    if (scale == DataConstants.CHUNK_SCALE) {                        
                         //System.out.println("Create chunk (i: " + i + ")");
                         genManager.generate(addr, i, subNodeX, subNodeY, subNodeZ, scale);
                         node = mem.readVolatileInt(nodeAddr); // Read node, whatever it is

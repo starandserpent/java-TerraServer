@@ -5,7 +5,6 @@ import com.ritualsoftheold.terra.material.TerraMaterial;
 import com.ritualsoftheold.terra.material.TerraTexture;
 import com.ritualsoftheold.terra.mesher.resource.TextureManager;
 import com.ritualsoftheold.terra.offheap.DataConstants;
-import com.ritualsoftheold.terra.offheap.chunk.iterator.ChunkIterator;
 
 /**
  * Naive mesher does culling, but doesn't try to merge same blocks into bigger faces.
@@ -202,7 +201,7 @@ public class NaiveMesher implements VoxelMesher {
             }
 
             block++; // Go to next block
-        }
+        }        
     }
 
     @Override

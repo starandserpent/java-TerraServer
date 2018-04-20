@@ -17,10 +17,20 @@ public class SelfTrackAllocator implements MemoryAllocator {
     
     private int used;
     
+    private final boolean zero;
+    
+    public SelfTrackAllocator(boolean zero) {
+        this.zero = zero;
+    }
+
     @Override
     public long alloc(int length) {
         used += length;
-        return mem.allocate(length);
+        long addr = mem.allocate(length);
+        if (zero) { // Zero the memory if requested
+            mem.setMemory(addr, length, (byte) 0);
+        }
+        return addr;
     }
 
     @Override

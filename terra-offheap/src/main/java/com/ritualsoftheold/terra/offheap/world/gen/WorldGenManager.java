@@ -68,7 +68,7 @@ public class WorldGenManager {
      * @param scale Scale.
      */
     public void generate(long addr, int index, float x, float y, float z, float scale) {
-        SelfTrackAllocator trackedAllocator = new SelfTrackAllocator();
+        SelfTrackAllocator trackedAllocator = new SelfTrackAllocator(true); // Must zero that memory!
         OffheapGeneratorControl control = new OffheapGeneratorControl(this, trackedAllocator);
         GenerationTask task = new GenerationTask(x, y, z);
         OffheapPipeline<Object> pipeline = new OffheapPipeline<>();
@@ -91,9 +91,11 @@ public class WorldGenManager {
                 octreeFormat.setNode(addr, index, buf.read().getWorldId()); // World id to octree
                 octreeFormat.modifyFlag(addr, index, 0); // Single node
             } else {
-                int id = chunkStorage.newChunk();
-                if (!mem.compareAndSwapInt(addr + index * 4, 0, id)) {
+                // Acquire a new chunk
+                int chunkId = chunkStorage.newChunk();
+                if (!mem.compareAndSwapInt(addr + index * 4, 0, chunkId)) {
                     // Someone got there before us!
+                    // TODO deal with trash
                     return; // -> they get to do this
                 }
                 // Flag for this is 1, because we are generating for first time
@@ -103,8 +105,6 @@ public class WorldGenManager {
                 MemoryUseListener memListener = chunkStorage.getBufferBuilder().memListener();
                 memListener.onAllocate(trackedAllocator.getMemoryUsed());
                 
-                // Acquire the next chunk
-                int chunkId = chunkStorage.newChunk();
                 ChunkBuffer chunkBuf = chunkStorage.getBuffer(chunkId >>> 16);
                 OffheapChunk chunk = chunkBuf.getChunk(chunkId & 0xffff);
                 

@@ -150,6 +150,8 @@ public class TestGameApp extends SimpleApplication implements ActionListener {
                 geom.setLocalTranslation(x, y, z);
                 geom.setCullHint(CullHint.Never);
                 
+                container.release();
+                
                 // Place geometry in queue for main thread
                 geomCreateQueue.add(geom);
             }
@@ -159,20 +161,6 @@ public class TestGameApp extends SimpleApplication implements ActionListener {
         flyCam.setMoveSpeed(10);
         rootNode.setCullHint(CullHint.Never);
         
-        // TODO: Test plan...
-        /* 1. Finish changes to support meshing in OffheapWorld (loadArea/loadAll "mesher callbacks")
-         * 2. Write code for those callbacks that just calls mesher (this is simple test, remember)
-         * 3. Create objects for meshes (copy-paste code from mesher tests, maybe)
-         * 4. Does it crash? Is the world just empty, or is there garbage (is memory zeroed correctly)?
-         * 5. Implement flatworld terrain generator that actually generates something.
-         * 6. Now, does it crash? Is something displayed? Is what is displayed somewhat what is should be?
-         * 7. Performance check: do we need to optimize NOW or can we proceed to other tasks
-         * 8. Implement non-flatworld generator; check that culling works correctly
-         * 9. Bugs check: give the binary to team and hope they can't get it crashing
-         * 10. Fix any last bugs in Terra
-         * 
-         * Then? Networking.
-         */
         List<CompletableFuture<Void>> markers = world.updateLoadMarkers();
         markers.forEach((f) -> {
             f.join();
