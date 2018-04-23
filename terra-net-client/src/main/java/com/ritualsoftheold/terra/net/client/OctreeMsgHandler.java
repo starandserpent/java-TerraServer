@@ -1,5 +1,7 @@
 package com.ritualsoftheold.terra.net.client;
 
+import java.lang.invoke.VarHandle;
+
 import com.ritualsoftheold.terra.offheap.DataConstants;
 import com.ritualsoftheold.terra.offheap.octree.OctreeStorage;
 import com.ritualsoftheold.terra.offheap.verifier.TerraVerifier;
@@ -44,6 +46,9 @@ public class OctreeMsgHandler implements MessageHandler {
             // Data is safe, add it to storage
             long octreeAddr = storage.getOctreeAddr(id); // Acquire pointer to group
             mem.copyMemory(addr, octreeAddr, 33); // Copy this octree data there
+            
+            VarHandle.fullFence(); // All loads after this see changes
+            storage.setAvailability(id, (byte) 1); // So data is available
         }
     }
 

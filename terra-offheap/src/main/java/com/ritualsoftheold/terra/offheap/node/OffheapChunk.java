@@ -24,6 +24,11 @@ public class OffheapChunk implements Chunk, OffheapNode {
     private static final Memory mem = OS.memory();
     
     /**
+     * Index of this chunk in the chunk buffer.
+     */
+    private final int index;
+    
+    /**
      * Chunk buffer that contains this chunk.
      */
     private final ChunkBuffer buffer;
@@ -277,8 +282,9 @@ public class OffheapChunk implements Chunk, OffheapNode {
      */
     private ConcurrentMap<Integer,Object> refs;
     
-    public OffheapChunk(ChunkBuffer buffer, long queueAddr, long swapAddr, int queueSize) {
+    public OffheapChunk(int index, ChunkBuffer buffer, long queueAddr, long swapAddr, int queueSize) {
         // Permanent (final) chunk parameters
+        this.index = index;
         this.buffer = buffer;
         this.queue = new ChangeQueue(this, queueAddr, swapAddr, queueSize);
         this.refs = new ConcurrentHashMap<>();
@@ -360,6 +366,10 @@ public class OffheapChunk implements Chunk, OffheapNode {
     
     public MaterialRegistry getWorldMaterialRegistry() {
         return buffer.getStorage().getMaterialRegistry();
+    }
+    
+    public int getIndex() {
+        return index;
     }
 
     public ChunkBuffer getChunkBuffer() {

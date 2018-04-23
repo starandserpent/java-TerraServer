@@ -285,9 +285,9 @@ public class OctreeStorage {
         return groupAddr + octreeIndex * DataConstants.OCTREE_SIZE;
     }
     
-    public void setAvailability(int index, byte available) {
-        int groupIndex = index >>> 24;
-        int octreeIndex = index & 0xffffff;
+    public void setAvailability(int id, byte available) {
+        int groupIndex = id >>> 24;
+        int octreeIndex = id & 0xffffff;
         
         long avData = availability.get(groupIndex);
         mem.writeVolatileByte(avData + octreeIndex, available);

@@ -1,6 +1,7 @@
 package com.ritualsoftheold.terra.offheap.verifier;
 
 import com.ritualsoftheold.terra.offheap.DataConstants;
+import com.ritualsoftheold.terra.offheap.chunk.compress.UncompressedChunkFormat;
 
 import net.openhft.chronicle.core.Memory;
 import net.openhft.chronicle.core.OS;
@@ -105,6 +106,16 @@ public class TerraVerifier {
         }
         if (octreeId < 0 || octreeId >= octreeBlockSize) {
             throw new VerifyFailedError("octreeptr, id: " + octreeId);
+        }
+    }
+
+    public void verifyChunkLength(int length, int readable) {
+        // TODO verify based on type
+        if (length > readable) {
+            throw new VerifyFailedError("chunk length over buffer: " + length);
+        }
+        if (length > UncompressedChunkFormat.INSTANCE.newDataLength()) {
+            throw new VerifyFailedError("chunk length over max: " + length);
         }
     }
 }
