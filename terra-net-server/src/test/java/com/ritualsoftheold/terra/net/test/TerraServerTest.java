@@ -1,36 +1,27 @@
 package com.ritualsoftheold.terra.net.test;
 
-import static org.junit.Assert.assertFalse;
-
-import java.io.IOException;
-import java.net.InetAddress;
-import java.net.InetSocketAddress;
 import java.util.concurrent.ForkJoinPool;
 
 import org.junit.Before;
-import org.junit.Test;
 
 import com.ritualsoftheold.terra.material.MaterialRegistry;
 import com.ritualsoftheold.terra.net.TerraMessages;
-import com.ritualsoftheold.terra.net.client.ChunkMsgHandler;
-import com.ritualsoftheold.terra.net.client.OctreeMsgHandler;
 import com.ritualsoftheold.terra.offheap.chunk.ChunkBuffer;
 import com.ritualsoftheold.terra.offheap.io.dummy.DummyChunkLoader;
 import com.ritualsoftheold.terra.offheap.io.dummy.DummyOctreeLoader;
 import com.ritualsoftheold.terra.offheap.memory.MemoryPanicHandler;
 import com.ritualsoftheold.terra.offheap.memory.MemoryPanicHandler.PanicResult;
 import com.ritualsoftheold.terra.offheap.world.OffheapWorld;
-import com.starandserpent.venom.client.UdpClient;
 import com.starandserpent.venom.listeners.ListenerMessageHandler;
 import com.starandserpent.venom.listeners.Listeners;
+import com.starandserpent.venom.server.UdpServer;
 
-public class TerraClientTest {
+public class TerraServerTest {
     
     private OffheapWorld world;
-    private UdpClient client;
+    private UdpServer server;
     
-    @Before
-    public void init() {
+    public void launch() {
         ChunkBuffer.Builder bufferBuilder = new ChunkBuffer.Builder()
                 .maxChunks(128)
                 .queueSize(4);
@@ -58,22 +49,16 @@ public class TerraClientTest {
                 })
                 .build();
         
-        Listeners listeners = new Listeners(TerraMessages.getTypes());
-        listeners.register(TerraMessages.OCTREE_DELIVERY, new OctreeMsgHandler(world.getOctreeStorage(), world.createVerifier()));
-        listeners.register(TerraMessages.CHUNK_DELIVERY, new ChunkMsgHandler(world.getChunkStorage(), world.createVerifier()));
-        ListenerMessageHandler handler = listeners.getHandler();
-        client = new UdpClient.Builder()
-                .handler(handler)
+        server = new UdpServer.Builder()
+                .handlerProvider((address) -> {
+                    return (conn, msg, flags) -> {
+                        int testId = msg.readInt();
+                        switch (testId) {
+                            case 1:
+                                // TODO
+                        }
+                    };
+                })
                 .build();
-    }
-    
-    @Test
-    public void receiveTest() {
-        System.out.println("init ok");
-        try {
-            client.connect(new InetSocketAddress(InetAddress.getLocalHost(), 1234));
-        } catch (IOException e) {
-            assertFalse(true);
-        }
     }
 }
