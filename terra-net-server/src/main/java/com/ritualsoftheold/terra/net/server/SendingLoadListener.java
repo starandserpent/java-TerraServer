@@ -3,6 +3,7 @@ package com.ritualsoftheold.terra.net.server;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
+import com.ritualsoftheold.terra.net.TerraMessages;
 import com.ritualsoftheold.terra.offheap.node.OffheapChunk;
 import com.ritualsoftheold.terra.offheap.world.OffheapWorld;
 import com.ritualsoftheold.terra.offheap.world.WorldLoadListener;
@@ -79,9 +80,8 @@ public class SendingLoadListener implements WorldLoadListener, NetMagicValues {
         }
         
         // Push data to observer, potentially in multiple parts, reliably and don't forget to get a receipt
-        observer.getConnection().sendMessage(msg, FLAG_PARTIAL | FLAG_RELIABLE | FLAG_VERIFY);
+        TerraMessages.OCTREE_DELIVERY.send(observer.getConnection(), msg, FLAG_PARTIAL | FLAG_RELIABLE | FLAG_VERIFY);
         observer.getConnection().flush(); // FLAG_RELIABLE mandates immediate flushing currently
-        System.out.println("chunk sent");
     }
     
     @Override
