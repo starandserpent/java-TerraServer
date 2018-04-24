@@ -31,6 +31,7 @@ public class OctreeMsgHandler implements MessageHandler {
     
     @Override
     public void receive(UdpConnection conn, ByteBuf msg, byte flags) {
+        System.out.println("Octree received");
         byte count = msg.readByte();
         for (int i = 0; i < count; i++) {
             // Metadata about the octree
