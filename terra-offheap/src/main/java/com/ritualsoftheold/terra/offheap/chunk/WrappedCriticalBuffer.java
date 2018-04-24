@@ -91,8 +91,6 @@ public class WrappedCriticalBuffer implements BufferWithFormat, CriticalBlockBuf
             Storage newStorage = format.convert(storage, nextFormat, allocator);
             allocator.free(storage.address, storage.length);
             
-            // TODO notify memory use listener
-            
             BlockBuffer newBuf = nextFormat.createCriticalBuffer(newStorage, materialRegistry);
             newBuf.seek(position());
             

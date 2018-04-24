@@ -50,6 +50,7 @@ public class SendingLoadListener implements WorldLoadListener, NetMagicValues {
     @Override
     public void octreeLoaded(long addr, long groupAddr, int id, float x, float y, float z, float scale,
             LoadMarker trigger) {
+        System.out.println("Octree, addr: " + (addr) + ", scale: " + scale);
         WorldObserver observer = markersToObservers.get(trigger);
         if (observer == null) {
             return;
@@ -60,6 +61,7 @@ public class SendingLoadListener implements WorldLoadListener, NetMagicValues {
 
     @Override
     public void chunkLoaded(OffheapChunk chunk, float x, float y, float z, LoadMarker trigger) {
+        System.out.println("Chunk: " + chunk.getIndex());
         WorldObserver observer = markersToObservers.get(trigger);
         if (observer == null) {
             return;
@@ -79,6 +81,7 @@ public class SendingLoadListener implements WorldLoadListener, NetMagicValues {
         // Push data to observer, potentially in multiple parts, reliably and don't forget to get a receipt
         observer.getConnection().sendMessage(msg, FLAG_PARTIAL | FLAG_RELIABLE | FLAG_VERIFY);
         observer.getConnection().flush(); // FLAG_RELIABLE mandates immediate flushing currently
+        System.out.println("chunk sent");
     }
     
     @Override

@@ -48,11 +48,19 @@ public class MaterialRegistry {
      * @return The material.
      */
     public TerraMaterial getMaterial(TerraModule mod, String name) {
-        return nameToMaterial.get(mod.getUniqueId() + ":" + name);
+        TerraMaterial material = nameToMaterial.get(mod.getUniqueId() + ":" + name);
+        if (material == null) {
+            throw new IllegalArgumentException("material not found");
+        }
+        return material;
     }
     
     public TerraMaterial getMaterial(String fullName) {
-        return nameToMaterial.get(fullName);
+        TerraMaterial material = nameToMaterial.get(fullName);
+        if (material == null) {
+            throw new IllegalArgumentException("material not found");
+        }
+        return material;
     }
     
     /**

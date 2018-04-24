@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.locks.LockSupport;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -18,11 +19,16 @@ import com.ritualsoftheold.terra.offheap.chunk.ChunkBuffer;
 import com.ritualsoftheold.terra.offheap.io.dummy.DummyChunkLoader;
 import com.ritualsoftheold.terra.offheap.io.dummy.DummyOctreeLoader;
 import com.ritualsoftheold.terra.offheap.memory.MemoryPanicHandler;
-import com.ritualsoftheold.terra.offheap.memory.MemoryPanicHandler.PanicResult;
+import com.ritualsoftheold.terra.offheap.node.OffheapChunk;
 import com.ritualsoftheold.terra.offheap.world.OffheapWorld;
+import com.ritualsoftheold.terra.offheap.world.WorldLoadListener;
+import com.ritualsoftheold.terra.world.LoadMarker;
+import com.starandserpent.venom.NetMagicValues;
 import com.starandserpent.venom.client.UdpClient;
 import com.starandserpent.venom.listeners.ListenerMessageHandler;
 import com.starandserpent.venom.listeners.Listeners;
+
+import io.netty.buffer.ByteBufAllocator;
 
 public class TerraClientTest {
     
@@ -72,8 +78,29 @@ public class TerraClientTest {
         System.out.println("init ok");
         try {
             client.connect(new InetSocketAddress(InetAddress.getLocalHost(), 1234));
+            client.getConnection().sendMessage(ByteBufAllocator.DEFAULT.buffer(), NetMagicValues.NO_FLAGS);
         } catch (IOException e) {
             assertFalse(true);
         }
+        
+        LockSupport.parkNanos(5000000000L);
+        
+        LoadMarker marker = new LoadMarker(0, 10, 0, 32, 32, 0);
+        world.addLoadMarker(marker);
+        world.setLoadListener(new WorldLoadListener() {
+            
+            @Override
+            public void octreeLoaded(long addr, long groupAddr, int id, float x,
+                    float y, float z, float scale, LoadMarker trigger) {
+                System.out.println("Octree2, addr: " + addr + ", scale: " + scale);
+            }
+            
+            @Override
+            public void chunkLoaded(OffheapChunk chunk, float x, float y, float z,
+                    LoadMarker trigger) {
+                System.out.println("Chunk2: " + chunk.getIndex());
+            }
+        });
+        world.updateLoadMarkers();
     }
 }

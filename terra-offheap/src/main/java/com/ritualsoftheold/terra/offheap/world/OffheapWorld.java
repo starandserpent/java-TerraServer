@@ -260,7 +260,11 @@ public class OffheapWorld implements TerraWorld {
             if (marker.hasMoved()) { // Update only marker that has been moved
                 // When player moves a little, DO NOT, I repeat, DO NOT just blindly move load marker.
                 // Move it when player has moved a few meters or so!
-                pendingMarkers.add(CompletableFuture.runAsync(() -> updateLoadMarker(marker, loadListener, false), storageExecutor));
+                pendingMarkers.add(CompletableFuture.runAsync(() -> updateLoadMarker(marker, loadListener, false), storageExecutor)
+                        .exceptionally((e) -> {
+                            e.printStackTrace(); // TODO better error handling
+                            return null;
+                        }));
             }
         }
         

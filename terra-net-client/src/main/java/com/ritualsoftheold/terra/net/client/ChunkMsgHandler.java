@@ -33,6 +33,7 @@ public class ChunkMsgHandler implements MessageHandler {
     
     @Override
     public void receive(UdpConnection conn, ByteBuf msg, byte flags) {
+        System.out.println("receiving chunk...");
         byte type = msg.readByte();
         int chunkId = msg.readInt();
         verifier.verifyChunkId(chunkId); // Make sure id is safe
