@@ -51,7 +51,7 @@ public class SendingLoadListener implements WorldLoadListener, NetMagicValues {
     @Override
     public void octreeLoaded(long addr, long groupAddr, int id, float x, float y, float z, float scale,
             LoadMarker trigger) {
-        System.out.println("Octree, addr: " + (addr) + ", scale: " + scale);
+        //System.out.println("Octree, addr: " + (addr) + ", scale: " + scale);
         WorldObserver observer = markersToObservers.get(trigger);
         if (observer == null) {
             return;
@@ -62,7 +62,7 @@ public class SendingLoadListener implements WorldLoadListener, NetMagicValues {
 
     @Override
     public void chunkLoaded(OffheapChunk chunk, float x, float y, float z, LoadMarker trigger) {
-        System.out.println("Chunk: " + chunk.getIndex());
+        //System.out.println("Chunk: " + chunk.getIndex());
         WorldObserver observer = markersToObservers.get(trigger);
         if (observer == null) {
             return;

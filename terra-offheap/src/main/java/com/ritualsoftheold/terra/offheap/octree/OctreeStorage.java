@@ -263,6 +263,14 @@ public class OctreeStorage {
         return new OffheapOctree(addr, index, registry);
     }
     
+    public long getOctreeAddrInternal(int index) {
+        int groupIndex = index >>> 24; // Unsigned shift!
+        int octreeIndex = index & 0xffffff; // Unsigned, but fits in to int: still 7 bits unused
+        long groupAddr = getGroup(groupIndex);
+        
+        return groupAddr + octreeIndex * DataConstants.OCTREE_SIZE;
+    }
+    
     public long getOctreeAddr(int index) {
         int groupIndex = index >>> 24; // Unsigned shift!
         int octreeIndex = index & 0xffffff; // Unsigned, but fits in to int: still 7 bits unused
@@ -273,11 +281,12 @@ public class OctreeStorage {
             while (true) {
                 long avData = availability.get(groupIndex);
                 if (avData == 0) {
-                    // Not yet ready. Spin-wait
+                    // Group is not yet ready. Spin-wait
+                    Thread.onSpinWait();
                     continue;
                 }
                 while (mem.readVolatileByte(avData + octreeIndex) == 0) {
-                    // Wait for it to become available
+                    // Group is ready, but is the individual octree also ready?
                     Thread.onSpinWait();
                 }
             }

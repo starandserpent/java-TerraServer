@@ -321,13 +321,14 @@ public class OffheapWorld implements TerraWorld {
     public void updateMasterOctree() {
         System.out.println("masterIndex: " + octreeStorage.getMasterIndex());
         int masterIndex = octreeStorage.getMasterIndex();
-        masterOctree = octreeStorage.getOctree(masterIndex, registry); // TODO do we really need OffheapOctree in world for this?
+        // TODO cleanup
+//        masterOctree = octreeStorage.getOctree(masterIndex, registry); // TODO do we really need OffheapOctree in world for this?
         masterScale = octreeStorage.getMasterScale(2048); // TODO need to have this CONFIGURABLE!
         centerX = octreeStorage.getCenterPoint(0);
         centerY = octreeStorage.getCenterPoint(1);
         centerZ = octreeStorage.getCenterPoint(2);
         System.out.println("world center: " + centerX + ", " + centerY + ", " + centerZ + ", scale: " + masterScale);
-        mem.writeByte(masterOctree.memoryAddress(), (byte) 0xff); // Just in case, master octree has no single nodes
+        mem.writeByte(octreeStorage.getOctreeAddrInternal(masterIndex), (byte) 0xff); // Just in case, master octree has no single nodes
         
         // Update relevant data to world loader
         worldLoader.worldConfig(centerX, centerY, centerZ, masterIndex, masterScale);

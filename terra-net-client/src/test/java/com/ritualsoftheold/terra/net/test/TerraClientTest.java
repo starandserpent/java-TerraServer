@@ -23,11 +23,14 @@ import com.ritualsoftheold.terra.offheap.node.OffheapChunk;
 import com.ritualsoftheold.terra.offheap.world.OffheapWorld;
 import com.ritualsoftheold.terra.offheap.world.WorldLoadListener;
 import com.ritualsoftheold.terra.world.LoadMarker;
+import com.starandserpent.venom.MessageHandler;
 import com.starandserpent.venom.NetMagicValues;
+import com.starandserpent.venom.UdpConnection;
 import com.starandserpent.venom.client.UdpClient;
 import com.starandserpent.venom.listeners.ListenerMessageHandler;
 import com.starandserpent.venom.listeners.Listeners;
 
+import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
 
 public class TerraClientTest {
@@ -62,6 +65,7 @@ public class TerraClientTest {
                         return PanicResult.CONTINUE;
                     }
                 })
+                .perNodeReadyCheck(true)
                 .build();
         
         Listeners listeners = new Listeners(TerraMessages.getTypes());
@@ -69,7 +73,13 @@ public class TerraClientTest {
         listeners.register(TerraMessages.CHUNK_DELIVERY, new ChunkMsgHandler(world.getChunkStorage(), world.createVerifier()));
         ListenerMessageHandler handler = listeners.getHandler();
         client = new UdpClient.Builder()
-                .handler(handler)
+                .handler(new MessageHandler() {
+                    
+                    @Override
+                    public void receive(UdpConnection conn, ByteBuf msg, byte flags) {
+                        System.out.println(msg);
+                    }
+                })
                 .build();
     }
     
