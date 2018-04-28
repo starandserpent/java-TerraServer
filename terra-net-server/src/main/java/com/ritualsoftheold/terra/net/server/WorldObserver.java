@@ -75,7 +75,7 @@ public class WorldObserver implements NetMagicValues {
             buf.writeByte(octreesPerPacket);
             mem.copyMemory(addr, buf.memoryAddress() + 1, len);
             buf.writerIndex(len + 1);
-            conn.sendMessage(buf, FLAG_RELIABLE | FLAG_VERIFY); // Send copied old buffer
+            TerraMessages.OCTREE_DELIVERY.send(conn, buf, FLAG_RELIABLE | FLAG_VERIFY); // Send copied old buffer
             mem.freeMemory(addr, len); // Free old buffer
             
             // Allocate new buffer

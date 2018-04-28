@@ -51,7 +51,7 @@ public class SendingLoadListener implements WorldLoadListener, NetMagicValues {
     @Override
     public void octreeLoaded(long addr, long groupAddr, int id, float x, float y, float z, float scale,
             LoadMarker trigger) {
-        //System.out.println("Octree, addr: " + (addr) + ", scale: " + scale);
+        //System.out.println("Octree, addr: " + addr + ", scale: " + scale);
         WorldObserver observer = markersToObservers.get(trigger);
         if (observer == null) {
             return;
@@ -80,7 +80,7 @@ public class SendingLoadListener implements WorldLoadListener, NetMagicValues {
         }
         
         // Push data to observer, potentially in multiple parts, reliably and don't forget to get a receipt
-        TerraMessages.OCTREE_DELIVERY.send(observer.getConnection(), msg, FLAG_PARTIAL | FLAG_RELIABLE | FLAG_VERIFY);
+        TerraMessages.CHUNK_DELIVERY.send(observer.getConnection(), msg, FLAG_PARTIAL | FLAG_RELIABLE | FLAG_VERIFY);
         observer.getConnection().flush(); // FLAG_RELIABLE mandates immediate flushing currently
     }
     
