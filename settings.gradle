@@ -9,3 +9,12 @@ include 'terra-net-core'
 include 'terra-net-client'
 include 'terra-net-server'
 
+if (file('../venom').exists()) {
+    includeBuild('../venom') {
+        dependencySubstitution {
+            substitute module('com.starandserpent:venom-listeners') with project(':venom-listeners')
+            substitute module('com.starandserpent:venom-server') with project(':venom-server')
+            substitute module('com.starandserpent:venom-client') with project(':venom-client')
+        }
+    }
+}

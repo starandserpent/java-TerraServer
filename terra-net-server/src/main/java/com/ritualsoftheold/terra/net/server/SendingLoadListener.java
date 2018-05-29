@@ -62,9 +62,10 @@ public class SendingLoadListener implements WorldLoadListener, NetMagicValues {
 
     @Override
     public void chunkLoaded(OffheapChunk chunk, float x, float y, float z, LoadMarker trigger) {
-        //System.out.println("Chunk: " + chunk.getIndex());
+        System.out.println("Chunk: " + chunk.getIndex());
         WorldObserver observer = markersToObservers.get(trigger);
         if (observer == null) {
+            System.out.println("no observer");
             return;
         }
         
