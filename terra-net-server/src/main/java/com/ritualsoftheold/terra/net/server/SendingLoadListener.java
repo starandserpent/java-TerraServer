@@ -62,7 +62,7 @@ public class SendingLoadListener implements WorldLoadListener, NetMagicValues {
 
     @Override
     public void chunkLoaded(OffheapChunk chunk, float x, float y, float z, LoadMarker trigger) {
-        System.out.println("Chunk: " + chunk.getIndex());
+        //System.out.println("Chunk: " + chunk.getIndex());
         WorldObserver observer = markersToObservers.get(trigger);
         if (observer == null) {
             System.out.println("no observer");
@@ -81,8 +81,8 @@ public class SendingLoadListener implements WorldLoadListener, NetMagicValues {
         }
         
         // Push data to observer, potentially in multiple parts, reliably and don't forget to get a receipt
-        TerraMessages.CHUNK_DELIVERY.send(observer.getConnection(), msg, FLAG_PARTIAL | FLAG_RELIABLE | FLAG_VERIFY);
-        observer.getConnection().flush(); // FLAG_RELIABLE mandates immediate flushing currently
+        TerraMessages.CHUNK_DELIVERY.send(observer.getConnection(), msg, FLAG_PARTIAL | FLAG_VERIFY);
+        observer.getConnection().flush(); // FLAG_RELIABLE mandates immediate flushing currently (TODO not anymore)
     }
     
     @Override

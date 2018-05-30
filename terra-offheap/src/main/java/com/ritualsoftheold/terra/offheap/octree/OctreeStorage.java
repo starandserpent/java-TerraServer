@@ -74,15 +74,17 @@ public class OctreeStorage {
         this.lastNeeded = new AtomicLongArray(256);
         this.userCounts = new AtomicIntegerArray(256);
         
+        // Enable availability checking if needed
+        // Important: this must be done before group 0 is loaded
+        // (otherwise, JVM segfaults due to NULL dereference)
+        if (availibility) {
+            this.availability = new AtomicLongArray(256);
+        }
+        
         // Load master group and cache count address
         countAddr = getGroupMeta(0);
         if (mem.readVolatileInt(countAddr) == 0) { // Point over master group, we don't add octrees there normally
             mem.writeVolatileInt(countAddr, blockSize - 1);
-        }
-        
-        // Enable availibility checking if needed
-        if (availibility) {
-            this.availability = new AtomicLongArray(256);
         }
     }
     
@@ -153,7 +155,7 @@ public class OctreeStorage {
             addr = loader.loadOctrees(group, 0); // Loader will assign the address for now
             if (groups.compareAndSet(group, 0, addr)) {
                 memListener.onAllocate(getOctreesSize(blockSize) + DataConstants.OCTREE_GROUP_META);
-                // Tell the memory listener, we'll keep this RAM
+                // Tell the memory listener that we'll keep this RAM
                 
                 // Availability storage
                 if (availability != null) {

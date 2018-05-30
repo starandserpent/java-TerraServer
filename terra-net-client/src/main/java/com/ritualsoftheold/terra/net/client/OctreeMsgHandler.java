@@ -45,12 +45,13 @@ public class OctreeMsgHandler implements MessageHandler {
             msg.readerIndex(msg.readerIndex() + DataConstants.OCTREE_SIZE); // To next octree
             
             // Data is safe, add it to storage
-            long octreeAddr = storage.getOctreeAddr(id); // Acquire pointer to group
+            long octreeAddr = storage.getOctreeAddrInternal(id); // Acquire pointer to group
             mem.copyMemory(addr, octreeAddr, 33); // Copy this octree data there
             
             VarHandle.fullFence(); // All loads after this see changes
             storage.setAvailability(id, (byte) 1); // So data is available
         }
+        System.out.println("success");
     }
 
 }

@@ -23,11 +23,19 @@ import com.ritualsoftheold.terra.offheap.node.OffheapChunk;
 import com.ritualsoftheold.terra.offheap.world.OffheapWorld;
 import com.ritualsoftheold.terra.offheap.world.WorldLoadListener;
 import com.ritualsoftheold.terra.world.LoadMarker;
+import com.starandserpent.venom.MessageHandler;
 import com.starandserpent.venom.NetMagicValues;
+import com.starandserpent.venom.UdpConnection;
+import com.starandserpent.venom.ConnectionStateListener.DisconnectReason;
 import com.starandserpent.venom.client.UdpClient;
+import com.starandserpent.venom.flow.FrameManager;
+import com.starandserpent.venom.flow.MessageSender;
+import com.starandserpent.venom.hook.VenomHook;
 import com.starandserpent.venom.listeners.ListenerMessageHandler;
 import com.starandserpent.venom.listeners.Listeners;
+import com.starandserpent.venom.message.SentMessage;
 
+import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
 
 public class TerraClientTest {
@@ -79,12 +87,118 @@ public class TerraClientTest {
         System.out.println("init ok");
         try {
             client.connect(new InetSocketAddress(InetAddress.getLocalHost(), 1234));
+            client.getConnection().setHook(new VenomHook() {
+                
+                @Override
+                public boolean writeRequest(int amount) {
+                    // TODO Auto-generated method stub
+                    return true;
+                }
+                
+                @Override
+                public boolean reliableReceived(int msgId, boolean partial, boolean urgent,
+                        int index) {
+                    // TODO Auto-generated method stub
+                    return true;
+                }
+                
+                @Override
+                public boolean reliableConfirmed(boolean partial, int status, int msgId) {
+                    // TODO Auto-generated method stub
+                    return true;
+                }
+                
+                @Override
+                public boolean reliableConfirmationWrite(ByteBuf buf) {
+                    // TODO Auto-generated method stub
+                    return true;
+                }
+                
+                @Override
+                public boolean reliableCheck(int id, SentMessage msg, boolean resend) {
+                    // TODO Auto-generated method stub
+                    return true;
+                }
+                
+                @Override
+                public boolean packetWrite(ByteBuf packet) {
+                    // TODO Auto-generated method stub
+                    return true;
+                }
+                
+                @Override
+                public boolean packetReceived(byte type, ByteBuf data) {
+                    return true;
+                }
+                
+                @Override
+                public boolean nextFrame(FrameManager manager, MessageSender sender) {
+                    // TODO Auto-generated method stub
+                    return true;
+                }
+                
+                @Override
+                public void messageWritten(SentMessage msg) {
+                    // TODO Auto-generated method stub
+                    
+                }
+                
+                @Override
+                public boolean messageWrite(SentMessage msg, boolean urgent) {
+                    // TODO Auto-generated method stub
+                    return true;
+                }
+                
+                @Override
+                public boolean messageReceived(byte flags, int msgId, ByteBuf data) {
+                    if ((flags & NetMagicValues.FLAG_PARTIAL) != 0) {
+                        System.out.println("partial message received");
+                    }
+                    return true;
+                }
+                
+                @Override
+                public boolean messagePartReceived(byte flags, int msgId, int index,
+                        ByteBuf data) {
+                    return true;
+                }
+                
+                @Override
+                public boolean flowStateChange(int state) {
+                    // TODO Auto-generated method stub
+                    return true;
+                }
+                
+                @Override
+                public void flowPingAnalysis(int longPing, int shortPing) {
+                    // TODO Auto-generated method stub
+                    
+                }
+                
+                @Override
+                public boolean flowControlFrame(int ping, int id, int pressure) {
+                    // TODO Auto-generated method stub
+                    return true;
+                }
+                
+                @Override
+                public void disconnected(UdpConnection deadConn, DisconnectReason reason) {
+                    // TODO Auto-generated method stub
+                    
+                }
+                
+                @Override
+                public boolean connected(InetSocketAddress address) {
+                    // TODO Auto-generated method stub
+                    return true;
+                }
+            });
             client.getConnection().sendMessage(ByteBufAllocator.DEFAULT.buffer(), NetMagicValues.NO_FLAGS);
         } catch (IOException e) {
             assertFalse(true);
         }
         
-        LockSupport.parkNanos(5000000000L);
+        LockSupport.parkNanos(50000000000L);
         
         LoadMarker marker = new LoadMarker(0, 10, 0, 32, 32, 0);
         world.addLoadMarker(marker);

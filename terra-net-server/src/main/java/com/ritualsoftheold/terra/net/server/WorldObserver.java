@@ -35,7 +35,7 @@ public class WorldObserver implements NetMagicValues {
     public WorldObserver(LoadMarker marker, UdpConnection conn, int octreesPerPacket) {
         this.marker = marker;
         this.conn = conn;
-        this.pendingOctrees = new AtomicLong(mem.allocate(octreesPerPacket * (DataConstants.OCTREE_SIZE + 4)));
+        this.pendingOctrees = new AtomicLong(mem.allocate(octreesPerPacket * (DataConstants.OCTREE_SIZE + 4 + 1)));
         this.octreesPerPacket = octreesPerPacket;
         this.pendingIndex = 0;
     }
@@ -54,6 +54,7 @@ public class WorldObserver implements NetMagicValues {
             if (addr != 0) { // We got it!
                 return addr;
             }
+            Thread.onSpinWait();
         }
     }
     
@@ -66,7 +67,7 @@ public class WorldObserver implements NetMagicValues {
         long addr = lockOctrees();
         
         // Make sure we have buffer where there is space
-        int entrySize = DataConstants.OCTREE_SIZE + 4;
+        int entrySize = DataConstants.OCTREE_SIZE + 4 + 1;
         int len = octreesPerPacket * entrySize;
         boolean doFlush = false;
         if (pendingIndex == octreesPerPacket) { // Need next packet!
@@ -102,7 +103,7 @@ public class WorldObserver implements NetMagicValues {
         long addr = lockOctrees();
         
         // Send the buffer we have to client (filled parts)
-        int len = pendingIndex * (DataConstants.OCTREE_SIZE + 4);
+        int len = pendingIndex * (DataConstants.OCTREE_SIZE + 4 + 1);
         ByteBuf buf = alloc.buffer(len + 1);
         buf.writeByte(pendingIndex);
         mem.copyMemory(addr, buf.memoryAddress() + 1, len);

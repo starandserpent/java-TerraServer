@@ -1,5 +1,6 @@
 package com.ritualsoftheold.terra.net.test;
 
+import java.net.InetSocketAddress;
 import java.net.UnknownHostException;
 import java.util.concurrent.ForkJoinPool;
 
@@ -19,10 +20,18 @@ import com.ritualsoftheold.terra.offheap.memory.MemoryPanicHandler.PanicResult;
 import com.ritualsoftheold.terra.offheap.world.OffheapWorld;
 import com.ritualsoftheold.terra.world.LoadMarker;
 import com.ritualsoftheold.terra.world.gen.WorldGenerator;
+import com.starandserpent.venom.UdpConnection;
+import com.starandserpent.venom.ConnectionStateListener.DisconnectReason;
+import com.starandserpent.venom.flow.FrameManager;
+import com.starandserpent.venom.flow.MessageSender;
+import com.starandserpent.venom.hook.VenomHook;
 import com.starandserpent.venom.listeners.ListenerMessageHandler;
 import com.starandserpent.venom.listeners.Listeners;
+import com.starandserpent.venom.message.PartialSentMessage;
+import com.starandserpent.venom.message.SentMessage;
 import com.starandserpent.venom.server.UdpServer;
 
+import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
 
 public class TerraServerTest {
@@ -78,6 +87,111 @@ public class TerraServerTest {
                         
                         WorldObserver observer = new WorldObserver(marker, conn, 10);
                         listener.addObserver(observer);
+                        conn.setHook(new VenomHook() {
+                            
+                            @Override
+                            public boolean writeRequest(int amount) {
+                                //System.out.println("request: " + amount);
+                                return true;
+                            }
+                            
+                            @Override
+                            public boolean reliableReceived(int msgId, boolean partial, boolean urgent,
+                                    int index) {
+                                // TODO Auto-generated method stub
+                                return true;
+                            }
+                            
+                            @Override
+                            public boolean reliableConfirmed(boolean partial, int status, int msgId) {
+                                // TODO Auto-generated method stub
+                                return true;
+                            }
+                            
+                            @Override
+                            public boolean reliableConfirmationWrite(ByteBuf buf) {
+                                // TODO Auto-generated method stub
+                                return true;
+                            }
+                            
+                            @Override
+                            public boolean reliableCheck(int id, SentMessage msg, boolean resend) {
+                                // TODO Auto-generated method stub
+                                return true;
+                            }
+                            
+                            @Override
+                            public boolean packetWrite(ByteBuf packet) {
+                                // TODO Auto-generated method stub
+                                return true;
+                            }
+                            
+                            @Override
+                            public boolean packetReceived(byte type, ByteBuf data) {
+                                // TODO Auto-generated method stub
+                                return true;
+                            }
+                            
+                            @Override
+                            public boolean nextFrame(FrameManager manager, MessageSender sender) {
+                                // TODO Auto-generated method stub
+                                return true;
+                            }
+                            
+                            @Override
+                            public void messageWritten(SentMessage msg) {
+                                
+                            }
+                            
+                            @Override
+                            public boolean messageWrite(SentMessage msg, boolean urgent) {
+                                // TODO Auto-generated method stub
+                                return true;
+                            }
+                            
+                            @Override
+                            public boolean messageReceived(byte flags, int msgId, ByteBuf data) {
+                                // TODO Auto-generated method stub
+                                return true;
+                            }
+                            
+                            @Override
+                            public boolean messagePartReceived(byte flags, int msgId, int index,
+                                    ByteBuf data) {
+                                // TODO Auto-generated method stub
+                                return true;
+                            }
+                            
+                            @Override
+                            public boolean flowStateChange(int state) {
+                                // TODO Auto-generated method stub
+                                return true;
+                            }
+                            
+                            @Override
+                            public void flowPingAnalysis(int longPing, int shortPing) {
+                                // TODO Auto-generated method stub
+                                
+                            }
+                            
+                            @Override
+                            public boolean flowControlFrame(int ping, int id, int pressure) {
+                                // TODO Auto-generated method stub
+                                return true;
+                            }
+                            
+                            @Override
+                            public void disconnected(UdpConnection deadConn, DisconnectReason reason) {
+                                // TODO Auto-generated method stub
+                                
+                            }
+                            
+                            @Override
+                            public boolean connected(InetSocketAddress address) {
+                                // TODO Auto-generated method stub
+                                return true;
+                            }
+                        });
                         
                         world.updateLoadMarkers();
                     };
