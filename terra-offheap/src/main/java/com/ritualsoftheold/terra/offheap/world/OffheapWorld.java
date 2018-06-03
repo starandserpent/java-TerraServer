@@ -502,4 +502,9 @@ public class OffheapWorld implements TerraWorld {
         return new TerraVerifier(octreeStorage.getGroupSize(), chunkStorage.getBufferBuilder().maxChunks(),
                 chunkStorage.getAllBuffers().length());
     }
+
+    @Override
+    public LoadMarker createLoadMarker(float x, float y, float z, float hardRadius, float softRadius, int priority) {
+        return new OffheapLoadMarker(x, y, z, hardRadius, softRadius, priority);
+    }
 }

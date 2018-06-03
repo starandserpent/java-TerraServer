@@ -40,12 +40,17 @@ public interface TerraWorld {
     Chunk getChunk(float x, float y, float z);
     
     /**
-     * Adds load marker. User should make sure that
+     * Adds a load marker. User should make sure that
      * {@link #updateLoadMarkers()} is not in progress.
      * @param marker Load marker.
      */
     void addLoadMarker(LoadMarker marker);
     
+    /**
+     * Removes a load marker. User should make sure that
+     * {@link #updateLoadMarkers()} is not in progress.
+     * @param marker Load marker.
+     */
     void removeLoadMarker(LoadMarker marker);
     
     /**
@@ -55,4 +60,15 @@ public interface TerraWorld {
      */
     List<CompletableFuture<Void>> updateLoadMarkers();
 
+    /**
+     * Creates a new load marker.
+     * @param x Initial X position.
+     * @param y Initial Y position.
+     * @param z Initial Z position.
+     * @param hardRadius Radius, inside which world data will be loaded.
+     * @param softRadius Radius, inside which world data will not be unloaded.
+     * @param priority Load marker priority.
+     * @return A new load marker, that is usable with this world.
+     */
+    LoadMarker createLoadMarker(float x, float y, float z, float hardRadius, float softRadius, int priority);
 }

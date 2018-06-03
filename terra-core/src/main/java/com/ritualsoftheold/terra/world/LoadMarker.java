@@ -14,31 +14,31 @@ public class LoadMarker implements Comparable<LoadMarker> {
     /**
      * Coordinates for this marker.
      */
-    private float x, y, z;
+    private volatile float x, y, z;
     
     /**
      * The radius which this marker will force the world to be loaded.
      * Squared to avoid sqrt.
      */
-    private float hardRadius;
+    private final float hardRadius;
     
     /**
      * The radius in which this marker will make world to not be loaded.
      * Squared to avoid sqrt.
      */
-    private float softRadius;
+    private final float softRadius;
     
     /**
      * If this marked has been processed after it moved last time.
      */
-    private boolean hasMoved;
+    private volatile boolean hasMoved;
     
     /**
      * Priority of the marker.
      */
-    private int priority;
+    private final int priority;
     
-    public LoadMarker(float x, float y, float z, float hardRadius, float softRadius, int priority) {
+    protected LoadMarker(float x, float y, float z, float hardRadius, float softRadius, int priority) {
         move(x, y, z);
         this.hardRadius = hardRadius;
         this.softRadius = softRadius;
