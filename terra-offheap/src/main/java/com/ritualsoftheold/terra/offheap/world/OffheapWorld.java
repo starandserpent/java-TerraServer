@@ -61,7 +61,7 @@ public class OffheapWorld implements TerraWorld {
     private MaterialRegistry registry;
     
     // Load markers
-    private List<LoadMarker> loadMarkers;
+    private List<OffheapLoadMarker> loadMarkers;
     private WorldLoadListener loadListener;
     
     // Memory management
@@ -232,19 +232,28 @@ public class OffheapWorld implements TerraWorld {
     public ChunkStorage getChunkStorage() {
         return chunkStorage;
     }
+    
+    private OffheapLoadMarker checkLoadMarker(LoadMarker marker) {
+        if (!(marker instanceof OffheapLoadMarker))
+            throw new IllegalArgumentException("incompatible load marker");
+        return (OffheapLoadMarker) marker;
+    }
 
     @Override
     public void addLoadMarker(LoadMarker marker) {
-        loadMarkers.add(marker);
+        loadMarkers.add(checkLoadMarker(marker));
         loadMarkers.sort(Comparator.reverseOrder()); // Sort most important first
     }
     
 
     @Override
     public void removeLoadMarker(LoadMarker marker) {
-        Iterator<LoadMarker> it = loadMarkers.iterator();
+        checkLoadMarker(marker); // Wrong type wouldn't actually break anything
+        // But user probably wants to know if they're passing wrong marker to us
+        
+        Iterator<OffheapLoadMarker> it = loadMarkers.iterator();
         while (it.hasNext()) {
-            LoadMarker m = it.next();
+            OffheapLoadMarker m = it.next();
             if (m == marker) {
                 it.remove();
                 return;
@@ -256,7 +265,7 @@ public class OffheapWorld implements TerraWorld {
     public List<CompletableFuture<Void>> updateLoadMarkers() {
         List<CompletableFuture<Void>> pendingMarkers = new ArrayList<>(loadMarkers.size());
         // Delegate updating to async code, this might be costly
-        for (LoadMarker marker : loadMarkers) {
+        for (OffheapLoadMarker marker : loadMarkers) {
             if (marker.hasMoved()) { // Update only marker that has been moved
                 // When player moves a little, DO NOT, I repeat, DO NOT just blindly move load marker.
                 // Move it when player has moved a few meters or so!
@@ -274,7 +283,7 @@ public class OffheapWorld implements TerraWorld {
     public List<CompletableFuture<Void>> updateLoadMarkers(WorldLoadListener listener, boolean soft, boolean ignoreMoved) {
         List<CompletableFuture<Void>> pendingMarkers = new ArrayList<>(loadMarkers.size());
         // Delegate updating to async code, this might be costly
-        for (LoadMarker marker : loadMarkers) {
+        for (OffheapLoadMarker marker : loadMarkers) {
             if (ignoreMoved || marker.hasMoved()) { // Update only marker that has been moved
                 // When player moves a little, DO NOT, I repeat, DO NOT just blindly move load marker.
                 // Move it when player has moved a few meters or so!
@@ -291,7 +300,7 @@ public class OffheapWorld implements TerraWorld {
      * @param listener Load listener.
      * @param soft If soft radius should be used.
      */
-    private void updateLoadMarker(LoadMarker marker, WorldLoadListener listener, boolean soft) {
+    private void updateLoadMarker(OffheapLoadMarker marker, WorldLoadListener listener, boolean soft) {
         System.out.println("Update load marker...");
         worldLoader.seekArea(marker.getX(), marker.getY(), marker.getZ(),
                 soft ? marker.getSoftRadius() : marker.getHardRadius(), listener, !soft, marker);

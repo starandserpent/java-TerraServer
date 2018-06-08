@@ -127,7 +127,6 @@ public class ChunkStorage {
     /**
      * Gets a chunk without checking if the buffer is loaded.
      * @param chunkId
-     * @param materialRegistry
      * @return Chunk.
      */
     public OffheapChunk getChunkInternal(int chunkId) {

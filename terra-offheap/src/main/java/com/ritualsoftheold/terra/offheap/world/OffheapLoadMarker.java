@@ -2,52 +2,40 @@ package com.ritualsoftheold.terra.offheap.world;
 
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.VarHandle;
+import java.util.Collection;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 import com.ritualsoftheold.terra.offheap.chunk.ChunkBuffer;
 import com.ritualsoftheold.terra.world.LoadMarker;
 
 public class OffheapLoadMarker extends LoadMarker {
     
-    private static final VarHandle buffersVar = MethodHandles.arrayElementVarHandle(ChunkBuffer.class);
-    private static final VarHandle bufCountVar;
-    private static final VarHandle groupsVar = MethodHandles.arrayElementVarHandle(byte.class);
-    private static final VarHandle groupCountVar;
+    private static final VarHandle groupsVar = MethodHandles.arrayElementVarHandle(boolean[].class);
     
-    static {
-        MethodHandles.Lookup lookup = MethodHandles.lookup();
-        try {
-            bufCountVar = lookup.findVarHandle(OffheapLoadMarker.class, "bufferCount", int.class);
-            groupCountVar = lookup.findVarHandle(OffheapLoadMarker.class, "groupCount", int.class);
-        } catch (NoSuchFieldException | IllegalAccessException e) {
-            throw new Error(e);
-        }
-    }
-
-    private volatile ChunkBuffer[] chunkBuffers;
-    @SuppressWarnings("unused") // VarHandle
-    private int bufferCount;
+    private volatile ConcurrentMap<Integer, ChunkBuffer> chunkBuffers;
     
-    private volatile byte[] octreeGroups;
-    @SuppressWarnings("unused") // VarHandle
-    private int groupCount;
+    private volatile boolean[] octreeGroups;
     
     protected OffheapLoadMarker(float x, float y, float z, float hardRadius, float softRadius, int priority) {
         super(x, y, z, hardRadius, softRadius, priority);
+        this.chunkBuffers = new ConcurrentHashMap<>();
+        this.octreeGroups = new boolean[256];
     }
     
     public void addBuffer(ChunkBuffer buf) {
-        buffersVar.setVolatile(this, bufCountVar.getAndAdd(this, 1), buf);
+        chunkBuffers.put(buf.getId(), buf);
     }
     
-    public void addGroup(byte id) {
-        groupsVar.setVolatile(this, groupCountVar.getAndAdd(this, 1), id);
+    public void addGroup(int id) {
+        groupsVar.setVolatile(octreeGroups, id, true);
     }
     
-    public ChunkBuffer[] getChunkBuffers() {
-        return chunkBuffers;
+    public Collection<ChunkBuffer> getChunkBuffers() {
+        return chunkBuffers.values();
     }
     
-    public byte[] getOctreeGroups() {
+    public boolean[] getOctreeGroups() {
         return octreeGroups;
     }
 }

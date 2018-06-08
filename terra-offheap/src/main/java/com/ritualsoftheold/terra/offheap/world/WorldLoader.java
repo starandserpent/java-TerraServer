@@ -2,6 +2,7 @@ package com.ritualsoftheold.terra.offheap.world;
 
 import com.ritualsoftheold.terra.offheap.DataConstants;
 import com.ritualsoftheold.terra.offheap.chunk.ChunkStorage;
+import com.ritualsoftheold.terra.offheap.node.OffheapChunk;
 import com.ritualsoftheold.terra.offheap.octree.OctreeStorage;
 import com.ritualsoftheold.terra.offheap.world.gen.WorldGenManager;
 import com.ritualsoftheold.terra.world.LoadMarker;
@@ -97,7 +98,7 @@ public class WorldLoader {
      * @param generate If new terrain should be generated.
      * @param trigger Load marker that triggered this operation or null.
      */
-    public void seekArea(float x, float y, float z, float range, WorldLoadListener listener, boolean generate, LoadMarker trigger) {
+    public void seekArea(float x, float y, float z, float range, WorldLoadListener listener, boolean generate, OffheapLoadMarker trigger) {
         /**
          * Node coordinates, start at world center.
          */
@@ -217,7 +218,10 @@ public class WorldLoader {
             if (scale == DataConstants.CHUNK_SCALE) { // Dereference a chunk
                 chunkStorage.ensureLoaded(node); // Use node content as chunk id and load it
                 node = mem.readVolatileInt(nodeAddr);
-                listener.chunkLoaded(chunkStorage.getChunkInternal(node), subNodeX, subNodeY, subNodeZ, trigger);
+                
+                OffheapChunk chunk = chunkStorage.getChunkInternal(node);
+                listener.chunkLoaded(chunk, subNodeX, subNodeY, subNodeZ, trigger);
+                trigger.addBuffer(chunk.getChunkBuffer()); // Add to load marker
                 break; // No further action necessary
             } else { // "Dereference" an octree
                 nodeId = node; // New node id to content of current node
@@ -239,6 +243,7 @@ public class WorldLoader {
             
             // And since this is not master octree anymore, remember to fire an event
             listener.octreeLoaded(addr, octreeStorage.getGroup(nodeId >>> 24), nodeId, subNodeX, subNodeY, subNodeZ, scale, trigger);
+            trigger.addGroup(nodeId >>> 24); // Add to load marker
         }
         
         // Finally, tell listener we are done (mainly to support network batching)
@@ -294,7 +299,7 @@ public class WorldLoader {
      * @param trigger Load marker that triggered this operation or null.
      */
     public void loadArea(float x, float y, float z, float range, int nodeId, float scale,
-            float nodeX, float nodeY, float nodeZ, WorldLoadListener listener, boolean generate, LoadMarker trigger) {
+            float nodeX, float nodeY, float nodeZ, WorldLoadListener listener, boolean generate, OffheapLoadMarker trigger) {
         //System.out.println("loadArea, scale: " + scale);
         // Fetch data about given node
         long addr = octreeStorage.getOctreeAddr(nodeId); // This also loads the octree with group it is in
@@ -401,11 +406,14 @@ public class WorldLoader {
                     //System.out.println("Chunk path...");
                     // Load chunk and then fire event to listener
                     chunkStorage.ensureLoaded(node);
-                    listener.chunkLoaded(chunkStorage.getChunkInternal(node), subNodeX, subNodeY, subNodeZ, trigger);
+                    OffheapChunk chunk = chunkStorage.getChunkInternal(node);
+                    listener.chunkLoaded(chunk, subNodeX, subNodeY, subNodeZ, trigger);
+                    trigger.addBuffer(chunk.getChunkBuffer()); // Add to load marker
                 } else { // Octree. Here comes recursion...
                     // TODO multithreading
                     //System.out.println("Octree path, node: " + node);
                     loadArea(x, y, z, range, node, scale, subNodeX, subNodeY, subNodeZ, listener, generate, trigger);
+                    trigger.addGroup(node >>> 24); // Add to load marker
                 }
             } // else: no action needed, single node was loaded with getOctreeAddr
             //System.out.println("end of i: " + i);
