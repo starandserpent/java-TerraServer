@@ -5,7 +5,6 @@ import com.ritualsoftheold.terra.offheap.chunk.ChunkStorage;
 import com.ritualsoftheold.terra.offheap.node.OffheapChunk;
 import com.ritualsoftheold.terra.offheap.octree.OctreeStorage;
 import com.ritualsoftheold.terra.offheap.world.gen.WorldGenManager;
-import com.ritualsoftheold.terra.world.LoadMarker;
 
 import net.openhft.chronicle.core.Memory;
 import net.openhft.chronicle.core.OS;
@@ -150,7 +149,10 @@ public class WorldLoader {
         
         while (true) {
             // Figure out some stuff about current node
+            octreeStorage.markUsed(nodeId >>> 24);
             long addr = octreeStorage.getOctreeAddr(nodeId);
+            trigger.addGroup(nodeId >>> 24); // Add to load marker
+            
             byte flags = mem.readVolatileByte(addr); // Tells information about child nodes
             // (flags >>> index & 1): 1 when octree/chunk/"octree null", 0 when single node
             
@@ -216,7 +218,7 @@ public class WorldLoader {
             // Prepare various variables for next cycle
             scale *= 0.5;  // Scale essentially becomes posMod
             if (scale == DataConstants.CHUNK_SCALE) { // Dereference a chunk
-                chunkStorage.ensureLoaded(node); // Use node content as chunk id and load it
+                chunkStorage.ensureAndKeepLoaded(node); // Use node content as chunk id and load it
                 node = mem.readVolatileInt(nodeAddr);
                 
                 OffheapChunk chunk = chunkStorage.getChunkInternal(node);
@@ -243,7 +245,6 @@ public class WorldLoader {
             
             // And since this is not master octree anymore, remember to fire an event
             listener.octreeLoaded(addr, octreeStorage.getGroup(nodeId >>> 24), nodeId, subNodeX, subNodeY, subNodeZ, scale, trigger);
-            trigger.addGroup(nodeId >>> 24); // Add to load marker
         }
         
         // Finally, tell listener we are done (mainly to support network batching)
@@ -302,6 +303,7 @@ public class WorldLoader {
             float nodeX, float nodeY, float nodeZ, WorldLoadListener listener, boolean generate, OffheapLoadMarker trigger) {
         //System.out.println("loadArea, scale: " + scale);
         // Fetch data about given node
+        octreeStorage.markUnused(nodeId >>> 24);
         long addr = octreeStorage.getOctreeAddr(nodeId); // This also loads the octree with group it is in
         //System.out.println("loadArea address: " + address);
         byte flags = mem.readVolatileByte(addr);
@@ -405,7 +407,7 @@ public class WorldLoader {
                 if (scale == DataConstants.CHUNK_SCALE) { // It is a chunk!
                     //System.out.println("Chunk path...");
                     // Load chunk and then fire event to listener
-                    chunkStorage.ensureLoaded(node);
+                    chunkStorage.ensureAndKeepLoaded(node);
                     OffheapChunk chunk = chunkStorage.getChunkInternal(node);
                     listener.chunkLoaded(chunk, subNodeX, subNodeY, subNodeZ, trigger);
                     trigger.addBuffer(chunk.getChunkBuffer()); // Add to load marker

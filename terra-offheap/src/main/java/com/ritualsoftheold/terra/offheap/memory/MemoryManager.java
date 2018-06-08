@@ -6,6 +6,8 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicLongArray;
 import java.util.concurrent.atomic.AtomicReferenceArray;
+import java.util.concurrent.locks.StampedLock;
+
 import com.ritualsoftheold.terra.offheap.chunk.ChunkBuffer;
 import com.ritualsoftheold.terra.offheap.chunk.ChunkStorage;
 import com.ritualsoftheold.terra.offheap.memory.MemoryPanicHandler.PanicResult;
@@ -29,40 +31,45 @@ public class MemoryManager implements MemoryUseListener {
     
     private static final Memory mem = OS.memory();
     
-    private OffheapWorld world;
-    private OctreeStorage octreeStorage;
-    private ChunkStorage chunkStorage;
+    private volatile OffheapWorld world;
+    private volatile OctreeStorage octreeStorage;
+    private volatile ChunkStorage chunkStorage;
     
     /**
      * Preferred memory size. As long as it is below this, no need to act.
      */
-    private long preferredSize;
+    private final long preferredSize;
     
     /**
      * Maximum memory usage. If this is exceeded, server will enter panic mode
      * and potentially crash.
      */
-    private long maxSize;
+    private final long maxSize;
     
     /**
      * Currently used offheap memory.
      */
-    private AtomicLong usedSize;
+    private final AtomicLong usedSize;
     
     /**
      * User specified memory panic handler.
      */
-    private MemoryPanicHandler userPanicHandler;
+    private final MemoryPanicHandler userPanicHandler;
     
     /**
      * The thread which is used for memory manager actions.
      */
-    private Thread managerThread;
+    private final Thread managerThread;
     
     /**
      * Controls when manager thread runs.
      */
-    private CountDownLatch managerLatch;
+    private volatile CountDownLatch managerLatch;
+    
+    /**
+     * Load markers acquire read for this lock, we acquire write for it.
+     */
+    private final StampedLock loadMarkerLock;
     
     private class ManagerThread extends Thread {
         
@@ -131,6 +138,7 @@ public class MemoryManager implements MemoryUseListener {
         this.managerThread = new ManagerThread();
         this.managerThread.start();
         this.criticalPanicHandler = new CriticalPanicHandler();
+        this.loadMarkerLock = new StampedLock();
     }
     
     public void initialize(OctreeStorage octreeStorage, ChunkStorage chunkStorage) {
@@ -154,36 +162,13 @@ public class MemoryManager implements MemoryUseListener {
      * @param goal How much we need memory.
      */
     public void unload(long goal, MemoryPanicHandler panicHandler) {
-        // Create sets which will contain ids of groups that are used
-        IntSet usedOctreeGroups = new IntArraySet();
-        Set<ChunkBuffer> usedChunkBufs = new ObjectOpenHashSet<>();
-        
-        // Populate sets with addresses
-        System.out.println("Begin with updateLoadMarkers");
-        world.updateLoadMarkers(new WorldLoadListener() {
-            
-            @Override
-            public void octreeLoaded(long addr, long groupAddr, int id, float x, float y, float z,
-                    float scale, LoadMarker trigger) {
-                //System.out.println("Used group: " + (id >>> 24));
-                usedOctreeGroups.add(id >>> 24);
-            }
-            
-            @Override
-            public void chunkLoaded(OffheapChunk chunk, float x, float y, float z, LoadMarker trigger) {
-                usedChunkBufs.add(chunk.getChunkBuffer());
-            }
-        }, true, true).forEach((f) -> f.join()); // Need to complete all futures returned by updateLoadMarkers
-        System.out.println("Futures completed");
-        
         // Track how much we'd actually free memory
         long freed = 0;
         
         // Unload (and save) octrees
-        AtomicLongArray groups = world.getOctreeStorage().getGroups();
         // Begin at 1, master group must not be unloaded; ever
         for (int i = 1; i < octreeStorage.getGroupCount(); i++) {
-            if (!usedOctreeGroups.contains(i)) { // Need to unload this group
+            if (octreeStorage.getUsedCount(i) < 1) { // Need to unload this group
                 System.out.println("Can unload: " + i);
                 octreeStorage.removeOctrees(i, true); // Remove groups, but save first
                 
@@ -197,7 +182,6 @@ public class MemoryManager implements MemoryUseListener {
         
         // Mark which chunks to unload
         AtomicReferenceArray<ChunkBuffer> allBuffers = world.getChunkStorage().getAllBuffers();
-        Set<CompletableFuture<ChunkBuffer>> savePending = new ObjectOpenHashSet<>();
         if (freed < goal) { // Only do this if unloading octrees wouldn't save enough space
             for (int i = 0; i < allBuffers.length(); i++) {
                 ChunkBuffer buf = allBuffers.get(i); // TODO performance
@@ -206,7 +190,7 @@ public class MemoryManager implements MemoryUseListener {
                     continue;
                 }
                 
-                if (!usedChunkBufs.contains(buf)) { // If not used, mark for unloading
+                if (chunkStorage.getUsedCount(i) < 1) { // If not used, mark for unloading
                     chunkStorage.unloadBuffer(buf.getId(), true);
                     
                     freed += buf.getMemorySize();
@@ -238,5 +222,9 @@ public class MemoryManager implements MemoryUseListener {
     @Override
     public void onFree(long amount) {
         usedSize.addAndGet(-amount);
+    }
+    
+    public StampedLock getLoadMarkerLock() {
+        return loadMarkerLock;
     }
 }

@@ -356,22 +356,11 @@ public class OctreeStorage {
     public int getUsedCount(int index) {
         return userCounts.get(index);
     }
-
-    public void addLoadMarker(OffheapLoadMarker marker) {
-        boolean[] groups = marker.getOctreeGroups();
-        for (int i = 0; i < groups.length; i++) {
-            if (groups[i]) {
-                markUsed(i);
-            }
-        }
-    }
     
     public void removeLoadMarker(OffheapLoadMarker marker) {
-        boolean[] groups = marker.getOctreeGroups();
+        int[] groups = marker.getOctreeGroups();
         for (int i = 0; i < groups.length; i++) {
-            if (groups[i]) {
-                markUnused(i);
-            }
+            userCounts.getAndAdd(i, -groups[i]);
         }
     }
     

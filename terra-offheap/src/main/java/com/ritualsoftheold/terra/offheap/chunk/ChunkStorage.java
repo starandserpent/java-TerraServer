@@ -1,5 +1,6 @@
 package com.ritualsoftheold.terra.offheap.chunk;
 
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.concurrent.atomic.AtomicIntegerArray;
@@ -171,6 +172,19 @@ public class ChunkStorage {
     }
     
     /**
+     * Makes sure that a chunk with given id is loaded and ensures that it is
+     * not unloaded until {@link #markUnused(int)} for its buffer is called.
+     * @param chunkId Full chunk id.
+     */
+    public void ensureAndKeepLoaded(int chunkId) {
+        int bufIndex = chunkId >>> 16;
+        markUsed(bufIndex);
+        
+        // Wait buffer ready, then wait chunk ready
+        getOrLoadBuffer(bufIndex).waitChunkReady(chunkId & 0xffff);;
+    }
+    
+    /**
      * Creates a managed wrapper for a chunk with given id using given material
      * registry. Chunk must be closed once it is no longer used. Storing
      * a chunk for long period of time is not recommended.
@@ -245,16 +259,11 @@ public class ChunkStorage {
     public MaterialRegistry getMaterialRegistry() {
         return materialRegistry;
     }
-
-    public void addLoadMarker(OffheapLoadMarker marker) {
-        for (ChunkBuffer buf : marker.getChunkBuffers()) {
-            markUsed(buf.getId());
-        }
-    }
     
     public void removeLoadMarker(OffheapLoadMarker marker) {
-        for (ChunkBuffer buffer : marker.getChunkBuffers()) {
-            markUnused(buffer.getId());
+        Map<Integer, OffheapLoadMarker.ChunkBufferUsers> buffers = marker.getChunkBuffers();
+        for (int id : buffers.keySet()) {
+            userCounts.getAndAdd(id, -buffers.get(id).getUserCount());
         }
     }
 }
