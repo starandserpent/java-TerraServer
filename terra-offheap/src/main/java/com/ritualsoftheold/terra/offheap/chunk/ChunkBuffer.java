@@ -23,9 +23,9 @@ public class ChunkBuffer {
     
     private static final Memory mem = OS.memory();
     
-    private ChunkStorage storage;
+    private final ChunkStorage storage;
     
-    private AtomicReferenceArray<OffheapChunk> chunks;
+    private final AtomicReferenceArray<OffheapChunk> chunks;
     
     /**
      * How many changes can be queued per chunk.
@@ -41,7 +41,7 @@ public class ChunkBuffer {
      * Current count of chunks in this buffer. This also serves
      * as first free index to this buffer.
      */
-    private AtomicInteger chunkCount;
+    private final AtomicInteger chunkCount;
     
     /**
      * Maximum count of chunks in this buffer.
@@ -61,7 +61,7 @@ public class ChunkBuffer {
     /**
      * Memory usage listener.
      */
-    private MemoryUseListener memListener;
+    private final MemoryUseListener memListener;
     
     /**
      * Allocates and deallocates memory for chunks on demand.
@@ -124,9 +124,9 @@ public class ChunkBuffer {
         }
     }
     
-    private Allocator allocator;
+    private final Allocator allocator;
     
-    private int staticDataLength;
+    private volatile int staticDataLength;
     
     /**
      * ChunkStorage waits on this before performing actions on the buffer.
@@ -137,7 +137,7 @@ public class ChunkBuffer {
      * If we should perform ready checks on individual chunks. If false, they
      * will do nothing.
      */
-    private boolean perChunkReady;
+    private final boolean perChunkReady;
     
     public ChunkBuffer(ChunkStorage storage, int id, int maxChunks, int chunkQueueSize, MemoryUseListener memListener, boolean perChunkReady) {
         this.storage = storage;
@@ -328,7 +328,7 @@ public class ChunkBuffer {
         }
         
         // Make sure no loads are reordered before writing this has been completely done
-        // Especially copyMemory, we can't replace that with volatile writes!
+        // Especially copyMemory, we can't replace that with volatile/release writes!
         VarHandle.fullFence();
     }
     

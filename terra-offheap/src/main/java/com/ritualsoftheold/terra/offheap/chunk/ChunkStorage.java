@@ -17,31 +17,31 @@ import com.ritualsoftheold.terra.offheap.world.OffheapLoadMarker;
  */
 public class ChunkStorage {
     
-    private MaterialRegistry materialRegistry;
+    private final MaterialRegistry materialRegistry;
     
     /**
      * Array of all chunk buffers. May contain nulls for buffers which have not
      * been yet needed.
      */
-    private AtomicReferenceArray<ChunkBuffer> buffers;
+    private final AtomicReferenceArray<ChunkBuffer> buffers;
     
     /**
      * Lists user counts for all chunk buffers. 0 means that the buffer is not
      * in use; anything above it means that it is not safe to unload!
      */
-    private AtomicIntegerArray userCounts;
+    private final AtomicIntegerArray userCounts;
     
     /**
      * Creates chunk buffers.
      */
-    private ChunkBuffer.Builder bufferBuilder;
+    private final ChunkBuffer.Builder bufferBuilder;
     
     /**
      * Loads data from disk as necessary.
      */
-    private ChunkLoader loader;
+    private final ChunkLoader loader;
     
-    private Executor executor;
+    private final Executor executor;
     
     public ChunkStorage(MaterialRegistry registry, ChunkBuffer.Builder bufferBuilder, int maxBuffers, ChunkLoader loader, Executor executor) {
         this.materialRegistry = registry;

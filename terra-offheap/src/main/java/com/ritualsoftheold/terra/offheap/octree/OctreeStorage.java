@@ -6,7 +6,6 @@ import java.util.concurrent.atomic.AtomicIntegerArray;
 import java.util.concurrent.atomic.AtomicLongArray;
 
 import com.ritualsoftheold.terra.material.MaterialRegistry;
-import com.ritualsoftheold.terra.offheap.BuildConfig;
 import com.ritualsoftheold.terra.offheap.DataConstants;
 import com.ritualsoftheold.terra.offheap.Pointer;
 import com.ritualsoftheold.terra.offheap.io.OctreeLoader;
@@ -28,44 +27,44 @@ public class OctreeStorage {
     /**
      * Memory address of octree groups.
      */
-    private AtomicLongArray groups;
+    private final AtomicLongArray groups;
     
     /**
      * Availability data addresses for octree groups.
      */
-    private AtomicLongArray availability;
+    private final AtomicLongArray availability;
     
     /**
      * Memory address of data which contains timestamps for when
      * octree data was last needed.
      */
-    private AtomicLongArray lastNeeded;
+    private final AtomicLongArray lastNeeded;
     
-    private AtomicIntegerArray userCounts;
+    private final AtomicIntegerArray userCounts;
     
     /**
      * How many octrees goes to one storage group.
      */
-    private int blockSize;
+    private final int blockSize;
     
     /**
      * Octree loader implementation.
      */
-    private OctreeLoader loader;
+    private final OctreeLoader loader;
     
     /**
      * Executor which will be used for asynchronous tasks.
      */
-    private Executor loaderExecutor;
+    private final Executor loaderExecutor;
     
     /**
      * Memory listener which is to be notified when memory is
      * allocated or freed.
      */
-    private MemoryUseListener memListener;
+    private final MemoryUseListener memListener;
     
-    private long countAddr;
-    
+    private final long countAddr;
+        
     public OctreeStorage(int blockSize, OctreeLoader loader, Executor executor, MemoryUseListener memListener, boolean availibility) {
         this.loader = loader;
         this.loaderExecutor = executor;
@@ -80,6 +79,8 @@ public class OctreeStorage {
         // (otherwise, JVM segfaults due to NULL dereference)
         if (availibility) {
             this.availability = new AtomicLongArray(256);
+        } else {
+            this.availability = null;
         }
         
         // Load master group and cache count address

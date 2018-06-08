@@ -1,36 +1,22 @@
 package com.ritualsoftheold.terra.offheap.memory;
 
-import java.util.Set;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.concurrent.atomic.AtomicLongArray;
 import java.util.concurrent.atomic.AtomicReferenceArray;
 import java.util.concurrent.locks.StampedLock;
 
 import com.ritualsoftheold.terra.offheap.chunk.ChunkBuffer;
 import com.ritualsoftheold.terra.offheap.chunk.ChunkStorage;
 import com.ritualsoftheold.terra.offheap.memory.MemoryPanicHandler.PanicResult;
-import com.ritualsoftheold.terra.offheap.node.OffheapChunk;
 import com.ritualsoftheold.terra.offheap.octree.OctreeStorage;
 import com.ritualsoftheold.terra.offheap.world.OffheapWorld;
-import com.ritualsoftheold.terra.offheap.world.WorldLoadListener;
-import com.ritualsoftheold.terra.world.LoadMarker;
-
-import it.unimi.dsi.fastutil.ints.IntArraySet;
-import it.unimi.dsi.fastutil.ints.IntSet;
-import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
-import net.openhft.chronicle.core.Memory;
-import net.openhft.chronicle.core.OS;
 
 /**
  * Manages offheap memory.
  *
  */
 public class MemoryManager implements MemoryUseListener {
-    
-    private static final Memory mem = OS.memory();
-    
+        
     private volatile OffheapWorld world;
     private volatile OctreeStorage octreeStorage;
     private volatile ChunkStorage chunkStorage;
