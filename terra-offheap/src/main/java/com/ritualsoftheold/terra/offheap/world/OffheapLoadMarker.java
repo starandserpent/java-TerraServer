@@ -13,7 +13,7 @@ public class OffheapLoadMarker extends LoadMarker {
     
     private static final VarHandle groupsVar = MethodHandles.arrayElementVarHandle(boolean[].class);
     
-    private volatile ConcurrentMap<Integer, ChunkBuffer> chunkBuffers;
+    private final ConcurrentMap<Integer, ChunkBuffer> chunkBuffers;
     
     private volatile boolean[] octreeGroups;
     
@@ -37,5 +37,10 @@ public class OffheapLoadMarker extends LoadMarker {
     
     public boolean[] getOctreeGroups() {
         return octreeGroups;
+    }
+    
+    public void clear() {
+        chunkBuffers.clear();
+        octreeGroups = new boolean[256];
     }
 }

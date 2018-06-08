@@ -12,6 +12,7 @@ import com.ritualsoftheold.terra.offheap.Pointer;
 import com.ritualsoftheold.terra.offheap.io.OctreeLoader;
 import com.ritualsoftheold.terra.offheap.memory.MemoryUseListener;
 import com.ritualsoftheold.terra.offheap.node.OffheapOctree;
+import com.ritualsoftheold.terra.offheap.world.OffheapLoadMarker;
 
 import net.openhft.chronicle.core.Memory;
 import net.openhft.chronicle.core.OS;
@@ -354,6 +355,24 @@ public class OctreeStorage {
     
     public int getUsedCount(int index) {
         return userCounts.get(index);
+    }
+
+    public void addLoadMarker(OffheapLoadMarker marker) {
+        boolean[] groups = marker.getOctreeGroups();
+        for (int i = 0; i < groups.length; i++) {
+            if (groups[i]) {
+                markUsed(i);
+            }
+        }
+    }
+    
+    public void removeLoadMarker(OffheapLoadMarker marker) {
+        boolean[] groups = marker.getOctreeGroups();
+        for (int i = 0; i < groups.length; i++) {
+            if (groups[i]) {
+                markUnused(i);
+            }
+        }
     }
     
 }

@@ -8,6 +8,7 @@ import java.util.concurrent.atomic.AtomicReferenceArray;
 import com.ritualsoftheold.terra.material.MaterialRegistry;
 import com.ritualsoftheold.terra.offheap.io.ChunkLoader;
 import com.ritualsoftheold.terra.offheap.node.OffheapChunk;
+import com.ritualsoftheold.terra.offheap.world.OffheapLoadMarker;
 
 /**
  * Manages all chunks of a single world using chunk buffers.
@@ -243,5 +244,17 @@ public class ChunkStorage {
 
     public MaterialRegistry getMaterialRegistry() {
         return materialRegistry;
+    }
+
+    public void addLoadMarker(OffheapLoadMarker marker) {
+        for (ChunkBuffer buf : marker.getChunkBuffers()) {
+            markUsed(buf.getId());
+        }
+    }
+    
+    public void removeLoadMarker(OffheapLoadMarker marker) {
+        for (ChunkBuffer buffer : marker.getChunkBuffers()) {
+            markUnused(buffer.getId());
+        }
     }
 }

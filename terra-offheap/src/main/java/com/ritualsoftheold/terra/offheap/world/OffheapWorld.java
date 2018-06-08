@@ -301,10 +301,18 @@ public class OffheapWorld implements TerraWorld {
      * @param soft If soft radius should be used.
      */
     private void updateLoadMarker(OffheapLoadMarker marker, WorldLoadListener listener, boolean soft) {
-        System.out.println("Update load marker...");
+        // Allow unloading things that previous marker kept loaded
+        chunkStorage.removeLoadMarker(marker);
+        octreeStorage.removeLoadMarker(marker);
+        marker.clear(); // Remove all previous load marks from it
+        
         worldLoader.seekArea(marker.getX(), marker.getY(), marker.getZ(),
                 soft ? marker.getSoftRadius() : marker.getHardRadius(), listener, !soft, marker);
         marker.markUpdated(); // Tell it we updated it
+        
+        // Tell storages about things that must NOT be unloaded
+        chunkStorage.addLoadMarker(marker);
+        octreeStorage.addLoadMarker(marker);
     }
     
     /**
