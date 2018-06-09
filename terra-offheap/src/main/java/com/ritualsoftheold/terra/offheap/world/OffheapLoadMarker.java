@@ -7,15 +7,14 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
 import com.ritualsoftheold.terra.offheap.chunk.ChunkBuffer;
+import com.ritualsoftheold.terra.offheap.util.IntFlushList;
 import com.ritualsoftheold.terra.world.LoadMarker;
 
 public class OffheapLoadMarker extends LoadMarker implements Cloneable {
-    
-    private static final VarHandle groupsVar = MethodHandles.arrayElementVarHandle(int[].class);
-    
+        
     private final ConcurrentMap<Integer, ChunkBufferUsers> chunkBuffers;
     
-    private volatile int[] octreeGroups;
+    private final IntFlushList octrees;
     
     public static class ChunkBufferUsers {
         
@@ -43,7 +42,7 @@ public class OffheapLoadMarker extends LoadMarker implements Cloneable {
     protected OffheapLoadMarker(float x, float y, float z, float hardRadius, float softRadius, int priority) {
         super(x, y, z, hardRadius, softRadius, priority);
         this.chunkBuffers = new ConcurrentHashMap<>();
-        this.octreeGroups = new int[256];
+        this.octrees = new IntFlushList(64, 2); // TODO tune these settings
     }
     
     /**
@@ -53,7 +52,7 @@ public class OffheapLoadMarker extends LoadMarker implements Cloneable {
     protected OffheapLoadMarker(OffheapLoadMarker another) {
         super(another.getX(), another.getY(), another.getZ(), another.getHardRadius(), another.getSoftRadius(), another.getPriority());
         this.chunkBuffers = new ConcurrentHashMap<>(another.chunkBuffers);
-        this.octreeGroups = another.octreeGroups.clone();
+        this.octrees = another.octrees.clone();
     }
     
     public void addBuffer(ChunkBuffer buf) {
@@ -61,21 +60,21 @@ public class OffheapLoadMarker extends LoadMarker implements Cloneable {
         users.addUsers(1);
     }
     
-    public void addGroup(int id) {
-        groupsVar.getAndAdd(octreeGroups, id, 1);
+    public void addOctree(int id) {
+        octrees.add(id);
     }
     
     public Map<Integer, ChunkBufferUsers> getChunkBuffers() {
         return chunkBuffers;
     }
     
-    public int[] getOctreeGroups() {
-        return octreeGroups;
+    public int[] getOctrees() {
+        return octrees.getArray();
     }
     
     public void clear() {
         chunkBuffers.clear();
-        octreeGroups = new int[256];
+        octrees.clear();
     }
     
     public OffheapLoadMarker clone() {

@@ -151,7 +151,7 @@ public class WorldLoader {
             // Figure out some stuff about current node
             octreeStorage.markUsed(nodeId >>> 24);
             long addr = octreeStorage.getOctreeAddr(nodeId);
-            trigger.addGroup(nodeId >>> 24); // Add to load marker
+            trigger.addOctree(nodeId); // Add to load marker
             
             byte flags = mem.readVolatileByte(addr); // Tells information about child nodes
             // (flags >>> index & 1): 1 when octree/chunk/"octree null", 0 when single node
@@ -415,7 +415,7 @@ public class WorldLoader {
                     // TODO multithreading
                     //System.out.println("Octree path, node: " + node);
                     loadArea(x, y, z, range, node, scale, subNodeX, subNodeY, subNodeZ, listener, generate, trigger);
-                    trigger.addGroup(node >>> 24); // Add to load marker
+                    trigger.addOctree(node); // Add to load marker
                 }
             } // else: no action needed, single node was loaded with getOctreeAddr
             //System.out.println("end of i: " + i);
