@@ -64,8 +64,11 @@ public class OctreeStorage {
     private final MemoryUseListener memListener;
     
     private final long countAddr;
+    
+    private final UsageListener usageListener;
         
-    public OctreeStorage(int blockSize, OctreeLoader loader, Executor executor, MemoryUseListener memListener, boolean availibility) {
+    public OctreeStorage(int blockSize, OctreeLoader loader, Executor executor, MemoryUseListener memListener,
+            boolean availibility, UsageListener usageListener) {
         this.loader = loader;
         this.loaderExecutor = executor;
         this.memListener = memListener;
@@ -82,6 +85,8 @@ public class OctreeStorage {
         } else {
             this.availability = null;
         }
+        
+        this.usageListener = usageListener;
         
         // Load master group and cache count address
         countAddr = getGroupMeta(0);
@@ -359,9 +364,13 @@ public class OctreeStorage {
     }
     
     public void removeLoadMarker(OffheapLoadMarker marker) {
-        int[] groups = marker.getOctreeGroups();
-        for (int i = 0; i < groups.length; i++) {
-            userCounts.getAndAdd(i, -groups[i]);
+        int[] octrees = marker.getOctrees();
+        for (int i = 0; i < octrees.length; i++) {
+            int id = octrees[i];
+            markUnused(id >>> 24);
+            if (usageListener != null) {
+                usageListener.unused(id);
+            }
         }
     }
     

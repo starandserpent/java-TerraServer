@@ -7,6 +7,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
 import com.ritualsoftheold.terra.offheap.chunk.ChunkBuffer;
+import com.ritualsoftheold.terra.offheap.octree.UsageListener;
 import com.ritualsoftheold.terra.offheap.util.IntFlushList;
 import com.ritualsoftheold.terra.world.LoadMarker;
 
@@ -15,6 +16,8 @@ public class OffheapLoadMarker extends LoadMarker implements Cloneable {
     private final ConcurrentMap<Integer, ChunkBufferUsers> chunkBuffers;
     
     private final IntFlushList octrees;
+    
+    private final UsageListener usageListener;
     
     public static class ChunkBufferUsers {
         
@@ -39,10 +42,12 @@ public class OffheapLoadMarker extends LoadMarker implements Cloneable {
         }
     }
     
-    protected OffheapLoadMarker(float x, float y, float z, float hardRadius, float softRadius, int priority) {
+    protected OffheapLoadMarker(float x, float y, float z, float hardRadius, float softRadius, int priority,
+            UsageListener usageListener) {
         super(x, y, z, hardRadius, softRadius, priority);
         this.chunkBuffers = new ConcurrentHashMap<>();
         this.octrees = new IntFlushList(64, 2); // TODO tune these settings
+        this.usageListener = usageListener;
     }
     
     /**
@@ -53,6 +58,7 @@ public class OffheapLoadMarker extends LoadMarker implements Cloneable {
         super(another.getX(), another.getY(), another.getZ(), another.getHardRadius(), another.getSoftRadius(), another.getPriority());
         this.chunkBuffers = new ConcurrentHashMap<>(another.chunkBuffers);
         this.octrees = another.octrees.clone();
+        this.usageListener = another.usageListener;
     }
     
     public void addBuffer(ChunkBuffer buf) {
@@ -62,6 +68,9 @@ public class OffheapLoadMarker extends LoadMarker implements Cloneable {
     
     public void addOctree(int id) {
         octrees.add(id);
+        if (usageListener != null) {
+            usageListener.used(id);
+        }
     }
     
     public Map<Integer, ChunkBufferUsers> getChunkBuffers() {

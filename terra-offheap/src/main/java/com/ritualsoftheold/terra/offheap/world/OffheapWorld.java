@@ -24,6 +24,7 @@ import com.ritualsoftheold.terra.offheap.memory.MemoryPanicHandler;
 import com.ritualsoftheold.terra.offheap.node.OffheapChunk;
 import com.ritualsoftheold.terra.offheap.node.OffheapOctree;
 import com.ritualsoftheold.terra.offheap.octree.OctreeStorage;
+import com.ritualsoftheold.terra.offheap.octree.UsageListener;
 import com.ritualsoftheold.terra.offheap.verifier.TerraVerifier;
 import com.ritualsoftheold.terra.offheap.world.gen.WorldGenManager;
 import com.ritualsoftheold.terra.world.LoadMarker;
@@ -76,6 +77,8 @@ public class OffheapWorld implements TerraWorld {
     
     // New world loader, no more huge methods in this class!
     private WorldLoader worldLoader;
+    
+    private UsageListener octreeUsageListener;
     
     public static class Builder {
         
@@ -151,6 +154,11 @@ public class OffheapWorld implements TerraWorld {
             return this;
         }
         
+        public Builder octreeUsageListener(UsageListener listener) {
+            world.octreeUsageListener = listener;
+            return this;
+        }
+        
         public OffheapWorld build() {
             // Initialize some internal structures AFTER all user-controller initialization
             world.loadMarkers = new ArrayList<>();
@@ -160,7 +168,8 @@ public class OffheapWorld implements TerraWorld {
             world.memManager = new MemoryManager(world, memPreferred, memMax, memPanicHandler);
             
             // Initialize stuff that needs memory manager
-            world.octreeStorage = new OctreeStorage(octreeGroupSize, world.octreeLoader, world.storageExecutor, world.memManager, perNodeReady);
+            world.octreeStorage = new OctreeStorage(octreeGroupSize, world.octreeLoader, world.storageExecutor, world.memManager,
+                    perNodeReady, world.octreeUsageListener);
             chunkBufferBuilder.memListener(world.memManager);
             chunkBufferBuilder.perChunkReady(perNodeReady);
             world.chunkStorage = new ChunkStorage(world.registry, chunkBufferBuilder, chunkMaxBuffers, world.chunkLoader, world.storageExecutor);
@@ -522,6 +531,6 @@ public class OffheapWorld implements TerraWorld {
 
     @Override
     public LoadMarker createLoadMarker(float x, float y, float z, float hardRadius, float softRadius, int priority) {
-        return new OffheapLoadMarker(x, y, z, hardRadius, softRadius, priority);
+        return new OffheapLoadMarker(x, y, z, hardRadius, softRadius, priority, octreeUsageListener);
     }
 }
