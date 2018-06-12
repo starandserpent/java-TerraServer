@@ -82,7 +82,7 @@ public class TerraServerTest {
         server = new UdpServer.Builder()
                 .handlerProvider((address) -> {
                     return (conn, msg, flags) -> {
-                        LoadMarker marker = new LoadMarker(0, 10, 0, 32, 32, 0);
+                        LoadMarker marker = world.createLoadMarker(0, 10, 0, 32, 32, 0);
                         world.addLoadMarker(marker);
                         
                         WorldObserver observer = new WorldObserver(marker, conn, 10);

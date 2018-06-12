@@ -200,7 +200,7 @@ public class TerraClientTest {
         
         LockSupport.parkNanos(50000000000L);
         
-        LoadMarker marker = new LoadMarker(0, 10, 0, 32, 32, 0);
+        LoadMarker marker = world.createLoadMarker(0, 10, 0, 32, 32, 0);
         world.addLoadMarker(marker);
         world.setLoadListener(new WorldLoadListener() {
             
