@@ -1,6 +1,7 @@
 package com.ritualsoftheold.terra.offheap.chunk;
 
 import java.lang.invoke.VarHandle;
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReferenceArray;
 
@@ -140,6 +141,12 @@ public class ChunkBuffer {
     private final boolean perChunkReady;
     
     public ChunkBuffer(ChunkStorage storage, int id, int maxChunks, int chunkQueueSize, MemoryUseListener memListener, boolean perChunkReady) {
+        Objects.requireNonNull(storage);
+        Objects.checkIndex(id, storage.getAllBuffers().length());
+        Objects.checkIndex(maxChunks, Integer.MAX_VALUE);
+        Objects.checkIndex(chunkQueueSize, Integer.MAX_VALUE);
+        Objects.requireNonNull(memListener);
+        
         this.storage = storage;
         chunks = new AtomicReferenceArray<>(maxChunks);
         

@@ -27,6 +27,8 @@ import com.ritualsoftheold.terra.world.gen.EmptyWorldGenerator;
  */
 public class MemoryTest {
     
+    // FIXME broken, Palette16 requires functional materials to be available
+    
     private ChunkBuffer.Builder bufferBuilder;
     
     @Before
@@ -83,7 +85,7 @@ public class MemoryTest {
             }
         });
         
-        world.addLoadMarker(new LoadMarker(0, 0, 0, 256, 256, 0));
+        world.addLoadMarker(world.createLoadMarker(0, 0, 0, 256, 256, 0));
         world.updateLoadMarkers().forEach((future) -> future.join());
         System.out.println("Load markers up to date!");
         world.requestUnload();
@@ -139,7 +141,7 @@ public class MemoryTest {
                 .build();
         world.setLoadListener(new DummyLoadListener());
         
-        world.addLoadMarker(new LoadMarker(0, 0, 0, 256, 256, 0));
+        world.addLoadMarker(world.createLoadMarker(0, 0, 0, 256, 256, 0));
         world.updateLoadMarkers().forEach((future) -> future.join());
         System.out.println("Load markers up to date!");
         world.requestUnload();
@@ -193,7 +195,7 @@ public class MemoryTest {
                 .build();
         world.setLoadListener(new DummyLoadListener());
         
-        world.addLoadMarker(new LoadMarker(0, 0, 0, 256, 256, 0));
+        world.addLoadMarker(world.createLoadMarker(0, 0, 0, 256, 256, 0));
         world.updateLoadMarkers().forEach((future) -> future.join());
         System.out.println("Load markers up to date!");
         world.requestUnload();
@@ -241,7 +243,7 @@ public class MemoryTest {
                 .build();
         world.setLoadListener(new DummyLoadListener());
         
-        LoadMarker marker = new LoadMarker(0, 0, 0, 256, 256, 0);
+        LoadMarker marker = world.createLoadMarker(0, 0, 0, 256, 256, 0);
         world.addLoadMarker(marker);
         world.updateLoadMarkers().forEach((future) -> future.join());
         world.removeLoadMarker(marker);

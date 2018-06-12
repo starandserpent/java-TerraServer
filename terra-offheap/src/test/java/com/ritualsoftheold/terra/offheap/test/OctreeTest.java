@@ -23,7 +23,7 @@ public class OctreeTest {
     
     @Before
     public void init() {
-        storage = new OctreeStorage(32768, new DummyOctreeLoader(32768), Executors.newCachedThreadPool(), new DummyMemoryUseListener(), false);
+        storage = new OctreeStorage(32768, new DummyOctreeLoader(32768), Executors.newCachedThreadPool(), new DummyMemoryUseListener(), false, null);
     }
     
     @Test

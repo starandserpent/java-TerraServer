@@ -26,6 +26,8 @@ import net.openhft.chronicle.core.OS;
  */
 public class WorldTest {
     
+    // FIXME broken, Palette16 requires functional materials to be available
+    
     private static final Memory mem = OS.memory();
     
     private OffheapWorld world;
@@ -60,7 +62,7 @@ public class WorldTest {
                 .build();
         world.setLoadListener(new DummyLoadListener());
         
-        world.addLoadMarker(new LoadMarker(0, 0, 0, 32, 32, 0));
+        world.addLoadMarker(world.createLoadMarker(0, 0, 0, 32, 32, 0));
         world.updateLoadMarkers().forEach((f) -> f.join());
     }
     
