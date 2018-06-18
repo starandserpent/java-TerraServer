@@ -66,10 +66,10 @@ public class OffheapLoadMarker extends LoadMarker implements Cloneable {
         users.addUsers(1);
     }
     
-    public void addOctree(int id) {
+    public void addOctree(int id, float scale, float x, float y, float z) {
         octrees.add(id);
         if (usageListener != null) {
-            usageListener.used(id);
+            usageListener.used(id, scale, x, y, z);
         }
     }
     

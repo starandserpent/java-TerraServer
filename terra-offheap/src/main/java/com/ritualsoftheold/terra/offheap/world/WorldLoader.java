@@ -151,7 +151,6 @@ public class WorldLoader {
             // Figure out some stuff about current node
             octreeStorage.markUsed(nodeId >>> 24);
             long addr = octreeStorage.getOctreeAddr(nodeId);
-            trigger.addOctree(nodeId); // Add to load marker
             
             byte flags = mem.readVolatileByte(addr); // Tells information about child nodes
             // (flags >>> index & 1): 1 when octree/chunk/"octree null", 0 when single node
@@ -244,7 +243,9 @@ public class WorldLoader {
             nodeZ = subNodeZ;
             
             // And since this is not master octree anymore, remember to fire an event
-            listener.octreeLoaded(addr, octreeStorage.getGroup(nodeId >>> 24), nodeId, subNodeX, subNodeY, subNodeZ, scale, trigger);
+            listener.octreeLoaded(addr, octreeStorage.getGroup(nodeId >>> 24), nodeId, nodeX, nodeY, nodeZ, scale, trigger);
+            trigger.addOctree(nodeId, scale, nodeX, nodeY, nodeZ); // Add to load marker
+
         }
         
         // Finally, tell listener we are done (mainly to support network batching)
@@ -415,7 +416,6 @@ public class WorldLoader {
                     // TODO multithreading
                     //System.out.println("Octree path, node: " + node);
                     loadArea(x, y, z, range, node, scale, subNodeX, subNodeY, subNodeZ, listener, generate, trigger);
-                    trigger.addOctree(node); // Add to load marker
                 }
             } // else: no action needed, single node was loaded with getOctreeAddr
             //System.out.println("end of i: " + i);
