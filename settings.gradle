@@ -9,7 +9,8 @@ include 'terra-net-core'
 include 'terra-net-client'
 include 'terra-net-server'
 
-if (file('../venom').exists()) {
+// Include Venom only if we're not included, because Gradle doesn't support recursive includes
+if (gradle.parent == null && file('../venom').exists()) {
     includeBuild('../venom') {
         dependencySubstitution {
             substitute module('com.starandserpent:venom-listeners') with project(':venom-listeners')
