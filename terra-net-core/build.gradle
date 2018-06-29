@@ -1,5 +1,4 @@
 dependencies {
     compile project(':terra-offheap')
-    compile 'com.starandserpent:venom-network:0.1-SNAPSHOT'
-    compile 'com.starandserpent:venom-listeners:0.1-SNAPSHOT'
+    compile 'io.aeron:aeron-all:1.9.3'
 }
