@@ -1,16 +1,17 @@
 package com.ritualsoftheold.terra.net.server;
 
+import java.nio.ByteBuffer;
 import java.util.concurrent.atomic.AtomicLong;
 
-import com.ritualsoftheold.terra.net.TerraMessages;
+import org.agrona.MutableDirectBuffer;
+import org.agrona.concurrent.UnsafeBuffer;
+
+import com.ritualsoftheold.terra.net.TerraProtocol;
 import com.ritualsoftheold.terra.offheap.DataConstants;
 import com.ritualsoftheold.terra.offheap.Pointer;
 import com.ritualsoftheold.terra.world.LoadMarker;
-import com.starandserpent.venom.NetMagicValues;
-import com.starandserpent.venom.UdpConnection;
 
-import io.netty.buffer.ByteBuf;
-import io.netty.buffer.ByteBufAllocator;
+import io.aeron.Publication;
 import net.openhft.chronicle.core.Memory;
 import net.openhft.chronicle.core.OS;
 
@@ -18,23 +19,25 @@ import net.openhft.chronicle.core.OS;
  * Something that can observe a world over network.
  *
  */
-public class WorldObserver implements NetMagicValues {
+public class WorldObserver {
+    
+    // TODO do NOT allocate with ByteBuffer.allocateDirect
     
     private static final Memory mem = OS.memory();
     
     private LoadMarker marker;
     
-    private UdpConnection conn;
+    private Publication publication;
     
     private @Pointer AtomicLong pendingOctrees;
     
-    private int octreesPerPacket;
+    private byte octreesPerPacket;
     
-    private int pendingIndex;
+    private byte pendingIndex;
     
-    public WorldObserver(LoadMarker marker, UdpConnection conn, int octreesPerPacket) {
+    public WorldObserver(LoadMarker marker, Publication publication, byte octreesPerPacket) {
         this.marker = marker;
-        this.conn = conn;
+        this.publication = publication;
         this.pendingOctrees = new AtomicLong(mem.allocate(octreesPerPacket * (DataConstants.OCTREE_SIZE + 4 + 1)));
         this.octreesPerPacket = octreesPerPacket;
         this.pendingIndex = 0;
@@ -44,8 +47,8 @@ public class WorldObserver implements NetMagicValues {
         return marker;
     }
     
-    public UdpConnection getConnection() {
-        return conn;
+    public Publication getPublication() {
+        return publication;
     }
     
     private long lockOctrees() {
@@ -62,27 +65,25 @@ public class WorldObserver implements NetMagicValues {
         pendingOctrees.set(addr);
     }
     
-    void octreeLoaded(ByteBufAllocator alloc, long octree, int id, float scale) {
+    void octreeLoaded(long octree, int id, float scale) {
         // Get exclusive access to address
         long addr = lockOctrees();
         
         // Make sure we have buffer where there is space
         int entrySize = DataConstants.OCTREE_SIZE + 4 + 1;
         int len = octreesPerPacket * entrySize;
-        boolean doFlush = false;
         if (pendingIndex == octreesPerPacket) { // Need next packet!
             // Send the buffer we have to client
-            ByteBuf buf = alloc.buffer(len + 1);
-            buf.writeByte(octreesPerPacket);
-            mem.copyMemory(addr, buf.memoryAddress() + 1, len);
-            buf.writerIndex(len + 1);
-            TerraMessages.OCTREE_DELIVERY.send(conn, buf, FLAG_RELIABLE | FLAG_VERIFY); // Send copied old buffer
+            MutableDirectBuffer buf = new UnsafeBuffer(ByteBuffer.allocateDirect(len + 2));
+            buf.putByte(0, TerraProtocol.MESSAGE_TYPE_OCTREE);
+            buf.putByte(1, octreesPerPacket);
+            mem.copyMemory(addr, buf.addressOffset() + 2, len);
+            publication.offer(buf);
             mem.freeMemory(addr, len); // Free old buffer
             
             // Allocate new buffer
             addr = mem.allocate(len);
             pendingIndex = 0; // To start
-            doFlush = true; // Call flush on connection
         }
         
         // Write octree id and data to address we have
@@ -93,22 +94,18 @@ public class WorldObserver implements NetMagicValues {
         
         // Put address back, thus ending spin wait
         unlockOctrees(addr);
-        
-        if (doFlush) {
-            conn.flush(); // Flush after unlocking, might allow better concurrency
-        }
     }
 
-    void octreesFinished(ByteBufAllocator alloc) {
+    void octreesFinished() {
         long addr = lockOctrees();
         
         // Send the buffer we have to client (filled parts)
         int len = pendingIndex * (DataConstants.OCTREE_SIZE + 4 + 1);
-        ByteBuf buf = alloc.buffer(len + 1);
-        buf.writeByte(pendingIndex);
-        mem.copyMemory(addr, buf.memoryAddress() + 1, len);
-        buf.writerIndex(len + 1);
-        TerraMessages.OCTREE_DELIVERY.send(conn, buf, FLAG_RELIABLE | FLAG_VERIFY); // Send copied old buffer
+        MutableDirectBuffer buf = new UnsafeBuffer(ByteBuffer.allocateDirect(len + 1));
+        buf.putByte(0, TerraProtocol.MESSAGE_TYPE_OCTREE);
+        buf.putByte(1, pendingIndex);
+        mem.copyMemory(addr, buf.addressOffset() + 2, len);
+        publication.offer(buf);
         mem.freeMemory(addr, len); // Free old buffer
         
         // Allocate new buffer
@@ -116,8 +113,5 @@ public class WorldObserver implements NetMagicValues {
         pendingIndex = 0; // To start
         
         unlockOctrees(addr);
-        
-        // Flush the connection after we've released lock
-        conn.flush();
     }
 }

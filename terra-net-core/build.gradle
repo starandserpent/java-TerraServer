@@ -1,4 +1,5 @@
 dependencies {
     compile project(':terra-offheap')
+    compile 'org.agrona:agrona:0.9.20' // We need Agrona sources inspectable
     compile 'io.aeron:aeron-all:1.9.3'
 }
