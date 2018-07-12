@@ -4,8 +4,8 @@
 
 dependencies {
     // TODO don't compile against master snapshots, as they're basically time bombs waiting to detonate (crash)
-    compile project(':terra-core')
-    testCompile project(':terra-offheap')
+    compile project(':terra-offheap') // TODO compile against terra-core; only minor stuff from offheap needed
+    //testCompile project(':terra-offheap')
     compile 'org.jmonkeyengine:jme3-core:3.2.1-stable'
     //compile 'org.lwjgl:lwjgl:3.1.0'
     //compile 'org.lwjgl:lwjgl-opengl:3.1.0'

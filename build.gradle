@@ -16,10 +16,10 @@ allprojects {
         mavenLocal() // Mainly for snapshot Venom builds
         jcenter()
         maven {
-            url ritualsMavenServer
+            url project.findProperty("ritualsMavenServer") ?: "https://localhost"
             credentials {
-                username ritualsMavenUser
-                password ritualsMavenPassword
+                username project.findProperty("ritualsMavenUser") ?: "invalid-user"
+                password project.findProperty("ritualsMavenPassword") ?: "invalid-password"
             }
         }
     }
@@ -51,7 +51,7 @@ allprojects {
         
         repositories {
             maven {
-                url project.findProperty("ritualsMavenServer") ?: "unknown-server"
+                url project.findProperty("ritualsMavenServer") ?: "https://localhost"
                 credentials {
                     username project.findProperty("ritualsMavenUser") ?: "invalid-user"
                     password project.findProperty("ritualsMavenPassword") ?: "invalid-password"
