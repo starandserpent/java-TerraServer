@@ -51,10 +51,10 @@ allprojects {
         
         repositories {
             maven {
-                url ritualsMavenServer
+                url project.findProperty("ritualsMavenServer") ?: "unknown-server"
                 credentials {
-                    username ritualsMavenUser
-                    password ritualsMavenPassword
+                    username project.findProperty("ritualsMavenUser") ?: "invalid-user"
+                    password project.findProperty("ritualsMavenPassword") ?: "invalid-password"
                 }
             }
         }
