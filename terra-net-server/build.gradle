@@ -1,4 +1,3 @@
 dependencies {
     compile project(":terra-net-core")
-    compile 'com.starandserpent:venom-server:0.1-SNAPSHOT'
 }

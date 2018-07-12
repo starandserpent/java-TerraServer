@@ -109,11 +109,8 @@ public class TerraVerifier {
         }
     }
 
-    public void verifyChunkLength(int length, int readable) {
+    public void verifyChunkLength(int length) {
         // TODO verify based on type
-        if (length > readable) {
-            throw new VerifyFailedError("chunk length over buffer: " + length);
-        }
         if (length > UncompressedChunkFormat.INSTANCE.newDataLength()) {
             throw new VerifyFailedError("chunk length over max: " + length);
         }

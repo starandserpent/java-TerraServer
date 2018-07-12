@@ -406,6 +406,7 @@ public class ChunkBuffer {
     public void waitChunkReady(int index) {
         while (!isChunkReady(index)) {
             // Block until that chunk is received
+            System.out.println("spinning");
             Thread.onSpinWait();
         }
     }

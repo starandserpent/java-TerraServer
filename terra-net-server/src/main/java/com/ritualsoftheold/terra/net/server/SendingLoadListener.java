@@ -1,23 +1,25 @@
 package com.ritualsoftheold.terra.net.server;
 
+import java.nio.ByteBuffer;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
-import com.ritualsoftheold.terra.net.TerraMessages;
+import org.agrona.MutableDirectBuffer;
+import org.agrona.concurrent.UnsafeBuffer;
+
+import com.ritualsoftheold.terra.net.TerraProtocol;
 import com.ritualsoftheold.terra.offheap.node.OffheapChunk;
 import com.ritualsoftheold.terra.offheap.world.OffheapWorld;
 import com.ritualsoftheold.terra.offheap.world.WorldLoadListener;
 import com.ritualsoftheold.terra.world.LoadMarker;
-import com.starandserpent.venom.NetMagicValues;
 
-import io.netty.buffer.ByteBuf;
-import io.netty.buffer.ByteBufAllocator;
+import io.aeron.Publication;
 
 /**
  * Sends world data to onservers.
  *
  */
-public class SendingLoadListener implements WorldLoadListener, NetMagicValues {
+public class SendingLoadListener implements WorldLoadListener {
     
     /**
      * World which we are handling sending for.
@@ -29,15 +31,11 @@ public class SendingLoadListener implements WorldLoadListener, NetMagicValues {
      */
     private ConcurrentMap<LoadMarker,WorldObserver> markersToObservers;
     
-    /**
-     * Netty buffer allocator.
-     */
-    private ByteBufAllocator alloc;
+    private Publication publication;
     
-    public SendingLoadListener(OffheapWorld world, ByteBufAllocator alloc) {
+    public SendingLoadListener(OffheapWorld world) {
         this.world = world;
         this.markersToObservers = new ConcurrentHashMap<>();
-        this.alloc = alloc;
     }
     
     public void addObserver(WorldObserver observer) {
@@ -57,7 +55,7 @@ public class SendingLoadListener implements WorldLoadListener, NetMagicValues {
             return;
         }
         
-        observer.octreeLoaded(alloc, addr, id, scale); // Observer does bulk sending
+        observer.octreeLoaded(addr, id, scale); // Observer does bulk sending
     }
 
     @Override
@@ -70,19 +68,18 @@ public class SendingLoadListener implements WorldLoadListener, NetMagicValues {
         }
         
         int len = chunk.memoryLength();
-        ByteBuf msg = alloc.buffer(len + 9); // 9 for header
+        MutableDirectBuffer msg = new UnsafeBuffer(ByteBuffer.allocateDirect(len + 9)); // 9 for header
         
         try (OffheapChunk.Storage storage = chunk.getStorage()) {
-            msg.writeByte(storage.format.getChunkType()); // Chunk type
-            msg.writeInt(chunk.getChunkBuffer().getId() << 16 | chunk.getIndex()); // Full id of the chunk
-            msg.writeInt(len); // Chunk data length
-            world.copyChunkData(chunk.getIndex(), msg.memoryAddress() + 9); // World helper to copy the chunk
-            msg.writerIndex(len + 9); // Move writer index to end of data
+            msg.putByte(0, TerraProtocol.MESSAGE_TYPE_CHUNK);
+            msg.putByte(1, storage.format.getChunkType()); // Chunk type
+            msg.putInt(2, chunk.getChunkBuffer().getId() << 16 | chunk.getIndex()); // Full id of the chunk
+            msg.putInt(6, len); // Chunk data length
+            world.copyChunkData(chunk.getIndex(), msg.addressOffset() + 9); // World helper to copy the chunk
         }
         
-        // Push data to observer, potentially in multiple parts, reliably and don't forget to get a receipt
-        TerraMessages.CHUNK_DELIVERY.send(observer.getConnection(), msg, FLAG_PARTIAL | FLAG_VERIFY);
-        observer.getConnection().flush(); // FLAG_RELIABLE mandates immediate flushing currently (TODO not anymore)
+        // Push data to observer
+        publication.offer(msg);
     }
     
     @Override
@@ -91,6 +88,6 @@ public class SendingLoadListener implements WorldLoadListener, NetMagicValues {
         if (observer == null) {
             return;
         }
-        observer.octreesFinished(alloc);
+        observer.octreesFinished();
     }
 }
