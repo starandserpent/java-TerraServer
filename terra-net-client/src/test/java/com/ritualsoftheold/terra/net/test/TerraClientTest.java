@@ -6,15 +6,15 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.LockSupport;
 
+import org.agrona.concurrent.BackoffIdleStrategy;
 import org.junit.Before;
 import org.junit.Test;
 
 import com.ritualsoftheold.terra.material.MaterialRegistry;
-import com.ritualsoftheold.terra.net.TerraMessages;
-import com.ritualsoftheold.terra.net.client.ChunkMsgHandler;
-import com.ritualsoftheold.terra.net.client.OctreeMsgHandler;
+import com.ritualsoftheold.terra.net.client.TerraClient;
 import com.ritualsoftheold.terra.offheap.chunk.ChunkBuffer;
 import com.ritualsoftheold.terra.offheap.io.dummy.DummyChunkLoader;
 import com.ritualsoftheold.terra.offheap.io.dummy.DummyOctreeLoader;
@@ -23,25 +23,14 @@ import com.ritualsoftheold.terra.offheap.node.OffheapChunk;
 import com.ritualsoftheold.terra.offheap.world.OffheapWorld;
 import com.ritualsoftheold.terra.offheap.world.WorldLoadListener;
 import com.ritualsoftheold.terra.world.LoadMarker;
-import com.starandserpent.venom.MessageHandler;
-import com.starandserpent.venom.NetMagicValues;
-import com.starandserpent.venom.UdpConnection;
-import com.starandserpent.venom.ConnectionStateListener.DisconnectReason;
-import com.starandserpent.venom.client.UdpClient;
-import com.starandserpent.venom.flow.FrameManager;
-import com.starandserpent.venom.flow.MessageSender;
-import com.starandserpent.venom.hook.VenomHook;
-import com.starandserpent.venom.listeners.ListenerMessageHandler;
-import com.starandserpent.venom.listeners.Listeners;
-import com.starandserpent.venom.message.SentMessage;
 
-import io.netty.buffer.ByteBuf;
-import io.netty.buffer.ByteBufAllocator;
+import io.aeron.Aeron;
+import io.aeron.driver.MediaDriver;
 
 public class TerraClientTest {
     
     private OffheapWorld world;
-    private UdpClient client;
+    private TerraClient client;
     
     @Before
     public void init() {
@@ -73,132 +62,13 @@ public class TerraClientTest {
                 .perNodeReadyCheck(true)
                 .build();
         
-        Listeners listeners = new Listeners(TerraMessages.getTypes());
-        listeners.register(TerraMessages.OCTREE_DELIVERY, new OctreeMsgHandler(world.getOctreeStorage(), world.createVerifier()));
-        listeners.register(TerraMessages.CHUNK_DELIVERY, new ChunkMsgHandler(world.getChunkStorage(), world.createVerifier()));
-        ListenerMessageHandler handler = listeners.getHandler();
-        client = new UdpClient.Builder()
-                .handler(handler)
-                .build();
+        client = new TerraClient(world, new BackoffIdleStrategy(100, 10, 1000, 100000));
     }
     
     @Test
     public void receiveTest() {
-        System.out.println("init ok");
-        try {
-            client.connect(new InetSocketAddress(InetAddress.getLocalHost(), 1234));
-            client.getConnection().setHook(new VenomHook() {
-                
-                @Override
-                public boolean writeRequest(int amount) {
-                    // TODO Auto-generated method stub
-                    return true;
-                }
-                
-                @Override
-                public boolean reliableReceived(int msgId, boolean partial, boolean urgent,
-                        int index) {
-                    // TODO Auto-generated method stub
-                    return true;
-                }
-                
-                @Override
-                public boolean reliableConfirmed(boolean partial, int status, int msgId) {
-                    // TODO Auto-generated method stub
-                    return true;
-                }
-                
-                @Override
-                public boolean reliableConfirmationWrite(ByteBuf buf) {
-                    // TODO Auto-generated method stub
-                    return true;
-                }
-                
-                @Override
-                public boolean reliableCheck(int id, SentMessage msg, boolean resend) {
-                    // TODO Auto-generated method stub
-                    return true;
-                }
-                
-                @Override
-                public boolean packetWrite(ByteBuf packet) {
-                    // TODO Auto-generated method stub
-                    return true;
-                }
-                
-                @Override
-                public boolean packetReceived(byte type, ByteBuf data) {
-                    return true;
-                }
-                
-                @Override
-                public boolean nextFrame(FrameManager manager, MessageSender sender) {
-                    // TODO Auto-generated method stub
-                    return true;
-                }
-                
-                @Override
-                public void messageWritten(SentMessage msg) {
-                    // TODO Auto-generated method stub
-                    
-                }
-                
-                @Override
-                public boolean messageWrite(SentMessage msg, boolean urgent) {
-                    // TODO Auto-generated method stub
-                    return true;
-                }
-                
-                @Override
-                public boolean messageReceived(byte flags, int msgId, ByteBuf data) {
-                    if ((flags & NetMagicValues.FLAG_PARTIAL) != 0) {
-                        System.out.println("partial message received");
-                    }
-                    return true;
-                }
-                
-                @Override
-                public boolean messagePartReceived(byte flags, int msgId, int index,
-                        ByteBuf data) {
-                    return true;
-                }
-                
-                @Override
-                public boolean flowStateChange(int state) {
-                    // TODO Auto-generated method stub
-                    return true;
-                }
-                
-                @Override
-                public void flowPingAnalysis(int longPing, int shortPing) {
-                    // TODO Auto-generated method stub
-                    
-                }
-                
-                @Override
-                public boolean flowControlFrame(int ping, int id, int pressure) {
-                    // TODO Auto-generated method stub
-                    return true;
-                }
-                
-                @Override
-                public void disconnected(UdpConnection deadConn, DisconnectReason reason) {
-                    // TODO Auto-generated method stub
-                    
-                }
-                
-                @Override
-                public boolean connected(InetSocketAddress address) {
-                    // TODO Auto-generated method stub
-                    return true;
-                }
-            });
-            client.getConnection().sendMessage(ByteBufAllocator.DEFAULT.buffer(), NetMagicValues.NO_FLAGS);
-        } catch (IOException e) {
-            assertFalse(true);
-        }
-        
-        LockSupport.parkNanos(50000000000L);
+        Aeron aeron = Aeron.connect(new Aeron.Context());
+        client.subscribe(aeron, "aeron:udp?endpoint=localhost:12345");
         
         LoadMarker marker = world.createLoadMarker(0, 10, 0, 32, 32, 0);
         world.addLoadMarker(marker);
