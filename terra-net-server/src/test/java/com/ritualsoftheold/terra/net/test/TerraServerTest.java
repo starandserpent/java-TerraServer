@@ -69,7 +69,7 @@ public class TerraServerTest {
         world.addLoadMarker(marker);
         
         Aeron aeron = Aeron.connect(new Aeron.Context());
-        Publication publication = aeron.addPublication("aeron:udp?endpoint=localhost:40123", TerraProtocol.AERON_STREAM);
+        Publication publication = aeron.addPublication("aeron:udp?endpoint=localhost:40123", TerraProtocol.DEFAULT_AERON_STREAM);
         WorldObserver observer = new WorldObserver(marker, publication, (byte) 10);
         listener.addObserver(observer);
     }

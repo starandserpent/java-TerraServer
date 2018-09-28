@@ -2,7 +2,6 @@ package com.ritualsoftheold.terra.net.client;
 
 import org.agrona.concurrent.IdleStrategy;
 
-import com.ritualsoftheold.terra.net.TerraProtocol;
 import com.ritualsoftheold.terra.offheap.world.OffheapWorld;
 
 import io.aeron.Aeron;
@@ -24,8 +23,8 @@ public class TerraClient {
         this.idleStrategy = idleStrategy;
     }
     
-    public void subscribe(Aeron aeron, String channel) {
-        Subscription sub = aeron.addSubscription(channel, TerraProtocol.AERON_STREAM);
+    public void subscribe(Aeron aeron, String channel, int stream) {
+        Subscription sub = aeron.addSubscription(channel, stream);
         pollThread = new PollThread(sub);
         pollThread.start();
     }

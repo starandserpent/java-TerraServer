@@ -14,6 +14,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import com.ritualsoftheold.terra.material.MaterialRegistry;
+import com.ritualsoftheold.terra.net.TerraProtocol;
 import com.ritualsoftheold.terra.net.client.TerraClient;
 import com.ritualsoftheold.terra.offheap.chunk.ChunkBuffer;
 import com.ritualsoftheold.terra.offheap.io.dummy.DummyChunkLoader;
@@ -68,7 +69,7 @@ public class TerraClientTest {
     @Test
     public void receiveTest() {
         Aeron aeron = Aeron.connect(new Aeron.Context());
-        client.subscribe(aeron, "aeron:udp?endpoint=localhost:12345");
+        client.subscribe(aeron, "aeron:udp?endpoint=localhost:12345", TerraProtocol.DEFAULT_AERON_STREAM);
         
         LoadMarker marker = world.createLoadMarker(0, 10, 0, 32, 32, 0);
         world.addLoadMarker(marker);

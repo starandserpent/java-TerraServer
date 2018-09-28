@@ -13,5 +13,5 @@ public class TerraProtocol {
     
     public static final byte MESSAGE_TYPE_OCTREE = 0, MESSAGE_TYPE_CHUNK = 1;
     
-    public static final int AERON_STREAM = 0;
+    public static final int DEFAULT_AERON_STREAM = 0;
 }
