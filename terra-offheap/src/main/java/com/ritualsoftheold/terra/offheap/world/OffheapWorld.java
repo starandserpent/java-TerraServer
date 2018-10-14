@@ -334,6 +334,10 @@ public class OffheapWorld implements TerraWorld {
         this.loadListener = listener;
     }
     
+    public WorldLoadListener getLoadListener() {
+        return loadListener;
+    }
+    
     /**
      * Requests memory manager to start unloading data if that is needed.
      */
