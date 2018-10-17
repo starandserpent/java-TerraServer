@@ -371,6 +371,10 @@ public class OffheapChunk implements Chunk, OffheapNode {
     public int getIndex() {
         return index;
     }
+    
+    public int getFullId() {
+        return buffer.getId() << 16 | index;
+    }
 
     public ChunkBuffer getChunkBuffer() {
         return buffer;

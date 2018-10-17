@@ -18,7 +18,7 @@ import net.openhft.chronicle.core.Memory;
 import net.openhft.chronicle.core.OS;
 
 /**
- * Sends world data to onservers.
+ * Sends world data to observers.
  *
  */
 public class SendingLoadListener implements WorldLoadListener {
@@ -65,6 +65,10 @@ public class SendingLoadListener implements WorldLoadListener {
             System.out.println("no observer");
             return;
         }
+        int chunkId = chunk.getFullId();
+        if (!observer.shouldSend(chunkId)) {
+            return; // Client already has this chunk, don't send it again
+        }
         
         MutableDirectBuffer msg;
         try (OffheapChunk.Storage storage = chunk.getStorage()) {
@@ -81,6 +85,7 @@ public class SendingLoadListener implements WorldLoadListener {
         
         // Push data to observer
         publication.offer(msg);
+        observer.chunkSent(chunk.getFullId()); // Mark that chunk as sent
     }
     
     @Override
