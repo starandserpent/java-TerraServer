@@ -14,6 +14,8 @@ import com.ritualsoftheold.terra.offheap.world.WorldLoadListener;
 import com.ritualsoftheold.terra.world.LoadMarker;
 
 import io.aeron.Publication;
+import net.openhft.chronicle.core.Memory;
+import net.openhft.chronicle.core.OS;
 
 /**
  * Sends world data to onservers.
@@ -21,10 +23,7 @@ import io.aeron.Publication;
  */
 public class SendingLoadListener implements WorldLoadListener {
     
-    /**
-     * World which we are handling sending for.
-     */
-    private OffheapWorld world;
+    private static final Memory mem = OS.memory();
     
     /**
      * Our observers, mapped by their load markers.
@@ -34,7 +33,7 @@ public class SendingLoadListener implements WorldLoadListener {
     private Publication publication;
     
     public SendingLoadListener(OffheapWorld world) {
-        this.world = world;
+        // Parameter currently unused. Will likely be used in future!
         this.markersToObservers = new ConcurrentHashMap<>();
     }
     
@@ -67,15 +66,17 @@ public class SendingLoadListener implements WorldLoadListener {
             return;
         }
         
-        int len = chunk.memoryLength();
-        MutableDirectBuffer msg = new UnsafeBuffer(ByteBuffer.allocateDirect(len + 9)); // 9 for header
-        
+        MutableDirectBuffer msg;
         try (OffheapChunk.Storage storage = chunk.getStorage()) {
+            int len = storage.length;
+            msg = new UnsafeBuffer(ByteBuffer.allocateDirect(len + 9)); // 9 for header
+            
             msg.putByte(0, TerraProtocol.MESSAGE_TYPE_CHUNK);
             msg.putByte(1, storage.format.getChunkType()); // Chunk type
             msg.putInt(2, chunk.getChunkBuffer().getId() << 16 | chunk.getIndex()); // Full id of the chunk
             msg.putInt(6, len); // Chunk data length
-            world.copyChunkData(chunk.getIndex(), msg.addressOffset() + 9); // World helper to copy the chunk
+            
+            mem.copyMemory(storage.address, msg.addressOffset() + 9, len);
         }
         
         // Push data to observer
