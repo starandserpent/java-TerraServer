@@ -67,9 +67,7 @@ public class OffheapWorld implements TerraWorld {
     
     // Memory management
     private MemoryManager memManager;
-    
-    private WorldSizeManager sizeManager;
-    
+        
     // Coordinates of world center
     private float centerX;
     private float centerY;
@@ -162,7 +160,6 @@ public class OffheapWorld implements TerraWorld {
         public OffheapWorld build() {
             // Initialize some internal structures AFTER all user-controller initialization
             world.loadMarkers = new ArrayList<>();
-            world.sizeManager = new WorldSizeManager(world);
             
             // Create memory manager
             world.memManager = new MemoryManager(world, memPreferred, memMax, memPanicHandler);
@@ -181,7 +178,7 @@ public class OffheapWorld implements TerraWorld {
             world.genManager = new WorldGenManager(world.generator, new TypeSelector(), world);
             
             // ... and world loading
-            world.worldLoader = new WorldLoader(world.octreeStorage, world.chunkStorage, world.genManager, new WorldSizeManager(world));
+            world.worldLoader = new WorldLoader(world.octreeStorage, world.chunkStorage, world.genManager);
             
             // Update master octree (and finish loader stuff)
             world.updateMasterOctree();
