@@ -13,6 +13,7 @@ import com.ritualsoftheold.terra.node.Chunk;
 import com.ritualsoftheold.terra.offheap.MemoryArea;
 import com.ritualsoftheold.terra.offheap.Pointer;
 import com.ritualsoftheold.terra.offheap.chunk.ChunkBuffer;
+import com.ritualsoftheold.terra.offheap.chunk.TooManyMaterialsException;
 import com.ritualsoftheold.terra.offheap.chunk.compress.ChunkFormat;
 import com.ritualsoftheold.terra.offheap.chunk.compress.EmptyChunkFormat;
 import com.ritualsoftheold.terra.offheap.data.OffheapNode;
@@ -96,6 +97,9 @@ public class OffheapChunk implements Chunk, OffheapNode {
      * But there is a worse scenario, if queue size is miscofigured:
      * 3) Queue is completely blocked, waiting for swap queue to be
      * completely flushed. This might cause significant slowdowns!
+     * 
+     *  @see TooManyMaterialsException The exception we may catch when
+     *  applying changes.
      */
     public static class ChangeQueue {
         
@@ -330,16 +334,28 @@ public class OffheapChunk implements Chunk, OffheapNode {
         queue.addQuery(entry);
     }
     
+    /**
+     * Queues a block change to this chunk. Block with given index will soon
+     * have its id changed to given value. The change will not be reflected
+     * immediately, but all queued changes will be applied in order.
+     * @param index Index of block to change.
+     * @param blockId Block id to apply.
+     */
     public void queueChange(int index, int blockId) {
         queueChange(index << 24 | blockId);
     }
     
+    /**
+     * Immediately applies all pending block changes using the current thread,
+     * which will be blocked for a short amount of time.
+     */
     public void flushChanges() {
         queue.forceFlush();
     }
     
     /**
-     * For internal use only.
+     * For internal use only. Acquires extra data references for blocks of this
+     * chunk.
      * @return Ref map as it is.
      */
     public ConcurrentMap<Integer,Object> getRefMap() {
@@ -360,14 +376,27 @@ public class OffheapChunk implements Chunk, OffheapNode {
         return buffer.getStorage().getMaterialRegistry();
     }
     
+    /**
+     * Gets index of this chunk inside its chunk buffer.
+     * @return Chunk index.
+     */
     public int getIndex() {
         return index;
     }
     
+    /**
+     * Gets full chunk id that includes both chunk buffer id and index
+     * of this chunk inside it.
+     * @return Full chunk id.
+     */
     public int getFullId() {
         return buffer.getId() << 16 | index;
     }
-
+    
+    /**
+     * Gets the chunk buffer containing this chunk.
+     * @return Chunk buffer.
+     */
     public ChunkBuffer getChunkBuffer() {
         return buffer;
     }

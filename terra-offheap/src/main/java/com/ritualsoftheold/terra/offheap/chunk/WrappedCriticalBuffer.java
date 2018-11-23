@@ -14,6 +14,7 @@ import com.ritualsoftheold.terra.offheap.node.OffheapChunk.Storage;
 /**
  * Wraps a critical block buffer so that if there are too many materials,
  * format changes are gracefully handled.
+ * @see TooManyMaterialsException The exception we catch.
  *
  */
 public class WrappedCriticalBuffer implements BufferWithFormat, CriticalBlockBuffer {
