@@ -4,7 +4,7 @@ import com.ritualsoftheold.terra.material.MaterialRegistry;
 import com.ritualsoftheold.terra.offheap.chunk.ChunkType;
 import com.ritualsoftheold.terra.offheap.data.BufferWithFormat;
 import com.ritualsoftheold.terra.offheap.data.CriticalBlockBuffer;
-import com.ritualsoftheold.terra.offheap.data.MemoryAllocator;
+import com.ritualsoftheold.terra.offheap.memory.MemoryAllocator;
 import com.ritualsoftheold.terra.offheap.node.OffheapChunk;
 import com.ritualsoftheold.terra.offheap.node.OffheapChunk.ChangeIterator;
 import com.ritualsoftheold.terra.offheap.node.OffheapChunk.Storage;

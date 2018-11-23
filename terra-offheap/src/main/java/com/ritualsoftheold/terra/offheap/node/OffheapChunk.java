@@ -10,6 +10,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import com.ritualsoftheold.terra.buffer.BlockBuffer;
 import com.ritualsoftheold.terra.material.MaterialRegistry;
 import com.ritualsoftheold.terra.node.Chunk;
+import com.ritualsoftheold.terra.offheap.MemoryArea;
 import com.ritualsoftheold.terra.offheap.Pointer;
 import com.ritualsoftheold.terra.offheap.chunk.ChunkBuffer;
 import com.ritualsoftheold.terra.offheap.chunk.compress.ChunkFormat;
@@ -19,6 +20,10 @@ import com.ritualsoftheold.terra.offheap.data.OffheapNode;
 import net.openhft.chronicle.core.Memory;
 import net.openhft.chronicle.core.OS;
 
+/**
+ * A chunk that stores its blocks outside of JVM heap.
+ *
+ */
 public class OffheapChunk implements Chunk, OffheapNode {
 
     private static final Memory mem = OS.memory();
@@ -33,7 +38,7 @@ public class OffheapChunk implements Chunk, OffheapNode {
      */
     private final ChunkBuffer buffer;
     
-    public static class Storage implements AutoCloseable {
+    public static class Storage extends MemoryArea implements AutoCloseable {
         
         private static final VarHandle userCountHandle;
         
@@ -52,22 +57,11 @@ public class OffheapChunk implements Chunk, OffheapNode {
          */
         public final ChunkFormat format;
         
-        /**
-         * Memory address of data.
-         */
-        public final @Pointer long address;
-        
-        /**
-         * Length of data at the address.
-         */
-        public final int length;
-        
         private volatile int userCount;
         
-        public Storage(ChunkFormat format, @Pointer long addr, int length) {
+        public Storage(ChunkFormat format, @Pointer long addr, long length) {
+            super(addr, length, null, false);
             this.format = format;
-            this.address = addr;
-            this.length = length;
         }
 
         @Override
@@ -209,7 +203,7 @@ public class OffheapChunk implements Chunk, OffheapNode {
             Storage result = applyQueries(chunk.storage, new ChangeIterator(swapAddr, howMany));
             if (result != null) { // Put new storage there if needed
                 chunk.storage = result;
-                chunk.buffer.getAllocator().free(result.address, result.length);
+                chunk.buffer.getAllocator().free(result.memoryAddress(), result.length());
             }
 
             // Signal that swapAddr could be now swapped in place of addr
@@ -222,7 +216,7 @@ public class OffheapChunk implements Chunk, OffheapNode {
             // Apply changes recursively until all of them have been applied
             if (iterator.hasNext()) {
                 Storage ret = applyQueries(result, iterator);
-                chunk.buffer.getAllocator().free(result.address, result.length);
+                chunk.buffer.getAllocator().free(result.memoryAddress(), result.length());
                 return ret;
             }
             
@@ -250,7 +244,7 @@ public class OffheapChunk implements Chunk, OffheapNode {
         }
         
         public void next() {
-            // TODO potentially just use readLong, it should work on x86
+            // TODO investigate if opaque reads could be done with Unsafe
             entry = mem.readVolatileLong(queue + index);
             index += 8;
         }
@@ -277,8 +271,6 @@ public class OffheapChunk implements Chunk, OffheapNode {
     
     /**
      * Contains references that blocks have. Key is block id, value is the ref.
-     * TODO implement this in smarter way, ConcurrentHashMap doesn't work
-     * ideally with primitive keys.
      */
     private ConcurrentMap<Integer,Object> refs;
     
@@ -312,12 +304,12 @@ public class OffheapChunk implements Chunk, OffheapNode {
 
     @Override
     public long memoryAddress() {
-        return storage.address;
+        return storage.memoryAddress();
     }
 
     @Override
     public int memoryLength() {
-        return storage.length;
+        return (int) storage.length(); // Assume that chunk length is never over 2gb
     }
 
     public Storage getStorage() {

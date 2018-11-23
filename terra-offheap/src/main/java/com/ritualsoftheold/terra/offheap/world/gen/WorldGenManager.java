@@ -7,10 +7,11 @@ import com.ritualsoftheold.terra.offheap.chunk.ChunkStorage;
 import com.ritualsoftheold.terra.offheap.chunk.WrappedCriticalBuffer;
 import com.ritualsoftheold.terra.offheap.chunk.compress.ChunkFormat;
 import com.ritualsoftheold.terra.offheap.data.CriticalBlockBuffer;
-import com.ritualsoftheold.terra.offheap.data.MemoryAllocator;
 import com.ritualsoftheold.terra.offheap.data.TypeSelector;
 import com.ritualsoftheold.terra.offheap.data.WorldDataFormat;
+import com.ritualsoftheold.terra.offheap.memory.MemoryAllocator;
 import com.ritualsoftheold.terra.offheap.memory.MemoryUseListener;
+import com.ritualsoftheold.terra.offheap.memory.SelfTrackAllocator;
 import com.ritualsoftheold.terra.offheap.node.OffheapChunk;
 import com.ritualsoftheold.terra.offheap.node.OffheapChunk.Storage;
 import com.ritualsoftheold.terra.offheap.octree.OctreeNodeFormat;
@@ -122,7 +123,7 @@ public class WorldGenManager {
         Storage storage;
         if (format instanceof ChunkFormat) {
             int firstLen = ((ChunkFormat) format).newDataLength();
-            long addr = allocator.alloc(firstLen);
+            long addr = allocator.allocate(firstLen);
             storage = new Storage((ChunkFormat) format, addr, firstLen);
             wrapped = ((ChunkFormat) format).createCriticalBuffer(storage, materialRegistry);
         } else {

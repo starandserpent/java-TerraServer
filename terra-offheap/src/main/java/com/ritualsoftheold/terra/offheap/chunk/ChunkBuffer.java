@@ -8,7 +8,7 @@ import java.util.concurrent.atomic.AtomicReferenceArray;
 import com.ritualsoftheold.terra.offheap.Pointer;
 import com.ritualsoftheold.terra.offheap.chunk.compress.ChunkFormat;
 import com.ritualsoftheold.terra.offheap.chunk.compress.EmptyChunkFormat;
-import com.ritualsoftheold.terra.offheap.data.MemoryAllocator;
+import com.ritualsoftheold.terra.offheap.memory.MemoryAllocator;
 import com.ritualsoftheold.terra.offheap.memory.MemoryUseListener;
 import com.ritualsoftheold.terra.offheap.node.OffheapChunk;
 import com.ritualsoftheold.terra.offheap.node.OffheapChunk.Storage;
@@ -73,13 +73,13 @@ public class ChunkBuffer {
         // TODO optimize to recycle memory
         
         @Override
-        public @Pointer long alloc(int length) {
+        public @Pointer long allocate(long length) {
             memListener.onAllocate(length);
             return mem.allocate(length);
         }
         
         @Override
-        public void free(@Pointer long addr, int length) {
+        public void free(@Pointer long addr, long length) {
             mem.freeMemory(addr, length);
             memListener.onFree(length);
             
@@ -119,7 +119,7 @@ public class ChunkBuffer {
                     // TODO recycle
                     mem.freeMemory(dummyAddr, dummyLength);
                     memListener.onFree(dummyLength);
-                    return super.alloc(length); // Do real allocation
+                    return super.allocate(length); // Do real allocation
                 }
             }
         }
@@ -287,7 +287,7 @@ public class ChunkBuffer {
             
             // Copy chunk data
             // Can't use the data in buffer, partial freeing of allocated memory is not safe
-            long copyAddr = allocator.alloc(length);
+            long copyAddr = allocator.allocate(length);
             mem.copyMemory(addr, copyAddr, length);
             
             // Create storage and apply it to chunk
@@ -305,7 +305,7 @@ public class ChunkBuffer {
         
         int count = chunkCount.get();
         for (int i = 0; i < count; i++) {
-            size += chunks.get(i).getStorageInternal().length;
+            size += chunks.get(i).getStorageInternal().length();
         }
         
         return size;
@@ -322,13 +322,13 @@ public class ChunkBuffer {
             OffheapChunk chunk = chunks.get(i);
             try (Storage storage = chunk.getStorage()) {
                 byte type = (byte) storage.format.getChunkType();
-                int len = storage.length;
+                long len = storage.length();
                 mem.writeByte(addr, type);
-                mem.writeInt(addr + 1, len);
+                mem.writeInt(addr + 1, (int) len); // One chunk will NOT take more than 2gb, can cast to int safely
                 addr += 5; // To actual data
                 
                 if (len != 0) {
-                    mem.copyMemory(storage.address, addr, len); // Copy chunk contents
+                    mem.copyMemory(storage.memoryAddress(), addr, len); // Copy chunk contents
                     addr += len; // Address to next chunk!
                 }
             }
@@ -357,9 +357,9 @@ public class ChunkBuffer {
                 Thread.onSpinWait();
             }
             
-            int len = storage.length;
+            long len = storage.length();
             freed += len;
-            long addr = storage.address;
+            long addr = storage.memoryAddress();
             mem.freeMemory(addr, len);
         }
         

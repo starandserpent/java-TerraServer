@@ -7,7 +7,7 @@ import com.ritualsoftheold.terra.offheap.chunk.ChunkBuffer;
 import com.ritualsoftheold.terra.offheap.chunk.ChunkType;
 import com.ritualsoftheold.terra.offheap.data.BufferWithFormat;
 import com.ritualsoftheold.terra.offheap.data.CriticalBlockBuffer;
-import com.ritualsoftheold.terra.offheap.data.MemoryAllocator;
+import com.ritualsoftheold.terra.offheap.memory.MemoryAllocator;
 import com.ritualsoftheold.terra.offheap.node.OffheapChunk;
 import com.ritualsoftheold.terra.offheap.node.OffheapChunk.ChangeIterator;
 import com.ritualsoftheold.terra.offheap.node.OffheapChunk.Storage;
@@ -28,14 +28,12 @@ public class UncompressedChunkFormat implements ChunkFormat {
 
     @Override
     public Storage processQueries(OffheapChunk chunk, Storage storage, ChangeIterator changes) {
-        long blocks = storage.address;
-        
         while (changes.hasNext()) {
             changes.next();
             int index = changes.getIndex();
             int id = changes.getBlockId();
             
-            mem.writeVolatileInt(blocks + index * 4, id);
+            storage.writeVolatileInt(index * 4, id);
         }
         
         // This format can store everything
@@ -50,8 +48,7 @@ public class UncompressedChunkFormat implements ChunkFormat {
 
     @Override
     public BufferWithFormat createBuffer(OffheapChunk chunk, Storage storage) {
-        // TODO Auto-generated method stub
-        return null;
+        throw new UnsupportedOperationException("TODO implement this");
     }
 
     @Override
@@ -62,8 +59,7 @@ public class UncompressedChunkFormat implements ChunkFormat {
     @Override
     public CriticalBlockBuffer createCriticalBuffer(Storage storage,
             MaterialRegistry materialRegistry) {
-        // TODO Auto-generated method stub
-        return null;
+        throw new UnsupportedOperationException("TODO implement this");
     }
     
 }

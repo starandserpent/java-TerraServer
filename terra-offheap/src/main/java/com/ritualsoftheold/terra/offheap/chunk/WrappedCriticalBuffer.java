@@ -6,9 +6,9 @@ import com.ritualsoftheold.terra.material.TerraMaterial;
 import com.ritualsoftheold.terra.offheap.chunk.compress.ChunkFormat;
 import com.ritualsoftheold.terra.offheap.data.BufferWithFormat;
 import com.ritualsoftheold.terra.offheap.data.CriticalBlockBuffer;
-import com.ritualsoftheold.terra.offheap.data.MemoryAllocator;
 import com.ritualsoftheold.terra.offheap.data.TypeSelector;
 import com.ritualsoftheold.terra.offheap.data.WorldDataFormat;
+import com.ritualsoftheold.terra.offheap.memory.MemoryAllocator;
 import com.ritualsoftheold.terra.offheap.node.OffheapChunk.Storage;
 
 /**
@@ -89,7 +89,7 @@ public class WrappedCriticalBuffer implements BufferWithFormat, CriticalBlockBuf
             // Convert to different chunk format
             ChunkFormat nextFormat = (ChunkFormat) typeSelector.nextFormat(format); // Chunk -> octree is not possible here
             Storage newStorage = format.convert(storage, nextFormat, allocator);
-            allocator.free(storage.address, storage.length);
+            allocator.free(storage.memoryAddress(), storage.length());
             
             BlockBuffer newBuf = nextFormat.createCriticalBuffer(newStorage, materialRegistry);
             newBuf.seek(position());

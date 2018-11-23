@@ -5,6 +5,7 @@ import java.util.Set;
 
 import com.ritualsoftheold.terra.material.TerraMaterial;
 import com.ritualsoftheold.terra.offheap.data.CriticalBlockBuffer;
+import com.ritualsoftheold.terra.offheap.memory.SelfTrackAllocator;
 import com.ritualsoftheold.terra.world.gen.GeneratorControl;
 
 public class OffheapGeneratorControl implements GeneratorControl {
