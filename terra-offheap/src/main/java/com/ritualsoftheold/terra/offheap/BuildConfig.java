@@ -1,19 +1,27 @@
 package com.ritualsoftheold.terra.offheap;
 
 /**
- * Various constants about this build. Mainly used to have javac remove
- * if (CONSTANT) { ... } when said constant is false.
+ * JVM-level settings for Terra.
  *
  */
 public class BuildConfig {
     
     /**
-     * Enables bound checking. This will make debugging easier, but comes with
-     * a performance penalty.
+     * Enables bound checking. This will make debugging easier, but may slightly
+     * reduce performance. This is enabled by default.
      */
-    public static final boolean CHECK_BOUNDS = true;
+    public static final boolean CHECK_BOUNDS = System.getProperty("com.ritualsoftheold.terra.noBoundsChecks") != "true";
     
-    public static long inBounds(long addr, @Pointer long start, long length) {
+    /**
+     * Checks bounds, provided that it is enabled (see {@link #CHECK_BOUNDS}.
+     * @param addr Address to check against bounds.
+     * @param useLength How long is the use (for example, 4 bytes for an int).
+     * @param start Start of usable memory area.
+     * @param length Length of usable memory area.
+     * @return The address.
+     * @throws IllegalAccessError When access would be out of bounds.
+     */
+    public static long inBounds(@Pointer long addr, long useLength, @Pointer long start, long length) {
         // Check if bounds checks are enabled at all
         if (!CHECK_BOUNDS) {
             return addr;
@@ -25,8 +33,8 @@ public class BuildConfig {
         if (addr < start) {
             throw new IllegalAccessError("out of bounds (pos = " + addr + " exceeds max = " + (start + length));
         }
-        if (addr > start + length) {
-            throw new IllegalAccessError("out of bounds (pos = " + addr + " exceeds max = " + (start + length));
+        if (addr + useLength > start + length) {
+            throw new IllegalAccessError("out of bounds (pos = " + (addr + useLength) + " exceeds max = " + (start + length));
         }
         
         return addr;
