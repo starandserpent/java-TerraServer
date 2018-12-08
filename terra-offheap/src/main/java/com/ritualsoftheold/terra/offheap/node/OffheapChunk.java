@@ -10,8 +10,10 @@ import java.util.concurrent.atomic.AtomicInteger;
 import com.ritualsoftheold.terra.buffer.BlockBuffer;
 import com.ritualsoftheold.terra.material.MaterialRegistry;
 import com.ritualsoftheold.terra.node.Chunk;
+import com.ritualsoftheold.terra.offheap.MemoryArea;
 import com.ritualsoftheold.terra.offheap.Pointer;
 import com.ritualsoftheold.terra.offheap.chunk.ChunkBuffer;
+import com.ritualsoftheold.terra.offheap.chunk.TooManyMaterialsException;
 import com.ritualsoftheold.terra.offheap.chunk.compress.ChunkFormat;
 import com.ritualsoftheold.terra.offheap.chunk.compress.EmptyChunkFormat;
 import com.ritualsoftheold.terra.offheap.data.OffheapNode;
@@ -19,6 +21,10 @@ import com.ritualsoftheold.terra.offheap.data.OffheapNode;
 import net.openhft.chronicle.core.Memory;
 import net.openhft.chronicle.core.OS;
 
+/**
+ * A chunk that stores its blocks outside of JVM heap.
+ *
+ */
 public class OffheapChunk implements Chunk, OffheapNode {
 
     private static final Memory mem = OS.memory();
@@ -33,7 +39,7 @@ public class OffheapChunk implements Chunk, OffheapNode {
      */
     private final ChunkBuffer buffer;
     
-    public static class Storage implements AutoCloseable {
+    public static class Storage extends MemoryArea implements AutoCloseable {
         
         private static final VarHandle userCountHandle;
         
@@ -52,22 +58,11 @@ public class OffheapChunk implements Chunk, OffheapNode {
          */
         public final ChunkFormat format;
         
-        /**
-         * Memory address of data.
-         */
-        public final @Pointer long address;
-        
-        /**
-         * Length of data at the address.
-         */
-        public final int length;
-        
         private volatile int userCount;
         
-        public Storage(ChunkFormat format, @Pointer long addr, int length) {
+        public Storage(ChunkFormat format, @Pointer long addr, long length) {
+            super(addr, length, null, false);
             this.format = format;
-            this.address = addr;
-            this.length = length;
         }
 
         @Override
@@ -102,6 +97,9 @@ public class OffheapChunk implements Chunk, OffheapNode {
      * But there is a worse scenario, if queue size is miscofigured:
      * 3) Queue is completely blocked, waiting for swap queue to be
      * completely flushed. This might cause significant slowdowns!
+     * 
+     *  @see TooManyMaterialsException The exception we may catch when
+     *  applying changes.
      */
     public static class ChangeQueue {
         
@@ -209,7 +207,7 @@ public class OffheapChunk implements Chunk, OffheapNode {
             Storage result = applyQueries(chunk.storage, new ChangeIterator(swapAddr, howMany));
             if (result != null) { // Put new storage there if needed
                 chunk.storage = result;
-                chunk.buffer.getAllocator().free(result.address, result.length);
+                chunk.buffer.getAllocator().free(result.memoryAddress(), result.length());
             }
 
             // Signal that swapAddr could be now swapped in place of addr
@@ -222,7 +220,7 @@ public class OffheapChunk implements Chunk, OffheapNode {
             // Apply changes recursively until all of them have been applied
             if (iterator.hasNext()) {
                 Storage ret = applyQueries(result, iterator);
-                chunk.buffer.getAllocator().free(result.address, result.length);
+                chunk.buffer.getAllocator().free(result.memoryAddress(), result.length());
                 return ret;
             }
             
@@ -250,7 +248,7 @@ public class OffheapChunk implements Chunk, OffheapNode {
         }
         
         public void next() {
-            // TODO potentially just use readLong, it should work on x86
+            // TODO investigate if opaque reads could be done with Unsafe
             entry = mem.readVolatileLong(queue + index);
             index += 8;
         }
@@ -277,8 +275,6 @@ public class OffheapChunk implements Chunk, OffheapNode {
     
     /**
      * Contains references that blocks have. Key is block id, value is the ref.
-     * TODO implement this in smarter way, ConcurrentHashMap doesn't work
-     * ideally with primitive keys.
      */
     private ConcurrentMap<Integer,Object> refs;
     
@@ -312,12 +308,12 @@ public class OffheapChunk implements Chunk, OffheapNode {
 
     @Override
     public long memoryAddress() {
-        return storage.address;
+        return storage.memoryAddress();
     }
 
     @Override
     public int memoryLength() {
-        return storage.length;
+        return (int) storage.length(); // Assume that chunk length is never over 2gb
     }
 
     public Storage getStorage() {
@@ -338,16 +334,28 @@ public class OffheapChunk implements Chunk, OffheapNode {
         queue.addQuery(entry);
     }
     
+    /**
+     * Queues a block change to this chunk. Block with given index will soon
+     * have its id changed to given value. The change will not be reflected
+     * immediately, but all queued changes will be applied in order.
+     * @param index Index of block to change.
+     * @param blockId Block id to apply.
+     */
     public void queueChange(int index, int blockId) {
         queueChange(index << 24 | blockId);
     }
     
+    /**
+     * Immediately applies all pending block changes using the current thread,
+     * which will be blocked for a short amount of time.
+     */
     public void flushChanges() {
         queue.forceFlush();
     }
     
     /**
-     * For internal use only.
+     * For internal use only. Acquires extra data references for blocks of this
+     * chunk.
      * @return Ref map as it is.
      */
     public ConcurrentMap<Integer,Object> getRefMap() {
@@ -368,14 +376,27 @@ public class OffheapChunk implements Chunk, OffheapNode {
         return buffer.getStorage().getMaterialRegistry();
     }
     
+    /**
+     * Gets index of this chunk inside its chunk buffer.
+     * @return Chunk index.
+     */
     public int getIndex() {
         return index;
     }
     
+    /**
+     * Gets full chunk id that includes both chunk buffer id and index
+     * of this chunk inside it.
+     * @return Full chunk id.
+     */
     public int getFullId() {
         return buffer.getId() << 16 | index;
     }
-
+    
+    /**
+     * Gets the chunk buffer containing this chunk.
+     * @return Chunk buffer.
+     */
     public ChunkBuffer getChunkBuffer() {
         return buffer;
     }

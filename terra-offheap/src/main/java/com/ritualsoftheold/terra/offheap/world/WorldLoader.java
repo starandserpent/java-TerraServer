@@ -51,22 +51,15 @@ public class WorldLoader {
     private WorldGenManager genManager;
     
     /**
-     * Handles enlarging master octree when needed.
-     */
-    private WorldSizeManager sizeManager;
-    
-    /**
      * Initializes a new world loader.
      * @param octreeStorage Octree storage of the world.
      * @param chunkStorage Chunk storage of the world.
      * @param genManager World generation manager.
-     * @param sizeManager World size manager.
      */
-    public WorldLoader(OctreeStorage octreeStorage, ChunkStorage chunkStorage, WorldGenManager genManager, WorldSizeManager sizeManager) {
+    public WorldLoader(OctreeStorage octreeStorage, ChunkStorage chunkStorage, WorldGenManager genManager) {
         this.octreeStorage = octreeStorage;
         this.chunkStorage = chunkStorage;
         this.genManager = genManager;
-        this.sizeManager = sizeManager;
     }
     
     /**
@@ -114,33 +107,16 @@ public class WorldLoader {
          */
         float scale;
         
-        // Enlarge world until the range fits in master octree
-        while (true) {
-            // Update/create some values we need later on
-            nodeX = centerX;
-            nodeY = centerY;
-            nodeZ = centerZ;
-            
-            rX = x - centerX;
-            rY = y - centerY;
-            rZ = z - centerZ;
-            
-            scale = worldScale;
-            System.out.println("worldscale: " + scale);
-            
-            System.out.println("relative: " + rX + ", " + rY + ", " + rZ);
-            float subScale = 0.5f * scale;
-            
-            if (rX + range > nodeX + subScale || rX - range < nodeX - subScale // X coordinate
-                || rY + range > nodeY + subScale || rY - range < nodeY - subScale // Y coordinate
-                || rZ + range > nodeZ + subScale || rZ - range < nodeZ - subScale) { // Z coordinate
-                checkEnlarge(nodeX, nodeY, nodeZ, rX, rY, rZ, scale, range);
-                // Size manager will call us through OffheapWorld, updating our fields as needed
-            } else {
-                // No need to enlarge the world (anymore)
-                break;
-            }
-        }
+        // Update/create some values we need later on
+        nodeX = centerX;
+        nodeY = centerY;
+        nodeZ = centerZ;
+        
+        rX = x - centerX;
+        rY = y - centerY;
+        rZ = z - centerZ;
+        
+        scale = worldScale;
         
         /**
          * Id of current node, starts as master octree.
@@ -250,34 +226,6 @@ public class WorldLoader {
         
         // Finally, tell listener we are done (mainly to support network batching)
         listener.finished(trigger);
-    }
-    
-    private void checkEnlarge(float nodeX, float nodeY, float nodeZ, float rX, float rY, float rZ, float scale, float range) {
-        /**
-         * New world scale, if we enlarge master octree.
-         */
-        float newScale = scale * 2;
-        float subScale = 0.5f * scale;
-        
-        /**
-         * World size manager places the old master octree in this index
-         * of new master octree. Start value anticipates that all coordinate axes
-         * overflow towards positive values.
-         */
-        int oldIndex = 0;
-        
-        // If negative overflow happens, we priorize it
-        if (rX - range < nodeX - subScale) {
-            oldIndex += 1;
-        } if (rY - range < nodeY - subScale) {
-            oldIndex += 2;
-        } if (rZ - range < nodeZ - subScale) {
-            oldIndex += 4;
-        }
-        System.out.println("oldIndex: " + oldIndex);
-        
-        // Request size manager to enlarge the world
-        sizeManager.enlarge(newScale, oldIndex);
     }
     
     /**

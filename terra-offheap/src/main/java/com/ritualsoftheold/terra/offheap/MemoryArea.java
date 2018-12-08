@@ -4,6 +4,9 @@ import static com.ritualsoftheold.terra.offheap.BuildConfig.inBounds;
 
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.VarHandle;
+import java.util.Objects;
+
+import com.ritualsoftheold.terra.offheap.memory.MemoryAllocator;
 
 import net.openhft.chronicle.core.Memory;
 import net.openhft.chronicle.core.OS;
@@ -31,11 +34,12 @@ public class MemoryArea {
     
     /**
      * Creates a new memory area by allocating more memory.
+     * @param allocator Memory allocator to use.
      * @param length How much memory is needed.
      * @return A new memory area.
      */
-    public static MemoryArea create(long length) {
-        return new MemoryArea(mem.allocate(length), length, true);
+    public static MemoryArea create(MemoryAllocator allocator, long length) {
+        return new MemoryArea(allocator.allocate(length), length, allocator, true);
     }
     
     /**
@@ -47,12 +51,13 @@ public class MemoryArea {
      * @return A new memory area wrapping a pointer.
      */
     public static MemoryArea wrap(@Pointer long start, long length) {
-        return new MemoryArea(start, length, false);
+        return new MemoryArea(start, length, null, false);
     }
     
     /**
      * Start memory address of this.
      */
+    @Pointer
     private final long start;
     
     /**
@@ -61,14 +66,21 @@ public class MemoryArea {
     private final long length;
     
     /**
+     * Memory allocator used to allocate this area.
+     * May be null if this was just wrapped.
+     */
+    private final MemoryAllocator allocator;
+    
+    /**
      * Whether or not releasing this memory are is allowed.
      */
     @SuppressWarnings("unused") // VarHandle
     private volatile boolean releaseAllowed;
     
-    private MemoryArea(long start, long length, boolean releaseAllowed) {
+    protected MemoryArea(long start, long length, MemoryAllocator allocator, boolean releaseAllowed) {
         this.start = start;
         this.length = length;
+        this.allocator = allocator;
         this.releaseAllowed = releaseAllowed;
     }
     
@@ -156,9 +168,19 @@ public class MemoryArea {
      * Releases this memory area. Do not call this more than once!
      */
     public void release() {
+        // Atomic: only one release() ever gets through
         if (((boolean) releaseAllowedVar.getAndSet(this, false))) {
             throw new IllegalStateException("release not allowed");
         }
-        mem.freeMemory(start, length);
+        allocator.free(start, length);
+    }
+    
+    /**
+     * Gets the memory address of this memory area.
+     * @return Memory address.
+     */
+    @Pointer
+    public long memoryAddress() {
+        return start;
     }
 }

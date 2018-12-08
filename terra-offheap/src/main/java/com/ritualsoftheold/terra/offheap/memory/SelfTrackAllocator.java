@@ -1,7 +1,6 @@
-package com.ritualsoftheold.terra.offheap.world.gen;
+package com.ritualsoftheold.terra.offheap.memory;
 
 import com.ritualsoftheold.terra.offheap.chunk.ChunkBuffer.Allocator;
-import com.ritualsoftheold.terra.offheap.data.MemoryAllocator;
 
 import net.openhft.chronicle.core.Memory;
 import net.openhft.chronicle.core.OS;
@@ -24,7 +23,7 @@ public class SelfTrackAllocator implements MemoryAllocator {
     }
 
     @Override
-    public long alloc(int length) {
+    public long allocate(long length) {
         used += length;
         long addr = mem.allocate(length);
         if (zero) { // Zero the memory if requested
@@ -34,7 +33,7 @@ public class SelfTrackAllocator implements MemoryAllocator {
     }
 
     @Override
-    public void free(long addr, int length) {
+    public void free(long addr, long length) {
         mem.freeMemory(addr, length);
         used -= length;
     }

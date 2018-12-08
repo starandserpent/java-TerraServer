@@ -67,9 +67,7 @@ public class OffheapWorld implements TerraWorld {
     
     // Memory management
     private MemoryManager memManager;
-    
-    private WorldSizeManager sizeManager;
-    
+        
     // Coordinates of world center
     private float centerX;
     private float centerY;
@@ -162,7 +160,6 @@ public class OffheapWorld implements TerraWorld {
         public OffheapWorld build() {
             // Initialize some internal structures AFTER all user-controller initialization
             world.loadMarkers = new ArrayList<>();
-            world.sizeManager = new WorldSizeManager(world);
             
             // Create memory manager
             world.memManager = new MemoryManager(world, memPreferred, memMax, memPanicHandler);
@@ -181,7 +178,7 @@ public class OffheapWorld implements TerraWorld {
             world.genManager = new WorldGenManager(world.generator, new TypeSelector(), world);
             
             // ... and world loading
-            world.worldLoader = new WorldLoader(world.octreeStorage, world.chunkStorage, world.genManager, new WorldSizeManager(world));
+            world.worldLoader = new WorldLoader(world.octreeStorage, world.chunkStorage, world.genManager);
             
             // Update master octree (and finish loader stuff)
             world.updateMasterOctree();
@@ -427,11 +424,11 @@ public class OffheapWorld implements TerraWorld {
         // Get buffer and relevant memory addresses
         ChunkBuffer buf = chunkStorage.getOrLoadBuffer(bufId);
         int index = id & 0xffff;
-        int length;
+        long length;
         byte type;
         try (OffheapChunk.Storage storage = buf.getChunk(index).getStorage()) {
-            long addr = storage.address;
-            length = storage.length;
+            long addr = storage.memoryAddress();
+            length = storage.length();
             type = storage.format.getChunkType();
             
             // Only copy if there is something to copy
@@ -442,7 +439,7 @@ public class OffheapWorld implements TerraWorld {
         
         chunkStorage.markUnused(bufId);
         
-        return new CopyChunkResult(true, type, length);
+        return new CopyChunkResult(true, type, (int) length);
     }
     
     /**
@@ -462,16 +459,16 @@ public class OffheapWorld implements TerraWorld {
         // Get buffer and relevant memory addresses
         ChunkBuffer buf = chunkStorage.getOrLoadBuffer(bufId);
         int index = id & 0xffff;
-        int length;
+        long length;
         byte type;
         try (OffheapChunk.Storage storage = buf.getChunk(index).getStorage()) {
-            long addr = storage.address;
-            length = storage.length;
+            long addr = storage.memoryAddress();
+            length = storage.length();
             type = storage.format.getChunkType();
             
             // Only copy if there is something to copy
             if (length > 0) {
-                long target = handler.applyAsLong(length);
+                long target = handler.applyAsLong((int) length);
                 if (target == 0) { // Chunk length is more than 0 but we got NULL pointer...
                     return new CopyChunkResult(false, (byte) 0, 0); // Fail
                 }
@@ -481,7 +478,7 @@ public class OffheapWorld implements TerraWorld {
         
         chunkStorage.markUnused(bufId);
         
-        return new CopyChunkResult(true, type, length);
+        return new CopyChunkResult(true, type, (int) length);
     }
     
     /**

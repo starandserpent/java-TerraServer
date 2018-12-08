@@ -4,13 +4,14 @@ import com.ritualsoftheold.terra.buffer.BlockBuffer;
 import com.ritualsoftheold.terra.material.MaterialRegistry;
 import com.ritualsoftheold.terra.material.TerraMaterial;
 import com.ritualsoftheold.terra.offheap.DataConstants;
+import com.ritualsoftheold.terra.offheap.MemoryArea;
 import com.ritualsoftheold.terra.offheap.Pointer;
 import com.ritualsoftheold.terra.offheap.chunk.ChunkType;
 import com.ritualsoftheold.terra.offheap.chunk.TooManyMaterialsException;
 import com.ritualsoftheold.terra.offheap.data.BufferWithFormat;
 import com.ritualsoftheold.terra.offheap.data.CriticalBlockBuffer;
-import com.ritualsoftheold.terra.offheap.data.MemoryAllocator;
 import com.ritualsoftheold.terra.offheap.data.WorldDataFormat;
+import com.ritualsoftheold.terra.offheap.memory.MemoryAllocator;
 import com.ritualsoftheold.terra.offheap.node.OffheapChunk;
 import com.ritualsoftheold.terra.offheap.node.OffheapChunk.Storage;
 
@@ -59,20 +60,20 @@ public class Palette16ChunkFormat implements ChunkFormat {
     
     /**
      * Finds or create a palette id.
-     * @param palette Palette address.
+     * @param palette Memory area, which starts with palette definitions.
      * @param id World block id.
      * @return Palette id or -1 if palette is exhausted.
      */
-    public int findPaletteId(@Pointer long palette, int id) {
+    public int findPaletteId(MemoryArea palette, int id) {
         for (int i = 0; i < PALETTE_LENGTH; i++) {
-            int worldId = mem.readVolatileInt(palette + i * PALETTE_ENTRY_LENGTH);
+            int worldId = palette.readVolatileInt(i * PALETTE_ENTRY_LENGTH);
             if (worldId == id) { // Found our palette id!
                 return i;
             }
             
             if (worldId == 0) { // Previous one was last id
                 // Allocate new palette id
-                mem.writeVolatileInt(palette + i * PALETTE_ENTRY_LENGTH, id);
+                palette.writeVolatileInt(i * PALETTE_ENTRY_LENGTH, id);
                 return i;
             }
         }
@@ -84,30 +85,44 @@ public class Palette16ChunkFormat implements ChunkFormat {
     /**
      * Gets world id for given palette id.
      * @param palette Palette to search the id from.
-     * Note that it MUST be between 0 and 15 to avoid memory corruption.
-     * @param paletteId Palette id.
+     * @param paletteId Palette id (0-15).
      * @return World id.
      */
-    public int getWorldId(@Pointer long palette, int paletteId) {
-        return mem.readVolatileInt(palette + paletteId * 4);
+    public int getWorldId(MemoryArea palette, int paletteId) {
+        return palette.readVolatileInt(paletteId * PALETTE_ENTRY_LENGTH);
     }
     
-    public int readWorldId(@Pointer long addr, int index) {
+    /**
+     * Reads world id of a block with given index. Internally, this is done
+     * by reading the palette id, then getting the world id for it.
+     * @param area Memory area that has chunk data.
+     * @param index Block index.
+     * @return World id.
+     */
+    public int readWorldId(MemoryArea area, int index) {
         int byteIndex = byteIndex(index);
         int bitOffset = shiftOffset(index);
 
-        byte data = mem.readVolatileByte(addr + PALETTE_LENGTH + byteIndex);
+        byte data = area.readVolatileByte(PALETTE_LENGTH + byteIndex);
         int paletteId = (data >>> bitOffset) & 0xf;
         
-        return getWorldId(addr, paletteId);
+        return getWorldId(area, paletteId);
     }
     
-    public boolean writeWorldId(@Pointer long addr, int index, int id) {
-        long palette = addr;
-        long blocks = addr + PALETTE_LENGTH;
+    /**
+     * Writes a world id for the block with given index.
+     * @param area Memory area with chunk data.
+     * @param index Block index.
+     * @param id New block id.
+     * @return True, if the write succeeded. False, if the palette has
+     * been exhausted and this chunk format needs to be replaced.
+     */
+    public boolean writeWorldId(MemoryArea area, int index, int id) {
+        // Palette is at start, blocks come immediately after it
+        int blocksOffset = PALETTE_LENGTH;
         
         // Figure out correct palette id
-        int paletteId = findPaletteId(palette, id);
+        int paletteId = findPaletteId(area, id);
         if (paletteId == -1) { // Palette has been exhausted
             return false;
         }
@@ -115,8 +130,8 @@ public class Palette16ChunkFormat implements ChunkFormat {
         int byteIndex = byteIndex(index);
         int bitOffset = shiftOffset(index);
         
-        long blockAddr = blocks + byteIndex;
-        int value = mem.readVolatileByte(blockAddr);
+        int blockIndex = blocksOffset + byteIndex;
+        int value = area.readVolatileByte(blockIndex);
         
         /* Clearing a half of byte without branches!
          * 
@@ -137,23 +152,22 @@ public class Palette16ChunkFormat implements ChunkFormat {
         
         // Write our new value in place of old one
         // One block was changed, one not
-        mem.writeVolatileByte(blockAddr, (byte) value);
+        area.writeVolatileByte(blockIndex, (byte) value);
         
         return true;
     }
     
     @Override
     public Storage convert(Storage origin, ChunkFormat format, MemoryAllocator allocator) {
-        long palette = origin.address;
         if (format == UncompressedChunkFormat.INSTANCE) {
-            long addr = allocator.alloc(DataConstants.CHUNK_MAX_BLOCKS * 4);
-            long blocks = palette + PALETTE_LENGTH;
+            long addr = allocator.allocate(DataConstants.CHUNK_MAX_BLOCKS * 4);
+            long blocksOffset = PALETTE_LENGTH;
             
             int offset = 0;
             for (int i = 0; i < CHUNK_LENGTH; i++) {
-                byte values = mem.readVolatileByte(blocks + i);
-                int block1 = getWorldId(palette, values >>> 4);
-                int block2 = getWorldId(palette, values & 0xf);
+                byte values = origin.readVolatileByte(blocksOffset + i);
+                int block1 = getWorldId(origin, values >>> 4);
+                int block2 = getWorldId(origin, values & 0xf);
                 
                 mem.writeVolatileInt(addr + offset, block1);
                 mem.writeVolatileInt(addr + offset + 4, block2);
@@ -168,14 +182,12 @@ public class Palette16ChunkFormat implements ChunkFormat {
 
     @Override
     public OffheapChunk.Storage processQueries(OffheapChunk chunk, Storage storage, OffheapChunk.ChangeIterator changes) {
-        @Pointer long addr = storage.address;
-        
         while (changes.hasNext()) {
             changes.next();
             int index = changes.getIndex();
             int id = changes.getBlockId();
             
-            boolean writeOk = writeWorldId(addr, index, id);
+            boolean writeOk = writeWorldId(storage, index, id);
             if (!writeOk) { // Write failed, palette has been exhausted
                 // Fallback to next best compressed format
                 // FIXME don't fallback to uncompressed immediately
@@ -238,7 +250,7 @@ public class Palette16ChunkFormat implements ChunkFormat {
 
         @Override
         public TerraMaterial read() {
-            int worldId = readWorldId(storage.address, index);
+            int worldId = readWorldId(storage, index);
             return registry.getForWorldId(worldId);
         }
 
@@ -261,12 +273,12 @@ public class Palette16ChunkFormat implements ChunkFormat {
     
     public class Palette16CriticalBuffer implements CriticalBlockBuffer {
         
-        private final @Pointer long addr;
+        private final MemoryArea area;
         private final MaterialRegistry registry;
         private int index;
         
-        public Palette16CriticalBuffer(@Pointer long addr, MaterialRegistry registry) {
-            this.addr = addr;
+        public Palette16CriticalBuffer(MemoryArea area, MaterialRegistry registry) {
+            this.area = area;
             this.registry = registry;
         }
         
@@ -297,7 +309,7 @@ public class Palette16ChunkFormat implements ChunkFormat {
 
         @Override
         public void write(TerraMaterial material) {
-            boolean writeOk = writeWorldId(addr, index, material.getWorldId());
+            boolean writeOk = writeWorldId(area, index, material.getWorldId());
             if (!writeOk) {
                 throw new TooManyMaterialsException();
             }
@@ -305,19 +317,20 @@ public class Palette16ChunkFormat implements ChunkFormat {
 
         @Override
         public TerraMaterial read() {
-            int worldId = readWorldId(addr, index);
+            int worldId = readWorldId(area, index);
             return registry.getForWorldId(worldId);
         }
 
         @Override
         public Object readRef() {
             // TODO critical buffer ref support
-            return null;
+            throw new UnsupportedOperationException("TODO implement this");
         }
 
         @Override
         public void writeRef(Object ref) {
             // TODO critical buffer ref support
+            throw new UnsupportedOperationException("TODO implement this");
         }
 
         @Override
@@ -344,7 +357,7 @@ public class Palette16ChunkFormat implements ChunkFormat {
 
     @Override
     public CriticalBlockBuffer createCriticalBuffer(Storage storage, MaterialRegistry materialRegistry) {
-        return new Palette16CriticalBuffer(storage.address, materialRegistry);
+        return new Palette16CriticalBuffer(storage, materialRegistry);
     }
 
 }
