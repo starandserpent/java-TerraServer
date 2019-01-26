@@ -239,7 +239,7 @@ public class Palette16ChunkFormat implements ChunkFormat {
 
         @Override
         public boolean hasNext() {
-            return index < DataConstants.CHUNK_MAX_BLOCKS;
+            return index < DataConstants.CHUNK_MAX_BLOCKS - 1;
         }
 
         @Override
@@ -304,7 +304,7 @@ public class Palette16ChunkFormat implements ChunkFormat {
 
         @Override
         public boolean hasNext() {
-            return index < DataConstants.CHUNK_MAX_BLOCKS;
+            return index < DataConstants.CHUNK_MAX_BLOCKS - 1;
         }
 
         @Override
