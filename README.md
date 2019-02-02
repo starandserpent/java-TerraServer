@@ -26,3 +26,14 @@ Dependency tree:
       * terra-net-client
       
 terra-testgame depends on everything but networking parts of Terra.
+
+## Questions, feedback, and contacting us
+
+**Discord chat**
+https://discord.ritualsoftheold.com/
+
+**Forums**
+https://community.ritualsoftheold.com/c/collaboration/terra
+
+**Email and more links**
+https://www.starandserpent.com
