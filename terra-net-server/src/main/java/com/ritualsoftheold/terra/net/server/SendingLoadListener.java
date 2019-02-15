@@ -72,7 +72,7 @@ public class SendingLoadListener implements WorldLoadListener {
         
         MutableDirectBuffer msg;
         try (OffheapChunk.Storage storage = chunk.getStorage()) {
-            int len = storage.length;
+            int len = (int) storage.length();
             msg = new UnsafeBuffer(ByteBuffer.allocateDirect(len + 9)); // 9 for header
             
             msg.putByte(0, TerraProtocol.MESSAGE_TYPE_CHUNK);
@@ -80,7 +80,7 @@ public class SendingLoadListener implements WorldLoadListener {
             msg.putInt(2, chunk.getChunkBuffer().getId() << 16 | chunk.getIndex()); // Full id of the chunk
             msg.putInt(6, len); // Chunk data length
             
-            mem.copyMemory(storage.address, msg.addressOffset() + 9, len);
+            mem.copyMemory(storage.memoryAddress(), msg.addressOffset() + 9, len);
         }
         
         // Push data to observer

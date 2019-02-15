@@ -8,8 +8,8 @@ allprojects {
     apply plugin: 'eclipse'
     apply plugin: 'maven-publish'
     
-    sourceCompatibility = 10
-    targetCompatibility = 10
+    sourceCompatibility = 11
+    targetCompatibility = 11
 
     // In this section you declare where to find the dependencies of your project
     repositories {
