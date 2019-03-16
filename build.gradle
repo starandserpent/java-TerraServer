@@ -1,5 +1,5 @@
 plugins {
-    id "me.champeau.gradle.jmh" version "0.4.5" apply false
+    id "me.champeau.gradle.jmh" version "0.4.8" apply false
 }
 
 allprojects {
@@ -26,8 +26,12 @@ allprojects {
     
     // In this section you declare the dependencies for your production and test code
     dependencies {
-        compile 'org.slf4j:slf4j-api:1.7.21'
-        testCompile 'junit:junit:4.12'
+        compile 'org.slf4j:slf4j-api:1.7.26'
+        // https://mvnrepository.com/artifact/org.slf4j/slf4j-simple
+        testCompile group: 'org.slf4j', name: 'slf4j-simple', version: '1.7.26'
+
+        testCompile("junit:junit:4.12")
+        testRuntime("org.junit.vintage:junit-vintage-engine:5.4.0")
     }
     
     task sourceJar(type: Jar) {
@@ -67,8 +71,8 @@ allprojects.findAll { it.name in ['terra-meshgen'] }. each { p ->
         apply plugin: "me.champeau.gradle.jmh"
 
         dependencies {
-            jmh 'org.openjdk.jmh:jmh-core:1.20'
-            jmh 'org.openjdk.jmh:jmh-generator-annprocess:1.20'
+            jmh 'org.openjdk.jmh:jmh-core:1.21'
+            jmh 'org.openjdk.jmh:jmh-generator-annprocess:1.21'
         }
         
         tasks.getByName('jmhJar').doFirst() {duplicatesStrategy(DuplicatesStrategy.EXCLUDE)}
