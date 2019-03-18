@@ -19,7 +19,7 @@ import com.ritualsoftheold.terra.mesher.VoxelMesher;
 import com.ritualsoftheold.terra.mesher.resource.TextureManager;
 import com.ritualsoftheold.terra.offheap.DataConstants;
 import com.ritualsoftheold.terra.offheap.chunk.ChunkType;
-import com.ritualsoftheold.terra.offheap.chunk.iterator.ChunkIterator;
+//import com.ritualsoftheold.terra.offheap.chunk.iterator.ChunkIterator;
 
 import io.netty.buffer.ByteBufAllocator;
 import net.openhft.chronicle.core.Memory;
@@ -84,7 +84,7 @@ public class ChunkTest extends SimpleApplication {
         
         VoxelMesher mesher = new NaiveMesher(); // Create mesher
         MeshContainer meshContainer = new MeshContainer(100, ByteBufAllocator.DEFAULT);
-        mesher.chunk(ChunkIterator.forChunk(addr, ChunkType.RLE_2_2), manager, meshContainer);
+        //mesher.chunk(ChunkIterator.forChunk(addr, ChunkType.RLE_2_2), manager, meshContainer);
         
         // Create mesh
         Mesh mesh = new Mesh();
