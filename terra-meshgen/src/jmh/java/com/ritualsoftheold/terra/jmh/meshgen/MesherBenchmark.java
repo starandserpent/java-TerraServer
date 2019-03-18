@@ -11,7 +11,7 @@ import com.ritualsoftheold.terra.mesher.NaiveMesher;
 import com.ritualsoftheold.terra.mesher.resource.TextureManager;
 import com.ritualsoftheold.terra.offheap.DataConstants;
 import com.ritualsoftheold.terra.offheap.chunk.ChunkType;
-import com.ritualsoftheold.terra.offheap.chunk.iterator.ChunkIterator;
+//import com.ritualsoftheold.terra.offheap.chunk.iterator.ChunkIterator;
 
 import io.netty.buffer.ByteBufAllocator;
 import net.openhft.chronicle.core.Memory;
@@ -58,7 +58,7 @@ public class MesherBenchmark {
     public void naiveMesherBadContainer(ChunkData data) {
         NaiveMesher mesher = new NaiveMesher();
         data.container = new MeshContainer(100, ByteBufAllocator.DEFAULT);
-        mesher.chunk(ChunkIterator.forChunk(data.chunkData, ChunkType.RLE_2_2), data.textures, data.container);
+        //mesher.chunk(ChunkIterator.forChunk(data.chunkData, ChunkType.RLE_2_2), data.textures, data.container);
         data.container.release();
     }
     
@@ -67,7 +67,7 @@ public class MesherBenchmark {
     public void naiveMesherGoodContainer(ChunkData data) {
         NaiveMesher mesher = new NaiveMesher();
         data.container = new MeshContainer(10000, ByteBufAllocator.DEFAULT);
-        mesher.chunk(ChunkIterator.forChunk(data.chunkData, ChunkType.RLE_2_2), data.textures, data.container);
+        //mesher.chunk(ChunkIterator.forChunk(data.chunkData, ChunkType.RLE_2_2), data.textures, data.container);
         data.container.release();
     }
 }

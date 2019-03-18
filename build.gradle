@@ -1,5 +1,10 @@
 plugins {
     id "me.champeau.gradle.jmh" version "0.4.8" apply false
+    id "application"
+}
+
+application {
+    mainClassName = "com.ritualsoftheold.terra.test.TestGameApp"
 }
 
 allprojects {
