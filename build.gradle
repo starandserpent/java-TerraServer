@@ -7,6 +7,7 @@ allprojects {
     apply plugin: 'java'
     apply plugin: 'eclipse'
     apply plugin: 'maven-publish'
+
     
     sourceCompatibility = 11
     targetCompatibility = 11
@@ -64,6 +65,8 @@ allprojects {
         }
     }
 }
+
+
 
 // Define JMH for all subprojects that need it
 allprojects.findAll { it.name in ['terra-meshgen'] }. each { p ->

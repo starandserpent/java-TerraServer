@@ -11,11 +11,11 @@ include 'terra-net-server'
 
 // Include Venom only if we're not included, because Gradle doesn't support recursive includes
 if (gradle.parent == null && file('../venom').exists()) {
-    includeBuild('../venom') {
-        dependencySubstitution {
-            substitute module('com.starandserpent:venom-listeners') with project(':venom-listeners')
-            substitute module('com.starandserpent:venom-server') with project(':venom-server')
-            substitute module('com.starandserpent:venom-client') with project(':venom-client')
-        }
-    }
+//    includeBuild('../venom') {
+//        dependencySubstitution {
+//            substitute module('com.starandserpent:venom-listeners') with project(':venom-listeners')
+//            substitute module('com.starandserpent:venom-server') with project(':venom-server')
+//            substitute module('com.starandserpent:venom-client') with project(':venom-client')
+//        }
+//    }
 }

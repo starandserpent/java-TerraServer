@@ -50,9 +50,9 @@ public class TestGameApp extends SimpleApplication implements ActionListener {
         TestGameApp app = new TestGameApp();
         app.showSettings = false;
         app.settings = new AppSettings(true);
-        app.settings.setResolution(1920, 1080);
+        app.settings.setResolution(1024, 768);
         app.settings.setTitle("Terra testgame");
-        app.settings.setFullscreen(true);
+        app.settings.setFullscreen(false);
         app.start();
     }
     
