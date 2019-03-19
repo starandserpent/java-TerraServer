@@ -1,5 +1,10 @@
 plugins {
     id "me.champeau.gradle.jmh" version "0.4.8" apply false
+    id "application"
+}
+
+application {
+    mainClassName = "com.ritualsoftheold.terra.test.TestGameApp"
 }
 
 allprojects {
@@ -7,6 +12,7 @@ allprojects {
     apply plugin: 'java'
     apply plugin: 'eclipse'
     apply plugin: 'maven-publish'
+
     
     sourceCompatibility = 11
     targetCompatibility = 11
@@ -64,6 +70,8 @@ allprojects {
         }
     }
 }
+
+
 
 // Define JMH for all subprojects that need it
 allprojects.findAll { it.name in ['terra-meshgen'] }. each { p ->
