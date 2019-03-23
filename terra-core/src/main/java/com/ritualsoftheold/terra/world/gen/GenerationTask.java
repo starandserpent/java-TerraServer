@@ -2,7 +2,7 @@ package com.ritualsoftheold.terra.world.gen;
 
 /**
  * Represents a task of world generation. Contains data that does not change
- * during the generation.
+ * during the generation. The coordinates are the center of the generated area.
  *
  */
 public class GenerationTask {

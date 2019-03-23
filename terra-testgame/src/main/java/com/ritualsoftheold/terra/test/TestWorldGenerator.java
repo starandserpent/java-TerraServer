@@ -10,7 +10,8 @@ import com.ritualsoftheold.terra.world.gen.Pipeline;
 import com.ritualsoftheold.terra.world.gen.WorldGenerator;
 
 public class TestWorldGenerator implements WorldGenerator<Void> {
-    
+
+    // Material definitions.
     private TerraMaterial dirt;
     private TerraMaterial grass;
     
@@ -19,21 +20,23 @@ public class TestWorldGenerator implements WorldGenerator<Void> {
         dirt = materialRegistry.getMaterial("testgame:dirt");
         grass = materialRegistry.getMaterial("testgame:grass");
     }
-    
+
+    // Initialize world generation pipeline.
     @Override
     public Void initialize(GenerationTask task, Pipeline<Void> pipeline) {
         pipeline.addLast(this::generate);
         
         return null;
     }
-    
+
+    // World generator.
     public void generate(GenerationTask task, GeneratorControl control, Void nothing) {
         BlockBuffer buf = control.getBuffer();
         
         if (task.getY() < 0) {
             for (int i = 0; i < DataConstants.CHUNK_MAX_BLOCKS / 2; i++) {
-                buf.write(dirt);
-                buf.next();
+                buf.write(dirt); // Set material of current block.
+                buf.next();      // Move to next block in the buffer.
             }
             for (int i = 0; i < DataConstants.CHUNK_MAX_BLOCKS / 2; i++) {
                 buf.write(grass);
