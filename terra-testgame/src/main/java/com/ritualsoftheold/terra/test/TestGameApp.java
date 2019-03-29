@@ -32,9 +32,10 @@ import com.ritualsoftheold.terra.offheap.memory.MemoryPanicHandler;
 import com.ritualsoftheold.terra.offheap.node.OffheapChunk;
 import com.ritualsoftheold.terra.offheap.world.OffheapWorld;
 import com.ritualsoftheold.terra.offheap.world.WorldLoadListener;
-import com.ritualsoftheold.terra.world.LoadMarker;
-import com.ritualsoftheold.terra.world.gen.WorldGenerator;
 
+import com.ritualsoftheold.terra.gen.objects.LoadMarker;
+import com.ritualsoftheold.terra.world.WorldGenerator;
+import com.ritualsoftheold.terra.gen.interfaces.world.WorldGeneratorInterface;
 import io.netty.buffer.ByteBufAllocator;
 
 public class TestGameApp extends SimpleApplication implements ActionListener {
@@ -68,7 +69,7 @@ public class TestGameApp extends SimpleApplication implements ActionListener {
         MaterialRegistry reg = new MaterialRegistry();
         mod.registerMaterials(reg);
         
-        WorldGenerator<?> gen = new TestWorldGenerator();
+        WorldGeneratorInterface<?> gen = new WorldGenerator();
         gen.setup(0, reg);
         
         ChunkBuffer.Builder bufferBuilder = new ChunkBuffer.Builder()

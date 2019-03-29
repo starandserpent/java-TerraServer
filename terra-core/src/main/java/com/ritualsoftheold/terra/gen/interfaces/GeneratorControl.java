@@ -1,4 +1,4 @@
-package com.ritualsoftheold.terra.world.gen;
+package com.ritualsoftheold.terra.gen.interfaces;
 
 import com.ritualsoftheold.terra.buffer.BlockBuffer;
 import com.ritualsoftheold.terra.material.TerraMaterial;

@@ -1,4 +1,4 @@
-package com.ritualsoftheold.terra.world.gen;
+package com.ritualsoftheold.terra.gen.tasks;
 
 /**
  * Represents a task of world generation. Contains data that does not change

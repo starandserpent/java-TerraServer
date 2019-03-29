@@ -1,6 +1,5 @@
 package com.ritualsoftheold.terra.net.server;
 
-import java.lang.invoke.VarHandle;
 import java.nio.ByteBuffer;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;

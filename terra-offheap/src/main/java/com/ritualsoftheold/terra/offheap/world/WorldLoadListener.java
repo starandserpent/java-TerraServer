@@ -1,8 +1,8 @@
 package com.ritualsoftheold.terra.offheap.world;
 
+import com.ritualsoftheold.terra.gen.objects.LoadMarker;
 import com.ritualsoftheold.terra.offheap.Pointer;
 import com.ritualsoftheold.terra.offheap.node.OffheapChunk;
-import com.ritualsoftheold.terra.world.LoadMarker;
 
 /**
  * Methods in in this interface will be called when world data is loaded.

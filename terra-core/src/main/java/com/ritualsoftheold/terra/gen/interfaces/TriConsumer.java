@@ -1,4 +1,4 @@
-package com.ritualsoftheold.terra.world.gen;
+package com.ritualsoftheold.terra.gen.interfaces;
 
 @FunctionalInterface
 public interface TriConsumer<T, U, V> {

@@ -1,15 +1,15 @@
 package com.ritualsoftheold.terra.world;
 
 import com.ritualsoftheold.terra.buffer.BlockBuffer;
+import com.ritualsoftheold.terra.gen.interfaces.world.WorldGeneratorInterface;
 import com.ritualsoftheold.terra.material.MaterialRegistry;
 import com.ritualsoftheold.terra.material.TerraMaterial;
 import com.ritualsoftheold.terra.offheap.DataConstants;
-import com.ritualsoftheold.terra.world.gen.GenerationTask;
-import com.ritualsoftheold.terra.world.gen.GeneratorControl;
-import com.ritualsoftheold.terra.world.gen.Pipeline;
-import com.ritualsoftheold.terra.world.gen.WorldGenerator;
+import com.ritualsoftheold.terra.gen.tasks.GenerationTask;
+import com.ritualsoftheold.terra.gen.interfaces.GeneratorControl;
+import com.ritualsoftheold.terra.gen.tasks.Pipeline;
 
-public class WorldGenerator implements com.ritualsoftheold.terra.world.gen.WorldGenerator<Void> {
+public class WorldGenerator implements WorldGeneratorInterface<Void> {
     
     private TerraMaterial dirt;
     private TerraMaterial grass;
@@ -41,5 +41,4 @@ public class WorldGenerator implements com.ritualsoftheold.terra.world.gen.World
             }
         }
     }
-
 }

@@ -1,6 +1,9 @@
 package com.ritualsoftheold.terra.offheap.world.gen;
 
 import com.ritualsoftheold.terra.buffer.BlockBuffer;
+import com.ritualsoftheold.terra.gen.interfaces.world.WorldGeneratorInterface;
+import com.ritualsoftheold.terra.gen.tasks.GenerationTask;
+import com.ritualsoftheold.terra.gen.tasks.Pipeline;
 import com.ritualsoftheold.terra.material.MaterialRegistry;
 import com.ritualsoftheold.terra.offheap.chunk.ChunkBuffer;
 import com.ritualsoftheold.terra.offheap.chunk.ChunkStorage;
@@ -16,9 +19,6 @@ import com.ritualsoftheold.terra.offheap.node.OffheapChunk;
 import com.ritualsoftheold.terra.offheap.node.OffheapChunk.Storage;
 import com.ritualsoftheold.terra.offheap.octree.OctreeNodeFormat;
 import com.ritualsoftheold.terra.offheap.world.OffheapWorld;
-import com.ritualsoftheold.terra.world.gen.GenerationTask;
-import com.ritualsoftheold.terra.world.gen.Pipeline;
-import com.ritualsoftheold.terra.world.gen.WorldGenerator;
 
 import net.openhft.chronicle.core.Memory;
 import net.openhft.chronicle.core.OS;
@@ -36,7 +36,7 @@ public class WorldGenManager {
      * World generator which does the actual hard work:
      * fills arrays after each other with blocks.
      */
-    private WorldGenerator<Object> generator;
+    private WorldGeneratorInterface<Object> generator;
     
     /**
      * Some "clever" code to determine what data format to use.
@@ -50,8 +50,8 @@ public class WorldGenManager {
     private OffheapWorld world;
     
     @SuppressWarnings("unchecked") // I hate generics
-    public WorldGenManager(WorldGenerator<?> generator, TypeSelector typeSelector, OffheapWorld world) {
-        this.generator = (WorldGenerator<Object>) generator;
+    public WorldGenManager(WorldGeneratorInterface<?> generator, TypeSelector typeSelector, OffheapWorld world) {
+        this.generator = (WorldGeneratorInterface<Object>) generator;
         this.typeSelector = typeSelector;
         this.chunkStorage = world.getChunkStorage();
         this.world = world;

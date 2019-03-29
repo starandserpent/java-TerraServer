@@ -1,4 +1,7 @@
-package com.ritualsoftheold.terra.world.gen;
+package com.ritualsoftheold.terra.gen.tasks;
+
+import com.ritualsoftheold.terra.gen.interfaces.GeneratorControl;
+import com.ritualsoftheold.terra.gen.interfaces.TriConsumer;
 
 import java.util.ArrayList;
 import java.util.List;

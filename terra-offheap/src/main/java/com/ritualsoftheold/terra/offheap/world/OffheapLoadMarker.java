@@ -6,10 +6,10 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
+import com.ritualsoftheold.terra.gen.objects.LoadMarker;
 import com.ritualsoftheold.terra.offheap.chunk.ChunkBuffer;
 import com.ritualsoftheold.terra.offheap.octree.UsageListener;
 import com.ritualsoftheold.terra.offheap.util.IntFlushList;
-import com.ritualsoftheold.terra.world.LoadMarker;
 
 public class OffheapLoadMarker extends LoadMarker implements Cloneable {
         

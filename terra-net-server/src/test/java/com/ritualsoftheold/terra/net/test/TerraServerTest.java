@@ -13,7 +13,7 @@ import com.ritualsoftheold.terra.offheap.io.dummy.DummyOctreeLoader;
 import com.ritualsoftheold.terra.offheap.memory.MemoryPanicHandler;
 import com.ritualsoftheold.terra.offheap.world.OffheapWorld;
 import com.ritualsoftheold.terra.world.LoadMarker;
-import com.ritualsoftheold.terra.world.gen.WorldGenerator;
+import com.ritualsoftheold.terra.world.gen.WorldGeneratorInterface;
 
 import io.aeron.Aeron;
 import io.aeron.Publication;
@@ -36,7 +36,7 @@ public class TerraServerTest {
         MaterialRegistry reg = new MaterialRegistry();
         mod.registerMaterials(reg);
         
-        WorldGenerator<?> gen = new TestWorldGenerator();
+        WorldGeneratorInterface<?> gen = new TestWorldGeneratorInterface();
         gen.setup(0, reg);
         
         world = new OffheapWorld.Builder()

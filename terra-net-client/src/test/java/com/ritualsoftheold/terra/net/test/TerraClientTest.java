@@ -2,12 +2,7 @@ package com.ritualsoftheold.terra.net.test;
 
 import static org.junit.Assert.assertFalse;
 
-import java.io.IOException;
-import java.net.InetAddress;
-import java.net.InetSocketAddress;
 import java.util.concurrent.ForkJoinPool;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.locks.LockSupport;
 
 import org.agrona.concurrent.BackoffIdleStrategy;
 import org.junit.Before;
@@ -26,7 +21,6 @@ import com.ritualsoftheold.terra.offheap.world.WorldLoadListener;
 import com.ritualsoftheold.terra.world.LoadMarker;
 
 import io.aeron.Aeron;
-import io.aeron.driver.MediaDriver;
 
 public class TerraClientTest {
     

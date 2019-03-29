@@ -1,9 +1,9 @@
 package com.ritualsoftheold.terra.offheap.world.gen;
 
-import com.ritualsoftheold.terra.world.gen.GenerationTask;
-import com.ritualsoftheold.terra.world.gen.GeneratorControl;
-import com.ritualsoftheold.terra.world.gen.Pipeline;
-import com.ritualsoftheold.terra.world.gen.TriConsumer;
+import com.ritualsoftheold.terra.gen.interfaces.GeneratorControl;
+import com.ritualsoftheold.terra.gen.interfaces.TriConsumer;
+import com.ritualsoftheold.terra.gen.tasks.GenerationTask;
+import com.ritualsoftheold.terra.gen.tasks.Pipeline;
 
 /**
  * World generation pipeline implementation of terra-offheap.

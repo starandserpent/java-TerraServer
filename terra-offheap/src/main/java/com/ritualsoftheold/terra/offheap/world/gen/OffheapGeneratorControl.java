@@ -3,10 +3,10 @@ package com.ritualsoftheold.terra.offheap.world.gen;
 import java.util.HashSet;
 import java.util.Set;
 
+import com.ritualsoftheold.terra.gen.interfaces.GeneratorControl;
 import com.ritualsoftheold.terra.material.TerraMaterial;
 import com.ritualsoftheold.terra.offheap.data.CriticalBlockBuffer;
 import com.ritualsoftheold.terra.offheap.memory.SelfTrackAllocator;
-import com.ritualsoftheold.terra.world.gen.GeneratorControl;
 
 public class OffheapGeneratorControl implements GeneratorControl {
     

@@ -8,6 +8,9 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.function.IntToLongFunction;
 
+import com.ritualsoftheold.terra.gen.interfaces.world.TerraWorld;
+import com.ritualsoftheold.terra.gen.interfaces.world.WorldGeneratorInterface;
+import com.ritualsoftheold.terra.gen.objects.LoadMarker;
 import com.ritualsoftheold.terra.material.MaterialRegistry;
 import com.ritualsoftheold.terra.node.Chunk;
 import com.ritualsoftheold.terra.node.Node;
@@ -27,9 +30,6 @@ import com.ritualsoftheold.terra.offheap.octree.OctreeStorage;
 import com.ritualsoftheold.terra.offheap.octree.UsageListener;
 import com.ritualsoftheold.terra.offheap.verifier.TerraVerifier;
 import com.ritualsoftheold.terra.offheap.world.gen.WorldGenManager;
-import com.ritualsoftheold.terra.world.LoadMarker;
-import com.ritualsoftheold.terra.world.TerraWorld;
-import com.ritualsoftheold.terra.world.gen.WorldGenerator;
 
 import net.openhft.chronicle.core.Memory;
 import net.openhft.chronicle.core.OS;
@@ -55,7 +55,7 @@ public class OffheapWorld implements TerraWorld {
     private float masterScale;
     
     // World generation
-    private WorldGenerator<?> generator;
+    private WorldGeneratorInterface<?> generator;
     private WorldGenManager genManager;
     private Executor generatorExecutor;
     
@@ -124,7 +124,7 @@ public class OffheapWorld implements TerraWorld {
             return this;
         }
         
-        public Builder generator(WorldGenerator<?> generator) {
+        public Builder generator(WorldGeneratorInterface<?> generator) {
             world.generator = generator;
             return this;
         }

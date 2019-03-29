@@ -7,9 +7,9 @@ import com.ritualsoftheold.terra.offheap.DataConstants;
 import com.ritualsoftheold.terra.world.gen.GenerationTask;
 import com.ritualsoftheold.terra.world.gen.GeneratorControl;
 import com.ritualsoftheold.terra.world.gen.Pipeline;
-import com.ritualsoftheold.terra.world.gen.WorldGenerator;
+import com.ritualsoftheold.terra.world.gen.WorldGeneratorInterface;
 
-public class TestWorldGenerator implements WorldGenerator<Void> {
+public class TestWorldGeneratorInterface implements WorldGeneratorInterface<Void> {
     
     private TerraMaterial dirt;
     private TerraMaterial grass;

@@ -18,7 +18,6 @@ import com.ritualsoftheold.terra.offheap.node.OffheapChunk;
 import com.ritualsoftheold.terra.offheap.world.OffheapWorld;
 import com.ritualsoftheold.terra.offheap.world.WorldLoadListener;
 import com.ritualsoftheold.terra.world.LoadMarker;
-import com.ritualsoftheold.terra.world.gen.EmptyWorldGenerator;
 
 /**
  * Tests offheap memory management.
@@ -51,7 +50,7 @@ public class MemoryTest {
                 .storageExecutor(ForkJoinPool.commonPool())
                 .chunkStorage(bufferBuilder, 128)
                 .octreeStorage(32768)
-                .generator(new TestWorldGenerator())
+                .generator(new TestWorldGeneratorInterface())
                 .generatorExecutor(ForkJoinPool.commonPool())
                 .materialRegistry(new MaterialRegistry())
                 .memorySettings(0, 10000000, new MemoryPanicHandler() {
@@ -121,7 +120,7 @@ public class MemoryTest {
                 .storageExecutor(ForkJoinPool.commonPool())
                 .chunkStorage(bufferBuilder, 128)
                 .octreeStorage(32768)
-                .generator(new TestWorldGenerator())
+                .generator(new TestWorldGeneratorInterface())
                 .generatorExecutor(ForkJoinPool.commonPool())
                 .materialRegistry(new MaterialRegistry())
                 .memorySettings(10, 10, new MemoryPanicHandler() {
@@ -175,7 +174,7 @@ public class MemoryTest {
                 .storageExecutor(ForkJoinPool.commonPool())
                 .chunkStorage(bufferBuilder, 128)
                 .octreeStorage(32768)
-                .generator(new TestWorldGenerator())
+                .generator(new TestWorldGeneratorInterface())
                 .generatorExecutor(ForkJoinPool.commonPool())
                 .materialRegistry(new MaterialRegistry())
                 .memorySettings(10000000, 10000000, new MemoryPanicHandler() {
@@ -221,7 +220,7 @@ public class MemoryTest {
                 .storageExecutor(ForkJoinPool.commonPool())
                 .chunkStorage(bufferBuilder, 128)
                 .octreeStorage(32768)
-                .generator(new TestWorldGenerator())
+                .generator(new TestWorldGeneratorInterface())
                 .generatorExecutor(ForkJoinPool.commonPool())
                 .materialRegistry(new MaterialRegistry())
                 .memorySettings(1100000, 10000000, new MemoryPanicHandler() {

@@ -4,9 +4,9 @@ repositories {
 apply plugin: 'application'
 apply plugin: 'distribution'
 application {
-    ext.applicationTitle = "Terra Test Game"
+    ext.applicationTitle = "World Generation"
     ext.applicationVendor = "starandserpent"
-    ext.applicationMainClass = "com.ritualsoftheold.terra.test.TestGameApp"
+    ext.applicationMainClass = "com.ritualsoftheold.terra.world.TestGameApp"
     mainClassName = ext.applicationMainClass
 }
 
