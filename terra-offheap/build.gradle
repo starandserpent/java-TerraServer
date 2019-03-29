@@ -1,6 +1,6 @@
 dependencies {
     compile project(':terra-core')
-    compile 'net.openhft:chronicle-core:2.17.7'
+    compile 'net.openhft:chronicle-core:2.17.10'
 }
 
 // Exclude the SLOW tests from Gradle build
