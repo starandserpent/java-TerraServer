@@ -1,20 +1,6 @@
-repositories {
-    maven { url 'https://jitpack.io' }
-}
-apply plugin: 'application'
-apply plugin: 'distribution'
-application {
-    ext.applicationTitle = "World Generation"
-    ext.applicationVendor = "starandserpent"
-    ext.applicationMainClass = "com.ritualsoftheold.terra.world.TestGameApp"
-    mainClassName = ext.applicationMainClass
-}
-
 dependencies {
     compile project(':terra-offheap')
     compile project(':terra-io-files')
     compile project(':terra-meshgen')
-    compile 'org.jmonkeyengine:jme3-core:3.2.2-stable'
-    compile 'org.jmonkeyengine:jme3-desktop:3.2.2-stable'
-    compile 'org.jmonkeyengine:jme3-lwjgl3:3.2.2-stable'
+    compile group: 'com.sudoplay.joise', name: 'joise', version: '1.1.0'
 }

@@ -8,22 +8,37 @@ import com.ritualsoftheold.terra.offheap.DataConstants;
 import com.ritualsoftheold.terra.gen.tasks.GenerationTask;
 import com.ritualsoftheold.terra.gen.interfaces.GeneratorControl;
 import com.ritualsoftheold.terra.gen.tasks.Pipeline;
+import com.ritualsoftheold.terra.world.location.Area;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
 
 public class WorldGenerator implements WorldGeneratorInterface<Void> {
     
     private TerraMaterial dirt;
     private TerraMaterial grass;
+    private ArrayList<Area> areas;
     
     @Override
     public void setup(long seed, MaterialRegistry materialRegistry) {
         dirt = materialRegistry.getMaterial("testgame:dirt");
         grass = materialRegistry.getMaterial("testgame:grass");
+        File file = new File("./terra-worldgen/src/main/resources/map.png");
+        FileWorldLoader loader = new FileWorldLoader(file.toPath());
+        try {
+            areas = loader.loadWorld();
+            for(Area area:areas){
+                area.makeSeed();
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
     
     @Override
     public Void initialize(GenerationTask task, Pipeline<Void> pipeline) {
         pipeline.addLast(this::generate);
-        
         return null;
     }
     
