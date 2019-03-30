@@ -34,8 +34,8 @@ import com.ritualsoftheold.terra.offheap.world.OffheapWorld;
 import com.ritualsoftheold.terra.offheap.world.WorldLoadListener;
 
 import com.ritualsoftheold.terra.gen.objects.LoadMarker;
-import com.ritualsoftheold.terra.world.WorldGenerator;
 import com.ritualsoftheold.terra.gen.interfaces.world.WorldGeneratorInterface;
+import com.ritualsoftheold.terra.world.WorldGenerator;
 import io.netty.buffer.ByteBufAllocator;
 
 public class TestGameApp extends SimpleApplication implements ActionListener {

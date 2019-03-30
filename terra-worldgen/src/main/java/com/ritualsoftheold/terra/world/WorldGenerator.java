@@ -8,6 +8,7 @@ import com.ritualsoftheold.terra.offheap.DataConstants;
 import com.ritualsoftheold.terra.gen.tasks.GenerationTask;
 import com.ritualsoftheold.terra.gen.interfaces.GeneratorControl;
 import com.ritualsoftheold.terra.gen.tasks.Pipeline;
+import com.ritualsoftheold.terra.world.FileWorldLoader;
 import com.ritualsoftheold.terra.world.location.Area;
 
 import java.io.File;
@@ -17,6 +18,7 @@ import java.util.ArrayList;
 public class WorldGenerator implements WorldGeneratorInterface<Void> {
     
     private TerraMaterial dirt;
+    private TerraMaterial air;
     private TerraMaterial grass;
     private ArrayList<Area> areas;
     
@@ -24,8 +26,9 @@ public class WorldGenerator implements WorldGeneratorInterface<Void> {
     public void setup(long seed, MaterialRegistry materialRegistry) {
         dirt = materialRegistry.getMaterial("testgame:dirt");
         grass = materialRegistry.getMaterial("testgame:grass");
+        air = materialRegistry.getMaterial("base:air");
         File file = new File("./terra-worldgen/src/main/resources/map.png");
-        FileWorldLoader loader = new FileWorldLoader(file.toPath());
+        FileWorldLoader loader = new FileWorldLoader(file);
         try {
             areas = loader.loadWorld();
             for(Area area:areas){
@@ -44,14 +47,15 @@ public class WorldGenerator implements WorldGeneratorInterface<Void> {
     
     public void generate(GenerationTask task, GeneratorControl control, Void nothing) {
         BlockBuffer buf = control.getBuffer();
-        
+
         if (task.getY() < 0) {
-            for (int i = 0; i < DataConstants.CHUNK_MAX_BLOCKS / 2; i++) {
-                buf.write(dirt);
+            for (int i = 0; i < 10; i++) {
+                buf.write(grass);
                 buf.next();
             }
-            for (int i = 0; i < DataConstants.CHUNK_MAX_BLOCKS / 2; i++) {
-                buf.write(grass);
+
+            for (int i = 0; i < DataConstants.CHUNK_MAX_BLOCKS - 10; i++) {
+                buf.write(air);
                 buf.next();
             }
         }

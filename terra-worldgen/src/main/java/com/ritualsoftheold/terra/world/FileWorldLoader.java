@@ -17,18 +17,16 @@ import java.util.HashMap;
 
 public class FileWorldLoader {
 
-    private Path dir;
+    private File map;
     private HashMap<String, Area> areaMap;
 
-    public FileWorldLoader(Path dir) {
-        this.dir = dir;
+    public FileWorldLoader(File map) {
+        this.map = map;
         areaMap = new HashMap<>();
     }
 
     public ArrayList<Area> loadWorld() throws IOException {
-        File file = dir.toFile();
-        BufferedImage image = ImageIO.read(file);
-        System.out.println("here");
+        BufferedImage image = ImageIO.read(map);
         for (int y = 0; y < image.getHeight(); y++) {
             for (int x = 0; x < image.getWidth(); x++) {
                 int clr = image.getRGB(x, y);
