@@ -14,6 +14,7 @@ import com.ritualsoftheold.terra.world.location.Area;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Random;
 
 public class WorldGenerator implements WorldGeneratorInterface<Void> {
     
@@ -46,16 +47,13 @@ public class WorldGenerator implements WorldGeneratorInterface<Void> {
     }
     
     public void generate(GenerationTask task, GeneratorControl control, Void nothing) {
-        BlockBuffer buf = control.getBuffer();
-
-        if (task.getY() < 0) {
-            for (int i = 0; i < 10; i++) {
+            BlockBuffer buf = control.getBuffer();
+        for (int i = 0; i < DataConstants.CHUNK_MAX_BLOCKS; i++) {
+            if(i == 1){
                 buf.write(grass);
-                buf.next();
-            }
-
-            for (int i = 0; i < DataConstants.CHUNK_MAX_BLOCKS - 10; i++) {
-                buf.write(air);
+            }else if(i == 2){
+                buf.write(grass);
+            } else {
                 buf.next();
             }
         }
