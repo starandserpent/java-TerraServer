@@ -61,21 +61,21 @@ public class TestGameApp extends SimpleApplication implements ActionListener {
     public void simpleInitApp() {
         //setDisplayFps(false);
         //setDisplayStatView(false);
-        
-        
+
+
         TerraModule mod = new TerraModule("testgame");
         mod.newMaterial().name("dirt").texture(new TerraTexture(256, 256, "NorthenForestDirt256px.png"));
         mod.newMaterial().name("grass").texture(new TerraTexture(256, 256, "NorthenForestGrass256px.png"));
         MaterialRegistry reg = new MaterialRegistry();
         mod.registerMaterials(reg);
-        
+
         WorldGeneratorInterface<?> gen = new WorldGenerator();
         gen.setup(0, reg);
-        
+
         ChunkBuffer.Builder bufferBuilder = new ChunkBuffer.Builder()
                 .maxChunks(128)
                 .queueSize(4);
-        
+
         world = new OffheapWorld.Builder()
                 .chunkLoader(new DummyChunkLoader())
                 .octreeLoader(new DummyOctreeLoader(32768))
@@ -86,33 +86,33 @@ public class TestGameApp extends SimpleApplication implements ActionListener {
                 .generatorExecutor(ForkJoinPool.commonPool())
                 .materialRegistry(reg)
                 .memorySettings(10000000, 10000000, new MemoryPanicHandler() {
-                    
+
                     @Override
                     public PanicResult outOfMemory(long max, long used, long possible) {
                         return PanicResult.CONTINUE;
                     }
-                    
+
                     @Override
                     public PanicResult goalNotMet(long goal, long possible) {
                         return PanicResult.CONTINUE;
                     }
                 })
                 .build();
-                
-        player = world.createLoadMarker(0, 0, 0, 64, 64, 0);
+
+        player = world.createLoadMarker(0, 0, 0, 32, 32, 0);
         world.addLoadMarker(player);
-        
+
         TextureManager texManager = new TextureManager(assetManager); // Initialize texture atlas/array manager
         texManager.loadMaterials(reg); // And make it load material registry
-        
+
         // Create material
         Material mat = new Material(assetManager, "terra/shader/TerraArray.j3md");
         //mat.getAdditionalRenderState().setWireframe(true);
         //mat.getAdditionalRenderState().setFaceCullMode(FaceCullMode.Off);
         mat.setTexture("ColorMap", texManager.getGroundTexture());
-        
+
         VoxelMesher mesher = new NaiveMesher();
-        
+
         world.setLoadListener(new WorldLoadListener() {
 
             @Override
@@ -130,11 +130,11 @@ public class TestGameApp extends SimpleApplication implements ActionListener {
                     //System.out.println("too far away: " + x + ", " + y + ", " + z);
                     return;
                 }
-                
+
                 //System.out.println("Loaded chunk: " + chunk.memoryAddress());
                 MeshContainer container = new MeshContainer(200, ByteBufAllocator.DEFAULT);
                 mesher.chunk(chunk.getBuffer(), texManager, container);
-                
+
                 // Create mesh
                 Mesh mesh = new Mesh();
                 //System.out.println(mesher.getVertices());
@@ -142,7 +142,7 @@ public class TestGameApp extends SimpleApplication implements ActionListener {
                 mesh.setBuffer(Type.Position, 1, container.getVertices().nioBuffer().asFloatBuffer());
                 mesh.setBuffer(Type.Index, 3, container.getIndices().nioBuffer().asIntBuffer());
                 mesh.setBuffer(Type.TexCoord, 2, container.getTextureCoordinates().nioBuffer().asFloatBuffer());
-                
+
                 // Create geometry
                 Geometry geom = new Geometry("chunk:" + x + "," + y + "," + z, mesh);
                 //mat.setParam("SeparateTexCoord", VarType.Boolean, true);
@@ -150,29 +150,28 @@ public class TestGameApp extends SimpleApplication implements ActionListener {
                 //geom.setLocalScale(0.5f);
                 geom.setLocalTranslation(x, y, z);
                 geom.setCullHint(CullHint.Never);
-                
+
                 container.release();
-                
+
                 // Place geometry in queue for main thread
                 geomCreateQueue.add(geom);
             }
         });
-        
+
         // Some config options
         flyCam.setMoveSpeed(10);
         rootNode.setCullHint(CullHint.Never);
-        
+
         List<CompletableFuture<Void>> markers = world.updateLoadMarkers();
-        markers.forEach((f) -> {
-            f.join();
-        });
-        
+       /* for(CompletableFuture<Void> marker:markers) {
+            while (!marker.isDone());
+        }*/
         inputManager.addMapping("RELOAD", new KeyTrigger(KeyInput.KEY_G));
         inputManager.addListener(this, "RELOAD");
-        
+
         rootNode.addLight(new AmbientLight());
     }
-    
+
     @Override
     public void simpleUpdate(float tpf) {
         loadMarkersUpdated += tpf;

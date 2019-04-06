@@ -299,9 +299,8 @@ public class Palette16ChunkFormat implements ChunkFormat {
 
         @Override
         public void next() {
-            //TODO optimalize fix (id)
-            writeWorldId(area, index, 0);
             index++;
+            writeWorldId(area, index, 0);
         }
 
         @Override
@@ -311,9 +310,7 @@ public class Palette16ChunkFormat implements ChunkFormat {
 
         @Override
         public void write(TerraMaterial material) {
-            //TODO optimalize fix (id)
             boolean writeOk = writeWorldId(area, index, material.getWorldId());
-            index++;
             if (!writeOk) {
                 throw new TooManyMaterialsException();
             }

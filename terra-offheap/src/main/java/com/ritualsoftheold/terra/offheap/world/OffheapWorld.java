@@ -188,9 +188,7 @@ public class OffheapWorld implements TerraWorld {
     }
     
     // Only used by the builder
-    private OffheapWorld() {
-        
-    }
+    private OffheapWorld() {}
 
     @Override
     public Octree getMasterOctree() {

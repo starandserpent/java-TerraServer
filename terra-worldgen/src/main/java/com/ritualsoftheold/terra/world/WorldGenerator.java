@@ -22,6 +22,7 @@ public class WorldGenerator implements WorldGeneratorInterface<Void> {
     private TerraMaterial air;
     private TerraMaterial grass;
     private ArrayList<Area> areas;
+    private int index;
     
     @Override
     public void setup(long seed, MaterialRegistry materialRegistry) {
@@ -47,15 +48,25 @@ public class WorldGenerator implements WorldGeneratorInterface<Void> {
     }
     
     public void generate(GenerationTask task, GeneratorControl control, Void nothing) {
-            BlockBuffer buf = control.getBuffer();
-        for (int i = 0; i < DataConstants.CHUNK_MAX_BLOCKS; i++) {
-            if(i == 1){
+        BlockBuffer buf = control.getBuffer();
+        System.out.println("x:"+task.getX()+" y:"+task.getY()+" z:"+task.getZ());
+        if(task.getY() < 0) {
+            for (int i = 0; i < DataConstants.CHUNK_MAX_BLOCKS; i++) {
                 buf.write(grass);
-            }else if(i == 2){
-                buf.write(grass);
-            } else {
-                buf.next();
+                if (buf.hasNext()) {
+                    buf.next();
+                }
+            }
+        }else{
+            for (int i = 0; i < DataConstants.CHUNK_MAX_BLOCKS; i++) {
+                buf.write(dirt);
+                if(buf.hasNext()) {
+                    buf.next();
+                }
             }
         }
+
+        index++;
+        System.out.println(index);
     }
 }
