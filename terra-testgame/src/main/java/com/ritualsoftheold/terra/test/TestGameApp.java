@@ -1,5 +1,6 @@
 package com.ritualsoftheold.terra.test;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
@@ -18,6 +19,8 @@ import com.jme3.scene.Mesh;
 import com.jme3.scene.Spatial.CullHint;
 import com.jme3.scene.VertexBuffer.Type;
 import com.jme3.system.AppSettings;
+import com.jme3.texture.Image;
+import com.jme3.texture.TextureArray;
 import com.ritualsoftheold.terra.TerraModule;
 import com.ritualsoftheold.terra.material.MaterialRegistry;
 import com.ritualsoftheold.terra.material.TerraTexture;
@@ -109,7 +112,6 @@ public class TestGameApp extends SimpleApplication implements ActionListener {
         Material mat = new Material(assetManager, "terra/shader/TerraArray.j3md");
         //mat.getAdditionalRenderState().setWireframe(true);
         //mat.getAdditionalRenderState().setFaceCullMode(FaceCullMode.Off);
-        mat.setTexture("ColorMap", texManager.getGroundTexture());
 
         VoxelMesher mesher = new NaiveMesher();
 
@@ -143,6 +145,13 @@ public class TestGameApp extends SimpleApplication implements ActionListener {
                 mesh.setBuffer(Type.Index, 3, container.getIndices().nioBuffer().asIntBuffer());
                 mesh.setBuffer(Type.TexCoord, 2, container.getTextureCoordinates().nioBuffer().asFloatBuffer());
 
+                Material mat = new Material(assetManager, "terra/shader/TerraArray.j3md");
+
+                ArrayList<Image> images = new ArrayList<>();
+                images.add(assetManager.loadTexture(container.getTexture().getAsset()).getImage());
+                TextureArray array = new TextureArray(images);
+                mat.setTexture("ColorMap", array);
+
                 // Create geometry
                 Geometry geom = new Geometry("chunk:" + x + "," + y + "," + z, mesh);
                 //mat.setParam("SeparateTexCoord", VarType.Boolean, true);
@@ -163,9 +172,8 @@ public class TestGameApp extends SimpleApplication implements ActionListener {
         rootNode.setCullHint(CullHint.Never);
 
         List<CompletableFuture<Void>> markers = world.updateLoadMarkers();
-       /* for(CompletableFuture<Void> marker:markers) {
-            while (!marker.isDone());
-        }*/
+        markers.forEach(CompletableFuture::join);
+
         inputManager.addMapping("RELOAD", new KeyTrigger(KeyInput.KEY_G));
         inputManager.addListener(this, "RELOAD");
 

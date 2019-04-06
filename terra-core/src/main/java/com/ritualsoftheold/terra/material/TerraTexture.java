@@ -4,7 +4,7 @@ package com.ritualsoftheold.terra.material;
  * Represents a texture in texture atlas.
  *
  */
-public class TerraTexture {
+public class TerraTexture{
     
     private static final float DEFAULT_SCALE = 1;
     

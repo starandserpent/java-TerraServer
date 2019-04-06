@@ -1,5 +1,7 @@
 package com.ritualsoftheold.terra.mesher;
 
+import com.ritualsoftheold.terra.Terra;
+import com.ritualsoftheold.terra.material.TerraTexture;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
 
@@ -14,6 +16,8 @@ public class MeshContainer {
     private ByteBuf indices;
     
     private ByteBuf texCoords;
+
+    private TerraTexture texture;
     
     /**
      * Creates a new mesh container.
@@ -51,11 +55,19 @@ public class MeshContainer {
         float packed2 = Float.intBitsToFloat(page << 24 | tile << 12 | texturesPerSide);
         texCoords.writeFloatLE(packed2);
     }
+
+    public void setTexture(TerraTexture texture){
+        this.texture = texture;
+    }
     
     public ByteBuf getVertices() {
         return vertices;
     }
-    
+
+    public TerraTexture getTexture(){
+        return texture;
+    }
+
     public ByteBuf getIndices() {
         return indices;
     }

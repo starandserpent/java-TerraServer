@@ -43,7 +43,6 @@ public class TextureManager {
         textures = new Int2ObjectArrayMap<>();
         this.assetManager = assetManager;
     }
-    
     /**
      * Returns texture array used for ground texture.
      * @return Ground texture array.
@@ -74,9 +73,10 @@ public class TextureManager {
             
             int width = texture.getWidth();
             int height = texture.getHeight();
-            
+
+
             // TODO check that texture is power of 2
-            if (width != height) {
+           if (width != height) {
                 throw new UnsupportedOperationException("non-square textures are not yet supported");
             }
             
