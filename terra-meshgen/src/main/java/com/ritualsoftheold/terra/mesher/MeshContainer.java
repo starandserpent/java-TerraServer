@@ -1,27 +1,32 @@
-package com.ritualsoftheold.terra.mesher;
 
-import com.ritualsoftheold.terra.Terra;
-import com.ritualsoftheold.terra.material.TerraTexture;
-import io.netty.buffer.ByteBuf;
-import io.netty.buffer.ByteBufAllocator;
 
-/**
+        package com.ritualsoftheold.terra.mesher;
+
+        import com.jme3.texture.TextureArray;
+        import com.ritualsoftheold.terra.Terra;
+        import com.ritualsoftheold.terra.material.TerraTexture;
+        import io.netty.buffer.ByteBuf;
+        import io.netty.buffer.ByteBufAllocator;
+
+        import java.util.HashMap;
+
+        /**
  * Helps with building meshes for voxel data.
  *
  */
 public class MeshContainer {
-    
+
     private ByteBuf vertices;
-    
+
     private ByteBuf indices;
-    
+
     private ByteBuf texCoords;
 
-    private TerraTexture texture;
-    
+    private HashMap<TerraTexture, Integer> textures;
+
     /**
      * Creates a new mesh container.
-     * 
+     *
      * <p><strong>Remember to {@link #release()} this container!</strong>
      * Otherwise, it is easy to exhaust Netty's buffer allocation,
      * which might cause freezes during mesh generation.
@@ -33,49 +38,63 @@ public class MeshContainer {
         this.vertices = allocator.directBuffer(startSize * 4);
         this.indices = allocator.directBuffer(startSize * 6);
         this.texCoords = allocator.directBuffer(startSize * 4);
+        textures = new HashMap<>();
     }
-    
+
     public void vertex(int x, int y, int z) {
         float packed = Float.intBitsToFloat(x << 22 | y << 12 | z);
         vertices.writeFloatLE(packed);
     }
-    
+
     public void triangle(int vertIndex, int i, int j, int k) {
         indices.writeIntLE(vertIndex + i);
         indices.writeIntLE(vertIndex + j);
         indices.writeIntLE(vertIndex +  k);
     }
-    
+
     public void texture(int page, int tile, int texturesPerSide, float x, float y) {
         int nX = (int) (x * 256);
         int nY = (int) (y * 256);
         float packed1 = Float.intBitsToFloat(nX << 16 | nY);
         texCoords.writeFloatLE(packed1);
-        
+
         float packed2 = Float.intBitsToFloat(page << 24 | tile << 12 | texturesPerSide);
         texCoords.writeFloatLE(packed2);
     }
 
-    public void setTexture(TerraTexture texture){
-        this.texture = texture;
+    public void setMainTexture(TerraTexture texture){
+        int i = 1;
+        if(textures.get(texture) != null) {
+            i = textures.get(texture);
+            i++;
+        }
+        this.textures.put(texture, i);
     }
-    
+
     public ByteBuf getVertices() {
         return vertices;
     }
 
     public TerraTexture getTexture(){
+        int max = 0;
+        TerraTexture texture = null;
+        for(TerraTexture key:textures.keySet()){
+            if(textures.get(key) > max){
+                max = textures.get(key);
+                texture = key;
+            }
+        }
         return texture;
     }
 
     public ByteBuf getIndices() {
         return indices;
     }
-    
+
     public ByteBuf getTextureCoordinates() {
         return texCoords;
     }
-    
+
     /**
      * Releases the underlying Netty buffers. Once you don't use them anymore,
      * this should be called to ensure that Netty's buffer allocator is not

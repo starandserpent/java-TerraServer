@@ -1,55 +1,52 @@
-package com.ritualsoftheold.terra.test;
+ package com.ritualsoftheold.terra.test;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ForkJoinPool;
+        import java.util.List;
+        import java.util.concurrent.ArrayBlockingQueue;
+        import java.util.concurrent.BlockingQueue;
+        import java.util.concurrent.CompletableFuture;
+        import java.util.concurrent.ForkJoinPool;
 
-import com.jme3.app.SimpleApplication;
-import com.jme3.input.KeyInput;
-import com.jme3.input.controls.ActionListener;
-import com.jme3.input.controls.KeyTrigger;
-import com.jme3.light.AmbientLight;
-import com.jme3.material.Material;
-import com.jme3.math.Vector3f;
-import com.jme3.scene.Geometry;
-import com.jme3.scene.Mesh;
-import com.jme3.scene.Spatial.CullHint;
-import com.jme3.scene.VertexBuffer.Type;
-import com.jme3.system.AppSettings;
-import com.jme3.texture.Image;
-import com.jme3.texture.TextureArray;
-import com.ritualsoftheold.terra.TerraModule;
-import com.ritualsoftheold.terra.material.MaterialRegistry;
-import com.ritualsoftheold.terra.material.TerraTexture;
-import com.ritualsoftheold.terra.mesher.MeshContainer;
-import com.ritualsoftheold.terra.mesher.NaiveMesher;
-import com.ritualsoftheold.terra.mesher.VoxelMesher;
-import com.ritualsoftheold.terra.mesher.resource.TextureManager;
-import com.ritualsoftheold.terra.offheap.chunk.ChunkBuffer;
-import com.ritualsoftheold.terra.offheap.io.dummy.DummyChunkLoader;
-import com.ritualsoftheold.terra.offheap.io.dummy.DummyOctreeLoader;
-import com.ritualsoftheold.terra.offheap.memory.MemoryPanicHandler;
-import com.ritualsoftheold.terra.offheap.node.OffheapChunk;
-import com.ritualsoftheold.terra.offheap.world.OffheapWorld;
-import com.ritualsoftheold.terra.offheap.world.WorldLoadListener;
+        import com.jme3.app.SimpleApplication;
+        import com.jme3.input.KeyInput;
+        import com.jme3.input.controls.ActionListener;
+        import com.jme3.input.controls.KeyTrigger;
+        import com.jme3.light.AmbientLight;
+        import com.jme3.material.Material;
+        import com.jme3.math.Vector3f;
+        import com.jme3.scene.Geometry;
+        import com.jme3.scene.Mesh;
+        import com.jme3.scene.Spatial.CullHint;
+        import com.jme3.scene.VertexBuffer.Type;
+        import com.jme3.system.AppSettings;
+        import com.ritualsoftheold.terra.TerraModule;
+        import com.ritualsoftheold.terra.material.MaterialRegistry;
+        import com.ritualsoftheold.terra.material.TerraTexture;
+        import com.ritualsoftheold.terra.mesher.MeshContainer;
+        import com.ritualsoftheold.terra.mesher.NaiveMesher;
+        import com.ritualsoftheold.terra.mesher.VoxelMesher;
+        import com.ritualsoftheold.terra.mesher.resource.TextureManager;
+        import com.ritualsoftheold.terra.offheap.chunk.ChunkBuffer;
+        import com.ritualsoftheold.terra.offheap.io.dummy.DummyChunkLoader;
+        import com.ritualsoftheold.terra.offheap.io.dummy.DummyOctreeLoader;
+        import com.ritualsoftheold.terra.offheap.memory.MemoryPanicHandler;
+        import com.ritualsoftheold.terra.offheap.node.OffheapChunk;
+        import com.ritualsoftheold.terra.offheap.world.OffheapWorld;
+        import com.ritualsoftheold.terra.offheap.world.WorldLoadListener;
 
-import com.ritualsoftheold.terra.gen.objects.LoadMarker;
-import com.ritualsoftheold.terra.gen.interfaces.world.WorldGeneratorInterface;
-import com.ritualsoftheold.terra.world.WorldGenerator;
-import io.netty.buffer.ByteBufAllocator;
+        import com.ritualsoftheold.terra.gen.objects.LoadMarker;
+        import com.ritualsoftheold.terra.gen.interfaces.world.WorldGeneratorInterface;
+        import com.ritualsoftheold.terra.world.WorldGenerator;
+        import io.netty.buffer.ByteBufAllocator;
 
 public class TestGameApp extends SimpleApplication implements ActionListener {
-    
+
     private OffheapWorld world;
     private LoadMarker player;
-    
+
     private BlockingQueue<Geometry> geomCreateQueue = new ArrayBlockingQueue<>(10000);
-    
+
     private float loadMarkersUpdated;
-    
+
     public static void main(String... args) {
         TestGameApp app = new TestGameApp();
         app.showSettings = false;
@@ -59,7 +56,7 @@ public class TestGameApp extends SimpleApplication implements ActionListener {
         app.settings.setFullscreen(false);
         app.start();
     }
-    
+
     @Override
     public void simpleInitApp() {
         //setDisplayFps(false);
@@ -108,18 +105,13 @@ public class TestGameApp extends SimpleApplication implements ActionListener {
         TextureManager texManager = new TextureManager(assetManager); // Initialize texture atlas/array manager
         texManager.loadMaterials(reg); // And make it load material registry
 
-        // Create material
-        Material mat = new Material(assetManager, "terra/shader/TerraArray.j3md");
-        //mat.getAdditionalRenderState().setWireframe(true);
-        //mat.getAdditionalRenderState().setFaceCullMode(FaceCullMode.Off);
-
         VoxelMesher mesher = new NaiveMesher();
 
         world.setLoadListener(new WorldLoadListener() {
 
             @Override
             public void octreeLoaded(long addr, long groupAddr, int id, float x,
-                    float y, float z, float scale, LoadMarker trigger) {
+                                     float y, float z, float scale, LoadMarker trigger) {
                 // For now, just ignore octrees
             }
 
@@ -145,23 +137,20 @@ public class TestGameApp extends SimpleApplication implements ActionListener {
                 mesh.setBuffer(Type.Index, 3, container.getIndices().nioBuffer().asIntBuffer());
                 mesh.setBuffer(Type.TexCoord, 2, container.getTextureCoordinates().nioBuffer().asFloatBuffer());
 
-                Material mat = new Material(assetManager, "terra/shader/TerraArray.j3md");
-
-                ArrayList<Image> images = new ArrayList<>();
-                images.add(assetManager.loadTexture(container.getTexture().getAsset()).getImage());
-                TextureArray array = new TextureArray(images);
-                mat.setTexture("ColorMap", array);
-
                 // Create geometry
                 Geometry geom = new Geometry("chunk:" + x + "," + y + "," + z, mesh);
                 //mat.setParam("SeparateTexCoord", VarType.Boolean, true);
+
+                // Create material
+                Material mat = new Material(assetManager, "terra/shader/TerraArray.j3md");
+                mat.setTexture("ColorMap", texManager.convertTexture(container.getTexture()));
+
                 geom.setMaterial(mat);
                 //geom.setLocalScale(0.5f);
                 geom.setLocalTranslation(x, y, z);
                 geom.setCullHint(CullHint.Never);
 
                 container.release();
-
                 // Place geometry in queue for main thread
                 geomCreateQueue.add(geom);
             }
@@ -172,7 +161,9 @@ public class TestGameApp extends SimpleApplication implements ActionListener {
         rootNode.setCullHint(CullHint.Never);
 
         List<CompletableFuture<Void>> markers = world.updateLoadMarkers();
-        markers.forEach(CompletableFuture::join);
+        markers.forEach((f) -> {
+            f.join();
+        });
 
         inputManager.addMapping("RELOAD", new KeyTrigger(KeyInput.KEY_G));
         inputManager.addListener(this, "RELOAD");
@@ -189,12 +180,12 @@ public class TestGameApp extends SimpleApplication implements ActionListener {
             //System.out.println(camLoc);
             player.move(camLoc.getX(), camLoc.getY(), camLoc.getZ());
             //CompletableFuture.runAsync(() -> {
-                //long stamp = world.enter();
-                //world.updateLoadMarkers(); // Update load markers
-                //world.leave(stamp);
+            //long stamp = world.enter();
+            //world.updateLoadMarkers(); // Update load markers
+            //world.leave(stamp);
             //});
         }
-            
+
         while (!geomCreateQueue.isEmpty()) {
             Geometry geom = geomCreateQueue.poll();
             //System.out.println("create geom: " + geom.getLocalTranslation());

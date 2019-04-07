@@ -2,6 +2,7 @@ package com.ritualsoftheold.terra.mesher.resource;
 
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 import com.jme3.asset.AssetManager;
@@ -27,7 +28,7 @@ import it.unimi.dsi.fastutil.shorts.Short2ObjectMap;
 public class TextureManager {
     
     private static final int TEXTURE_MIN_RES = 2;
-    private static final int ATLAS_SIZE = 4096;
+    private static final int ATLAS_SIZE = 256;
     private static final int BYTES_PER_PIXEL = 4;
     private static final int ATLAS_SIZE_IMAGE = ATLAS_SIZE * BYTES_PER_PIXEL;
     
@@ -37,7 +38,7 @@ public class TextureManager {
     private AssetManager assetManager;
     
     private TextureArray array;
-    private List<Image> atlases;
+    private HashMap<TerraTexture, Image> atlases;
     
     public TextureManager(AssetManager assetManager) {
         textures = new Int2ObjectArrayMap<>();
@@ -47,16 +48,17 @@ public class TextureManager {
      * Returns texture array used for ground texture.
      * @return Ground texture array.
      */
-    public TextureArray getGroundTexture() {
+
+    public TextureArray convertTexture(TerraTexture textureId){
+        // TODO make these configurable, Rituals art style already changed a bit since I wrote this
+        ArrayList<Image> textures = new ArrayList<>();
+
+        textures.add(atlases.get(textureId));
+        array = new TextureArray(textures);
+        array.setMagFilter(MagFilter.Nearest);
+        array.setMinFilter(MinFilter.NearestNoMipMaps);
+        System.out.println(textureId);
         return array;
-    }
-    
-    public Image getAtlas(int index) {
-        return atlases.get(index);
-    }
-    
-    public TerraTexture getTexture(int worldId) {
-        return textures.get(worldId);
     }
     
     public void loadMaterials(MaterialRegistry reg) {
@@ -85,59 +87,58 @@ public class TextureManager {
             resulutions.put(width, sameRes); // Re-put list if we actually only just created it
         }
         
-        List<Image> atlases = new ArrayList<>(); // All texture atlases go here
+        HashMap<TerraTexture, Image> atlases = new HashMap<>(); // All texture atlases go here
         for (Entry<List<TerraTexture>> e : resulutions.int2ObjectEntrySet()) {
             generateAtlases(e.getValue(), e.getIntKey(), atlases); // Generate atlases...
         }
-        
-        // TODO make these configurable, Rituals art style already changed a bit since I wrote this
-        array = new TextureArray(atlases);
-        array.setMagFilter(MagFilter.Nearest);
-        array.setMinFilter(MinFilter.NearestNoMipMaps);
         this.atlases = atlases;
     }
     
-    private void generateAtlases(List<TerraTexture> textures, int size, List<Image> atlases) {
+    private void generateAtlases(List<TerraTexture> textures, int size, HashMap<TerraTexture ,Image> atlases) {
         int texturesPerSide = ATLAS_SIZE / size;
-        
-        int x = 0;
-        int y = 0;
-        ByteBuffer atlasBuf = ByteBuffer.allocateDirect(ATLAS_SIZE * ATLAS_SIZE * BYTES_PER_PIXEL); // 4 for alpha channel+colors, TODO configurable
+
         for (TerraTexture texture : textures) {
+            int x = 0;
+            int y = 0;
+            ByteBuffer atlasBuf = ByteBuffer.allocateDirect(ATLAS_SIZE * ATLAS_SIZE * BYTES_PER_PIXEL + 1); // 4 for alpha channel+colors, TODO configurable
             Image img = assetManager.loadTexture(texture.getAsset()).getImage(); // Use asset manager to load
             if (x == texturesPerSide) { // Pick next row
                 x = 0;
                 y++;
             } if (y == texturesPerSide) { // Out of y values... need next atlas
                 Image readyAtlas = new Image(Format.ABGR8, ATLAS_SIZE, ATLAS_SIZE, atlasBuf, null, com.jme3.texture.image.ColorSpace.Linear);
-                atlases.add(readyAtlas);
+                atlases.put(texture, readyAtlas);
                 atlasBuf = ByteBuffer.allocateDirect(ATLAS_SIZE * ATLAS_SIZE * BYTES_PER_PIXEL);
             }
             
             int atlasStart = x * size * BYTES_PER_PIXEL + y * size * ATLAS_SIZE_IMAGE;
             
             ByteBuffer imgData = img.getData(0);
+
+            ArrayList<byte[]> rows = new ArrayList<>();
             for (int i = 0; i < size; i++) {
                 byte[] row = new byte[size * BYTES_PER_PIXEL]; // Create array for one row of image data
                 imgData.position(i * size * BYTES_PER_PIXEL);
                 imgData.get(row); // Copy one row of data to array
+                rows.add(row);
+            }
+
+            for (int i = 0; i < ATLAS_SIZE; i++) {
                 atlasBuf.position(atlasStart + i * ATLAS_SIZE_IMAGE); // Travel to correct point in atlas data
-                atlasBuf.put(row); // Set a row of data to atlas
+                atlasBuf.put(rows.get(i)); // Set a row of data to atlas
             }
             
             // Assign texture data for shader
             texture.setPage(atlases.size()); // Texture array id, "page"
             texture.setTileId(y * texturesPerSide + x); // Texture tile id
             texture.setTexturesPerSide(texturesPerSide); // For MeshContainer
-            
-            x++;
-        }
-        
-        // Not full atlas, but not empty either
-        if (atlasBuf.position() != 0) {
-            System.out.println("Incomplete atlas");
-            Image incompleteAtlas = new Image(Format.ABGR8, ATLAS_SIZE, ATLAS_SIZE, atlasBuf, null, com.jme3.texture.image.ColorSpace.Linear);
-            atlases.add(incompleteAtlas);
+
+            // Not full atlas, but not empty either
+            if (atlasBuf.position() != 0) {
+                System.out.println("Incomplete atlas");
+                Image incompleteAtlas = new Image(Format.ABGR8, ATLAS_SIZE, ATLAS_SIZE, atlasBuf, null, com.jme3.texture.image.ColorSpace.Linear);
+                atlases.put(texture, incompleteAtlas);
+            }
         }
     }
 
