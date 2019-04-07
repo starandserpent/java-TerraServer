@@ -5,7 +5,6 @@ import com.ritualsoftheold.terra.material.MaterialRegistry;
 import com.ritualsoftheold.terra.material.TerraMaterial;
 import com.ritualsoftheold.terra.offheap.DataConstants;
 import com.ritualsoftheold.terra.offheap.MemoryArea;
-import com.ritualsoftheold.terra.offheap.Pointer;
 import com.ritualsoftheold.terra.offheap.chunk.ChunkType;
 import com.ritualsoftheold.terra.offheap.chunk.TooManyMaterialsException;
 import com.ritualsoftheold.terra.offheap.data.BufferWithFormat;
@@ -41,7 +40,7 @@ public class Palette16ChunkFormat implements ChunkFormat {
      * @param index
      * @return
      */
-    public int byteIndex(int index) {
+    public static int byteIndex(int index) {
         return index >> 1; // Quick integer divide positive by 2
     }
     
@@ -51,7 +50,7 @@ public class Palette16ChunkFormat implements ChunkFormat {
      * @param index
      * @return
      */
-    public int shiftOffset(int index) {
+    public static int shiftOffset(int index) {
         // Quick modulo positive by 2
         // Get shift offset by reducing (0 -> -1, 1 -> 0)
         // and then multiplying by -4 to get shift offset in bits, positive
@@ -64,7 +63,7 @@ public class Palette16ChunkFormat implements ChunkFormat {
      * @param id World block id.
      * @return Palette id or -1 if palette is exhausted.
      */
-    public int findPaletteId(MemoryArea palette, int id) {
+    public static int findPaletteId(MemoryArea palette, int id) {
         for (int i = 0; i < PALETTE_LENGTH; i++) {
             int worldId = palette.readVolatileInt(i * PALETTE_ENTRY_LENGTH);
             if (worldId == id) { // Found our palette id!
@@ -88,7 +87,7 @@ public class Palette16ChunkFormat implements ChunkFormat {
      * @param paletteId Palette id (0-15).
      * @return World id.
      */
-    public int getWorldId(MemoryArea palette, int paletteId) {
+    public static int getWorldId(MemoryArea palette, int paletteId) {
         return palette.readVolatileInt(paletteId * PALETTE_ENTRY_LENGTH);
     }
     
@@ -99,11 +98,12 @@ public class Palette16ChunkFormat implements ChunkFormat {
      * @param index Block index.
      * @return World id.
      */
-    public int readWorldId(MemoryArea area, int index) {
+    public static int readWorldId(MemoryArea area, int index) {
         int byteIndex = byteIndex(index);
         int bitOffset = shiftOffset(index);
+        int blockIndex = PALETTE_LENGTH + byteIndex;
 
-        byte data = area.readVolatileByte(PALETTE_LENGTH + byteIndex);
+        byte data = area.readVolatileByte(blockIndex);
         int paletteId = (data >>> bitOffset) & 0xf;
         
         return getWorldId(area, paletteId);
@@ -138,7 +138,7 @@ public class Palette16ChunkFormat implements ChunkFormat {
          * When no shifting is done (bitOffset==0), the first 4
          * bits are AND'd with 0xf and second 0x0, thus clearing
          * the second 4 bits.
-         * 
+         *
          * When shifting is done by 4, first shift will rearrange
          * the byte in int in a way that the reverse is true.
          * first 4 bits and AND'd with 0x0 and second with 0x0.
@@ -153,7 +153,6 @@ public class Palette16ChunkFormat implements ChunkFormat {
         // Write our new value in place of old one
         // One block was changed, one not
         area.writeVolatileByte(blockIndex, (byte) value);
-        
         return true;
     }
     
@@ -205,7 +204,8 @@ public class Palette16ChunkFormat implements ChunkFormat {
     }
     
     public class Palette16BlockBuffer implements BufferWithFormat {
-        
+
+        private MemoryArea area;
         private final OffheapChunk chunk;
         private final Storage storage;
         private final MaterialRegistry registry;
@@ -251,6 +251,8 @@ public class Palette16ChunkFormat implements ChunkFormat {
         @Override
         public TerraMaterial read() {
             int worldId = readWorldId(storage, index);
+            System.out.println(worldId);
+            System.out.println("hoj");
             return registry.getForWorldId(worldId);
         }
 
@@ -281,7 +283,7 @@ public class Palette16ChunkFormat implements ChunkFormat {
             this.area = area;
             this.registry = registry;
         }
-        
+
         @Override
         public void close() {
             // Not needed
@@ -301,7 +303,7 @@ public class Palette16ChunkFormat implements ChunkFormat {
         public void next() {
             index++;
             writeWorldId(area, index, 0);
-        }
+       }
 
         @Override
         public boolean hasNext() {
@@ -321,6 +323,7 @@ public class Palette16ChunkFormat implements ChunkFormat {
             int worldId = readWorldId(area, index);
             return registry.getForWorldId(worldId);
         }
+
 
         @Override
         public Object readRef() {

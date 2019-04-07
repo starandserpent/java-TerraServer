@@ -50,21 +50,17 @@ public class WorldGenerator implements WorldGeneratorInterface<Void> {
     public void generate(GenerationTask task, GeneratorControl control, Void nothing) {
         BlockBuffer buf = control.getBuffer();
         System.out.println("x:"+task.getX()+" y:"+task.getY()+" z:"+task.getZ());
-        if(task.getY() < 0) {
-            for (int i = 0; i < DataConstants.CHUNK_MAX_BLOCKS; i++) {
-                buf.write(grass);
+            for (int i = 0; i < DataConstants.CHUNK_MAX_BLOCKS/2; i++) {
                 if (buf.hasNext()) {
                     buf.next();
                 }
             }
-        }else{
-            for (int i = 0; i < DataConstants.CHUNK_MAX_BLOCKS; i++) {
+            for (int i = 0; i < DataConstants.CHUNK_MAX_BLOCKS/2; i++) {
                 buf.write(dirt);
-                if(buf.hasNext()) {
+                if (buf.hasNext()) {
                     buf.next();
                 }
             }
-        }
 
         index++;
         System.out.println(index);

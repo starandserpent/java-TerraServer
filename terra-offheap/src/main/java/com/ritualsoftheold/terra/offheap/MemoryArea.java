@@ -1,15 +1,13 @@
 package com.ritualsoftheold.terra.offheap;
 
-import static com.ritualsoftheold.terra.offheap.BuildConfig.inBounds;
 
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.VarHandle;
-import java.util.Objects;
 
 import com.ritualsoftheold.terra.offheap.memory.MemoryAllocator;
-
 import net.openhft.chronicle.core.Memory;
 import net.openhft.chronicle.core.OS;
+
 
 /**
  * A memory area with optional bounds checks.
@@ -89,79 +87,79 @@ public class MemoryArea {
     }
     
     public void fill(long index, long size, byte fill) {
-        mem.setMemory(inBounds(start + index, 1, start, length), size, fill);
+        mem.setMemory(BuildConfig.inBounds(start + index, 1, start, length), size, fill);
     }
     
     public byte readByte(long index) {
-        return mem.readByte(inBounds(start + index, 1, start, length));
+        return mem.readByte(BuildConfig.inBounds(start + index, 1, start, length));
     }
     
     public void writeByte(long index, byte value) {
-        mem.writeByte(inBounds(start + index, 1, start, length), value);
+        mem.writeByte(BuildConfig.inBounds(start + index, 1, start, length), value);
     }
     
     public byte readVolatileByte(long index) {
-        return mem.readVolatileByte(inBounds(start + index, 1, start, length));
+        return mem.readVolatileByte(BuildConfig.inBounds(start + index, 1, start, length));
     }
     
     public void writeVolatileByte(long index, byte value) {
-        mem.writeVolatileByte(inBounds(start + index, 1, start, length), value);
+        mem.writeVolatileByte(BuildConfig.inBounds(start + index, 1, start, length), value);
     }
     
     public short readShort(long index) {
-        return mem.readShort(inBounds(start + index, 2, start, length));
+        return mem.readShort(BuildConfig.inBounds(start + index, 2, start, length));
     }
     
     public void writeShort(long index, short value) {
-        mem.writeShort(inBounds(start + index, 2, start, length), value);
+        mem.writeShort(BuildConfig.inBounds(start + index, 2, start, length), value);
     }
     
     public short readVolatileShort(long index) {
-        return mem.readVolatileShort(inBounds(start + index, 2, start, length));
+        return mem.readVolatileShort(BuildConfig.inBounds(start + index, 2, start, length));
     }
     
     public void writeVolatileShort(long index, short value) {
-        mem.writeVolatileShort(inBounds(start + index, 2, start, length), value);
+        mem.writeVolatileShort(BuildConfig.inBounds(start + index, 2, start, length), value);
     }
     
     public int readInt(long index) {
-        return mem.readInt(inBounds(start + index, 4, start, length));
+        return mem.readInt(BuildConfig.inBounds(start + index, 4, start, length));
     }
     
     public void writeInt(long index, int value) {
-        mem.writeInt(inBounds(start + index, 4, start, length), value);
+        mem.writeInt(BuildConfig.inBounds(start + index, 4, start, length), value);
     }
     
     public int readVolatileInt(long index) {
-        return mem.readVolatileInt(inBounds(start + index, 4, start, length));
+        return mem.readVolatileInt(BuildConfig.inBounds(start + index, 4, start, length));
     }
     
     public void writeVolatileInt(long index, int value) {
-        mem.writeVolatileInt(inBounds(start + index, 4, start, length), value);
+        mem.writeVolatileInt(BuildConfig.inBounds(start + index, 4, start, length), value);
     }
     
     public long readLong(long index) {
-        return mem.readLong(inBounds(start + index, 8, start, length));
+        return mem.readLong(BuildConfig.inBounds(start + index, 8, start, length));
     }
     
     public void writeLong(long index, long value) {
-        mem.writeLong(inBounds(start + index, 8, start, length), value);
+        mem.writeLong(BuildConfig.inBounds(start + index, 8, start, length), value);
     }
     
     public long readVolatileLong(long index) {
-        return mem.readVolatileLong(inBounds(start + index, 8, start, length));
+        return mem.readVolatileLong(BuildConfig.inBounds(start + index, 8, start, length));
     }
     
     public void writeVolatileLong(long index, long value) {
-        mem.writeVolatileLong(inBounds(start + index, 8, start, length), value);
+        mem.writeVolatileLong(BuildConfig.inBounds(start + index, 8, start, length), value);
     }
     
     public int getAndAddInt(long index, int increment) {
-        return mem.addInt(inBounds(start + index, 4, start, length), increment);
+        return mem.addInt(BuildConfig.inBounds(start + index, 4, start, length), increment);
     }
     
     public long getAndAddLong(long index, int increment) {
-        return mem.addLong(inBounds(start + index, 8, start, length), increment);
+        return mem.addLong(BuildConfig.inBounds(start + index, 8, start, length), increment);
     }
     
     /**

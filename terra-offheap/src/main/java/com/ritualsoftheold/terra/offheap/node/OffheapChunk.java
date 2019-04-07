@@ -7,7 +7,6 @@ import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import com.ritualsoftheold.terra.buffer.BlockBuffer;
 import com.ritualsoftheold.terra.material.MaterialRegistry;
 import com.ritualsoftheold.terra.node.Chunk;
 import com.ritualsoftheold.terra.offheap.MemoryArea;
@@ -16,6 +15,7 @@ import com.ritualsoftheold.terra.offheap.chunk.ChunkBuffer;
 import com.ritualsoftheold.terra.offheap.chunk.TooManyMaterialsException;
 import com.ritualsoftheold.terra.offheap.chunk.compress.ChunkFormat;
 import com.ritualsoftheold.terra.offheap.chunk.compress.EmptyChunkFormat;
+import com.ritualsoftheold.terra.offheap.data.BufferWithFormat;
 import com.ritualsoftheold.terra.offheap.data.OffheapNode;
 
 import net.openhft.chronicle.core.Memory;
@@ -295,7 +295,7 @@ public class OffheapChunk implements Chunk, OffheapNode {
     }
 
     @Override
-    public BlockBuffer getBuffer() {
+    public BufferWithFormat getBuffer() {
         /*
          * Buffers created by OffheapChunk represent the latest data in reads,
          * excluding yet-to-be-applied change queries, IF and ONLY IF the chunk

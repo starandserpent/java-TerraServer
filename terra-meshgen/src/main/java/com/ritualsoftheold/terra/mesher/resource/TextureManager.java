@@ -54,11 +54,15 @@ public class TextureManager {
         ArrayList<Image> textures = new ArrayList<>();
 
         textures.add(atlases.get(textureId));
-        array = new TextureArray(textures);
-        array.setMagFilter(MagFilter.Nearest);
-        array.setMinFilter(MinFilter.NearestNoMipMaps);
-        System.out.println(textureId);
-        return array;
+        if(textures.get(0) != null) {
+            array = new TextureArray(textures);
+            array.setMagFilter(MagFilter.Nearest);
+            array.setMinFilter(MinFilter.NearestNoMipMaps);
+            System.out.println(textureId);
+            return array;
+        }else{
+            return null;
+        }
     }
     
     public void loadMaterials(MaterialRegistry reg) {

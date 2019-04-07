@@ -1,9 +1,14 @@
 package com.ritualsoftheold.terra.mesher;
 
+import com.jme3.util.PrimitiveAllocator;
 import com.ritualsoftheold.terra.buffer.BlockBuffer;
+import com.ritualsoftheold.terra.material.TerraMaterial;
 import com.ritualsoftheold.terra.material.TerraTexture;
 import com.ritualsoftheold.terra.mesher.resource.TextureManager;
 import com.ritualsoftheold.terra.offheap.DataConstants;
+import com.ritualsoftheold.terra.offheap.chunk.compress.Palette16ChunkFormat;
+import com.ritualsoftheold.terra.offheap.data.BufferWithFormat;
+import com.ritualsoftheold.terra.offheap.data.CriticalBlockBuffer;
 
 /**
  * Naive mesher does culling, but doesn't try to merge same blocks into bigger faces.
@@ -22,7 +27,7 @@ public class NaiveMesher implements VoxelMesher {
     }
     
     @Override
-    public void chunk(BlockBuffer buf, TextureManager textures, MeshContainer mesh) {
+    public void chunk(BufferWithFormat buf, TextureManager textures, MeshContainer mesh) {
         assert buf != null;
         assert textures != null;
         assert mesh != null;
@@ -41,9 +46,9 @@ public class NaiveMesher implements VoxelMesher {
         int block = 0;
         int vertIndex = 0;
         while (buf.hasNext()) {
+            TerraMaterial material = buf.read();
             buf.next();
-            TerraTexture texture = buf.read().getTexture();
-            if (texture == null) { // TODO better AIR check
+            if (material.getWorldId() == 0) { // TODO better AIR check
                 block++;
                 continue;
             }
@@ -56,7 +61,8 @@ public class NaiveMesher implements VoxelMesher {
                 continue; // AIR or all faces are hidden
             }
             //System.out.println("id: " + id + ", block: " + block);
-            
+
+            TerraTexture texture = material.getTexture();
             // Calculate texture coordinates...
             int page = texture.getPage();
             int tile = texture.getTileId();
