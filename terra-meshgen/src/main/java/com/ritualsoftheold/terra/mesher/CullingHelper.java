@@ -2,7 +2,7 @@ package com.ritualsoftheold.terra.mesher;
 
 import com.ritualsoftheold.terra.buffer.BlockBuffer;
 import com.ritualsoftheold.terra.material.TerraTexture;
-import com.ritualsoftheold.terra.offheap.DataConstants;
+import com.ritualsoftheold.terra.DataConstants;
 
 /**
  * Simple face-culling implementation. Some mesh generators might be able to
@@ -13,8 +13,8 @@ public class CullingHelper {
 
     public void cull(BlockBuffer buf, byte[] hidden) {
         int index = 0;
+        buf.seek(0);
         while (buf.hasNext()) {
-            buf.next();
             TerraTexture texture = buf.read().getTexture();
             if (texture == null) { // TODO better AIR check
                 continue;
@@ -35,7 +35,7 @@ public class CullingHelper {
             if (rightIndex > -1 && (index & 63) != 0)
                 hidden[rightIndex] |= 0b00010000; // RIGHT
             int leftIndex = index + 1;
-            if (leftIndex < DataConstants.CHUNK_MAX_BLOCKS && (leftIndex & 63) != 0)
+            if (leftIndex < DataConstants.CHUNK_MAX_BLOCKS  && (leftIndex & 63) != 0)
                 hidden[leftIndex] |= 0b00100000; // LEFT
             int upIndex = index - 64;
             if (upIndex > -1 && index - index / 4096 * 4096 > 64)
@@ -49,7 +49,8 @@ public class CullingHelper {
             int frontIndex = index - 4096;
             if (frontIndex > -1)
                 hidden[frontIndex] |= 0b00000010; // FRONT
-            
+
+            buf.next();
             index++;
         }
     }

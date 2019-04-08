@@ -3,7 +3,6 @@ package com.ritualsoftheold.terra.mesher.test;
 import com.jme3.app.SimpleApplication;
 import com.jme3.light.PointLight;
 import com.jme3.material.Material;
-import com.jme3.material.RenderState.FaceCullMode;
 import com.jme3.math.ColorRGBA;
 import com.jme3.scene.Geometry;
 import com.jme3.scene.Mesh;
@@ -17,8 +16,7 @@ import com.ritualsoftheold.terra.mesher.MeshContainer;
 import com.ritualsoftheold.terra.mesher.NaiveMesher;
 import com.ritualsoftheold.terra.mesher.VoxelMesher;
 import com.ritualsoftheold.terra.mesher.resource.TextureManager;
-import com.ritualsoftheold.terra.offheap.DataConstants;
-import com.ritualsoftheold.terra.offheap.chunk.ChunkType;
+import com.ritualsoftheold.terra.DataConstants;
 //import com.ritualsoftheold.terra.offheap.chunk.iterator.ChunkIterator;
 
 import io.netty.buffer.ByteBufAllocator;

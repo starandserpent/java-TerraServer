@@ -10,8 +10,8 @@ import org.agrona.MutableDirectBuffer;
 import org.agrona.concurrent.UnsafeBuffer;
 
 import com.ritualsoftheold.terra.net.TerraProtocol;
-import com.ritualsoftheold.terra.offheap.DataConstants;
-import com.ritualsoftheold.terra.offheap.Pointer;
+import com.ritualsoftheold.terra.DataConstants;
+import com.ritualsoftheold.terra.Pointer;
 import com.ritualsoftheold.terra.world.LoadMarker;
 
 import io.aeron.Publication;

@@ -1,0 +1,68 @@
+package com.ritualsoftheold.terra.test;
+
+import java.util.concurrent.ForkJoinPool;
+
+import com.ritualsoftheold.terra.chunk.ChunkBuffer;
+import com.ritualsoftheold.terra.memory.MemoryPanicHandler;
+import com.ritualsoftheold.terra.world.OffheapWorld;
+import org.junit.Before;
+import org.junit.Test;
+
+import com.ritualsoftheold.terra.material.MaterialRegistry;
+import com.ritualsoftheold.terra.io.dummy.DummyChunkLoader;
+import com.ritualsoftheold.terra.io.dummy.DummyOctreeLoader;
+
+import net.openhft.chronicle.core.Memory;
+import net.openhft.chronicle.core.OS;
+
+/**
+ * Tests OffheapWorld.
+ *
+ */
+public class WorldTest {
+    
+    // FIXME broken, Palette16 requires functional materials to be available
+    
+    private static final Memory mem = OS.memory();
+    
+    private OffheapWorld world;
+
+    @Before
+    public void init() {
+        ChunkBuffer.Builder bufferBuilder = new ChunkBuffer.Builder()
+                .maxChunks(128)
+                .queueSize(4);
+        
+        world = new OffheapWorld.Builder()
+                .chunkLoader(new DummyChunkLoader())
+                .octreeLoader(new DummyOctreeLoader(32768))
+                .storageExecutor(ForkJoinPool.commonPool())
+                .chunkStorage(bufferBuilder, 128)
+                .octreeStorage(32768)
+                .generator(new TestWorldGeneratorInterface())
+                .generatorExecutor(ForkJoinPool.commonPool())
+                .materialRegistry(new MaterialRegistry())
+                .memorySettings(10000000, 10000000, new MemoryPanicHandler() {
+                    
+                    @Override
+                    public PanicResult outOfMemory(long max, long used, long possible) {
+                        return PanicResult.CONTINUE;
+                    }
+                    
+                    @Override
+                    public PanicResult goalNotMet(long goal, long possible) {
+                        return PanicResult.CONTINUE;
+                    }
+                })
+                .build();
+        world.setLoadListener(new DummyLoadListener());
+        
+        world.addLoadMarker(world.createLoadMarker(0, 0, 0, 32, 32, 0));
+        world.updateLoadMarkers().forEach((f) -> f.join());
+    }
+    
+    @Test
+    public void initTest() {
+        // See init() above
+    }
+}
