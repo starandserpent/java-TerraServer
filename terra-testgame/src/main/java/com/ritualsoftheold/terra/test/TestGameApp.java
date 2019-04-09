@@ -19,7 +19,10 @@ import com.jme3.scene.Mesh;
 import com.jme3.scene.Spatial.CullHint;
 import com.jme3.scene.VertexBuffer.Type;
 import com.jme3.system.AppSettings;
+import com.jme3.texture.Image;
+import com.jme3.texture.TextureArray;
 import com.ritualsoftheold.terra.core.TerraModule;
+import com.ritualsoftheold.terra.core.material.TerraMaterial;
 import com.ritualsoftheold.terra.offheap.chunk.ChunkBuffer;
 import com.ritualsoftheold.terra.core.gen.interfaces.world.WorldGeneratorInterface;
 import com.ritualsoftheold.terra.core.gen.objects.LoadMarker;
@@ -43,8 +46,8 @@ public class TestGameApp extends SimpleApplication implements ActionListener {
 
     private OffheapWorld world;
     private LoadMarker player;
-    boolean wireframe = false;
-    ArrayList<Material> materials = null;
+    private boolean wireframe = false;
+    private ArrayList<Material> materials;
 
     private BlockingQueue<Geometry> geomCreateQueue = new ArrayBlockingQueue<>(10000);
 
@@ -54,7 +57,7 @@ public class TestGameApp extends SimpleApplication implements ActionListener {
         TestGameApp app = new TestGameApp();
         app.showSettings = false;
         app.settings = new AppSettings(true);
-        app.settings.setResolution(1024, 768);
+        app.settings.setResolution(1600, 900);
         app.settings.setTitle("Terra testgame");
         app.settings.setFullscreen(false);
         app.start();
@@ -108,9 +111,8 @@ public class TestGameApp extends SimpleApplication implements ActionListener {
         world.addLoadMarker(player);
       //  world.addLoadMarker(secondchunk);
 
-        TextureManager texManager = new TextureManager(assetManager); // Initialize texture atlas/array manager
-        texManager.loadMaterials(reg); // And make it load material registry
-
+        TextureManager texManager = new TextureManager(assetManager, reg); // Initialize texture atlas/array manager
+        texManager.loadMaterials();
         VoxelMesher mesher = new NaiveMesher();
 
         world.setLoadListener(new WorldLoadListener() {
@@ -151,7 +153,8 @@ public class TestGameApp extends SimpleApplication implements ActionListener {
                 // Create material
                 materials.add(new Material(assetManager, "terra/shader/TerraArray.j3md"));
 
-                materials.get(materials.size() - 1).setTexture("ColorMap", texManager.convertTexture(container.getTexture()));
+                TextureArray texture = texManager.convertTexture(container.getTextures());
+                materials.get(materials.size() - 1).setTexture("ColorMap", texture);
                 geom.setMaterial(materials.get(materials.size() - 1));
                 //geom.setLocalScale(0.5f);
                 geom.setLocalTranslation(x, y, z);

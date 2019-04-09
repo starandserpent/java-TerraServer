@@ -64,7 +64,7 @@ public class NaiveMesher implements VoxelMesher {
             int tile = texture.getTileId();
             float texScale = texture.getScale();
             int perSide = texture.getTexturesPerSide();
-            mesh.setMainTexture(texture);
+            mesh.addTexture(texture);
 
             // Calculate current block position (normalized by shader)
             int z = block / 4096; // Integer division: current z index

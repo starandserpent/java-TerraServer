@@ -3,6 +3,7 @@
         package com.ritualsoftheold.terra.mesher;
 
         import com.ritualsoftheold.terra.core.Terra;
+        import com.ritualsoftheold.terra.core.material.TerraMaterial;
         import com.ritualsoftheold.terra.core.material.TerraTexture;
         import io.netty.buffer.ByteBuf;
         import io.netty.buffer.ByteBufAllocator;
@@ -62,7 +63,7 @@ public class MeshContainer {
         texCoords.writeFloatLE(packed2);
     }
 
-    public void setMainTexture(TerraTexture texture){
+    public void addTexture(TerraTexture texture){
         this.textures.add(texture);
     }
 
@@ -70,7 +71,7 @@ public class MeshContainer {
         return vertices;
     }
 
-    public ArrayList<TerraTexture> getTexture(){
+    public ArrayList<TerraTexture> getTextures(){
         return textures;
     }
 
