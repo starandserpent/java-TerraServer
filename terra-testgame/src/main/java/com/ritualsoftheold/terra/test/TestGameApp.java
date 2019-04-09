@@ -42,6 +42,8 @@ public class TestGameApp extends SimpleApplication implements ActionListener {
 
     private OffheapWorld world;
     private LoadMarker player;
+    boolean wireframe = false;
+    Material material = null;
 
     private BlockingQueue<Geometry> geomCreateQueue = new ArrayBlockingQueue<>(10000);
 
@@ -131,6 +133,7 @@ public class TestGameApp extends SimpleApplication implements ActionListener {
 
                 // Create mesh
                 Mesh mesh = new Mesh();
+
                 //System.out.println(mesher.getVertices());
                 //System.out.println(mesher.getIndices());
                 mesh.setBuffer(Type.Position, 1, container.getVertices().nioBuffer().asFloatBuffer());
@@ -142,10 +145,12 @@ public class TestGameApp extends SimpleApplication implements ActionListener {
                 //mat.setParam("SeparateTexCoord", VarType.Boolean, true);
 
                 // Create material
-                Material mat = new Material(assetManager, "terra/shader/TerraArray.j3md");
-                mat.setTexture("ColorMap", texManager.convertTexture(container.getTexture()));
+                if(material == null){
+                    material  = new Material(assetManager, "terra/shader/TerraArray.j3md");
+                }
 
-                geom.setMaterial(mat);
+                material.setTexture("ColorMap", texManager.convertTexture(container.getTexture()));
+                geom.setMaterial(material);
                 //geom.setLocalScale(0.5f);
                 geom.setLocalTranslation(x, y, z);
                 geom.setCullHint(CullHint.Never);
@@ -167,6 +172,8 @@ public class TestGameApp extends SimpleApplication implements ActionListener {
 
         inputManager.addMapping("RELOAD", new KeyTrigger(KeyInput.KEY_G));
         inputManager.addListener(this, "RELOAD");
+        inputManager.addMapping("toggle wireframe", new KeyTrigger(KeyInput.KEY_T));
+        inputManager.addListener(this, "toggle wireframe");
 
         rootNode.addLight(new AmbientLight());
     }
@@ -198,6 +205,10 @@ public class TestGameApp extends SimpleApplication implements ActionListener {
         if (name == "RELOAD" && isPressed) {
             rootNode.detachAllChildren();
             world.updateLoadMarkers();
+        }
+        if (name.equals("toggle wireframe") && !isPressed) {
+            wireframe = !wireframe; // toggle boolean
+            material.getAdditionalRenderState().setWireframe(wireframe);
         }
     }
 
