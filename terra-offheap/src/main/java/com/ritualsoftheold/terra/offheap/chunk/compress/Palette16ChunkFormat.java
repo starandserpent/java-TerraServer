@@ -298,8 +298,10 @@ public class Palette16ChunkFormat implements ChunkFormat {
 
         @Override
         public void next() {
-            index++;
-            writeWorldId(area, index, 0);
+            if(hasNext()) {
+                index++;
+                //writeWorldId(area, index, 1);
+            }
        }
 
         @Override

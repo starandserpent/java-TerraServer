@@ -1,5 +1,6 @@
 package com.ritualsoftheold.terra.test;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
@@ -43,7 +44,7 @@ public class TestGameApp extends SimpleApplication implements ActionListener {
     private OffheapWorld world;
     private LoadMarker player;
     boolean wireframe = false;
-    Material material = null;
+    ArrayList<Material> materials = null;
 
     private BlockingQueue<Geometry> geomCreateQueue = new ArrayBlockingQueue<>(10000);
 
@@ -63,7 +64,7 @@ public class TestGameApp extends SimpleApplication implements ActionListener {
     public void simpleInitApp() {
         //setDisplayFps(false);
         //setDisplayStatView(false);
-
+        materials = new ArrayList<>();
 
         TerraModule mod = new TerraModule("testgame");
         mod.newMaterial().name("dirt").texture(new TerraTexture(256, 256, "NorthenForestDirt256px.png"));
@@ -148,12 +149,10 @@ public class TestGameApp extends SimpleApplication implements ActionListener {
                 //mat.setParam("SeparateTexCoord", VarType.Boolean, true);
 
                 // Create material
-                if(material == null){
-                    material  = new Material(assetManager, "terra/shader/TerraArray.j3md");
-                }
+                materials.add(new Material(assetManager, "terra/shader/TerraArray.j3md"));
 
-                material.setTexture("ColorMap", texManager.convertTexture(container.getTexture()));
-                geom.setMaterial(material);
+                materials.get(materials.size() - 1).setTexture("ColorMap", texManager.convertTexture(container.getTexture()));
+                geom.setMaterial(materials.get(materials.size() - 1));
                 //geom.setLocalScale(0.5f);
                 geom.setLocalTranslation(x, y, z);
                 geom.setCullHint(CullHint.Never);
@@ -211,7 +210,9 @@ public class TestGameApp extends SimpleApplication implements ActionListener {
         }
         if (name.equals("toggle wireframe") && !isPressed) {
             wireframe = !wireframe; // toggle boolean
-            material.getAdditionalRenderState().setWireframe(wireframe);
+            for(Material material:materials) {
+                material.getAdditionalRenderState().setWireframe(wireframe);
+            }
         }
     }
 }

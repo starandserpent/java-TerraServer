@@ -5,9 +5,9 @@ import java.util.concurrent.CompletableFuture;
 
 import com.ritualsoftheold.terra.core.gen.objects.LoadMarker;
 import com.ritualsoftheold.terra.core.material.MaterialRegistry;
-import com.ritualsoftheold.terra.offheap.node.Chunk;
-import com.ritualsoftheold.terra.offheap.node.Node;
-import com.ritualsoftheold.terra.offheap.node.Octree;
+import com.ritualsoftheold.terra.core.node.Chunk;
+import com.ritualsoftheold.terra.core.node.Node;
+import com.ritualsoftheold.terra.core.node.Octree;
 
 /**
  * Represents a single Terra world.

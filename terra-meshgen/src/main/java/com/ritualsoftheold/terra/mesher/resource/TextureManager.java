@@ -34,8 +34,7 @@ public class TextureManager {
     
     private Int2ObjectMap<TerraTexture> textures;
     private AssetManager assetManager;
-    
-    private TextureArray array;
+
     private HashMap<TerraTexture, Image> atlases;
     
     public TextureManager(AssetManager assetManager) {
@@ -47,20 +46,17 @@ public class TextureManager {
      * @return Ground texture array.
      */
 
-    public TextureArray convertTexture(TerraTexture textureId){
+    public TextureArray convertTexture(ArrayList<TerraTexture> terraTextures){
         // TODO make these configurable, Rituals art style already changed a bit since I wrote this
         ArrayList<Image> textures = new ArrayList<>();
-
-        textures.add(atlases.get(textureId));
-        if(textures.get(0) != null) {
-            array = new TextureArray(textures);
-            array.setMagFilter(MagFilter.Nearest);
-            array.setMinFilter(MinFilter.NearestNoMipMaps);
-            System.out.println(textureId);
-            return array;
-        }else{
-            return null;
+        for(TerraTexture terraTexture: terraTextures) {
+            textures.add(atlases.get(terraTexture));
         }
+
+        TextureArray array = new TextureArray(textures);
+        array.setMagFilter(MagFilter.Nearest);
+        array.setMinFilter(MinFilter.NearestNoMipMaps);
+        return array;
     }
     
     public void loadMaterials(MaterialRegistry reg) {

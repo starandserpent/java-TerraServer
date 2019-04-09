@@ -2,10 +2,12 @@
 
         package com.ritualsoftheold.terra.mesher;
 
+        import com.ritualsoftheold.terra.core.Terra;
         import com.ritualsoftheold.terra.core.material.TerraTexture;
         import io.netty.buffer.ByteBuf;
         import io.netty.buffer.ByteBufAllocator;
 
+        import java.util.ArrayList;
         import java.util.HashMap;
 
         /**
@@ -20,7 +22,7 @@ public class MeshContainer {
 
     private ByteBuf texCoords;
 
-    private HashMap<TerraTexture, Integer> textures;
+    private ArrayList<TerraTexture> textures;
 
     /**
      * Creates a new mesh container.
@@ -36,7 +38,7 @@ public class MeshContainer {
         this.vertices = allocator.directBuffer(startSize * 4);
         this.indices = allocator.directBuffer(startSize * 6);
         this.texCoords = allocator.directBuffer(startSize * 4);
-        textures = new HashMap<>();
+        textures = new ArrayList<>();
     }
 
     public void vertex(int x, int y, int z) {
@@ -61,28 +63,15 @@ public class MeshContainer {
     }
 
     public void setMainTexture(TerraTexture texture){
-        int i = 1;
-        if(textures.get(texture) != null) {
-            i = textures.get(texture);
-            i++;
-        }
-        this.textures.put(texture, i);
+        this.textures.add(texture);
     }
 
     public ByteBuf getVertices() {
         return vertices;
     }
 
-    public TerraTexture getTexture(){
-        int max = 0;
-        TerraTexture texture = null;
-        for(TerraTexture key:textures.keySet()){
-            if(textures.get(key) > max){
-                max = textures.get(key);
-                texture = key;
-            }
-        }
-        return texture;
+    public ArrayList<TerraTexture> getTexture(){
+        return textures;
     }
 
     public ByteBuf getIndices() {

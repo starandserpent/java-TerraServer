@@ -44,7 +44,7 @@ public class NaiveMesher implements VoxelMesher {
         while (buf.hasNext()) {
             TerraMaterial material = buf.read();
             buf.next();
-            if (material.getWorldId() == 0) { // TODO better AIR check
+            if (material.getWorldId() == 1 || material.getTexture() == null) { // TODO better AIR check
                 block++;
                 continue;
             }
