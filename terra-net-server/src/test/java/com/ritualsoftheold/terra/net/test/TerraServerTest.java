@@ -2,18 +2,18 @@ package com.ritualsoftheold.terra.net.test;
 
 import java.util.concurrent.ForkJoinPool;
 
-import com.ritualsoftheold.terra.TerraModule;
-import com.ritualsoftheold.terra.material.MaterialRegistry;
-import com.ritualsoftheold.terra.net.TerraProtocol;
 import com.ritualsoftheold.terra.net.server.SendingLoadListener;
 import com.ritualsoftheold.terra.net.server.WorldObserver;
-import com.ritualsoftheold.terra.chunk.ChunkBuffer;
-import com.ritualsoftheold.terra.io.dummy.DummyChunkLoader;
-import com.ritualsoftheold.terra.io.dummy.DummyOctreeLoader;
-import com.ritualsoftheold.terra.memory.MemoryPanicHandler;
-import com.ritualsoftheold.terra.world.OffheapWorld;
-import com.ritualsoftheold.terra.world.LoadMarker;
-import com.ritualsoftheold.terra.world.gen.WorldGeneratorInterface;
+import com.ritualsoftheold.terra.core.TerraModule;
+import com.ritualsoftheold.terra.core.material.MaterialRegistry;
+import com.ritualsoftheold.terra.offheap.memory.MemoryPanicHandler;
+import com.ritualsoftheold.terra.net.TerraProtocol;
+import com.ritualsoftheold.terra.offheap.chunk.ChunkBuffer;
+import com.ritualsoftheold.terra.offheap.io.dummy.DummyChunkLoader;
+import com.ritualsoftheold.terra.offheap.io.dummy.DummyOctreeLoader;
+import com.ritualsoftheold.terra.offheap.world.OffheapWorld;
+import com.ritualsoftheold.terra.offheap.world.LoadMarker;
+import com.ritualsoftheold.terra.offheap.world.gen.WorldGeneratorInterface;
 
 import io.aeron.Aeron;
 import io.aeron.Publication;

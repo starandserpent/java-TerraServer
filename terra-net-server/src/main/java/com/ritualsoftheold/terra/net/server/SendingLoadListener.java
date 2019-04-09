@@ -8,10 +8,10 @@ import org.agrona.MutableDirectBuffer;
 import org.agrona.concurrent.UnsafeBuffer;
 
 import com.ritualsoftheold.terra.net.TerraProtocol;
-import com.ritualsoftheold.terra.node.OffheapChunk;
-import com.ritualsoftheold.terra.world.OffheapWorld;
-import com.ritualsoftheold.terra.world.WorldLoadListener;
-import com.ritualsoftheold.terra.world.LoadMarker;
+import com.ritualsoftheold.terra.offheap.node.OffheapChunk;
+import com.ritualsoftheold.terra.offheap.world.OffheapWorld;
+import com.ritualsoftheold.terra.offheap.world.WorldLoadListener;
+import com.ritualsoftheold.terra.offheap.world.LoadMarker;
 
 import io.aeron.Publication;
 import net.openhft.chronicle.core.Memory;

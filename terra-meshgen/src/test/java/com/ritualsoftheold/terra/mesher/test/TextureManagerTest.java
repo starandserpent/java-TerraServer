@@ -5,21 +5,14 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
-import java.util.ArrayList;
-import java.util.List;
 
 import com.jme3.app.SimpleApplication;
-import com.jme3.material.Material;
-import com.jme3.scene.Geometry;
-import com.jme3.scene.Spatial.CullHint;
-import com.jme3.scene.shape.Box;
-import com.jme3.shader.VarType;
 import com.jme3.system.JmeSystem;
 import com.jme3.texture.Image;
-import com.ritualsoftheold.terra.TerraModule;
-import com.ritualsoftheold.terra.material.MaterialRegistry;
-import com.ritualsoftheold.terra.material.TerraTexture;
 import com.ritualsoftheold.terra.mesher.resource.TextureManager;
+import com.ritualsoftheold.terra.core.TerraModule;
+import com.ritualsoftheold.terra.core.material.MaterialRegistry;
+import com.ritualsoftheold.terra.core.material.TerraTexture;
 
 public class TextureManagerTest extends SimpleApplication {
 

@@ -4,13 +4,13 @@ import static org.junit.Assert.*;
 
 import java.util.concurrent.Executors;
 
-import com.ritualsoftheold.terra.chunk.ChunkBuffer;
-import com.ritualsoftheold.terra.chunk.ChunkStorage;
+import com.ritualsoftheold.terra.core.material.MaterialRegistry;
+import com.ritualsoftheold.terra.offheap.chunk.ChunkBuffer;
+import com.ritualsoftheold.terra.offheap.chunk.ChunkStorage;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.ritualsoftheold.terra.material.MaterialRegistry;
-import com.ritualsoftheold.terra.io.dummy.DummyChunkLoader;
+import com.ritualsoftheold.terra.offheap.io.dummy.DummyChunkLoader;
 
 import net.openhft.chronicle.core.Memory;
 import net.openhft.chronicle.core.OS;

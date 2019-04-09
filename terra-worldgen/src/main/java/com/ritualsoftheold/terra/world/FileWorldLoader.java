@@ -10,7 +10,6 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -36,13 +35,13 @@ public class FileWorldLoader {
                     int blue = clr & 0x000000ff;
                     Area newArea = getArea(new Color(red, green, blue));
                     if(newArea != null) {
-                        Point newPoint = new Point(x, y, newArea);
+                        com.ritualsoftheold.terra.world.location.Point newPoint = new com.ritualsoftheold.terra.world.location.Point(x, y, newArea);
                         newArea.add(newPoint);
                         areaMap.put(String.valueOf(clr), newArea);
                     }
                 } else {
                     Area area = areaMap.get(String.valueOf(clr));
-                    Point newPoint = new Point(x, y, area);
+                    com.ritualsoftheold.terra.world.location.Point newPoint = new Point(x, y, area);
                     area.add(newPoint);
                 }
             }

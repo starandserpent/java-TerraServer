@@ -2,9 +2,7 @@
 
         package com.ritualsoftheold.terra.mesher;
 
-        import com.jme3.texture.TextureArray;
-        import com.ritualsoftheold.terra.Terra;
-        import com.ritualsoftheold.terra.material.TerraTexture;
+        import com.ritualsoftheold.terra.core.material.TerraTexture;
         import io.netty.buffer.ByteBuf;
         import io.netty.buffer.ByteBufAllocator;
 

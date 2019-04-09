@@ -6,13 +6,13 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
+import com.ritualsoftheold.terra.offheap.DataConstants;
+import com.ritualsoftheold.terra.offheap.Pointer;
 import org.agrona.MutableDirectBuffer;
 import org.agrona.concurrent.UnsafeBuffer;
 
 import com.ritualsoftheold.terra.net.TerraProtocol;
-import com.ritualsoftheold.terra.DataConstants;
-import com.ritualsoftheold.terra.Pointer;
-import com.ritualsoftheold.terra.world.LoadMarker;
+import com.ritualsoftheold.terra.offheap.world.LoadMarker;
 
 import io.aeron.Publication;
 import net.openhft.chronicle.core.Memory;
@@ -42,7 +42,8 @@ public class WorldObserver {
      * Pointer to pending octrees buffer, or zero in case it is currently
      * unavailable.
      */
-    private final @Pointer AtomicLong pendingOctrees;
+    private final @Pointer
+    AtomicLong pendingOctrees;
     
     /**
      * How many octrees to send per packet.

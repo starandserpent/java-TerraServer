@@ -1,6 +1,6 @@
 package com.ritualsoftheold.terra.test;
 
-import com.ritualsoftheold.terra.memory.MemoryUseListener;
+import com.ritualsoftheold.terra.offheap.memory.MemoryUseListener;
 
 public class DummyMemoryUseListener implements MemoryUseListener {
 

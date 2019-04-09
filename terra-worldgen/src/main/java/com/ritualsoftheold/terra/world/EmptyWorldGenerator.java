@@ -1,9 +1,9 @@
 package com.ritualsoftheold.terra.world;
 
-import com.ritualsoftheold.terra.gen.tasks.GenerationTask;
-import com.ritualsoftheold.terra.gen.tasks.Pipeline;
-import com.ritualsoftheold.terra.gen.interfaces.world.WorldGeneratorInterface;
-import com.ritualsoftheold.terra.material.MaterialRegistry;
+import com.ritualsoftheold.terra.core.material.MaterialRegistry;
+import com.ritualsoftheold.terra.core.gen.tasks.GenerationTask;
+import com.ritualsoftheold.terra.core.gen.tasks.Pipeline;
+import com.ritualsoftheold.terra.core.gen.interfaces.world.WorldGeneratorInterface;
 
 public class EmptyWorldGenerator implements WorldGeneratorInterface<Object> {
 

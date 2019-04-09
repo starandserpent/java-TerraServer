@@ -2,20 +2,20 @@ package com.ritualsoftheold.terra.test;
 
 import static org.junit.Assert.*;
 
-import com.ritualsoftheold.terra.chunk.ChunkBuffer;
-import com.ritualsoftheold.terra.chunk.ChunkStorage;
-import com.ritualsoftheold.terra.chunk.compress.EmptyChunkFormat;
-import com.ritualsoftheold.terra.chunk.compress.Palette16ChunkFormat;
-import com.ritualsoftheold.terra.node.OffheapChunk;
+import com.ritualsoftheold.terra.core.TerraModule;
+import com.ritualsoftheold.terra.core.buffer.BlockBuffer;
+import com.ritualsoftheold.terra.core.material.MaterialRegistry;
+import com.ritualsoftheold.terra.core.material.TerraMaterial;
+import com.ritualsoftheold.terra.offheap.chunk.ChunkBuffer;
+import com.ritualsoftheold.terra.offheap.chunk.ChunkStorage;
+import com.ritualsoftheold.terra.offheap.chunk.compress.EmptyChunkFormat;
+import com.ritualsoftheold.terra.offheap.chunk.compress.Palette16ChunkFormat;
+import com.ritualsoftheold.terra.offheap.node.OffheapChunk;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.ritualsoftheold.terra.TerraModule;
-import com.ritualsoftheold.terra.buffer.BlockBuffer;
-import com.ritualsoftheold.terra.material.MaterialRegistry;
-import com.ritualsoftheold.terra.material.TerraMaterial;
-import com.ritualsoftheold.terra.DataConstants;
+import com.ritualsoftheold.terra.offheap.DataConstants;
 
 import net.openhft.chronicle.core.Memory;
 import net.openhft.chronicle.core.OS;
@@ -95,7 +95,7 @@ public class ChunkBufferTest {
         for (int i = 0; i < 64; i++) {
             OffheapChunk chunk = buf.getChunk(i);
             try (BlockBuffer buf = chunk.getBuffer()) {
-                assertEquals(mats[1].getWorldId(), buf.read().getWorldId());
+                Assert.assertEquals(mats[1].getWorldId(), buf.read().getWorldId());
             }
         }
     }

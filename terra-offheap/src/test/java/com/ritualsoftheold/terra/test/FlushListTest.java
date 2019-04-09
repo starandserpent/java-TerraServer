@@ -2,7 +2,7 @@ package com.ritualsoftheold.terra.test;
 
 import static org.junit.Assert.assertEquals;
 
-import com.ritualsoftheold.terra.util.IntFlushList;
+import com.ritualsoftheold.terra.offheap.util.IntFlushList;
 import org.junit.Before;
 import org.junit.Test;
 

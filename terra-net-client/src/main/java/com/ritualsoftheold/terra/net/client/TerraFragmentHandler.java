@@ -2,16 +2,16 @@ package com.ritualsoftheold.terra.net.client;
 
 import java.lang.invoke.VarHandle;
 
+import com.ritualsoftheold.terra.offheap.DataConstants;
+import com.ritualsoftheold.terra.net.TerraProtocol;
 import org.agrona.DirectBuffer;
 
-import com.ritualsoftheold.terra.net.TerraProtocol;
-import com.ritualsoftheold.terra.DataConstants;
-import com.ritualsoftheold.terra.chunk.ChunkBuffer;
-import com.ritualsoftheold.terra.chunk.ChunkStorage;
-import com.ritualsoftheold.terra.chunk.compress.ChunkFormat;
-import com.ritualsoftheold.terra.node.OffheapChunk;
-import com.ritualsoftheold.terra.octree.OctreeStorage;
-import com.ritualsoftheold.terra.verifier.TerraVerifier;
+import com.ritualsoftheold.terra.offheap.chunk.ChunkBuffer;
+import com.ritualsoftheold.terra.offheap.chunk.ChunkStorage;
+import com.ritualsoftheold.terra.offheap.chunk.compress.ChunkFormat;
+import com.ritualsoftheold.terra.offheap.node.OffheapChunk;
+import com.ritualsoftheold.terra.offheap.octree.OctreeStorage;
+import com.ritualsoftheold.terra.offheap.verifier.TerraVerifier;
 
 import io.aeron.logbuffer.FragmentHandler;
 import io.aeron.logbuffer.Header;

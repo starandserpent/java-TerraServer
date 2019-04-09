@@ -1,10 +1,10 @@
 package com.ritualsoftheold.terra.mesher;
 
-import com.ritualsoftheold.terra.material.TerraMaterial;
-import com.ritualsoftheold.terra.material.TerraTexture;
 import com.ritualsoftheold.terra.mesher.resource.TextureManager;
-import com.ritualsoftheold.terra.DataConstants;
-import com.ritualsoftheold.terra.data.BufferWithFormat;
+import com.ritualsoftheold.terra.offheap.DataConstants;
+import com.ritualsoftheold.terra.core.material.TerraMaterial;
+import com.ritualsoftheold.terra.core.material.TerraTexture;
+import com.ritualsoftheold.terra.offheap.data.BufferWithFormat;
 
 /**
  * Naive mesher does culling, but doesn't try to merge same blocks into bigger faces.

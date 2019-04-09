@@ -18,24 +18,24 @@ import com.jme3.scene.Mesh;
 import com.jme3.scene.Spatial.CullHint;
 import com.jme3.scene.VertexBuffer.Type;
 import com.jme3.system.AppSettings;
-import com.ritualsoftheold.terra.TerraModule;
-import com.ritualsoftheold.terra.material.MaterialRegistry;
-import com.ritualsoftheold.terra.material.TerraTexture;
+import com.ritualsoftheold.terra.core.TerraModule;
+import com.ritualsoftheold.terra.offheap.chunk.ChunkBuffer;
+import com.ritualsoftheold.terra.core.gen.interfaces.world.WorldGeneratorInterface;
+import com.ritualsoftheold.terra.core.gen.objects.LoadMarker;
+import com.ritualsoftheold.terra.core.material.MaterialRegistry;
+import com.ritualsoftheold.terra.core.material.TerraTexture;
+import com.ritualsoftheold.terra.offheap.memory.MemoryPanicHandler;
+import com.ritualsoftheold.terra.mesher.resource.TextureManager;
+import com.ritualsoftheold.terra.offheap.node.OffheapChunk;
+import com.ritualsoftheold.terra.offheap.world.OffheapWorld;
+import com.ritualsoftheold.terra.world.WorldGenerator;
+import com.ritualsoftheold.terra.offheap.world.WorldLoadListener;
 import com.ritualsoftheold.terra.mesher.MeshContainer;
 import com.ritualsoftheold.terra.mesher.NaiveMesher;
 import com.ritualsoftheold.terra.mesher.VoxelMesher;
-import com.ritualsoftheold.terra.mesher.resource.TextureManager;
-import com.ritualsoftheold.terra.chunk.ChunkBuffer;
-import com.ritualsoftheold.terra.io.dummy.DummyChunkLoader;
-import com.ritualsoftheold.terra.io.dummy.DummyOctreeLoader;
-import com.ritualsoftheold.terra.memory.MemoryPanicHandler;
-import com.ritualsoftheold.terra.node.OffheapChunk;
-import com.ritualsoftheold.terra.world.OffheapWorld;
-import com.ritualsoftheold.terra.world.WorldLoadListener;
+import com.ritualsoftheold.terra.offheap.io.dummy.DummyChunkLoader;
+import com.ritualsoftheold.terra.offheap.io.dummy.DummyOctreeLoader;
 
-import com.ritualsoftheold.terra.gen.objects.LoadMarker;
-import com.ritualsoftheold.terra.gen.interfaces.world.WorldGeneratorInterface;
-import com.ritualsoftheold.terra.world.WorldGenerator;
 import io.netty.buffer.ByteBufAllocator;
 
 public class TestGameApp extends SimpleApplication implements ActionListener {
@@ -101,12 +101,11 @@ public class TestGameApp extends SimpleApplication implements ActionListener {
                 })
                 .build();
 
-        LoadMarker chunk = world.createLoadMarker(0,0, 0, 32, 32, 0);
-        LoadMarker secondchunk = world.createLoadMarker(56+16+32,0, 56+16+32, 32, 32, 0);
+        player = world.createLoadMarker(0,0, 0, 32, 32, 0);
+       // LoadMarker secondchunk = world.createLoadMarker(56+16+32,0, 56+16+32, 32, 32, 0);
 
-        player = world.createLoadMarker(0, 0, 0, 32, 32, 0);
-        world.addLoadMarker(chunk);
-        world.addLoadMarker(secondchunk);
+        world.addLoadMarker(player);
+      //  world.addLoadMarker(secondchunk);
 
         TextureManager texManager = new TextureManager(assetManager); // Initialize texture atlas/array manager
         texManager.loadMaterials(reg); // And make it load material registry

@@ -8,8 +8,8 @@ import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.util.concurrent.atomic.AtomicReferenceArray;
 
-import com.ritualsoftheold.terra.chunk.ChunkBuffer;
-import com.ritualsoftheold.terra.io.ChunkLoader;
+import com.ritualsoftheold.terra.offheap.chunk.ChunkBuffer;
+import com.ritualsoftheold.terra.offheap.io.ChunkLoader;
 
 import net.openhft.chronicle.core.Memory;
 import net.openhft.chronicle.core.OS;

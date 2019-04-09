@@ -8,7 +8,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 
-import com.ritualsoftheold.terra.io.OctreeLoader;
+import com.ritualsoftheold.terra.offheap.io.OctreeLoader;
 
 import net.openhft.chronicle.core.Memory;
 import net.openhft.chronicle.core.OS;

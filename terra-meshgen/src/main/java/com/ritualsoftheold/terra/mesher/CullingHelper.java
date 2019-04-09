@@ -1,8 +1,8 @@
 package com.ritualsoftheold.terra.mesher;
 
-import com.ritualsoftheold.terra.buffer.BlockBuffer;
-import com.ritualsoftheold.terra.material.TerraTexture;
-import com.ritualsoftheold.terra.DataConstants;
+import com.ritualsoftheold.terra.offheap.DataConstants;
+import com.ritualsoftheold.terra.core.buffer.BlockBuffer;
+import com.ritualsoftheold.terra.core.material.TerraTexture;
 
 /**
  * Simple face-culling implementation. Some mesh generators might be able to

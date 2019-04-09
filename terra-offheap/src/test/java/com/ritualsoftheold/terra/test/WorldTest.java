@@ -2,15 +2,15 @@ package com.ritualsoftheold.terra.test;
 
 import java.util.concurrent.ForkJoinPool;
 
-import com.ritualsoftheold.terra.chunk.ChunkBuffer;
-import com.ritualsoftheold.terra.memory.MemoryPanicHandler;
-import com.ritualsoftheold.terra.world.OffheapWorld;
+import com.ritualsoftheold.terra.core.material.MaterialRegistry;
+import com.ritualsoftheold.terra.offheap.memory.MemoryPanicHandler;
+import com.ritualsoftheold.terra.offheap.chunk.ChunkBuffer;
+import com.ritualsoftheold.terra.offheap.world.OffheapWorld;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.ritualsoftheold.terra.material.MaterialRegistry;
-import com.ritualsoftheold.terra.io.dummy.DummyChunkLoader;
-import com.ritualsoftheold.terra.io.dummy.DummyOctreeLoader;
+import com.ritualsoftheold.terra.offheap.io.dummy.DummyChunkLoader;
+import com.ritualsoftheold.terra.offheap.io.dummy.DummyOctreeLoader;
 
 import net.openhft.chronicle.core.Memory;
 import net.openhft.chronicle.core.OS;

@@ -4,19 +4,20 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
-import com.ritualsoftheold.terra.chunk.ChunkBuffer;
-import com.ritualsoftheold.terra.chunk.ChunkStorage;
-import com.ritualsoftheold.terra.chunk.compress.Palette16ChunkFormat;
-import com.ritualsoftheold.terra.node.OffheapChunk;
+import com.ritualsoftheold.terra.core.TerraModule;
+import com.ritualsoftheold.terra.core.buffer.BlockBuffer;
+import com.ritualsoftheold.terra.core.material.MaterialRegistry;
+import com.ritualsoftheold.terra.core.material.TerraMaterial;
+import com.ritualsoftheold.terra.core.node.Node;
+import com.ritualsoftheold.terra.offheap.chunk.ChunkBuffer;
+import com.ritualsoftheold.terra.offheap.chunk.ChunkStorage;
+import com.ritualsoftheold.terra.offheap.chunk.compress.Palette16ChunkFormat;
+import com.ritualsoftheold.terra.offheap.node.OffheapChunk;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.ritualsoftheold.terra.TerraModule;
-import com.ritualsoftheold.terra.buffer.BlockBuffer;
-import com.ritualsoftheold.terra.material.MaterialRegistry;
-import com.ritualsoftheold.terra.material.TerraMaterial;
-import com.ritualsoftheold.terra.node.Node;
-import com.ritualsoftheold.terra.DataConstants;
+import com.ritualsoftheold.terra.offheap.DataConstants;
 
 import net.openhft.chronicle.core.Memory;
 import net.openhft.chronicle.core.OS;
@@ -100,7 +101,7 @@ public class ChunkTest {
         // Check chunk data
         BlockBuffer buf = chunk.getBuffer();
         for (int i = 0; i < 10; i++) {
-            assertEquals(mats[i].getWorldId(), buf.read().getWorldId());
+            Assert.assertEquals(mats[i].getWorldId(), buf.read().getWorldId());
             buf.next();
         }
         
@@ -112,7 +113,7 @@ public class ChunkTest {
         // Check data... again
         buf.seek(0);
         for (int i = 0; i < 11; i++) {
-            assertEquals(mats[i].getWorldId(), buf.read().getWorldId());
+            Assert.assertEquals(mats[i].getWorldId(), buf.read().getWorldId());
             buf.next();
         }
     }
