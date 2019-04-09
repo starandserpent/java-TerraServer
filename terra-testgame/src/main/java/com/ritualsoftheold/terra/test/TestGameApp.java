@@ -1,42 +1,42 @@
- package com.ritualsoftheold.terra.test;
+package com.ritualsoftheold.terra.test;
 
-        import java.util.List;
-        import java.util.concurrent.ArrayBlockingQueue;
-        import java.util.concurrent.BlockingQueue;
-        import java.util.concurrent.CompletableFuture;
-        import java.util.concurrent.ForkJoinPool;
+import java.util.List;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ForkJoinPool;
 
-        import com.jme3.app.SimpleApplication;
-        import com.jme3.input.KeyInput;
-        import com.jme3.input.controls.ActionListener;
-        import com.jme3.input.controls.KeyTrigger;
-        import com.jme3.light.AmbientLight;
-        import com.jme3.material.Material;
-        import com.jme3.math.Vector3f;
-        import com.jme3.scene.Geometry;
-        import com.jme3.scene.Mesh;
-        import com.jme3.scene.Spatial.CullHint;
-        import com.jme3.scene.VertexBuffer.Type;
-        import com.jme3.system.AppSettings;
-        import com.ritualsoftheold.terra.TerraModule;
-        import com.ritualsoftheold.terra.material.MaterialRegistry;
-        import com.ritualsoftheold.terra.material.TerraTexture;
-        import com.ritualsoftheold.terra.mesher.MeshContainer;
-        import com.ritualsoftheold.terra.mesher.NaiveMesher;
-        import com.ritualsoftheold.terra.mesher.VoxelMesher;
-        import com.ritualsoftheold.terra.mesher.resource.TextureManager;
-        import com.ritualsoftheold.terra.offheap.chunk.ChunkBuffer;
-        import com.ritualsoftheold.terra.offheap.io.dummy.DummyChunkLoader;
-        import com.ritualsoftheold.terra.offheap.io.dummy.DummyOctreeLoader;
-        import com.ritualsoftheold.terra.offheap.memory.MemoryPanicHandler;
-        import com.ritualsoftheold.terra.offheap.node.OffheapChunk;
-        import com.ritualsoftheold.terra.offheap.world.OffheapWorld;
-        import com.ritualsoftheold.terra.offheap.world.WorldLoadListener;
+import com.jme3.app.SimpleApplication;
+import com.jme3.input.KeyInput;
+import com.jme3.input.controls.ActionListener;
+import com.jme3.input.controls.KeyTrigger;
+import com.jme3.light.AmbientLight;
+import com.jme3.material.Material;
+import com.jme3.math.Vector3f;
+import com.jme3.scene.Geometry;
+import com.jme3.scene.Mesh;
+import com.jme3.scene.Spatial.CullHint;
+import com.jme3.scene.VertexBuffer.Type;
+import com.jme3.system.AppSettings;
+import com.ritualsoftheold.terra.TerraModule;
+import com.ritualsoftheold.terra.material.MaterialRegistry;
+import com.ritualsoftheold.terra.material.TerraTexture;
+import com.ritualsoftheold.terra.mesher.MeshContainer;
+import com.ritualsoftheold.terra.mesher.NaiveMesher;
+import com.ritualsoftheold.terra.mesher.VoxelMesher;
+import com.ritualsoftheold.terra.mesher.resource.TextureManager;
+import com.ritualsoftheold.terra.chunk.ChunkBuffer;
+import com.ritualsoftheold.terra.io.dummy.DummyChunkLoader;
+import com.ritualsoftheold.terra.io.dummy.DummyOctreeLoader;
+import com.ritualsoftheold.terra.memory.MemoryPanicHandler;
+import com.ritualsoftheold.terra.node.OffheapChunk;
+import com.ritualsoftheold.terra.world.OffheapWorld;
+import com.ritualsoftheold.terra.world.WorldLoadListener;
 
-        import com.ritualsoftheold.terra.gen.objects.LoadMarker;
-        import com.ritualsoftheold.terra.gen.interfaces.world.WorldGeneratorInterface;
-        import com.ritualsoftheold.terra.world.WorldGenerator;
-        import io.netty.buffer.ByteBufAllocator;
+import com.ritualsoftheold.terra.gen.objects.LoadMarker;
+import com.ritualsoftheold.terra.gen.interfaces.world.WorldGeneratorInterface;
+import com.ritualsoftheold.terra.world.WorldGenerator;
+import io.netty.buffer.ByteBufAllocator;
 
 public class TestGameApp extends SimpleApplication implements ActionListener {
 
@@ -101,8 +101,12 @@ public class TestGameApp extends SimpleApplication implements ActionListener {
                 })
                 .build();
 
+        LoadMarker chunk = world.createLoadMarker(0,0, 0, 32, 32, 0);
+        LoadMarker secondchunk = world.createLoadMarker(56+16+32,0, 56+16+32, 32, 32, 0);
+
         player = world.createLoadMarker(0, 0, 0, 32, 32, 0);
-        world.addLoadMarker(player);
+        world.addLoadMarker(chunk);
+        world.addLoadMarker(secondchunk);
 
         TextureManager texManager = new TextureManager(assetManager); // Initialize texture atlas/array manager
         texManager.loadMaterials(reg); // And make it load material registry
@@ -202,7 +206,7 @@ public class TestGameApp extends SimpleApplication implements ActionListener {
 
     @Override
     public void onAction(String name, boolean isPressed, float tpf) {
-        if (name == "RELOAD" && isPressed) {
+        if (name.equals("RELOAD") && isPressed) {
             rootNode.detachAllChildren();
             world.updateLoadMarkers();
         }
@@ -211,5 +215,4 @@ public class TestGameApp extends SimpleApplication implements ActionListener {
             material.getAdditionalRenderState().setWireframe(wireframe);
         }
     }
-
 }

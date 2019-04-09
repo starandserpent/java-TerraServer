@@ -2,7 +2,7 @@ package com.ritualsoftheold.terra.net.client;
 
 import org.agrona.concurrent.IdleStrategy;
 
-import com.ritualsoftheold.terra.offheap.world.OffheapWorld;
+import com.ritualsoftheold.terra.world.OffheapWorld;
 
 import io.aeron.Aeron;
 import io.aeron.FragmentAssembler;

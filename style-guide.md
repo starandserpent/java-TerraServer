@@ -146,7 +146,7 @@ some arithmetic operations (such as division) rarely make sense on pointers,
 so distinguishing them from just numbers is helpful.
 
 For this purpose, Terra has an annotation
-com.ritualsoftheold.terra.offheap.Pointer. All pointer-holding fields, method
+Pointer. All pointer-holding fields, method
 parameters, return values and local variables should be annotated with it.
 In future, annotation processing might be used to run basic sanity checks
 against Terra, which missing @Pointer annotations would seriously undermine.

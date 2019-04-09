@@ -1,7 +1,7 @@
 package com.ritualsoftheold.terra.net.client;
 
-import com.ritualsoftheold.terra.offheap.DataConstants;
-import com.ritualsoftheold.terra.offheap.io.OctreeLoader;
+import com.ritualsoftheold.terra.DataConstants;
+import com.ritualsoftheold.terra.io.OctreeLoader;
 
 import net.openhft.chronicle.core.Memory;
 import net.openhft.chronicle.core.OS;

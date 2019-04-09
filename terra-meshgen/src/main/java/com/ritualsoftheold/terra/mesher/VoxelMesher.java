@@ -1,9 +1,7 @@
 package com.ritualsoftheold.terra.mesher;
 
-import com.ritualsoftheold.terra.buffer.BlockBuffer;
 import com.ritualsoftheold.terra.mesher.resource.TextureManager;
-import com.ritualsoftheold.terra.offheap.data.BufferWithFormat;
-import com.ritualsoftheold.terra.offheap.data.CriticalBlockBuffer;
+import com.ritualsoftheold.terra.data.BufferWithFormat;
 
 /**
  * Creates a mesh based on Terra's voxel data.

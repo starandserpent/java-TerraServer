@@ -1,14 +1,10 @@
 package com.ritualsoftheold.terra.mesher;
 
-import com.jme3.util.PrimitiveAllocator;
-import com.ritualsoftheold.terra.buffer.BlockBuffer;
 import com.ritualsoftheold.terra.material.TerraMaterial;
 import com.ritualsoftheold.terra.material.TerraTexture;
 import com.ritualsoftheold.terra.mesher.resource.TextureManager;
-import com.ritualsoftheold.terra.offheap.DataConstants;
-import com.ritualsoftheold.terra.offheap.chunk.compress.Palette16ChunkFormat;
-import com.ritualsoftheold.terra.offheap.data.BufferWithFormat;
-import com.ritualsoftheold.terra.offheap.data.CriticalBlockBuffer;
+import com.ritualsoftheold.terra.DataConstants;
+import com.ritualsoftheold.terra.data.BufferWithFormat;
 
 /**
  * Naive mesher does culling, but doesn't try to merge same blocks into bigger faces.
@@ -95,7 +91,7 @@ public class NaiveMesher implements VoxelMesher {
                 mesh.texture(page, tile, perSide, texScale * (63 - z), texScale * (y + 1));
                 mesh.texture(page, tile, perSide, texScale * (64 - z), texScale * (y + 1));
                 mesh.texture(page, tile, perSide, texScale * (64 - z), texScale * y);
-            } if ((faces & 0b00010000) == 0) { // RIGHT
+            } if ((faces & 0b00010000) ==  0) { // RIGHT
                 //System.out.println("Draw RIGHT");
                 mesh.vertex(x + 1, y, z);
                 mesh.vertex(x + 1, y + 1, z);

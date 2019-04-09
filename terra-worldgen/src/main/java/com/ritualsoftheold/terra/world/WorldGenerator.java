@@ -4,17 +4,15 @@ import com.ritualsoftheold.terra.buffer.BlockBuffer;
 import com.ritualsoftheold.terra.gen.interfaces.world.WorldGeneratorInterface;
 import com.ritualsoftheold.terra.material.MaterialRegistry;
 import com.ritualsoftheold.terra.material.TerraMaterial;
-import com.ritualsoftheold.terra.offheap.DataConstants;
+import com.ritualsoftheold.terra.DataConstants;
 import com.ritualsoftheold.terra.gen.tasks.GenerationTask;
 import com.ritualsoftheold.terra.gen.interfaces.GeneratorControl;
 import com.ritualsoftheold.terra.gen.tasks.Pipeline;
-import com.ritualsoftheold.terra.world.FileWorldLoader;
 import com.ritualsoftheold.terra.world.location.Area;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Random;
 
 public class WorldGenerator implements WorldGeneratorInterface<Void> {
     
@@ -49,19 +47,20 @@ public class WorldGenerator implements WorldGeneratorInterface<Void> {
     
     public void generate(GenerationTask task, GeneratorControl control, Void nothing) {
         BlockBuffer buf = control.getBuffer();
-        System.out.println("x:"+task.getX()+" y:"+task.getY()+" z:"+task.getZ());
+        System.out.println("x:" + task.getX() + " y:" + task.getY() + " z:" + task.getZ());
+        if (task.getY() < 0) {
             for (int i = 0; i < DataConstants.CHUNK_MAX_BLOCKS/2; i++) {
-                if (buf.hasNext()) {
                     buf.next();
-                }
             }
             for (int i = 0; i < DataConstants.CHUNK_MAX_BLOCKS/2; i++) {
                 buf.write(dirt);
-                if (buf.hasNext()) {
-                    buf.next();
-                }
             }
-
+        }else {
+            for (int i = 0; i < DataConstants.CHUNK_MAX_BLOCKS; i++) {
+                buf.write(grass);
+                buf.next();
+            }
+        }
         index++;
         System.out.println(index);
     }
