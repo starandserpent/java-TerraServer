@@ -151,9 +151,16 @@ public class TestGameApp extends SimpleApplication implements ActionListener {
                 //mat.setParam("SeparateTexCoord", VarType.Boolean, true);
 
                 // Create material
+                TextureArray texture;
                 materials.add(new Material(assetManager, "terra/shader/TerraArray.j3md"));
-
-                TextureArray texture = texManager.convertTexture(container.getTextures());
+                Image mainImage = texManager.convertMainTexture(container.getMainTexture());
+                if(container.getTextureTypes() > 1) {
+                     texture = texManager.convertTexture(container.getTextures(), mainImage);
+                }else{
+                    ArrayList<Image> array = new ArrayList<>();
+                    array.add(mainImage);
+                    texture = new TextureArray(array);
+                }
                 materials.get(materials.size() - 1).setTexture("ColorMap", texture);
                 geom.setMaterial(materials.get(materials.size() - 1));
                 //geom.setLocalScale(0.5f);

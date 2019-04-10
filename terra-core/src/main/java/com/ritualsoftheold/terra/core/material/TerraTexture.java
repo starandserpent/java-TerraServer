@@ -9,8 +9,9 @@ public class TerraTexture{
     private static final float DEFAULT_SCALE = 1;
     
     private int width;
+
     private int height;
-    
+
     private float scale;
     
     private String asset;
@@ -89,7 +90,7 @@ public class TerraTexture{
     public void setTexturesPerSide(int texturesPerPage) {
         this.texturesPerSide = texturesPerPage;
     }
-    
+
     @Override
     public String toString() {
         return "texture:" + asset;

@@ -53,7 +53,7 @@ public class WorldGenerator implements WorldGeneratorInterface<Void> {
                 buf.write(grass);
                 buf.next();
             }
-            for (int i = 0; i < DataConstants.CHUNK_MAX_BLOCKS/2; i++) {
+            for (int i = 0; i < DataConstants.CHUNK_MAX_BLOCKS; i++) {
                 buf.write(dirt);
                 buf.next();
             }

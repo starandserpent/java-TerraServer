@@ -1,17 +1,18 @@
-
-
-        package com.ritualsoftheold.terra.mesher;
+package com.ritualsoftheold.terra.mesher;
 
         import com.ritualsoftheold.terra.core.Terra;
         import com.ritualsoftheold.terra.core.material.TerraMaterial;
         import com.ritualsoftheold.terra.core.material.TerraTexture;
+        import com.ritualsoftheold.terra.mesher.resource.TextureManager;
         import io.netty.buffer.ByteBuf;
         import io.netty.buffer.ByteBufAllocator;
 
         import java.util.ArrayList;
+        import java.util.Arrays;
         import java.util.HashMap;
+        import java.util.List;
 
-        /**
+/**
  * Helps with building meshes for voxel data.
  *
  */
@@ -23,7 +24,9 @@ public class MeshContainer {
 
     private ByteBuf texCoords;
 
-    private ArrayList<TerraTexture> textures;
+    private TerraTexture[][] textures;
+
+    private HashMap<TerraTexture, Integer> textureTypes;
 
     /**
      * Creates a new mesh container.
@@ -39,7 +42,8 @@ public class MeshContainer {
         this.vertices = allocator.directBuffer(startSize * 4);
         this.indices = allocator.directBuffer(startSize * 6);
         this.texCoords = allocator.directBuffer(startSize * 4);
-        textures = new ArrayList<>();
+        textures = new TerraTexture[TextureManager.ATLAS_SIZE * 64][];
+        textureTypes = new HashMap<>();
     }
 
     public void vertex(int x, int y, int z) {
@@ -54,8 +58,9 @@ public class MeshContainer {
     }
 
     public void texture(int page, int tile, int texturesPerSide, float x, float y) {
-        int nX = (int) (x * 256);
-        int nY = (int) (y * 256);
+        int nX = (int) x * 256;
+        int nY = (int) y * 256;
+
         float packed1 = Float.intBitsToFloat(nX << 16 | nY);
         texCoords.writeFloatLE(packed1);
 
@@ -63,16 +68,51 @@ public class MeshContainer {
         texCoords.writeFloatLE(packed2);
     }
 
-    public void addTexture(TerraTexture texture){
-        this.textures.add(texture);
+    public void setTextures(int nX, int nY, int nZ, TerraTexture texture) {
+       // nY *= nZ;
+        if (nZ == 1){
+            System.out.println("fsdad");
+        }
+        for(int x2 = nX; x2 < 16 + nX; x2++){
+            if(textures[x2] == null) {
+                textures[x2] = new TerraTexture[TextureManager.ATLAS_SIZE * 64];
+            }
+            Arrays.fill(textures[x2], nY, 16 + nY, texture);
+        }
+
+        int i = 1;
+        if(textureTypes.get(texture) != null) {
+            i = textureTypes.get(texture);
+            i++;
+        }
+        textureTypes.put(texture, i);
     }
 
     public ByteBuf getVertices() {
         return vertices;
     }
 
-    public ArrayList<TerraTexture> getTextures(){
+    public TerraTexture[][] getTextures(){
         return textures;
+    }
+
+    public TerraTexture getMainTexture() {
+        int max = 0;
+        TerraTexture texture = null;
+        for (TerraTexture key : textureTypes.keySet()) {
+            if(textureTypes.get(key) == 0) {
+                textureTypes.remove(texture);
+            } else if (textureTypes.get(key) > max) {
+                max = textureTypes.get(key);
+                texture = key;
+            }
+        }
+
+        return texture;
+    }
+
+    public int getTextureTypes() {
+        return textureTypes.size();
     }
 
     public ByteBuf getIndices() {

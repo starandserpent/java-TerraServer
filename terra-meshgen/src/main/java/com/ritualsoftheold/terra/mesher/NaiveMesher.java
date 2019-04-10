@@ -6,6 +6,8 @@ import com.ritualsoftheold.terra.core.material.TerraMaterial;
 import com.ritualsoftheold.terra.core.material.TerraTexture;
 import com.ritualsoftheold.terra.offheap.data.BufferWithFormat;
 
+import java.util.ArrayList;
+
 /**
  * Naive mesher does culling, but doesn't try to merge same blocks into bigger faces.
  *
@@ -21,7 +23,7 @@ public class NaiveMesher implements VoxelMesher {
     public NaiveMesher() {
         this(new CullingHelper());
     }
-    
+
     @Override
     public void chunk(BufferWithFormat buf, TextureManager textures, MeshContainer mesh) {
         assert buf != null;
@@ -64,7 +66,6 @@ public class NaiveMesher implements VoxelMesher {
             int tile = texture.getTileId();
             float texScale = texture.getScale();
             int perSide = texture.getTexturesPerSide();
-            mesh.addTexture(texture);
 
             // Calculate current block position (normalized by shader)
             int z = block / 4096; // Integer division: current z index
@@ -81,12 +82,12 @@ public class NaiveMesher implements VoxelMesher {
                 mesh.vertex(x, y + 1, z + 1);
                 mesh.vertex(x, y + 1, z);
                 mesh.vertex(x, y, z);
-                
+
                 mesh.triangle(vertIndex, 0, 1, 2);
                 mesh.triangle(vertIndex, 2, 3, 0);
 
                 vertIndex += 4; // Next thing is next face
-                
+
                 mesh.texture(page, tile, perSide, texScale * (63 - z), texScale * y);
                 mesh.texture(page, tile, perSide, texScale * (63 - z), texScale * (y + 1));
                 mesh.texture(page, tile, perSide, texScale * (64 - z), texScale * (y + 1));
@@ -97,12 +98,12 @@ public class NaiveMesher implements VoxelMesher {
                 mesh.vertex(x + 1, y + 1, z);
                 mesh.vertex(x + 1, y + 1, z + 1);
                 mesh.vertex(x + 1, y, z + 1);
-                
+
                 mesh.triangle(vertIndex, 0, 1, 2);
                 mesh.triangle(vertIndex, 2, 3, 0);
 
                 vertIndex += 4; // Next thing is next face
-                
+
                 mesh.texture(page, tile, perSide, texScale * z, texScale * y);
                 mesh.texture(page, tile, perSide, texScale * z, texScale * (y + 1));
                 mesh.texture(page, tile, perSide, texScale * (z + 1), texScale * (y + 1));
@@ -113,12 +114,12 @@ public class NaiveMesher implements VoxelMesher {
                 mesh.vertex(x, y + 1, z + 1);
                 mesh.vertex(x + 1, y + 1, z + 1);
                 mesh.vertex(x + 1, y + 1, z);
-                
+
                 mesh.triangle(vertIndex, 0, 1, 2);
                 mesh.triangle(vertIndex, 2, 3, 0);
 
                 vertIndex += 4; // Next thing is next face
-                
+
                 mesh.texture(page, tile, perSide, texScale * (64 - x), texScale * (64 - z));
                 mesh.texture(page, tile, perSide, texScale * (64 - x), texScale * (63 - z));
                 mesh.texture(page, tile, perSide, texScale * (63 - x), texScale * (63 - z));
@@ -129,12 +130,12 @@ public class NaiveMesher implements VoxelMesher {
                 mesh.vertex(x, y, z);
                 mesh.vertex(x + 1, y, z);
                 mesh.vertex(x + 1, y, z + 1);
-                
+
                 mesh.triangle(vertIndex, 0, 1, 2);
                 mesh.triangle(vertIndex, 2, 3, 0);
 
                 vertIndex += 4; // Next thing is next face
-                
+
                 mesh.texture(page, tile, perSide, texScale * x, texScale * (63 - z));
                 mesh.texture(page, tile, perSide, texScale * x, texScale * (64 - z));
                 mesh.texture(page, tile, perSide, texScale * (x + 1), texScale * (64 - z));
@@ -145,12 +146,12 @@ public class NaiveMesher implements VoxelMesher {
                 mesh.vertex(x + 1, y + 1, z + 1);
                 mesh.vertex(x, y + 1, z + 1);
                 mesh.vertex(x, y, z + 1);
-                
+
                 mesh.triangle(vertIndex, 0, 1, 2);
                 mesh.triangle(vertIndex, 2, 3, 0);
 
                 vertIndex += 4; // Next thing is next face
-                
+
                 mesh.texture(page, tile, perSide, texScale * (63 - x), texScale * y);
                 mesh.texture(page, tile, perSide, texScale * (63 - x), texScale * (y + 1));
                 mesh.texture(page, tile, perSide, texScale * (64 - x), texScale * (y + 1));
@@ -161,20 +162,20 @@ public class NaiveMesher implements VoxelMesher {
                 mesh.vertex(x, y + 1, z);
                 mesh.vertex(x + 1, y + 1, z);
                 mesh.vertex(x + 1, y, z);
-                
+
                 mesh.triangle(vertIndex, 0, 1, 2);
                 mesh.triangle(vertIndex, 2, 3, 0);
 
                 vertIndex += 4; // Next thing is next face
-                
+
                 mesh.texture(page, tile, perSide, texScale * x, texScale * y);
                 mesh.texture(page, tile, perSide, texScale * x, texScale * (y + 1));
                 mesh.texture(page, tile, perSide, texScale * (x + 1), texScale * (y + 1));
                 mesh.texture(page, tile, perSide, texScale * (x + 1), texScale * y);
             }
-
             block++; // Go to next block
-        }        
+            mesh.setTextures(x, y, z, texture);
+        }
     }
 
     @Override
