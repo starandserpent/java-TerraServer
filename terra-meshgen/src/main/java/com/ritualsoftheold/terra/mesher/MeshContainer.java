@@ -1,16 +1,10 @@
 package com.ritualsoftheold.terra.mesher;
 
-        import com.ritualsoftheold.terra.core.Terra;
-        import com.ritualsoftheold.terra.core.material.TerraMaterial;
         import com.ritualsoftheold.terra.core.material.TerraTexture;
-        import com.ritualsoftheold.terra.mesher.resource.TextureManager;
         import io.netty.buffer.ByteBuf;
         import io.netty.buffer.ByteBufAllocator;
 
-        import java.util.ArrayList;
-        import java.util.Arrays;
         import java.util.HashMap;
-        import java.util.List;
 
 /**
  * Helps with building meshes for voxel data.
@@ -24,7 +18,7 @@ public class MeshContainer {
 
     private ByteBuf texCoords;
 
-    private TerraTexture[][] textures;
+    private TerraTexture[][][] textures;
 
     private HashMap<TerraTexture, Integer> textureTypes;
 
@@ -42,7 +36,7 @@ public class MeshContainer {
         this.vertices = allocator.directBuffer(startSize * 4);
         this.indices = allocator.directBuffer(startSize * 6);
         this.texCoords = allocator.directBuffer(startSize * 4);
-        textures = new TerraTexture[TextureManager.ATLAS_SIZE * 64][];
+        textures = new TerraTexture[64][64][64];
         textureTypes = new HashMap<>();
     }
 
@@ -58,8 +52,8 @@ public class MeshContainer {
     }
 
     public void texture(int page, int tile, int texturesPerSide, float x, float y) {
-        int nX = (int) x * 256;
-        int nY = (int) y * 256;
+        int nX = (int) x;
+        int nY = (int) y;
 
         float packed1 = Float.intBitsToFloat(nX << 16 | nY);
         texCoords.writeFloatLE(packed1);
@@ -69,16 +63,7 @@ public class MeshContainer {
     }
 
     public void setTextures(int nX, int nY, int nZ, TerraTexture texture) {
-       // nY *= nZ;
-        if (nZ == 1){
-            System.out.println("fsdad");
-        }
-        for(int x2 = nX; x2 < 16 + nX; x2++){
-            if(textures[x2] == null) {
-                textures[x2] = new TerraTexture[TextureManager.ATLAS_SIZE * 64];
-            }
-            Arrays.fill(textures[x2], nY, 16 + nY, texture);
-        }
+        textures[nZ][nY][nX] = texture;
 
         int i = 1;
         if(textureTypes.get(texture) != null) {
@@ -92,7 +77,7 @@ public class MeshContainer {
         return vertices;
     }
 
-    public TerraTexture[][] getTextures(){
+    public TerraTexture[][][] getTextures(){
         return textures;
     }
 

@@ -19,10 +19,8 @@ import com.jme3.scene.Mesh;
 import com.jme3.scene.Spatial.CullHint;
 import com.jme3.scene.VertexBuffer.Type;
 import com.jme3.system.AppSettings;
-import com.jme3.texture.Image;
 import com.jme3.texture.TextureArray;
 import com.ritualsoftheold.terra.core.TerraModule;
-import com.ritualsoftheold.terra.core.material.TerraMaterial;
 import com.ritualsoftheold.terra.offheap.chunk.ChunkBuffer;
 import com.ritualsoftheold.terra.core.gen.interfaces.world.WorldGeneratorInterface;
 import com.ritualsoftheold.terra.core.gen.objects.LoadMarker;
@@ -111,8 +109,7 @@ public class TestGameApp extends SimpleApplication implements ActionListener {
         world.addLoadMarker(player);
       //  world.addLoadMarker(secondchunk);
 
-        TextureManager texManager = new TextureManager(assetManager, reg); // Initialize texture atlas/array manager
-        texManager.loadMaterials();
+        TextureManager texManager = new TextureManager(assetManager); // Initialize texture atlas/array manager
         VoxelMesher mesher = new NaiveMesher();
 
         world.setLoadListener(new WorldLoadListener() {
@@ -153,14 +150,13 @@ public class TestGameApp extends SimpleApplication implements ActionListener {
                 // Create material
                 TextureArray texture;
                 materials.add(new Material(assetManager, "terra/shader/TerraArray.j3md"));
-                Image mainImage = texManager.convertMainTexture(container.getMainTexture());
                 if(container.getTextureTypes() > 1) {
-                     texture = texManager.convertTexture(container.getTextures(), mainImage);
+                     texture = texManager.convertTexture(container.getTextures(), container.getMainTexture());
                 }else{
-                    ArrayList<Image> array = new ArrayList<>();
-                    array.add(mainImage);
-                    texture = new TextureArray(array);
+                    texture = texManager.convertMainTexture(container.getMainTexture());
                 }
+
+
                 materials.get(materials.size() - 1).setTexture("ColorMap", texture);
                 geom.setMaterial(materials.get(materials.size() - 1));
                 //geom.setLocalScale(0.5f);
@@ -178,9 +174,7 @@ public class TestGameApp extends SimpleApplication implements ActionListener {
         rootNode.setCullHint(CullHint.Never);
 
         List<CompletableFuture<Void>> markers = world.updateLoadMarkers();
-        markers.forEach((f) -> {
-            f.join();
-        });
+        markers.forEach(CompletableFuture::join);
 
         inputManager.addMapping("RELOAD", new KeyTrigger(KeyInput.KEY_G));
         inputManager.addListener(this, "RELOAD");
