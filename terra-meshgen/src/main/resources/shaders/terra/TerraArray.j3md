@@ -1,0 +1,19 @@
+MaterialDef Terrain {
+
+    MaterialParameters {
+        TextureArray ColorMap
+    }
+
+    Technique {
+        VertexShader GLSL400:   terra/shader/TerraArray.vert
+        FragmentShader GLSL400: terra/shader/TerraArray.frag
+
+        WorldParameters {
+            WorldViewProjectionMatrix
+        }
+
+        Defines {
+            
+        }
+    }
+}

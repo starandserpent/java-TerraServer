@@ -1,26 +1,19 @@
 package com.ritualsoftheold.terra.mesher.resource;
 
-import java.nio.Buffer;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
 
 import com.jme3.asset.AssetManager;
 import com.jme3.texture.Image;
 import com.jme3.texture.Image.Format;
-import com.jme3.texture.Texture;
 import com.jme3.texture.Texture.MagFilter;
 import com.jme3.texture.Texture.MinFilter;
+import com.jme3.texture.Texture2D;
 import com.jme3.texture.TextureArray;
 import com.jme3.texture.image.ColorSpace;
-import com.ritualsoftheold.terra.core.material.MaterialRegistry;
-import com.ritualsoftheold.terra.core.material.TerraMaterial;
 import com.ritualsoftheold.terra.core.material.TerraTexture;
 
-import it.unimi.dsi.fastutil.ints.Int2ObjectArrayMap;
-import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
-import it.unimi.dsi.fastutil.ints.Int2ObjectMap.Entry;
+import javax.swing.plaf.basic.BasicButtonUI;
 
 /**
  * Manages textures of materials. Creates texture atlases.
@@ -28,7 +21,6 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectMap.Entry;
  */
 public class TextureManager {
 
-    private static final int TEXTURE_MIN_RES = 2;
     //Size of the cube
     private static final int ATLAS_SIZE = 256;
     private static final int BYTES_PER_PIXEL = 4;
@@ -39,70 +31,64 @@ public class TextureManager {
     private AssetManager assetManager;
     public TextureManager(AssetManager assetManager) {
         this.assetManager = assetManager;
-        atlasBuf = ByteBuffer.allocateDirect(4099 * 4096 * BYTES_PER_PIXEL);
+        atlasBuf = ByteBuffer.allocateDirect(ATLAS_SIZE * ATLAS_SIZE * BYTES_PER_PIXEL);
     }
     /**
      * Returns texture array used for ground texture.
      * @return Ground texture array.
      */
 
-    public TextureArray convertTexture(TerraTexture[][][] terraTextures, TerraTexture mainTexture) {
+    public Texture2D convertTexture(TerraTexture[][][] terraTextures, TerraTexture mainTexture) {
         ArrayList<Image> atlases = new ArrayList<>();
         ByteBuffer atlasBuf = makeMainImage(mainTexture);
 
-        int texturesPerSide = 16;
-               // Assign texture data for shader
-        mainTexture.setPage(1); // Texture array id, "page"
+               // Assign texture data for shaders
+        /*mainTexture.setPage(1); // Texture array id, "page"
         mainTexture.setTileId(0); // Texture tile id
-        mainTexture.setTexturesPerSide(16); // For MeshContainer
+        mainTexture.setTexturesPerSide(1); // For MeshContainer*/
 
 
-        for (int y = 0; y < 16; y += 1) {
+
+        for (int y = 0; y < 64; y += 1) {
             x = 0;
             this.y = y;
-            for (int x = 0; x < 16; x += 1) {
+            for (int x = 0; x < 64; x += 1) {
                 TerraTexture terraTexture = terraTextures[0][y][x];
                 if (terraTexture != null && terraTexture != mainTexture) {
                     this.x = x;
                     Image image = assetManager.loadTexture(terraTexture.getAsset()).getImage();
-                    makeTile(image, atlasBuf, 1);
-                    terraTexture.setPage(2); // Texture array id, "page"
+                    makeTile(image, atlasBuf,  16);
+                   /* terraTexture.setPage(1); // Texture array id, "page"
                     terraTexture.setTileId(0); // Texture tile id
-                    terraTexture.setTexturesPerSide(16); // For MeshContainer
+                    terraTexture.setTexturesPerSide(1); // For MeshContainer*/
                 }
             }
         }
 
-        Image incompleteAtlas = new Image(Format.ABGR8, 1024, 1024, atlasBuf, null, ColorSpace.Linear);
-        atlasBuf.clear();
-        atlases.add(incompleteAtlas);
-
-        TextureArray array = new TextureArray(atlases);
-        array.setMagFilter(MagFilter.Nearest);
-       array.setMinFilter(MinFilter.NearestNoMipMaps);
-
-        return array;
+        return createTexture(atlasBuf);
     }
 
-    public TextureArray convertMainTexture(TerraTexture mainTexture){
-        ArrayList<Image> atlases = new ArrayList<>();
-
+    public Texture2D convertMainTexture(TerraTexture mainTexture){
         ByteBuffer atlasBuf = makeMainImage(mainTexture);
 
+        return createTexture(atlasBuf);
+    }
+
+    private Texture2D createTexture(ByteBuffer atlasBuf){
         Image incompleteAtlas = new Image(Format.ABGR8, ATLAS_SIZE, ATLAS_SIZE, atlasBuf, null, ColorSpace.Linear);
-        atlases.add(incompleteAtlas);
         atlasBuf.clear();
 
-        TextureArray array = new TextureArray(atlases);
-        array.setMagFilter(MagFilter.Nearest);
-        array.setMinFilter(MinFilter.NearestNoMipMaps);
-
-        return array;
+        Texture2D texture2D = new Texture2D(incompleteAtlas);
+        texture2D.setMagFilter(MagFilter.Nearest);
+        texture2D.setMinFilter(MinFilter.NearestNoMipMaps);
+        return texture2D;
     }
 
     private ByteBuffer makeMainImage(TerraTexture previousTexture) {
         Image image = assetManager.loadTexture(previousTexture.getAsset()).getImage();
         atlasBuf.clear();
+        x = 0;
+        y = 0;
         makeTile(image, atlasBuf, 256);
         return atlasBuf;
     }
@@ -118,9 +104,5 @@ public class TextureManager {
             atlasBuf.position(atlasStart + i * ATLAS_SIZE * BYTES_PER_PIXEL); // Travel to correct point in atlas data
             atlasBuf.put(row); // Set a row of data to atlas
         }
-    }
-
-    public int getAtlasSize() {
-        return ATLAS_SIZE;
     }
 }

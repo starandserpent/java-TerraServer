@@ -1,6 +1,8 @@
 package com.ritualsoftheold.terra.test;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
@@ -13,13 +15,19 @@ import com.jme3.input.controls.ActionListener;
 import com.jme3.input.controls.KeyTrigger;
 import com.jme3.light.AmbientLight;
 import com.jme3.material.Material;
+import com.jme3.material.MaterialDef;
+import com.jme3.math.ColorRGBA;
+import com.jme3.math.Vector2f;
 import com.jme3.math.Vector3f;
 import com.jme3.scene.Geometry;
 import com.jme3.scene.Mesh;
 import com.jme3.scene.Spatial.CullHint;
+import com.jme3.scene.VertexBuffer;
 import com.jme3.scene.VertexBuffer.Type;
 import com.jme3.system.AppSettings;
+import com.jme3.texture.Texture2D;
 import com.jme3.texture.TextureArray;
+import com.jme3.util.BufferUtils;
 import com.ritualsoftheold.terra.core.TerraModule;
 import com.ritualsoftheold.terra.offheap.chunk.ChunkBuffer;
 import com.ritualsoftheold.terra.core.gen.interfaces.world.WorldGeneratorInterface;
@@ -103,7 +111,7 @@ public class TestGameApp extends SimpleApplication implements ActionListener {
                 })
                 .build();
 
-        player = world.createLoadMarker(0,0, 0, 32, 32, 0);
+        player = world.createLoadMarker(0,0, 0, 1, 1, 0);
        // LoadMarker secondchunk = world.createLoadMarker(56+16+32,0, 56+16+32, 32, 32, 0);
 
         world.addLoadMarker(player);
@@ -122,50 +130,80 @@ public class TestGameApp extends SimpleApplication implements ActionListener {
 
             @Override
             public void chunkLoaded(OffheapChunk chunk, float x, float y, float z, LoadMarker trigger) {
-                Vector3f center = cam.getLocation();
-                if (Math.abs(x - center.x) > 128
-                        || Math.abs(y - center.y) > 128
-                        || Math.abs(z - center.z) > 128) {
-                    //System.out.println("too far away: " + x + ", " + y + ", " + z);
-                    return;
-                }
+                        Vector3f center = cam.getLocation();
+                        if (Math.abs(x - center.x) > 128
+                                || Math.abs(y - center.y) > 128
+                                || Math.abs(z - center.z) > 128) {
+                            //System.out.println("too far away: " + x + ", " + y + ", " + z);
+                            return;
+                        }
 
-                //System.out.println("Loaded chunk: " + chunk.memoryAddress());
-                MeshContainer container = new MeshContainer(200, ByteBufAllocator.DEFAULT);
-                mesher.chunk(chunk.getBuffer(), texManager, container);
+                        //System.out.println("Loaded chunk: " + chunk.memoryAddress());
+                        MeshContainer container = new MeshContainer();
+                        mesher.chunk(chunk.getBuffer(), texManager, container);
 
-                // Create mesh
-                Mesh mesh = new Mesh();
+                        // Create mesh
+                        Mesh mesh = new Mesh();
 
-                //System.out.println(mesher.getVertices());
-                //System.out.println(mesher.getIndices());
-                mesh.setBuffer(Type.Position, 1, container.getVertices().nioBuffer().asFloatBuffer());
-                mesh.setBuffer(Type.Index, 3, container.getIndices().nioBuffer().asIntBuffer());
-                mesh.setBuffer(Type.TexCoord, 2, container.getTextureCoordinates().nioBuffer().asFloatBuffer());
+                        //System.out.println(mesher.getVertices());
+                        //System.out.println(mesher.getIndices());
+                        Vector3f[] vector3fs = new Vector3f[container.getVertices().toArray().length];
+                        container.getVertices().
 
-                // Create geometry
-                Geometry geom = new Geometry("chunk:" + x + "," + y + "," + z, mesh);
-                //mat.setParam("SeparateTexCoord", VarType.Boolean, true);
+                                toArray(vector3fs);
+                        mesh.setBuffer(Type.Position, 2, BufferUtils.createFloatBuffer(vector3fs));
 
-                // Create material
-                TextureArray texture;
-                materials.add(new Material(assetManager, "terra/shader/TerraArray.j3md"));
-                if(container.getTextureTypes() > 1) {
-                     texture = texManager.convertTexture(container.getTextures(), container.getMainTexture());
-                }else{
-                    texture = texManager.convertMainTexture(container.getMainTexture());
-                }
+                        Integer[] integers = new Integer[container.getIndices().toArray().length];
+                        container.getIndices().
 
+                                toArray(integers);
 
-                materials.get(materials.size() - 1).setTexture("ColorMap", texture);
-                geom.setMaterial(materials.get(materials.size() - 1));
-                //geom.setLocalScale(0.5f);
-                geom.setLocalTranslation(x, y, z);
-                geom.setCullHint(CullHint.Never);
+                        int[] indices = new int[container.getIndices().size()];
+                        for (
+                                int i = 0; i < container.getIndices().
 
-                container.release();
-                // Place geometry in queue for main thread
-                geomCreateQueue.add(geom);
+                                size();
+
+                                i++) {
+                            indices[i] = integers[i];
+                        }
+
+                        ;
+
+                        mesh.setBuffer(Type.Index, 3, BufferUtils.createIntBuffer(indices));
+
+                        Vector2f[] vector2fs = new Vector2f[container.getTextureCoordinates().toArray().length];
+                        container.getTextureCoordinates().
+
+                                toArray(vector2fs);
+
+                        mesh.setBuffer(Type.TexCoord, 2, BufferUtils.createFloatBuffer(vector2fs));
+                        mesh.updateBound();
+
+                        // Create geometry
+                        Geometry geom = new Geometry("chunk:" + x + "," + y + "," + z, mesh);
+
+                        // Create material
+                        Texture2D texture;
+                        if (container.getTextureTypes() > 1) {
+                            texture = texManager.convertTexture(container.getTextures(), container.getMainTexture());
+                        } else {
+                            texture = texManager.convertMainTexture(container.getMainTexture());
+                        }
+                        materials.add(new
+
+                                Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md"));
+                        materials.get(materials.size() - 1).
+
+                                setColor("Color", ColorRGBA.Blue);
+                        geom.setMaterial(materials.get(materials.size() - 1));
+
+                        geom.setLocalTranslation(x, y, z);
+                        geom.setCullHint(CullHint.Never);
+
+                        // Place geometry in queue for main thread
+                        // geomCreateQueue.add(geom);
+                        geomCreateQueue.add(geom);
             }
         });
 

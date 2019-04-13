@@ -39,8 +39,6 @@ public class NaiveMesher implements VoxelMesher {
         // Reset buffer to starting position
         buf.seek(0);
 
-        int atlasSize = textures.getAtlasSize();
-
         int block = 0;
         int vertIndex = 0;
         while (buf.hasNext()) {
@@ -67,7 +65,7 @@ public class NaiveMesher implements VoxelMesher {
             float texScale = texture.getScale();
             int perSide = texture.getTexturesPerSide();
 
-            // Calculate current block position (normalized by shader)
+            // Calculate current block position (normalized by shaders)
             int z = block / 4096; // Integer division: current z index
             int y = (block - 4096 * z) / 64;
             int x = block % 64;
@@ -88,10 +86,10 @@ public class NaiveMesher implements VoxelMesher {
 
                 vertIndex += 4; // Next thing is next face
 
-                mesh.texture(page, tile, perSide, texScale * (63 - z), texScale * y);
-                mesh.texture(page, tile, perSide, texScale * (63 - z), texScale * (y + 1));
-                mesh.texture(page, tile, perSide, texScale * (64 - z), texScale * (y + 1));
-                mesh.texture(page, tile, perSide, texScale * (64 - z), texScale * y);
+                mesh.texture(texScale * (63 - z), texScale * y);
+                mesh.texture( texScale * (63 - z), texScale * (y + 1));
+                mesh.texture(texScale * (64 - z), texScale * (y + 1));
+                mesh.texture(texScale * (64 - z), texScale * y);
             } if ((faces & 0b00010000) ==  0) { // RIGHT
                 //System.out.println("Draw RIGHT");
                 mesh.vertex(x + 1, y, z);
@@ -104,10 +102,10 @@ public class NaiveMesher implements VoxelMesher {
 
                 vertIndex += 4; // Next thing is next face
 
-                mesh.texture(page, tile, perSide, texScale * z, texScale * y);
-                mesh.texture(page, tile, perSide, texScale * z, texScale * (y + 1));
-                mesh.texture(page, tile, perSide, texScale * (z + 1), texScale * (y + 1));
-                mesh.texture(page, tile, perSide, texScale * (z + 1), texScale * y);
+                mesh.texture( texScale * z, texScale * y);
+                mesh.texture(texScale * z, texScale * (y + 1));
+                mesh.texture( texScale * (z + 1), texScale * (y + 1));
+                mesh.texture(texScale * (z + 1), texScale * y);
             } if ((faces & 0b00001000) == 0) { // UP
                 //System.out.println("Draw UP");
                 mesh.vertex(x, y + 1, z);
@@ -120,10 +118,10 @@ public class NaiveMesher implements VoxelMesher {
 
                 vertIndex += 4; // Next thing is next face
 
-                mesh.texture(page, tile, perSide, texScale * (64 - x), texScale * (64 - z));
-                mesh.texture(page, tile, perSide, texScale * (64 - x), texScale * (63 - z));
-                mesh.texture(page, tile, perSide, texScale * (63 - x), texScale * (63 - z));
-                mesh.texture(page, tile, perSide, texScale * (63 - x), texScale * (64 - z));
+                mesh.texture( texScale * (64 - x), texScale * (64 - z));
+                mesh.texture( texScale * (64 - x), texScale * (63 - z));
+                mesh.texture(texScale * (63 - x), texScale * (63 - z));
+                mesh.texture( texScale * (63 - x), texScale * (64 - z));
             } if ((faces & 0b00000100) == 0) { // DOWN
                 //System.out.println("Draw DOWN");
                 mesh.vertex(x, y, z + 1);
@@ -136,10 +134,10 @@ public class NaiveMesher implements VoxelMesher {
 
                 vertIndex += 4; // Next thing is next face
 
-                mesh.texture(page, tile, perSide, texScale * x, texScale * (63 - z));
-                mesh.texture(page, tile, perSide, texScale * x, texScale * (64 - z));
-                mesh.texture(page, tile, perSide, texScale * (x + 1), texScale * (64 - z));
-                mesh.texture(page, tile, perSide, texScale * (x + 1), texScale * (63 - z));
+                mesh.texture(texScale * x, texScale * (63 - z));
+                mesh.texture(texScale * x, texScale * (64 - z));
+                mesh.texture( texScale * (x + 1), texScale * (64 - z));
+                mesh.texture(texScale * (x + 1), texScale * (63 - z));
             } if ((faces & 0b00000010) == 0) { // BACK
                 //System.out.println("Draw BACK");
                 mesh.vertex(x + 1, y, z + 1);
@@ -152,10 +150,10 @@ public class NaiveMesher implements VoxelMesher {
 
                 vertIndex += 4; // Next thing is next face
 
-                mesh.texture(page, tile, perSide, texScale * (63 - x), texScale * y);
-                mesh.texture(page, tile, perSide, texScale * (63 - x), texScale * (y + 1));
-                mesh.texture(page, tile, perSide, texScale * (64 - x), texScale * (y + 1));
-                mesh.texture(page, tile, perSide, texScale * (64 - x), texScale * y);
+                mesh.texture(texScale * (63 - x), texScale * y);
+                mesh.texture(texScale * (63 - x), texScale * (y + 1));
+                mesh.texture( texScale * (64 - x), texScale * (y + 1));
+                mesh.texture( texScale * (64 - x), texScale * y);
             } if ((faces & 0b00000001) == 0) { // FRONT
                 //System.out.println("Draw FRONT");
                 mesh.vertex(x, y, z);
@@ -168,10 +166,10 @@ public class NaiveMesher implements VoxelMesher {
 
                 vertIndex += 4; // Next thing is next face
 
-                mesh.texture(page, tile, perSide, texScale * x, texScale * y);
-                mesh.texture(page, tile, perSide, texScale * x, texScale * (y + 1));
-                mesh.texture(page, tile, perSide, texScale * (x + 1), texScale * (y + 1));
-                mesh.texture(page, tile, perSide, texScale * (x + 1), texScale * y);
+                mesh.texture( texScale * x, texScale * y);
+                mesh.texture(texScale * x, texScale * (y + 1));
+                mesh.texture(texScale * (x + 1), texScale * (y + 1));
+                mesh.texture(texScale * (x + 1), texScale * y);
             }
             block++; // Go to next block
             mesh.setTextures(x, y, z, texture);
