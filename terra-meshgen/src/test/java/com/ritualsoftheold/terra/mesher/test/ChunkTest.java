@@ -9,7 +9,6 @@ import com.jme3.scene.Mesh;
 import com.jme3.scene.Spatial.CullHint;
 import com.jme3.scene.VertexBuffer.Type;
 import com.jme3.system.AppSettings;
-import com.ritualsoftheold.terra.mesher.NaiveMesher;
 import com.ritualsoftheold.terra.mesher.resource.TextureManager;
 import com.ritualsoftheold.terra.core.TerraModule;
 import com.ritualsoftheold.terra.core.material.MaterialRegistry;

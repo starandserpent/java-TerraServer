@@ -42,12 +42,6 @@ public class TextureManager {
         ArrayList<Image> atlases = new ArrayList<>();
         ByteBuffer atlasBuf = makeMainImage(mainTexture);
 
-               // Assign texture data for shaders
-        /*mainTexture.setPage(1); // Texture array id, "page"
-        mainTexture.setTileId(0); // Texture tile id
-        mainTexture.setTexturesPerSide(1); // For MeshContainer*/
-
-
 
         for (int y = 0; y < 64; y += 1) {
             x = 0;
@@ -58,9 +52,6 @@ public class TextureManager {
                     this.x = x;
                     Image image = assetManager.loadTexture(terraTexture.getAsset()).getImage();
                     makeTile(image, atlasBuf,  16);
-                   /* terraTexture.setPage(1); // Texture array id, "page"
-                    terraTexture.setTileId(0); // Texture tile id
-                    terraTexture.setTexturesPerSide(1); // For MeshContainer*/
                 }
             }
         }
