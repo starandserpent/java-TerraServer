@@ -1,7 +1,7 @@
 package com.ritualsoftheold.terra.mesher;
 
+import com.ritualsoftheold.terra.core.buffer.BlockBuffer;
 import com.ritualsoftheold.terra.mesher.resource.TextureManager;
-import com.ritualsoftheold.terra.offheap.data.BufferWithFormat;
 
 /**
  * Creates a mesh based on Terra's voxel data.
@@ -14,7 +14,7 @@ public interface VoxelMesher {
      * @param data Block buffer for data.
      * @param textures Texture manager.
      */
-    void chunk(BufferWithFormat data, TextureManager textures, MeshContainer mesh);
+    void chunk(BlockBuffer data, TextureManager textures, MeshContainer mesh);
     
     /**
      * Creates a mesh for a simple cube, perhaps an octree node.

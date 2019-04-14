@@ -1,27 +1,24 @@
 package com.ritualsoftheold.terra.mesher;
 
 import com.ritualsoftheold.terra.core.buffer.BlockBuffer;
-import com.ritualsoftheold.terra.mesher.resource.TextureManager;
-import com.ritualsoftheold.terra.offheap.DataConstants;
 import com.ritualsoftheold.terra.core.material.TerraMaterial;
 import com.ritualsoftheold.terra.core.material.TerraTexture;
+import com.ritualsoftheold.terra.mesher.resource.TextureManager;
+import com.ritualsoftheold.terra.offheap.DataConstants;
 import com.ritualsoftheold.terra.offheap.data.BufferWithFormat;
 
-import java.util.ArrayList;
-
 /**
- * Naive mesher does culling, but doesn't try to merge same blocks into bigger faces.
+ * Greedy mesher does culling and try to merge same blocks into bigger faces.
  *
  */
-public class NaiveMesher implements VoxelMesher {
-
+public class GreedyMesher implements VoxelMesher {
     private CullingHelper culling;
-    
-    public NaiveMesher(CullingHelper culling) {
+
+    public GreedyMesher(CullingHelper culling) {
         this.culling = culling;
     }
-    
-    public NaiveMesher() {
+
+    public GreedyMesher() {
         this(new CullingHelper());
     }
 
@@ -179,9 +176,6 @@ public class NaiveMesher implements VoxelMesher {
 
     @Override
     public void cube(int id, float scale, TextureManager textures, MeshContainer mesh) {
-        // TODO implement this
+
     }
 }
-
-
-

@@ -168,8 +168,6 @@ public class TestGameApp extends SimpleApplication implements ActionListener {
                             indices[i] = integers[i];
                         }
 
-                        ;
-
                         mesh.setBuffer(Type.Index, 3, BufferUtils.createIntBuffer(indices));
 
                         Vector2f[] vector2fs = new Vector2f[container.getTextureCoordinates().toArray().length];

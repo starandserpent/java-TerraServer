@@ -83,7 +83,6 @@ public class ChunkBuffer {
         public void free(@Pointer long addr, long length) {
             mem.freeMemory(addr, length);
             memListener.onFree(length);
-            
         }
         
         @Override

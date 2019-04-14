@@ -18,11 +18,11 @@ public class MeshContainer {
 
     private HashMap<TerraTexture, Integer> textureTypes;
 
-    ArrayList<Vector3f> vertices;
+    private ArrayList<Vector3f> vertices;
 
-    ArrayList<Integer> indices;
+    private ArrayList<Integer> indices;
 
-    ArrayList<Vector2f> texCoords;
+    private ArrayList<Vector2f> texCoords;
 
 
     /**
