@@ -65,10 +65,11 @@ public class GreedyMesher implements VoxelMesher {
                 mesh.vertex(x, y + 1, z);
                 mesh.vertex(x, y, z);
 
-                verticeIndex += 4;
 
                 mesh.triangle(verticeIndex, 0, 2, 3);
                 mesh.triangle( verticeIndex, 2, 0, 1);
+
+                verticeIndex += 4;
 
                 /*
                 mesh.texture(z, y);
@@ -82,11 +83,11 @@ public class GreedyMesher implements VoxelMesher {
                 mesh.vertex(x + 1, y + 1, z + 1);
                 mesh.vertex(x + 1, y, z + 1);
 
-                verticeIndex += 4;
 
                 mesh.triangle(verticeIndex, 0, 2, 3);
                 mesh.triangle( verticeIndex, 2, 0, 1);
 
+                verticeIndex += 4;
              /*   mesh.texture(z, y);
                 mesh.texture(z , y + 1);
                 mesh.texture(z + 1, y + 1);
@@ -100,10 +101,11 @@ public class GreedyMesher implements VoxelMesher {
                 mesh.vertex(x + 1, y + 1, z + 1);
                 mesh.vertex(x + 1, y + 1, z);
 
-                verticeIndex += 4;
 
                 mesh.triangle(verticeIndex, 0, 2, 3);
                 mesh.triangle( verticeIndex, 2, 0, 1);
+
+                verticeIndex += 4;
 
                 mesh.texture(x , z);
                 mesh.texture(x , z + 1);
@@ -115,10 +117,11 @@ public class GreedyMesher implements VoxelMesher {
                 mesh.vertex(x + 1, y, z);
                 mesh.vertex(x + 1, y, z + 1);
 
-                verticeIndex += 4;
 
-                mesh.triangle(verticeIndex,0, 2, 3);
-                mesh.triangle( verticeIndex,2, 0, 1);
+                mesh.triangle(verticeIndex, 0, 2, 3);
+                mesh.triangle( verticeIndex, 2, 0, 1);
+
+                verticeIndex += 4;
 
                /*mesh.texture(x , z);
                 mesh.texture(x , z + 1);
@@ -130,10 +133,10 @@ public class GreedyMesher implements VoxelMesher {
                 mesh.vertex(x, y + 1, z + 1);
                 mesh.vertex(x, y, z + 1);
 
-                verticeIndex += 4;
-
-                mesh.triangle(verticeIndex,0, 2, 3);
+                mesh.triangle(verticeIndex, 0, 2, 3);
                 mesh.triangle( verticeIndex, 2, 0, 1);
+
+                verticeIndex += 4;
 
              /*   mesh.texture(z , y);
                 mesh.texture(z , y + 1);
@@ -145,10 +148,11 @@ public class GreedyMesher implements VoxelMesher {
                 mesh.vertex(x + 1, y + 1, z);
                 mesh.vertex(x + 1, y, z);
 
-                verticeIndex += 4;
 
                 mesh.triangle(verticeIndex, 0, 2, 3);
-                mesh.triangle(verticeIndex, 2, 0, 1);
+                mesh.triangle( verticeIndex, 2, 0, 1);
+
+                verticeIndex += 4;
 
                /* mesh.texture(x , y);
                 mesh.texture(x , y + 1);
