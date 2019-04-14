@@ -29,7 +29,6 @@ public class GreedyMesher implements VoxelMesher {
         assert mesh != null;
 
         byte[] hidden = new byte[DataConstants.CHUNK_MAX_BLOCKS]; // Visibility mappings for cubes
-        //Arrays.fill(hidden, (byte) 0);
 
         // Generate mappings for culling
         culling.cull(buf, hidden);
@@ -38,7 +37,7 @@ public class GreedyMesher implements VoxelMesher {
         buf.seek(0);
 
         int block = 0;
-        int vertIndex = 0;
+        int verticeIndex = 0;
         while (buf.hasNext()) {
             TerraMaterial material = buf.read();
             buf.next();
@@ -46,64 +45,54 @@ public class GreedyMesher implements VoxelMesher {
                 block++;
                 continue;
             }
-            //System.out.println(blockId);
 
-            //System.out.println("count: " + it.getCount());
             byte faces = hidden[block]; // Read hidden faces of this block
             if (faces == 0b00111111) { // TODO better "is-air" check
                 block++; // To next block!
                 continue; // AIR or all faces are hidden
             }
-            //System.out.println("id: " + id + ", block: " + block);
 
             TerraTexture texture = material.getTexture();
-            // Calculate texture coordinates...
-            int page = texture.getPage();
-            int tile = texture.getTileId();
-            float texScale = texture.getScale();
-            int perSide = texture.getTexturesPerSide();
 
             // Calculate current block position (normalized by shaders)
             int z = block / 4096; // Integer division: current z index
             int y = (block - 4096 * z) / 64;
             int x = block % 64;
 
-            //System.out.println("x: " + x + ", y: " + y + ", z: " + z);
-
-            //System.out.println("texMinX: " + texMinX + ", texMinY: " + texMinY + ", texMaxX: " + texMaxX + ", texMaxY: " + texMaxY);
-
             if ((faces & 0b00100000) == 0) { // LEFT
-                //System.out.println("Draw LEFT");
                 mesh.vertex(x, y, z + 1);
                 mesh.vertex(x, y + 1, z + 1);
                 mesh.vertex(x, y + 1, z);
                 mesh.vertex(x, y, z);
 
-                mesh.triangle(vertIndex, 0, 1, 2);
-                mesh.triangle(vertIndex, 2, 3, 0);
+                verticeIndex += 4;
 
-                vertIndex += 4; // Next thing is next face
+                mesh.triangle(verticeIndex, 0, 2, 3);
+                mesh.triangle( verticeIndex, 2, 0, 1);
 
-                mesh.texture(texScale * (63 - z), texScale * y);
-                mesh.texture( texScale * (63 - z), texScale * (y + 1));
-                mesh.texture(texScale * (64 - z), texScale * (y + 1));
-                mesh.texture(texScale * (64 - z), texScale * y);
+                /*
+                mesh.texture(z, y);
+                mesh.texture(z , y + 1);
+                mesh.texture(z + 1, y + 1);
+                mesh.texture(z , y + 1);
+                 */
             } if ((faces & 0b00010000) ==  0) { // RIGHT
-                //System.out.println("Draw RIGHT");
                 mesh.vertex(x + 1, y, z);
                 mesh.vertex(x + 1, y + 1, z);
                 mesh.vertex(x + 1, y + 1, z + 1);
                 mesh.vertex(x + 1, y, z + 1);
 
-                mesh.triangle(vertIndex, 0, 1, 2);
-                mesh.triangle(vertIndex, 2, 3, 0);
+                verticeIndex += 4;
 
-                vertIndex += 4; // Next thing is next face
+                mesh.triangle(verticeIndex, 0, 2, 3);
+                mesh.triangle( verticeIndex, 2, 0, 1);
 
-                mesh.texture( texScale * z, texScale * y);
-                mesh.texture(texScale * z, texScale * (y + 1));
-                mesh.texture( texScale * (z + 1), texScale * (y + 1));
-                mesh.texture(texScale * (z + 1), texScale * y);
+             /*   mesh.texture(z, y);
+                mesh.texture(z , y + 1);
+                mesh.texture(z + 1, y + 1);
+                mesh.texture(z , y + 1);
+              */
+
             } if ((faces & 0b00001000) == 0) { // UP
                 //System.out.println("Draw UP");
                 mesh.vertex(x, y + 1, z);
@@ -111,63 +100,60 @@ public class GreedyMesher implements VoxelMesher {
                 mesh.vertex(x + 1, y + 1, z + 1);
                 mesh.vertex(x + 1, y + 1, z);
 
-                mesh.triangle(vertIndex, 0, 1, 2);
-                mesh.triangle(vertIndex, 2, 3, 0);
+                verticeIndex += 4;
 
-                vertIndex += 4; // Next thing is next face
+                mesh.triangle(verticeIndex, 0, 2, 3);
+                mesh.triangle( verticeIndex, 2, 0, 1);
 
-                mesh.texture( texScale * (64 - x), texScale * (64 - z));
-                mesh.texture( texScale * (64 - x), texScale * (63 - z));
-                mesh.texture(texScale * (63 - x), texScale * (63 - z));
-                mesh.texture( texScale * (63 - x), texScale * (64 - z));
+                mesh.texture(x , z);
+                mesh.texture(x , z + 1);
+                mesh.texture(x + 1, z + 1);
+                mesh.texture(x , z + 1);
             } if ((faces & 0b00000100) == 0) { // DOWN
-                //System.out.println("Draw DOWN");
                 mesh.vertex(x, y, z + 1);
                 mesh.vertex(x, y, z);
                 mesh.vertex(x + 1, y, z);
                 mesh.vertex(x + 1, y, z + 1);
 
-                mesh.triangle(vertIndex, 0, 1, 2);
-                mesh.triangle(vertIndex, 2, 3, 0);
+                verticeIndex += 4;
 
-                vertIndex += 4; // Next thing is next face
+                mesh.triangle(verticeIndex,0, 2, 3);
+                mesh.triangle( verticeIndex,2, 0, 1);
 
-                mesh.texture(texScale * x, texScale * (63 - z));
-                mesh.texture(texScale * x, texScale * (64 - z));
-                mesh.texture( texScale * (x + 1), texScale * (64 - z));
-                mesh.texture(texScale * (x + 1), texScale * (63 - z));
+               /*mesh.texture(x , z);
+                mesh.texture(x , z + 1);
+                mesh.texture(x + 1, z + 1);
+                mesh.texture(x , z + 1);*/
             } if ((faces & 0b00000010) == 0) { // BACK
-                //System.out.println("Draw BACK");
                 mesh.vertex(x + 1, y, z + 1);
                 mesh.vertex(x + 1, y + 1, z + 1);
                 mesh.vertex(x, y + 1, z + 1);
                 mesh.vertex(x, y, z + 1);
 
-                mesh.triangle(vertIndex, 0, 1, 2);
-                mesh.triangle(vertIndex, 2, 3, 0);
+                verticeIndex += 4;
 
-                vertIndex += 4; // Next thing is next face
+                mesh.triangle(verticeIndex,0, 2, 3);
+                mesh.triangle( verticeIndex, 2, 0, 1);
 
-                mesh.texture(texScale * (63 - x), texScale * y);
-                mesh.texture(texScale * (63 - x), texScale * (y + 1));
-                mesh.texture( texScale * (64 - x), texScale * (y + 1));
-                mesh.texture( texScale * (64 - x), texScale * y);
+             /*   mesh.texture(z , y);
+                mesh.texture(z , y + 1);
+                mesh.texture(z + 1, y + 1);
+                mesh.texture(z , y + 1);*/
             } if ((faces & 0b00000001) == 0) { // FRONT
-                //System.out.println("Draw FRONT");
                 mesh.vertex(x, y, z);
                 mesh.vertex(x, y + 1, z);
                 mesh.vertex(x + 1, y + 1, z);
                 mesh.vertex(x + 1, y, z);
 
-                mesh.triangle(vertIndex, 0, 1, 2);
-                mesh.triangle(vertIndex, 2, 3, 0);
+                verticeIndex += 4;
 
-                vertIndex += 4; // Next thing is next face
+                mesh.triangle(verticeIndex, 0, 2, 3);
+                mesh.triangle(verticeIndex, 2, 0, 1);
 
-                mesh.texture( texScale * x, texScale * y);
-                mesh.texture(texScale * x, texScale * (y + 1));
-                mesh.texture(texScale * (x + 1), texScale * (y + 1));
-                mesh.texture(texScale * (x + 1), texScale * y);
+               /* mesh.texture(x , y);
+                mesh.texture(x , y + 1);
+                mesh.texture(x + 1, y + 1);
+                mesh.texture(x , y + 1);*/
             }
             block++; // Go to next block
             mesh.setTextures(x, y, z, texture);

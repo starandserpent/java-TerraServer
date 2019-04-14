@@ -49,10 +49,10 @@ public class GreedyMesherTestApp extends SimpleApplication {
         // Create mesh
         Mesh mesh = new Mesh();
 
-        Vector3f[] vector3fs = new Vector3f[container.getVertices().toArray().length];
-        container.getVertices().toArray(vector3fs);
+        Vector3f[] vector3fs = new Vector3f[container.getVector3fs().toArray().length];
+        container.getVector3fs().toArray(vector3fs);
 
-        mesh.setBuffer(VertexBuffer.Type.Position, 2, BufferUtils.createFloatBuffer(vector3fs));
+        mesh.setBuffer(VertexBuffer.Type.Position, 3, BufferUtils.createFloatBuffer(vector3fs));
 
         Integer[] integers = new Integer[container.getIndices().toArray().length];
         container.getIndices().toArray(integers);
@@ -84,6 +84,7 @@ public class GreedyMesherTestApp extends SimpleApplication {
         Material mat = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
 
         mat.setColor("Color", ColorRGBA.Blue);
+        mat.getAdditionalRenderState().setWireframe(true);
         geom.setMaterial(mat);
 
         geom.setLocalTranslation(0, 0, 0);

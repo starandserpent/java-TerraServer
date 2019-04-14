@@ -18,7 +18,7 @@ public class MeshContainer {
 
     private HashMap<TerraTexture, Integer> textureTypes;
 
-    private ArrayList<Vector3f> vertices;
+    private ArrayList<Vector3f> vector3fs;
 
     private ArrayList<Integer> indices;
 
@@ -29,7 +29,7 @@ public class MeshContainer {
      * Creates a new mesh container.
      */
     public MeshContainer() {
-        vertices = new ArrayList<>();
+        vector3fs = new ArrayList<>();
         indices = new ArrayList<>();
         texCoords = new ArrayList<>();
         textures = new TerraTexture[64][64][64];
@@ -37,19 +37,19 @@ public class MeshContainer {
     }
 
     public void vertex(int x, int y, int z) {
-        Vector3f vector = new Vector3f(x, y, z);
-        vertices.add(vector);
+        Vector3f vector = new Vector3f(x/4f, y/4f, z/4f);
+        vector3fs.add(vector);
     }
 
-    public void triangle(int vertIndex, int i, int j, int k) {
-        indices.add(vertIndex + i);
-        indices.add(vertIndex + j);
-        indices.add(vertIndex + k);
+    public void triangle(int verticeIndex, int i, int j, int k) {
+        indices.add(i + verticeIndex);
+        indices.add(j + verticeIndex);
+        indices.add(k + verticeIndex);
     }
 
     public void texture(float x, float y) {
-        int nX = (int) x*16;
-        int nY = (int) y*16;
+        int nX = (int) x;
+        int nY = (int) y;
 
         Vector2f vector2f = new Vector2f(nX, nY);
         texCoords.add(vector2f);
@@ -89,8 +89,8 @@ public class MeshContainer {
         return textureTypes.size();
     }
 
-    public ArrayList<Vector3f> getVertices() {
-        return vertices;
+    public ArrayList<Vector3f> getVector3fs() {
+        return vector3fs;
     }
 
     public ArrayList<Integer> getIndices() {

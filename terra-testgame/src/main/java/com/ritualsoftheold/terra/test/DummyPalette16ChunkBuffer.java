@@ -7,17 +7,17 @@ import com.ritualsoftheold.terra.offheap.data.CriticalBlockBuffer;
 import com.ritualsoftheold.terra.offheap.data.WorldDataFormat;
 import com.ritualsoftheold.terra.offheap.node.OffheapChunk;
 
-import java.util.ArrayList;
+import java.util.*;
 
 public class DummyPalette16ChunkBuffer  implements CriticalBlockBuffer {
 
     private final MaterialRegistry registry;
-    private ArrayList<Integer> IDs;
+    private HashMap<Integer,Integer> IDs;
     private int index;
 
     public DummyPalette16ChunkBuffer(MaterialRegistry registry) {
         this.registry = registry;
-        IDs = new ArrayList<>();
+        IDs = new HashMap<>();
     }
 
     @Override
@@ -45,13 +45,12 @@ public class DummyPalette16ChunkBuffer  implements CriticalBlockBuffer {
 
     @Override
     public boolean hasNext() {
-        return index < DataConstants.CHUNK_MAX_BLOCKS - 1;
+        return index < DataConstants.CHUNK_MAX_BLOCKS;
     }
 
     @Override
     public void write(TerraMaterial material) {
-        IDs.add(0);
-        IDs.set(index, material.getWorldId());
+        IDs.put(index, material.getWorldId());
     }
 
     @Override
