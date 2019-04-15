@@ -1,4 +1,4 @@
-package com.ritualsoftheold.terra.test;
+package com.ritualsoftheold.terra.world.test;
 
 import com.ritualsoftheold.terra.core.buffer.BlockBuffer;
 import com.ritualsoftheold.terra.core.gen.interfaces.GeneratorControl;
@@ -29,8 +29,14 @@ public class DummyWorldGenerator {
     }
 
     public BlockBuffer generate(BlockBuffer buf) {
-        for (int i = 0; i < 64; i++) {
-            buf.write(dirt);
+        for (int i = 0; i < 3 ; i++) {
+            buf.next();
+        }
+        for (int i = 0; i < DataConstants.CHUNK_MAX_BLOCKS/4; i++) {
+            buf.write(grass);
+            buf.next();
+        }
+        for (int i = 0; i < 100; i++) {
             buf.next();
         }
         for (int i = 0; i < DataConstants.CHUNK_MAX_BLOCKS; i++) {

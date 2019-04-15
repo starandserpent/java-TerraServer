@@ -1,4 +1,4 @@
-package com.ritualsoftheold.terra.test;
+package com.ritualsoftheold.terra.world.test;
 
 import com.ritualsoftheold.terra.core.material.MaterialRegistry;
 import com.ritualsoftheold.terra.core.material.TerraMaterial;
@@ -14,10 +14,12 @@ public class DummyPalette16ChunkBuffer  implements CriticalBlockBuffer {
     private final MaterialRegistry registry;
     private HashMap<Integer,Integer> IDs;
     private int index;
+    private boolean complete = false;
 
     public DummyPalette16ChunkBuffer(MaterialRegistry registry) {
         this.registry = registry;
         IDs = new HashMap<>();
+        IDs.put(index, 0);
     }
 
     @Override
@@ -28,6 +30,7 @@ public class DummyPalette16ChunkBuffer  implements CriticalBlockBuffer {
     @Override
     public void seek(int index) {
         this.index = index;
+        complete = true;
     }
 
     @Override
@@ -39,7 +42,8 @@ public class DummyPalette16ChunkBuffer  implements CriticalBlockBuffer {
     public void next() {
         if(hasNext()) {
             index++;
-            //writeWorldId(area, index, 1);
+            if (!complete)
+                IDs.put(index, 0);
         }
     }
 
