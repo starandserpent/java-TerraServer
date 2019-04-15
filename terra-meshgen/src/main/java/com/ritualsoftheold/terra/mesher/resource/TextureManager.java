@@ -9,15 +9,11 @@ import com.jme3.texture.Image.Format;
 import com.jme3.texture.Texture.MagFilter;
 import com.jme3.texture.Texture.MinFilter;
 import com.jme3.texture.Texture2D;
-import com.jme3.texture.TextureArray;
 import com.jme3.texture.image.ColorSpace;
 import com.ritualsoftheold.terra.core.material.TerraTexture;
 
-import javax.swing.plaf.basic.BasicButtonUI;
-
 /**
  * Manages textures of materials. Creates texture atlases.
- *
  */
 public class TextureManager {
 
@@ -33,13 +29,8 @@ public class TextureManager {
         this.assetManager = assetManager;
         atlasBuf = ByteBuffer.allocateDirect(ATLAS_SIZE * ATLAS_SIZE * BYTES_PER_PIXEL);
     }
-    /**
-     * Returns texture array used for ground texture.
-     * @return Ground texture array.
-     */
 
     public Texture2D convertTexture(TerraTexture[][][] terraTextures, TerraTexture mainTexture) {
-        ArrayList<Image> atlases = new ArrayList<>();
         ByteBuffer atlasBuf = makeMainImage(mainTexture);
 
 

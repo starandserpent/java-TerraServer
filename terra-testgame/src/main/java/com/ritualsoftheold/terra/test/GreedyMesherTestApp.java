@@ -18,6 +18,8 @@ import com.ritualsoftheold.terra.core.material.TerraTexture;
 import com.ritualsoftheold.terra.mesher.GreedyMesher;
 import com.ritualsoftheold.terra.mesher.MeshContainer;
 import com.ritualsoftheold.terra.mesher.resource.TextureManager;
+import com.ritualsoftheold.terra.world.test.DummyPalette16ChunkBuffer;
+import com.ritualsoftheold.terra.world.test.DummyWorldGenerator;
 
 public class GreedyMesherTestApp extends SimpleApplication {
 
@@ -75,11 +77,11 @@ public class GreedyMesherTestApp extends SimpleApplication {
 
         // Create material
         Texture2D texture;
-        if (container.getTextureTypes() > 1) {
+        /*if (container.getTextureTypes() > 1) {
             texture = texManager.convertTexture(container.getTextures(), container.getMainTexture());
         } else {
             texture = texManager.convertMainTexture(container.getMainTexture());
-        }
+        }*/
 
         Material mat = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
 

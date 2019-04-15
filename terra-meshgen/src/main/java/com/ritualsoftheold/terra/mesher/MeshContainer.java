@@ -7,6 +7,8 @@ package com.ritualsoftheold.terra.mesher;
         import io.netty.buffer.ByteBufAllocator;
 
         import java.util.ArrayList;
+        import java.util.Arrays;
+        import java.util.Collections;
         import java.util.HashMap;
 
 /**
@@ -24,7 +26,6 @@ public class MeshContainer {
 
     private ArrayList<Vector2f> texCoords;
 
-
     /**
      * Creates a new mesh container.
      */
@@ -36,23 +37,18 @@ public class MeshContainer {
         textureTypes = new HashMap<>();
     }
 
-    public void vertex(int x, int y, int z) {
-        Vector3f vector = new Vector3f(x/4f, y/4f, z/4f);
-        vector3fs.add(vector);
+    public void vector(Vector3f[] vectors) {
+        vector3fs.addAll(Arrays.asList(vectors));
     }
 
-    public void triangle(int verticeIndex, int i, int j, int k) {
-        indices.add(i + verticeIndex);
-        indices.add(j + verticeIndex);
-        indices.add(k + verticeIndex);
+    public void triangle(int[] indexes) {
+        for(int index : indexes){
+            indices.add(index);
+        }
     }
 
-    public void texture(float x, float y) {
-        int nX = (int) x;
-        int nY = (int) y;
-
-        Vector2f vector2f = new Vector2f(nX, nY);
-        texCoords.add(vector2f);
+    public void texture(Vector2f[] vector2fs) {
+        texCoords.addAll(Arrays.asList(vector2fs));
     }
 
     public void setTextures(int nX, int nY, int nZ, TerraTexture texture) {

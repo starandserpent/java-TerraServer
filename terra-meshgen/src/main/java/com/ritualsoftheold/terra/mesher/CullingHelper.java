@@ -7,50 +7,137 @@ import com.ritualsoftheold.terra.core.material.TerraTexture;
 /**
  * Simple face-culling implementation. Some mesh generators might be able to
  * iterate only once, culling at same time; they'll need something custom.
- *
  */
+
 public class CullingHelper {
 
-    public void cull(BlockBuffer buf, byte[] hidden) {
+    public Face[][] cull(BlockBuffer buf) {
         int index = 0;
+        int verticeIndex = 0;
         buf.seek(0);
+        Face[][] faces = new Face[DataConstants.CHUNK_MAX_BLOCKS][];
         while (buf.hasNext()) {
             TerraTexture texture = buf.read().getTexture();
             if (texture == null) { // TODO better AIR check
+                buf.next();
+                faces[index] = null;
+                index++;
                 continue;
             }
 
-            /*
-             * Following code is performance critical according to JMH
-             * throughput testing. So, we do some optimizations that
-             * would normally be quite useless:
-             * 
-             * index % 2^n == index & (2^n - 1)
-             * 
-             * So basically we replace modulo with a bitwise AND.
-             * This increases total mesher performance by about 25%.
-             */
-            int rightIndex = index - 1;
-            if (rightIndex > -1 && (index & 63) != 0)
-                hidden[rightIndex] |= 0b00010000; // RIGHT
-            int leftIndex = index + 1;
-            if (leftIndex < DataConstants.CHUNK_MAX_BLOCKS && (leftIndex & 63) != 0)
-                hidden[leftIndex] |= 0b00100000; // LEFT
-            int upIndex = index - 64;
-            if (upIndex > -1 && index - index / 4096 * 4096 > 63)
-                hidden[upIndex] |= 0b00001000; // UP
-            int downIndex = index + 64;
-            if (downIndex < DataConstants.CHUNK_MAX_BLOCKS && downIndex - downIndex / 4096 * 4096 > 63)
-                hidden[downIndex] |= 0b00000100; // DOWN
-            int backIndex = index + 4096;
-            if (backIndex < DataConstants.CHUNK_MAX_BLOCKS)
-                hidden[backIndex] |= 0b00000001; // BACK
-            int frontIndex = index - 4096;
-            if (frontIndex > -1)
-                hidden[frontIndex] |= 0b00000010; // FRONT
-
+            faces[index] = new Face[6];
+            index++;
             buf.next();
+        }
+
+        index = 0;
+        for (Face[] voxel : faces) {
+            // Calculate current block position (normalized by shaders)
+            if (voxel != null) {
+                int z = index / 4096; // Integer division: current z index
+                int y = (index - 4096 * z) / 64;
+                int x = index % 64;
+
+                Face face;
+                // LEFT
+                if (x == 0 || x > 0 && faces[index - 1] == null) {
+                    face = new Face();
+                    face.setVector3f(x, y, z + 1, 0);
+                    face.setVector3f(x, y + 1, z + 1, 1);
+                    face.setVector3f(x, y + 1, z, 2);
+                    face.setVector3f(x, y, z, 3);
+
+                    setIndexes(face, verticeIndex);
+
+                    verticeIndex += 4;
+
+                    voxel[0] = face;
+                }
+
+                // RIGHT
+                if (x == 63 || faces[index + 1] == null) {
+                    face = new Face();
+                    face.setVector3f(x + 1, y, z, 0);
+                    face.setVector3f(x + 1, y + 1, z, 1);
+                    face.setVector3f(x + 1, y + 1, z + 1, 2);
+                    face.setVector3f(x + 1, y, z + 1, 3);
+
+                    setIndexes(face, verticeIndex);
+
+                    verticeIndex += 4;
+
+                    voxel[1] = face;
+                }
+
+                // UP
+                if (y == 63 || faces[index + 64] == null) {
+                    face = new Face();
+                    face.setVector3f(x, y + 1, z, 0);
+                    face.setVector3f(x, y + 1, z + 1, 1);
+                    face.setVector3f(x + 1, y + 1, z + 1, 2);
+                    face.setVector3f(x + 1, y + 1, z, 3);
+
+                    setIndexes(face, verticeIndex);
+
+                    verticeIndex += 4;
+
+                    voxel[2] = face;
+                }
+
+                // DOWN
+                if (y == 0 || faces[index - 64] == null) {
+                    face = new Face();
+                    face.setVector3f(x + 1, y, z, 0);
+                    face.setVector3f(x + 1, y, z + 1, 1);
+                    face.setVector3f(x, y, z+ 1, 2);
+                    face.setVector3f(x, y, z, 3);
+
+                    setIndexes(face, verticeIndex);
+
+                    verticeIndex += 4;
+
+                    voxel[3] = face;
+                }
+                // BACK
+                if (z == 63 || faces[index + 4096] == null) {
+                    face = new Face();
+                    face.setVector3f(x + 1, y, z + 1, 0);
+                    face.setVector3f(x + 1, y + 1, z + 1, 1);
+                    face.setVector3f(x, y + 1, z + 1, 2);
+                    face.setVector3f(x, y, z + 1, 3);
+
+                    setIndexes(face, verticeIndex);
+
+                    verticeIndex += 4;
+
+                    voxel[4] = face;
+                }
+                // FRONT
+                if (z == 0 || faces[index - 4096] == null) {
+                    face = new Face();
+                    face.setVector3f(x, y, z, 0);
+                    face.setVector3f(x, y + 1, z, 1);
+                    face.setVector3f(x + 1, y + 1, z, 2);
+                    face.setVector3f(x + 1, y, z, 3);
+
+                    setIndexes(face, verticeIndex);
+
+                    verticeIndex += 4;
+
+                    voxel[5] = face;
+                }
+            }
             index++;
         }
+        return faces;
+    }
+
+    private void setIndexes(Face face, int verticeIndex) {
+        face.setIndexes(verticeIndex, 0);
+        face.setIndexes(verticeIndex + 2, 1);
+        face.setIndexes(verticeIndex + 3, 2);
+        face.setIndexes(verticeIndex + 2, 3);
+        face.setIndexes(verticeIndex + 0, 4);
+        face.setIndexes(verticeIndex + 1, 5);
     }
 }
