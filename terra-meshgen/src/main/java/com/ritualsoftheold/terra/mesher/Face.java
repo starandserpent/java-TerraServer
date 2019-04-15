@@ -22,6 +22,11 @@ public class Face {
         this.vector3f[position] = new Vector3f(x/16f, y/16f, z/16f);
     }
 
+    public void setVector3f(Vector3f vector3f, int position) {
+        this.vector3f[position] = vector3f;
+    }
+
+
     public void setIndexes(int indexes, int position) {
         this.indexes[position] = indexes;
     }
