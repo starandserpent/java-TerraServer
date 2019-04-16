@@ -4,6 +4,8 @@ import com.ritualsoftheold.terra.offheap.DataConstants;
 import com.ritualsoftheold.terra.core.buffer.BlockBuffer;
 import com.ritualsoftheold.terra.core.material.TerraTexture;
 
+import java.util.Objects;
+
 /**
  * Simple face-culling implementation. Some mesh generators might be able to
  * iterate only once, culling at same time; they'll need something custom.
@@ -25,6 +27,10 @@ public class CullingHelper {
             }
 
             faces[index] = new Face[6];
+            for(int i = 0; i < faces[index].length; i++){
+                faces[index][i] = new Face(texture);
+            }
+
             index++;
             buf.next();
         }
@@ -41,61 +47,68 @@ public class CullingHelper {
 
                 // LEFT
                 if (x == 0 || x > 0 && faces[index - 1] == null) {
-                    face = new Face();
+                    face = Objects.requireNonNull(faces[index])[0];
                     face.setVector3f(x, y, z + 1, 0);
                     face.setVector3f(x, y + 1, z + 1, 1);
                     face.setVector3f(x, y + 1, z, 2);
                     face.setVector3f(x, y, z, 3);
-                    voxel[0] = face;
+                }else{
+                    faces[index][0] = null;
                 }
 
                 // RIGHT
                 if (x == 63 || faces[index + 1] == null) {
-                    face = new Face();
+                    face = Objects.requireNonNull(faces[index])[1];
                     face.setVector3f(x + 1, y, z, 0);
                     face.setVector3f(x + 1, y + 1, z, 1);
                     face.setVector3f(x + 1, y + 1, z + 1, 2);
                     face.setVector3f(x + 1, y, z + 1, 3);
-                    voxel[1] = face;
+                }else{
+                    faces[index][1] = null;
                 }
 
                 // TOP
                 if (y == 63 || faces[index + 64] == null) {
-                    face = new Face();
+                    face = Objects.requireNonNull(faces[index])[2];
                     face.setVector3f(x, y + 1, z, 0);
                     face.setVector3f(x, y + 1, z + 1, 1);
                     face.setVector3f(x + 1, y + 1, z + 1, 2);
                     face.setVector3f(x + 1, y + 1, z, 3);
-                    voxel[2] = face;
+                }else{
+                    faces[index][2] = null;
                 }
 
                 // BOTTOM
                 if (y == 0 || faces[index - 64] == null) {
-                    face = new Face();
+                    face = Objects.requireNonNull(faces[index])[3];
                     face.setVector3f(x + 1, y, z, 0);
                     face.setVector3f(x + 1, y, z + 1, 1);
                     face.setVector3f(x, y, z+ 1, 2);
                     face.setVector3f(x, y, z, 3);
-                    voxel[3] = face;
+                }else{
+                    faces[index][3] = null;
                 }
 
                 // BACK
                 if (z == 63 || faces[index + 4096] == null) {
-                    face = new Face();
+                    face = Objects.requireNonNull(faces[index])[4];
                     face.setVector3f(x + 1, y, z + 1, 0);
                     face.setVector3f(x + 1, y + 1, z + 1, 1);
                     face.setVector3f(x, y + 1, z + 1, 2);
                     face.setVector3f(x, y, z + 1, 3);
-                    voxel[4] = face;
+                }else{
+                    faces[index][4] = null;
                 }
+
                 // FRONT
                 if (z == 0 || faces[index - 4096] == null) {
-                    face = new Face();
+                    face = Objects.requireNonNull(faces[index])[5];
                     face.setVector3f(x, y, z, 0);
                     face.setVector3f(x, y + 1, z, 1);
                     face.setVector3f(x + 1, y + 1, z, 2);
                     face.setVector3f(x + 1, y, z, 3);
-                    voxel[5] = face;
+                }else{
+                    faces[index][5] = null;
                 }
             }
             index++;

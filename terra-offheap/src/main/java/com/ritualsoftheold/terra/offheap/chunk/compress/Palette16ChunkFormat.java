@@ -204,7 +204,6 @@ public class Palette16ChunkFormat implements ChunkFormat {
     
     public class Palette16BlockBuffer implements BufferWithFormat {
 
-        private MemoryArea area;
         private final OffheapChunk chunk;
         private final Storage storage;
         private final MaterialRegistry registry;

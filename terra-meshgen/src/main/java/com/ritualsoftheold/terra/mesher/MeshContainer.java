@@ -3,12 +3,9 @@ package com.ritualsoftheold.terra.mesher;
         import com.jme3.math.Vector2f;
         import com.jme3.math.Vector3f;
         import com.ritualsoftheold.terra.core.material.TerraTexture;
-        import io.netty.buffer.ByteBuf;
-        import io.netty.buffer.ByteBufAllocator;
 
         import java.util.ArrayList;
         import java.util.Arrays;
-        import java.util.Collections;
         import java.util.HashMap;
 
 /**

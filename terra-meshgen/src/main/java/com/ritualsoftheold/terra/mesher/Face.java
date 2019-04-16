@@ -2,20 +2,17 @@ package com.ritualsoftheold.terra.mesher;
 
 import com.jme3.math.Vector2f;
 import com.jme3.math.Vector3f;
+import com.ritualsoftheold.terra.core.material.TerraTexture;
 
 public class Face {
     private Vector2f[] textureCoords;
     private Vector3f[] vector3f;
-    private int[] indexes;
+    private TerraTexture texture;
 
-    public Face(){
+    public Face(TerraTexture texture) {
+        this.texture = texture;
         textureCoords = new Vector2f[4];
         vector3f = new Vector3f[4];
-        indexes = new int[6];
-    }
-
-    public void setTextureCoords(int x, int y, int position) {
-        this.textureCoords[position] = new Vector2f(x, y);
     }
 
     public void setVector3f(int x, int y, int z, int position) {
@@ -26,20 +23,19 @@ public class Face {
         this.vector3f[position] = vector3f;
     }
 
-
-    public void setIndexes(int indexes, int position) {
-        this.indexes[position] = indexes;
+    public void setTextureCoords(float x, float y, int position) {
+        this.textureCoords[position] = new Vector2f(x, y);
     }
 
     public Vector2f[] getTextureCoords() {
         return textureCoords;
     }
 
-    public int[] getIndexes() {
-        return indexes;
-    }
-
     public Vector3f[] getVector3f() {
         return vector3f;
+    }
+
+    public TerraTexture getTexture() {
+        return texture;
     }
 }

@@ -1,5 +1,6 @@
 package com.ritualsoftheold.terra.mesher;
 
+import com.jme3.math.Vector2f;
 import com.ritualsoftheold.terra.core.buffer.BlockBuffer;
 import com.ritualsoftheold.terra.core.material.TerraMaterial;
 import com.ritualsoftheold.terra.core.material.TerraTexture;
@@ -8,6 +9,7 @@ import com.ritualsoftheold.terra.offheap.DataConstants;
 import com.ritualsoftheold.terra.offheap.data.BufferWithFormat;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 
 /**
  * Greedy mesher does culling and try to merge same blocks into bigger faces.
@@ -37,69 +39,69 @@ public class GreedyMesher implements VoxelMesher {
         // Reset buffer to starting position
         buf.seek(0);
 
-        ArrayList<Face> front = new ArrayList<>();
-        ArrayList<Face> back = new ArrayList<>();
-        ArrayList<Face> right = new ArrayList<>();
-        ArrayList<Face> left = new ArrayList<>();
-        ArrayList<Face> top = new ArrayList<>();
-        ArrayList<Face> bottom = new ArrayList<>();
-
+        HashMap<Integer, ArrayList<Face>> entity = new HashMap<>();
+        entity.put(0, new ArrayList<>());
+        entity.put(1, new ArrayList<>());
+        entity.put(2, new ArrayList<>());
+        entity.put(3, new ArrayList<>());
+        entity.put(4, new ArrayList<>());
+        entity.put(5, new ArrayList<>());
         verticeIndex = 0;
 
-        for(Face[] voxel:faces){
-            if(voxel != null) {
-                for(int i = 0; i < voxel.length; i++){
-                    if(voxel[i] != null) {
+        for(Face[] voxel:faces) {
+            if (voxel != null) {
+                for (int i = 0; i < voxel.length; i++) {
+                    if (voxel[i] != null) {
                         Face face = voxel[i];
-                        switch (i) {
-                            case 0:
-                                left.add(voxel[i]);
-                                break;
-                            case 1:
-                                right.add(voxel[i]);
-                                break;
-                            case 2:
-                                top.add(voxel[i]);
-                                break;
-                            case 3:
-                                bottom.add(voxel[i]);
-                                break;
-                            case 4:
-                                back.add(voxel[i]);
-                                break;
-                            case 5:
-                                front.add(face);
-                                break;
-                        }
+                        entity.get(i).add(face);
                     }
                 }
             }
         }
 
-        fillContainer(mesh, back);
-        fillContainer(mesh, right);
-        fillContainer(mesh, left);
-        fillContainer(mesh, top);
-        fillContainer(mesh, bottom);
-        fillContainer(mesh, front);
+        for(Integer key:entity.keySet()){
+            joinFaces(entity.get(key));
+            setTextureCoords(entity.get(key), key);
+            fillContainer(mesh, entity.get(key));
+        }
     }
 
-    private void fillContainer(MeshContainer mesh, ArrayList<Face> faces) {
-        for(int i = 0 ; i < faces.size() - 1; i++) {
+    private void joinFaces(ArrayList<Face> faces) {
+        for (int i = 0; i < faces.size(); i++) {
             joinFacesHorizonaly(faces, i);
         }
 
-        for(int i = 0 ; i < faces.size() - 1; i++) {
+        for (int i = 0; i < faces.size(); i++) {
             joinFacesVerticaly(faces, i);
         }
+    }
 
+    private void setTextureCoords(ArrayList<Face> faces, int side){
         for (Face completeFace : faces) {
-            setIndexes(completeFace, verticeIndex);
-            verticeIndex += 4;
+            switch (side) {
+                case 0:
+                    completeFace.setTextureCoords(0.5f, 0.25f, 0);
+                    completeFace.setTextureCoords(0.25f, 0.25f, 1);
+                    completeFace.setTextureCoords(0.25f, 0.5f, 2);
+                    completeFace.setTextureCoords(0.5f, 0.5f, 3);
+                    break;
+               default:
+                completeFace.setTextureCoords(0.25f, 0, 0);
+                completeFace.setTextureCoords(0, 0, 1);
+                completeFace.setTextureCoords(0, 0.25f, 2);
+                completeFace.setTextureCoords(0.25f, 0.25f, 3);
+                break;
+            }
+        }
 
+    }
+
+    private void fillContainer(MeshContainer mesh, ArrayList<Face> faces) {
+        for (Face completeFace : faces) {
             mesh.vector(completeFace.getVector3f());
-            mesh.triangle(completeFace.getIndexes());
+            mesh.triangle(getIndexes(verticeIndex));
             mesh.texture(completeFace.getTextureCoords());
+            verticeIndex += 4;
         }
     }
 
@@ -149,13 +151,15 @@ public class GreedyMesher implements VoxelMesher {
         }
     }
 
-    private void setIndexes(Face face, int verticeIndex) {
-        face.setIndexes(verticeIndex, 0);
-        face.setIndexes(verticeIndex + 2, 1);
-        face.setIndexes(verticeIndex + 3, 2);
-        face.setIndexes(verticeIndex + 2, 3);
-        face.setIndexes(verticeIndex, 4);
-        face.setIndexes(verticeIndex + 1, 5);
+    private int[] getIndexes(int verticeIndex) {
+        int[] indexes = new int[6];
+        indexes[0] = verticeIndex;
+        indexes[1] = verticeIndex + 2;
+        indexes[2] = verticeIndex + 3;
+        indexes[3] = verticeIndex + 2;
+        indexes[4] = verticeIndex;
+        indexes[5] = verticeIndex + 1;
+        return indexes;
     }
 
     @Override

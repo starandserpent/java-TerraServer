@@ -10,16 +10,19 @@ import com.jme3.scene.Mesh;
 import com.jme3.scene.Spatial;
 import com.jme3.scene.VertexBuffer;
 import com.jme3.system.AppSettings;
-import com.jme3.texture.Texture2D;
+import com.jme3.texture.Texture;
 import com.jme3.util.BufferUtils;
 import com.ritualsoftheold.terra.core.TerraModule;
 import com.ritualsoftheold.terra.core.material.MaterialRegistry;
+import com.ritualsoftheold.terra.core.material.TerraMaterial;
 import com.ritualsoftheold.terra.core.material.TerraTexture;
 import com.ritualsoftheold.terra.mesher.GreedyMesher;
 import com.ritualsoftheold.terra.mesher.MeshContainer;
 import com.ritualsoftheold.terra.mesher.resource.TextureManager;
 import com.ritualsoftheold.terra.world.test.DummyPalette16ChunkBuffer;
+import com.ritualsoftheold.terra.world.test.DummyTextureManager;
 import com.ritualsoftheold.terra.world.test.DummyWorldGenerator;
+import jme3tools.optimize.TextureAtlas;
 
 public class GreedyMesherTestApp extends SimpleApplication {
 
@@ -47,6 +50,10 @@ public class GreedyMesherTestApp extends SimpleApplication {
 
         DummyWorldGenerator worldGenerator = new DummyWorldGenerator(reg);
         greedyMesher.chunk(worldGenerator.generate(new DummyPalette16ChunkBuffer(reg)), texManager, container);
+
+        TerraMaterial dirt = reg.getMaterial("testgame:dirt");
+        TerraMaterial grass = reg.getMaterial("testgame:grass");
+        TerraMaterial air = reg.getMaterial("base:air");
 
         // Create mesh
         Mesh mesh = new Mesh();
@@ -76,17 +83,17 @@ public class GreedyMesherTestApp extends SimpleApplication {
         Geometry geom = new Geometry("chunk:", mesh);
 
         // Create material
-        Texture2D texture;
-        /*if (container.getTextureTypes() > 1) {
-            texture = texManager.convertTexture(container.getTextures(), container.getMainTexture());
-        } else {
-            texture = texManager.convertMainTexture(container.getMainTexture());
-        }*/
-
+        DummyTextureManager dummyTextureManager = new DummyTextureManager(reg);
+        Texture texture = dummyTextureManager.convertTexture(assetManager);
         Material mat = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
 
-        mat.setColor("Color", ColorRGBA.Blue);
-        mat.getAdditionalRenderState().setWireframe(true);
+      //  mat.getAdditionalRenderState().setWireframe(true);
+
+        // create manually texture atlas by adding textures or geometries with textures
+        //create material and set texture
+        mat.setTexture("ColorMap", texture);
+      //  mat.setColor("Color", ColorRGBA.Blue);
+        //change one geometry to use atlas, apply texture coordinates and replace material.
         geom.setMaterial(mat);
 
         geom.setLocalTranslation(0, 0, 0);
