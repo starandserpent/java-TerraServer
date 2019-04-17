@@ -2,6 +2,7 @@ package com.ritualsoftheold.terra.mesher;
 
         import com.jme3.math.Vector2f;
         import com.jme3.math.Vector3f;
+        import com.ritualsoftheold.terra.core.Terra;
         import com.ritualsoftheold.terra.core.material.TerraTexture;
 
         import java.util.ArrayList;
@@ -13,7 +14,7 @@ package com.ritualsoftheold.terra.mesher;
  *
  */
 public class MeshContainer {
-    private TerraTexture[][][] textures;
+    private TerraTexture[][][][] textures;
 
     private HashMap<TerraTexture, Integer> textureTypes;
 
@@ -30,7 +31,7 @@ public class MeshContainer {
         vector3fs = new ArrayList<>();
         indices = new ArrayList<>();
         texCoords = new ArrayList<>();
-        textures = new TerraTexture[64][64][64];
+        textures = new TerraTexture[64][64][64][6];
         textureTypes = new HashMap<>();
     }
 
@@ -48,18 +49,21 @@ public class MeshContainer {
         texCoords.addAll(Arrays.asList(vector2fs));
     }
 
-    public void setTextures(int nX, int nY, int nZ, TerraTexture texture) {
-        textures[nZ][nY][nX] = texture;
+    public void setTextures(int nX, int nY, int nZ, TerraTexture[] textures) {
+        this.textures[nZ][nY][nX] = textures;
 
         int i = 1;
-        if(textureTypes.get(texture) != null) {
-            i = textureTypes.get(texture);
-            i++;
+        for(TerraTexture terraTexture: textures) {
+            if (terraTexture != null && textureTypes.get(terraTexture) != null) {
+                i = textureTypes.get(terraTexture);
+                i++;
+                textureTypes.put(terraTexture, i);
+                break;
+            }
         }
-        textureTypes.put(texture, i);
     }
 
-    public TerraTexture[][][] getTextures(){
+    public TerraTexture[][][][] getTextures(){
         return textures;
     }
 

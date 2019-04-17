@@ -29,9 +29,15 @@ public class DummyWorldGenerator {
     }
 
     public BlockBuffer generate(BlockBuffer buf) {
-        for (int i = 0; i < DataConstants.CHUNK_MAX_BLOCKS/4; i++) {
+        for (int i = 0; i < 100; i++) {
+            buf.write(dirt);
+        }
+        for (int i = 0; i < 100; i++) {
             buf.write(grass);
+        }
+        for (int i = 0; i < DataConstants.CHUNK_MAX_BLOCKS/4; i++) {
             buf.next();
+            buf.write(dirt);
         }
         for (int i = 0; i < DataConstants.CHUNK_MAX_BLOCKS; i++) {
             buf.write(grass);

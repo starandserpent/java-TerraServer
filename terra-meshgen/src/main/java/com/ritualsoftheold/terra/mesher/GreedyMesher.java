@@ -34,7 +34,7 @@ public class GreedyMesher implements VoxelMesher {
         assert mesh != null;
 
         // Generate mappings for culling
-        Face[][] faces = culling.cull(buf);
+        Face[][] faces = culling.cull(buf, mesh);
 
         // Reset buffer to starting position
         buf.seek(0);
@@ -80,16 +80,49 @@ public class GreedyMesher implements VoxelMesher {
         for (Face completeFace : faces) {
             switch (side) {
                 case 0:
-                    completeFace.setTextureCoords(0.5f, 0.25f, 0);
-                    completeFace.setTextureCoords(0.25f, 0.25f, 1);
-                    completeFace.setTextureCoords(0.25f, 0.5f, 2);
-                    completeFace.setTextureCoords(0.5f, 0.5f, 3);
+                    completeFace.setTextureCoords(0.25f, 0);
+                    completeFace.setTextureCoords(0, 0);
+                    completeFace.setTextureCoords(0, 0.25f);
+                    completeFace.setTextureCoords(0.25f, 0.25f);
                     break;
+                case 1:
+                    completeFace.setTextureCoords(0.5f, 0.25f);
+                    completeFace.setTextureCoords(0.25f, 0.25f);
+                    completeFace.setTextureCoords(0.25f, 0.5f);
+                    completeFace.setTextureCoords(0.5f, 0.5f);
+                    break;
+                case 2:
+                    completeFace.setTextureCoords(0.25f, 0);
+                    completeFace.setTextureCoords(0.25f, 0.25f);
+                    completeFace.setTextureCoords(0.5f, 0.25f);
+                    completeFace.setTextureCoords(2, 2);
+                    break;
+                case 3:
+                    completeFace.setTextureCoords(2, 0);
+                    completeFace.setTextureCoords(0, 0);
+                    completeFace.setTextureCoords(0, 2);
+                    completeFace.setTextureCoords(2, 2);
+                    break;
+                case 4:
+                    completeFace.setTextureCoords(2, 0);
+                    completeFace.setTextureCoords(0, 0);
+                    completeFace.setTextureCoords(0, 2);
+                    completeFace.setTextureCoords(2, 2);
+                    break;
+
+                case 5:
+                    completeFace.setTextureCoords(2, 0);
+                    completeFace.setTextureCoords(0, 0);
+                    completeFace.setTextureCoords(0, 2);
+                    completeFace.setTextureCoords(2, 2);
+                    break;
+
+
                default:
-                completeFace.setTextureCoords(0.25f, 0, 0);
-                completeFace.setTextureCoords(0, 0, 1);
-                completeFace.setTextureCoords(0, 0.25f, 2);
-                completeFace.setTextureCoords(0.25f, 0.25f, 3);
+                completeFace.setTextureCoords(1, 0);
+                completeFace.setTextureCoords(0, 0);
+                completeFace.setTextureCoords(0, 1);
+                completeFace.setTextureCoords(1, 1);
                 break;
             }
         }

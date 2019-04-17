@@ -4,14 +4,16 @@ import com.jme3.math.Vector2f;
 import com.jme3.math.Vector3f;
 import com.ritualsoftheold.terra.core.material.TerraTexture;
 
+import java.util.ArrayList;
+
 public class Face {
-    private Vector2f[] textureCoords;
+    private ArrayList<Vector2f> textureCoords;
     private Vector3f[] vector3f;
     private TerraTexture texture;
 
     public Face(TerraTexture texture) {
         this.texture = texture;
-        textureCoords = new Vector2f[4];
+        textureCoords = new ArrayList<>();
         vector3f = new Vector3f[4];
     }
 
@@ -23,12 +25,14 @@ public class Face {
         this.vector3f[position] = vector3f;
     }
 
-    public void setTextureCoords(float x, float y, int position) {
-        this.textureCoords[position] = new Vector2f(x, y);
+    public void setTextureCoords(float x, float y) {
+        this.textureCoords.add(new Vector2f(x, y));
     }
 
     public Vector2f[] getTextureCoords() {
-        return textureCoords;
+        Vector2f[] clone = new Vector2f[textureCoords.size()];
+        textureCoords.toArray(clone);
+        return clone;
     }
 
     public Vector3f[] getVector3f() {

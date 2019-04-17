@@ -30,19 +30,19 @@ public class TextureManager {
         atlasBuf = ByteBuffer.allocateDirect(ATLAS_SIZE * ATLAS_SIZE * BYTES_PER_PIXEL);
     }
 
-    public Texture2D convertTexture(TerraTexture[][][] terraTextures, TerraTexture mainTexture) {
+    public Texture2D convertTexture(TerraTexture[][][][] terraTextures, TerraTexture mainTexture) {
         ByteBuffer atlasBuf = makeMainImage(mainTexture);
-
-
         for (int y = 0; y < 64; y += 1) {
             x = 0;
             this.y = y;
             for (int x = 0; x < 64; x += 1) {
-                TerraTexture terraTexture = terraTextures[0][y][x];
-                if (terraTexture != null && terraTexture != mainTexture) {
-                    this.x = x;
-                    Image image = assetManager.loadTexture(terraTexture.getAsset()).getImage();
-                    makeTile(image, atlasBuf,  16);
+                for (int f = 0; f < 6; f += 1) {
+                    TerraTexture terraTexture = terraTextures[0][y][x][f];
+                    if (terraTexture != null && terraTexture != mainTexture) {
+                        this.x = x;
+                        Image image = assetManager.loadTexture(terraTexture.getAsset()).getImage();
+                        makeTile(image, atlasBuf, 16);
+                    }
                 }
             }
         }

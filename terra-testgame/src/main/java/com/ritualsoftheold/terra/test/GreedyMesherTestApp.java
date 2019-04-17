@@ -23,6 +23,7 @@ import com.ritualsoftheold.terra.world.test.DummyPalette16ChunkBuffer;
 import com.ritualsoftheold.terra.world.test.DummyTextureManager;
 import com.ritualsoftheold.terra.world.test.DummyWorldGenerator;
 import jme3tools.optimize.TextureAtlas;
+import org.w3c.dom.Text;
 
 public class GreedyMesherTestApp extends SimpleApplication {
 
@@ -84,9 +85,8 @@ public class GreedyMesherTestApp extends SimpleApplication {
 
         // Create material
         DummyTextureManager dummyTextureManager = new DummyTextureManager(reg);
-        Texture texture = dummyTextureManager.convertTexture(assetManager);
+        Texture texture = dummyTextureManager.convertTexture(assetManager, container.getMainTexture());
         Material mat = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
-
       //  mat.getAdditionalRenderState().setWireframe(true);
 
         // create manually texture atlas by adding textures or geometries with textures
