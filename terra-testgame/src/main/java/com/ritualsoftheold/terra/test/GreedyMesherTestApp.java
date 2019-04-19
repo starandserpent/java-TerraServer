@@ -11,6 +11,7 @@ import com.jme3.scene.Spatial;
 import com.jme3.scene.VertexBuffer;
 import com.jme3.system.AppSettings;
 import com.jme3.texture.Texture;
+import com.jme3.texture.Texture3D;
 import com.jme3.util.BufferUtils;
 import com.ritualsoftheold.terra.core.TerraModule;
 import com.ritualsoftheold.terra.core.material.MaterialRegistry;
@@ -78,6 +79,7 @@ public class GreedyMesherTestApp extends SimpleApplication {
         container.getTextureCoordinates().toArray(vector2fs);
 
         mesh.setBuffer(VertexBuffer.Type.TexCoord, 2, BufferUtils.createFloatBuffer(vector2fs));
+     //   mesh.setBuffer(VertexBuffer.Type.TexCoord, 2, BufferUtils.createFloatBuffer(secondTextureCooords));
         mesh.updateBound();
 
         // Create geometry
@@ -86,12 +88,13 @@ public class GreedyMesherTestApp extends SimpleApplication {
         // Create material
         DummyTextureManager dummyTextureManager = new DummyTextureManager(reg);
         Texture texture = dummyTextureManager.convertTexture(assetManager, container.getMainTexture());
-        Material mat = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
+        Material mat = new Material(assetManager, "/shaders/terra/TerraArray.j3md");
       //  mat.getAdditionalRenderState().setWireframe(true);
 
         // create manually texture atlas by adding textures or geometries with textures
         //create material and set texture
         mat.setTexture("ColorMap", texture);
+        mat.setFloat("tile", 0.25f);
       //  mat.setColor("Color", ColorRGBA.Blue);
         //change one geometry to use atlas, apply texture coordinates and replace material.
         geom.setMaterial(mat);

@@ -13,115 +13,97 @@ import java.util.Objects;
 
 public class CullingHelper {
 
-    public Face[][] cull(BlockBuffer buf, MeshContainer mesh) {
+    public Voxel[] cull(BlockBuffer buf, MeshContainer mesh) {
         int index = 0;
         buf.seek(0);
-        Face[][] faces = new Face[DataConstants.CHUNK_MAX_BLOCKS][];
+        Voxel[] voxels = new Voxel[DataConstants.CHUNK_MAX_BLOCKS];
         while (buf.hasNext()) {
             TerraTexture texture = buf.read().getTexture();
             if (texture == null) { // TODO better AIR check
                 buf.next();
-                faces[index] = null;
+                voxels[index] = null;
                 index++;
                 continue;
             }
 
-            faces[index] = new Face[6];
-            for(int i = 0; i < faces[index].length; i++){
-                faces[index][i] = new Face(texture);
-            }
+            voxels[index] = new Voxel(texture);
 
             index++;
             buf.next();
         }
 
         index = 0;
-        for (Face[] voxel : faces) {
+        for (Voxel voxel : voxels) {
             // Calculate current block position (normalized by shaders)
             if (voxel != null) {
                 int z = index / 4096; // Integer division: current z index
                 int y = (index - 4096 * z) / 64;
                 int x = index % 64;
-                TerraTexture[] textures = new TerraTexture[6];
 
                 Face face;
 
                 // LEFT
-                if (x == 0 || x > 0 && faces[index - 1] == null) {
-                    face = Objects.requireNonNull(faces[index])[0];
-                    textures[0] = face.getTexture();
+                if (x == 0 || x > 0 && voxels[index - 1] == null) {
+                    face = new Face();
                     face.setVector3f(x, y, z + 1, 0);
                     face.setVector3f(x, y + 1, z + 1, 1);
                     face.setVector3f(x, y + 1, z, 2);
                     face.setVector3f(x, y, z, 3);
-                }else{
-                    faces[index][0] = null;
+                    Objects.requireNonNull(voxel).setFace(face, 0);
                 }
 
                 // RIGHT
-                if (x == 63 || faces[index + 1] == null) {
-                    face = Objects.requireNonNull(faces[index])[1];
-                    textures[1] = face.getTexture();
+                if (x == 63 || voxels[index + 1] == null) {
+                    face = new Face();
                     face.setVector3f(x + 1, y, z, 0);
                     face.setVector3f(x + 1, y + 1, z, 1);
                     face.setVector3f(x + 1, y + 1, z + 1, 2);
                     face.setVector3f(x + 1, y, z + 1, 3);
-                }else{
-                    faces[index][1] = null;
+                    Objects.requireNonNull(voxel).setFace(face, 1);
                 }
 
                 // TOP
-                if (y == 63 || faces[index + 64] == null) {
-                    face = Objects.requireNonNull(faces[index])[2];
-                    textures[2] = face.getTexture();
+                if (y == 63 || voxels[index + 64] == null) {
+                    face = new Face();
                     face.setVector3f(x, y + 1, z, 0);
                     face.setVector3f(x, y + 1, z + 1, 1);
                     face.setVector3f(x + 1, y + 1, z + 1, 2);
                     face.setVector3f(x + 1, y + 1, z, 3);
-                }else{
-                    faces[index][2] = null;
+                    Objects.requireNonNull(voxel).setFace(face, 2);
                 }
 
                 // BOTTOM
-                if (y == 0 || faces[index - 64] == null) {
-                    face = Objects.requireNonNull(faces[index])[3];
-                    textures[3] = face.getTexture();
+                if (y == 0 || voxels[index - 64] == null) {
+                    face = new Face();
                     face.setVector3f(x + 1, y, z, 0);
                     face.setVector3f(x + 1, y, z + 1, 1);
                     face.setVector3f(x, y, z+ 1, 2);
                     face.setVector3f(x, y, z, 3);
-                }else{
-                    faces[index][3] = null;
+                    Objects.requireNonNull(voxel).setFace(face, 3);
                 }
 
                 // BACK
-                if (z == 63 || faces[index + 4096] == null) {
-                    face = Objects.requireNonNull(faces[index])[4];
-                    textures[4] = face.getTexture();
+                if (z == 63 || voxels[index + 4096] == null) {
+                    face = new Face();
                     face.setVector3f(x + 1, y, z + 1, 0);
                     face.setVector3f(x + 1, y + 1, z + 1, 1);
                     face.setVector3f(x, y + 1, z + 1, 2);
                     face.setVector3f(x, y, z + 1, 3);
-                }else{
-                    faces[index][4] = null;
+                    Objects.requireNonNull(voxel).setFace(face, 4);
                 }
 
                 // FRONT
-                if (z == 0 || faces[index - 4096] == null) {
-                    face = Objects.requireNonNull(faces[index])[5];
-                    textures[5] = face.getTexture();
+                if (z == 0 || voxels[index - 4096] == null) {
+                    face = new Face();
                     face.setVector3f(x, y, z, 0);
                     face.setVector3f(x, y + 1, z, 1);
                     face.setVector3f(x + 1, y + 1, z, 2);
                     face.setVector3f(x + 1, y, z, 3);
-                }else{
-                    faces[index][5] = null;
+                    Objects.requireNonNull(voxel).setFace(face, 5);
                 }
-
-                mesh.setTextures(x, y ,z, textures);
             }
             index++;
         }
-        return faces;
+        return voxels;
     }
 }

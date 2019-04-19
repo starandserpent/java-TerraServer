@@ -1,19 +1,21 @@
 MaterialDef Terrain {
 
     MaterialParameters {
-        TextureArray ColorMap
+        Texture2D ColorMap
+        Float tile
+        Float tileIndex
     }
 
     Technique {
-        VertexShader GLSL400:   terra/shader/TerraArray.vert
-        FragmentShader GLSL400: terra/shader/TerraArray.frag
+        VertexShader GLSL400:   shaders/terra/TerraArray.vert
+        FragmentShader GLSL400: shaders/terra/TerraArray.frag
 
         WorldParameters {
             WorldViewProjectionMatrix
         }
 
         Defines {
-            
+           TILE : tile
         }
     }
 }

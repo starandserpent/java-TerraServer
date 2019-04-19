@@ -11,8 +11,7 @@ public class Face {
     private Vector3f[] vector3f;
     private TerraTexture texture;
 
-    public Face(TerraTexture texture) {
-        this.texture = texture;
+    public Face() {
         textureCoords = new ArrayList<>();
         vector3f = new Vector3f[4];
     }
@@ -37,6 +36,10 @@ public class Face {
 
     public Vector3f[] getVector3f() {
         return vector3f;
+    }
+
+    public void setTexture(TerraTexture texture) {
+        this.texture = texture;
     }
 
     public TerraTexture getTexture() {
