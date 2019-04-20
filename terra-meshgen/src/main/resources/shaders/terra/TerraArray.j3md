@@ -1,9 +1,7 @@
 MaterialDef Terrain {
 
     MaterialParameters {
-        Texture2D ColorMap
-        Float tile
-        Float tileIndex
+        TextureArray ColorMap
     }
 
     Technique {
@@ -12,10 +10,6 @@ MaterialDef Terrain {
 
         WorldParameters {
             WorldViewProjectionMatrix
-        }
-
-        Defines {
-           TILE : tile
         }
     }
 }

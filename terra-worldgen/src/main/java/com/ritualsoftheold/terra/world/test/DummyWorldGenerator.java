@@ -12,6 +12,7 @@ import com.ritualsoftheold.terra.world.location.Area;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.concurrent.ThreadLocalRandom;
 
 public class DummyWorldGenerator {
 
@@ -29,16 +30,14 @@ public class DummyWorldGenerator {
     }
 
     public BlockBuffer generate(BlockBuffer buf) {
-        for (int i = 0; i < 2; i++) {
-            buf.write(dirt);
-            buf.next();
-        }
-        for (int i = 0; i < 100; i++) {
-            buf.write(grass);
-            buf.next();
-        }
+        ThreadLocalRandom random = ThreadLocalRandom.current();
         for (int i = 0; i < DataConstants.CHUNK_MAX_BLOCKS; i++) {
-            buf.write(grass);
+            int id = random.nextInt(10);
+            if(id == 2) {
+                buf.write(grass);
+            }else if (id==1) {
+                buf.write(dirt);
+            }
             buf.next();
         }
         return buf;

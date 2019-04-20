@@ -1,5 +1,6 @@
 package com.ritualsoftheold.terra.mesher;
 
+import com.ritualsoftheold.terra.core.material.TerraMaterial;
 import com.ritualsoftheold.terra.offheap.DataConstants;
 import com.ritualsoftheold.terra.core.buffer.BlockBuffer;
 import com.ritualsoftheold.terra.core.material.TerraTexture;
@@ -13,20 +14,20 @@ import java.util.Objects;
 
 public class CullingHelper {
 
-    public Voxel[] cull(BlockBuffer buf, MeshContainer mesh) {
+    public Voxel[] cull(BlockBuffer buf) {
         int index = 0;
         buf.seek(0);
         Voxel[] voxels = new Voxel[DataConstants.CHUNK_MAX_BLOCKS];
         while (buf.hasNext()) {
-            TerraTexture texture = buf.read().getTexture();
-            if (texture == null) { // TODO better AIR check
+            TerraMaterial material = buf.read();
+            if (material.getTexture() == null) { // TODO better AIR check
                 buf.next();
                 voxels[index] = null;
                 index++;
                 continue;
             }
 
-            voxels[index] = new Voxel(texture);
+            voxels[index] = new Voxel(material);
 
             index++;
             buf.next();

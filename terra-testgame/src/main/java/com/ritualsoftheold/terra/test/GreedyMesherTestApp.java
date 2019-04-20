@@ -5,6 +5,7 @@ import com.jme3.material.Material;
 import com.jme3.math.ColorRGBA;
 import com.jme3.math.Vector2f;
 import com.jme3.math.Vector3f;
+import com.jme3.math.Vector4f;
 import com.jme3.scene.Geometry;
 import com.jme3.scene.Mesh;
 import com.jme3.scene.Spatial;
@@ -12,6 +13,7 @@ import com.jme3.scene.VertexBuffer;
 import com.jme3.system.AppSettings;
 import com.jme3.texture.Texture;
 import com.jme3.texture.Texture3D;
+import com.jme3.texture.TextureArray;
 import com.jme3.util.BufferUtils;
 import com.ritualsoftheold.terra.core.TerraModule;
 import com.ritualsoftheold.terra.core.material.MaterialRegistry;
@@ -23,8 +25,6 @@ import com.ritualsoftheold.terra.mesher.resource.TextureManager;
 import com.ritualsoftheold.terra.world.test.DummyPalette16ChunkBuffer;
 import com.ritualsoftheold.terra.world.test.DummyTextureManager;
 import com.ritualsoftheold.terra.world.test.DummyWorldGenerator;
-import jme3tools.optimize.TextureAtlas;
-import org.w3c.dom.Text;
 
 public class GreedyMesherTestApp extends SimpleApplication {
 
@@ -53,10 +53,6 @@ public class GreedyMesherTestApp extends SimpleApplication {
         DummyWorldGenerator worldGenerator = new DummyWorldGenerator(reg);
         greedyMesher.chunk(worldGenerator.generate(new DummyPalette16ChunkBuffer(reg)), texManager, container);
 
-        TerraMaterial dirt = reg.getMaterial("testgame:dirt");
-        TerraMaterial grass = reg.getMaterial("testgame:grass");
-        TerraMaterial air = reg.getMaterial("base:air");
-
         // Create mesh
         Mesh mesh = new Mesh();
 
@@ -75,11 +71,11 @@ public class GreedyMesherTestApp extends SimpleApplication {
 
         mesh.setBuffer(VertexBuffer.Type.Index, 3, BufferUtils.createIntBuffer(indices));
 
-        Vector2f[] vector2fs = new Vector2f[container.getTextureCoordinates().toArray().length];
+        Vector3f[] vector2fs = new Vector3f[container.getTextureCoordinates().toArray().length];
         container.getTextureCoordinates().toArray(vector2fs);
 
-        mesh.setBuffer(VertexBuffer.Type.TexCoord, 2, BufferUtils.createFloatBuffer(vector2fs));
-     //   mesh.setBuffer(VertexBuffer.Type.TexCoord, 2, BufferUtils.createFloatBuffer(secondTextureCooords));
+        mesh.setBuffer(VertexBuffer.Type.TexCoord, 3, BufferUtils.createFloatBuffer(vector2fs));
+        //mesh.setBuffer(VertexBuffer.Type.TexCoord, 2, BufferUtils.createFloatBuffer(secondTextureCooords));
         mesh.updateBound();
 
         // Create geometry
@@ -87,15 +83,17 @@ public class GreedyMesherTestApp extends SimpleApplication {
 
         // Create material
         DummyTextureManager dummyTextureManager = new DummyTextureManager(reg);
-        Texture texture = dummyTextureManager.convertTexture(assetManager, container.getMainTexture());
+        TextureArray texture = dummyTextureManager.convertTexture(assetManager);
         Material mat = new Material(assetManager, "/shaders/terra/TerraArray.j3md");
       //  mat.getAdditionalRenderState().setWireframe(true);
 
         // create manually texture atlas by adding textures or geometries with textures
         //create material and set texture
+        texture.setWrap(Texture.WrapMode.Repeat);
+        texture.setMagFilter(Texture.MagFilter.Nearest);
+        texture.setMinFilter(Texture.MinFilter.NearestNoMipMaps);
         mat.setTexture("ColorMap", texture);
-        mat.setFloat("tile", 0.25f);
-      //  mat.setColor("Color", ColorRGBA.Blue);
+        //  mat.setColor("Color", ColorRGBA.Blue);
         //change one geometry to use atlas, apply texture coordinates and replace material.
         geom.setMaterial(mat);
 

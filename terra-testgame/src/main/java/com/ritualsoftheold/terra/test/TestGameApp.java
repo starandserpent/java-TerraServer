@@ -161,12 +161,6 @@ public class TestGameApp extends SimpleApplication implements ActionListener {
                         Geometry geom = new Geometry("chunk:" + x + "," + y + "," + z, mesh);
 
                         // Create material
-                        Texture2D texture;
-                        if (container.getTextureTypes() > 1) {
-                            texture = texManager.convertTexture(container.getTextures(), container.getMainTexture());
-                        } else {
-                            texture = texManager.convertMainTexture(container.getMainTexture());
-                        }
                         materials.add(new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md"));
                         materials.get(materials.size() - 1).setColor("Color", ColorRGBA.Blue);
                         geom.setMaterial(materials.get(materials.size() - 1));

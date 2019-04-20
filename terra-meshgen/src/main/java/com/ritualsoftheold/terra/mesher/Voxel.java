@@ -1,18 +1,18 @@
 package com.ritualsoftheold.terra.mesher;
 
-import com.ritualsoftheold.terra.core.material.TerraTexture;
+import com.ritualsoftheold.terra.core.material.TerraMaterial;
 
 public class Voxel {
     private Face[] faces;
-    private TerraTexture texture;
+    private TerraMaterial material;
 
-    public Voxel(TerraTexture texture){
+    public Voxel(TerraMaterial material){
         faces = new Face[6];
-        this.texture = texture;
+        this.material = material;
     }
 
     public void setFace(Face face, int side){
-        face.setTexture(texture);
+        face.setMaterial(material);
         faces[side] = face;
     }
 
@@ -20,7 +20,7 @@ public class Voxel {
         return faces[side];
     }
 
-    public TerraTexture getTexture() {
-        return texture;
+    public TerraMaterial getTexture() {
+        return material;
     }
 }

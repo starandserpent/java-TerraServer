@@ -34,7 +34,7 @@ public class GreedyMesher implements VoxelMesher {
         assert mesh != null;
 
         // Generate mappings for culling
-        Voxel[] voxels = culling.cull(buf, mesh);
+        Voxel[] voxels = culling.cull(buf);
 
         // Reset buffer to starting position
         buf.seek(0);
@@ -76,66 +76,55 @@ public class GreedyMesher implements VoxelMesher {
         }
     }
 
-    private void setTextureCoords(ArrayList<Face> faces, int side){
+    private void setTextureCoords(ArrayList<Face> faces, int side) {
         for (Face completeFace : faces) {
             switch (side) {
-            /*    case 0:
-                    completeFace.setTextureCoords(0.25f, 0);
+                case 0:
+                    completeFace.setTextureCoords(16 * completeFace.getVector3fs()[1].y, 0);
                     completeFace.setTextureCoords(0, 0);
-                    completeFace.setTextureCoords(0, 0.25f);
-                    completeFace.setTextureCoords(0.25f, 0.25f);
+                    completeFace.setTextureCoords(0, 16 * completeFace.getVector3fs()[1].z);
+                    completeFace.setTextureCoords(16 * completeFace.getVector3fs()[1].y, 16 * completeFace.getVector3fs()[1].z);
                     break;
                 case 1:
-                    completeFace.setTextureCoords(0.5f, 0.25f);
-                    completeFace.setTextureCoords(0.25f, 0.25f);
-                    completeFace.setTextureCoords(0.25f, 0.5f);
-                    completeFace.setTextureCoords(0.5f, 0.5f);
+                    completeFace.setTextureCoords(16 * completeFace.getVector3fs()[2].y, 0);
+                    completeFace.setTextureCoords(0, 0);
+                    completeFace.setTextureCoords(0, 16 * completeFace.getVector3fs()[2].x);
+                    completeFace.setTextureCoords(16 * completeFace.getVector3fs()[2].y, 16 * completeFace.getVector3fs()[2].x);
                     break;
                 case 2:
-                    completeFace.setTextureCoords(0.25f, 0);
-                    completeFace.setTextureCoords(0.25f, 0.25f);
-                    completeFace.setTextureCoords(0.5f, 0.25f);
-                    completeFace.setTextureCoords(2, 2);
+                    completeFace.setTextureCoords(16 * completeFace.getVector3fs()[2].z, 0);
+                    completeFace.setTextureCoords(0, 0);
+                    completeFace.setTextureCoords(0, 16 * completeFace.getVector3fs()[2].x);
+                    completeFace.setTextureCoords(16 * completeFace.getVector3fs()[2].z, 16 * completeFace.getVector3fs()[2].x);
                     break;
+
                 case 3:
-                    completeFace.setTextureCoords(2, 0);
+                    completeFace.setTextureCoords(16 * completeFace.getVector3fs()[1].z, 0);
                     completeFace.setTextureCoords(0, 0);
-                    completeFace.setTextureCoords(0, 2);
-                    completeFace.setTextureCoords(2, 2);
+                    completeFace.setTextureCoords(0, 16 * completeFace.getVector3fs()[1].x);
+                    completeFace.setTextureCoords(16 * completeFace.getVector3fs()[1].z, 16 * completeFace.getVector3fs()[1].x);
                     break;
+
                 case 4:
-                    completeFace.setTextureCoords(2, 0);
+                    completeFace.setTextureCoords(16 * completeFace.getVector3fs()[1].y, 0);
                     completeFace.setTextureCoords(0, 0);
-                    completeFace.setTextureCoords(0, 2);
-                    completeFace.setTextureCoords(2, 2);
+                    completeFace.setTextureCoords(0, 16 * completeFace.getVector3fs()[1].x);
+                    completeFace.setTextureCoords(16 * completeFace.getVector3fs()[1].y, 16 * completeFace.getVector3fs()[1].x);
                     break;
 
                 case 5:
-                    completeFace.setTextureCoords(2, 0);
+                    completeFace.setTextureCoords(16 * completeFace.getVector3fs()[2].y, 0);
                     completeFace.setTextureCoords(0, 0);
-                    completeFace.setTextureCoords(0, 2);
-                    completeFace.setTextureCoords(2, 2);
+                    completeFace.setTextureCoords(0, 16 * completeFace.getVector3fs()[2].x);
+                    completeFace.setTextureCoords(16 * completeFace.getVector3fs()[2].y, 16 * completeFace.getVector3fs()[2].x);
                     break;
-*/
-
-               default:
-                completeFace.setTextureCoords(1, 0);
-
-                completeFace.setTextureCoords(0, 0);
-
-                completeFace.setTextureCoords(0, 1);
-
-                completeFace.setTextureCoords(1, 1);
-
-                break;
             }
         }
-
     }
 
     private void fillContainer(MeshContainer mesh, ArrayList<Face> faces) {
         for (Face completeFace : faces) {
-            mesh.vector(completeFace.getVector3f());
+            mesh.vector(completeFace.getVector3fs());
             mesh.triangle(getIndexes(verticeIndex));
             mesh.texture(completeFace.getTextureCoords());
             verticeIndex += 4;
@@ -146,20 +135,20 @@ public class GreedyMesher implements VoxelMesher {
         if(start + 1< faces.size()) {
             Face face = faces.get(start);
             Face nextFace = faces.get(start + 1);
-            if(face.getTexture() == nextFace.getTexture()) {
-                if (face.getVector3f()[3].equals(nextFace.getVector3f()[0]) && face.getVector3f()[2].equals(nextFace.getVector3f()[1])) {
-                    face.setVector3f(nextFace.getVector3f()[3], 3);
-                    face.setVector3f(nextFace.getVector3f()[2], 2);
+            if(face.getMaterial() == nextFace.getMaterial()) {
+                if (face.getVector3fs()[3].equals(nextFace.getVector3fs()[0]) && face.getVector3fs()[2].equals(nextFace.getVector3fs()[1])) {
+                    face.setVector3f(nextFace.getVector3fs()[3], 3);
+                    face.setVector3f(nextFace.getVector3fs()[2], 2);
                     faces.remove(nextFace);
                     joinFacesHorizonaly(faces, start);
-                } else if (face.getVector3f()[0].equals(nextFace.getVector3f()[3]) && face.getVector3f()[1].equals(nextFace.getVector3f()[2])) {
-                    face.setVector3f(nextFace.getVector3f()[0], 0);
-                    face.setVector3f(nextFace.getVector3f()[1], 1);
+                } else if (face.getVector3fs()[0].equals(nextFace.getVector3fs()[3]) && face.getVector3fs()[1].equals(nextFace.getVector3fs()[2])) {
+                    face.setVector3f(nextFace.getVector3fs()[0], 0);
+                    face.setVector3f(nextFace.getVector3fs()[1], 1);
                     faces.remove(nextFace);
                     joinFacesHorizonaly(faces, start);
-                } else if (face.getVector3f()[1].equals(nextFace.getVector3f()[0]) && face.getVector3f()[2].equals(nextFace.getVector3f()[3])) {
-                    face.setVector3f(nextFace.getVector3f()[1], 1);
-                    face.setVector3f(nextFace.getVector3f()[2], 2);
+                } else if (face.getVector3fs()[1].equals(nextFace.getVector3fs()[0]) && face.getVector3fs()[2].equals(nextFace.getVector3fs()[3])) {
+                    face.setVector3f(nextFace.getVector3fs()[1], 1);
+                    face.setVector3f(nextFace.getVector3fs()[2], 2);
                     faces.remove(nextFace);
                     joinFacesHorizonaly(faces, start);
                 }
@@ -171,20 +160,20 @@ public class GreedyMesher implements VoxelMesher {
         if(start + 1< faces.size()) {
             Face face = faces.get(start);
             Face nextFace = faces.get(start + 1);
-            if(face.getTexture() == nextFace.getTexture()) {
-                if (face.getVector3f()[2].equals(nextFace.getVector3f()[1]) && face.getVector3f()[3].equals(nextFace.getVector3f()[0])) {
-                    face.setVector3f(nextFace.getVector3f()[2], 2);
-                    face.setVector3f(nextFace.getVector3f()[3], 3);
+            if(face.getMaterial() == nextFace.getMaterial()) {
+                if (face.getVector3fs()[2].equals(nextFace.getVector3fs()[1]) && face.getVector3fs()[3].equals(nextFace.getVector3fs()[0])) {
+                    face.setVector3f(nextFace.getVector3fs()[2], 2);
+                    face.setVector3f(nextFace.getVector3fs()[3], 3);
                     faces.remove(nextFace);
                     joinFacesHorizonaly(faces, start);
-                } else if (face.getVector3f()[1].equals(nextFace.getVector3f()[2]) && face.getVector3f()[0].equals(nextFace.getVector3f()[3])) {
-                    face.setVector3f(nextFace.getVector3f()[1], 1);
-                    face.setVector3f(nextFace.getVector3f()[0], 0);
+                } else if (face.getVector3fs()[1].equals(nextFace.getVector3fs()[2]) && face.getVector3fs()[0].equals(nextFace.getVector3fs()[3])) {
+                    face.setVector3f(nextFace.getVector3fs()[1], 1);
+                    face.setVector3f(nextFace.getVector3fs()[0], 0);
                     faces.remove(nextFace);
                     joinFacesHorizonaly(faces, start);
-                } else if (face.getVector3f()[2].equals(nextFace.getVector3f()[3]) && face.getVector3f()[1].equals(nextFace.getVector3f()[0])) {
-                    face.setVector3f(nextFace.getVector3f()[2], 2);
-                    face.setVector3f(nextFace.getVector3f()[1], 1);
+                } else if (face.getVector3fs()[2].equals(nextFace.getVector3fs()[3]) && face.getVector3fs()[1].equals(nextFace.getVector3fs()[0])) {
+                    face.setVector3f(nextFace.getVector3fs()[2], 2);
+                    face.setVector3f(nextFace.getVector3fs()[1], 1);
                     faces.remove(nextFace);
                     joinFacesVerticaly(faces, start);
                 }

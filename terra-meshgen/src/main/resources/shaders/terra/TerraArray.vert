@@ -2,9 +2,9 @@ uniform mat4 g_WorldViewProjectionMatrix;
 
 attribute vec3 inPosition;
 
-in vec2 inTexCoord;
+in vec3 inTexCoord;
 
-out vec2 texCoord;
+out vec3 texCoord;
 
 void main() {
   // Calculate real position

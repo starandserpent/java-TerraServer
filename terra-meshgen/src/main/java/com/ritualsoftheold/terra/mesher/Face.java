@@ -2,14 +2,16 @@ package com.ritualsoftheold.terra.mesher;
 
 import com.jme3.math.Vector2f;
 import com.jme3.math.Vector3f;
+import com.ritualsoftheold.terra.core.Terra;
+import com.ritualsoftheold.terra.core.material.TerraMaterial;
 import com.ritualsoftheold.terra.core.material.TerraTexture;
 
 import java.util.ArrayList;
 
 public class Face {
-    private ArrayList<Vector2f> textureCoords;
+    private ArrayList<Vector3f> textureCoords;
     private Vector3f[] vector3f;
-    private TerraTexture texture;
+    private TerraMaterial material;
 
     public Face() {
         textureCoords = new ArrayList<>();
@@ -25,24 +27,24 @@ public class Face {
     }
 
     public void setTextureCoords(float x, float y) {
-        this.textureCoords.add(new Vector2f(x, y));
+        this.textureCoords.add(new Vector3f(x, y, material.getWorldId() - 1));
     }
 
-    public Vector2f[] getTextureCoords() {
-        Vector2f[] clone = new Vector2f[textureCoords.size()];
+    public Vector3f[] getTextureCoords() {
+        Vector3f[] clone = new Vector3f[textureCoords.size()];
         textureCoords.toArray(clone);
         return clone;
     }
 
-    public Vector3f[] getVector3f() {
+    public Vector3f[] getVector3fs() {
         return vector3f;
     }
 
-    public void setTexture(TerraTexture texture) {
-        this.texture = texture;
+    public void setMaterial(TerraMaterial material) {
+        this.material = material;
     }
 
-    public TerraTexture getTexture() {
-        return texture;
+    public TerraMaterial getMaterial() {
+        return material;
     }
 }

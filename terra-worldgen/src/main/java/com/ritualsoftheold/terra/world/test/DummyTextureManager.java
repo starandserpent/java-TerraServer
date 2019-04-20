@@ -1,13 +1,13 @@
 package com.ritualsoftheold.terra.world.test;
 
 import com.jme3.asset.AssetManager;
-import com.jme3.texture.Image;
-import com.jme3.texture.Texture2D;
-import com.jme3.texture.TextureArray;
+import com.jme3.texture.*;
 import com.jme3.texture.image.ColorSpace;
 import com.ritualsoftheold.terra.core.material.MaterialRegistry;
 import com.ritualsoftheold.terra.core.material.TerraMaterial;
 import com.ritualsoftheold.terra.core.material.TerraTexture;
+import jme3tools.optimize.GeometryBatchFactory;
+import jme3tools.optimize.TextureAtlas;
 
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
@@ -29,19 +29,13 @@ public class DummyTextureManager{
         atlasBuf = ByteBuffer.allocateDirect(ATLAS_SIZE * ATLAS_SIZE * 4);
     }
 
-    public Texture2D convertTexture(AssetManager assetManager, TerraTexture mainTexture) {
+    public TextureArray convertTexture(AssetManager assetManager) {
 
-        ByteBuffer imgData = assetManager.loadTexture(dirt.getTexture().getAsset()).getImage().getData(0);
-        size = 64;
-        setAtlasBuf(imgData, 0);
+        ArrayList<Image> atlas = new ArrayList<>();
+        atlas.add(assetManager.loadTexture(dirt.getTexture().getAsset()).getImage());
+        atlas.add(assetManager.loadTexture(grass.getTexture().getAsset()).getImage());
 
-        size = 16;
-        imgData = assetManager.loadTexture(grass.getTexture().getAsset()).getImage().getData(0);
-        setAtlasBuf(imgData, 0);
-
-        Image incompleteAtlas = new Image(Image.Format.ABGR8, ATLAS_SIZE, ATLAS_SIZE, atlasBuf, null, ColorSpace.Linear);
-
-        return new Texture2D(incompleteAtlas);
+        return new TextureArray(atlas);
     }
 
     private void setAtlasBuf(ByteBuffer imgData, int atlasStart){

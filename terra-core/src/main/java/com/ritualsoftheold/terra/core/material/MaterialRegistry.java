@@ -36,7 +36,6 @@ public class MaterialRegistry {
      */
     private void registerDefaultMaterials() {
         TerraModule mod = new TerraModule("base");
-        registerMaterial(mod.newMaterial().name("test").build(), mod);
         registerMaterial(mod.newMaterial().name("air").build(), mod);
     }
 

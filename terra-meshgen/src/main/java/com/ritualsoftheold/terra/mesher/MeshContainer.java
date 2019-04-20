@@ -14,15 +14,12 @@ package com.ritualsoftheold.terra.mesher;
  *
  */
 public class MeshContainer {
-    private TerraTexture[][][][] textures;
-
-    private HashMap<TerraTexture, Integer> textureTypes;
 
     private ArrayList<Vector3f> vector3fs;
 
     private ArrayList<Integer> indices;
 
-    private ArrayList<Vector2f> texCoords;
+    private ArrayList<Vector3f> texCoords;
 
     /**
      * Creates a new mesh container.
@@ -31,8 +28,6 @@ public class MeshContainer {
         vector3fs = new ArrayList<>();
         indices = new ArrayList<>();
         texCoords = new ArrayList<>();
-        textures = new TerraTexture[64][64][64][6];
-        textureTypes = new HashMap<>();
     }
 
     public void vector(Vector3f[] vectors) {
@@ -45,45 +40,8 @@ public class MeshContainer {
         }
     }
 
-    public void texture(Vector2f[] vector2fs) {
+    public void texture(Vector3f[] vector2fs) {
         texCoords.addAll(Arrays.asList(vector2fs));
-    }
-
-    public void setTextures(int nX, int nY, int nZ, TerraTexture[] textures) {
-        this.textures[nZ][nY][nX] = textures;
-
-        int i = 1;
-        for(TerraTexture terraTexture: textures) {
-            if (terraTexture != null && textureTypes.get(terraTexture) != null) {
-                i = textureTypes.get(terraTexture);
-                i++;
-                textureTypes.put(terraTexture, i);
-                break;
-            }
-        }
-    }
-
-    public TerraTexture[][][][] getTextures(){
-        return textures;
-    }
-
-    public TerraTexture getMainTexture() {
-        int max = 0;
-        TerraTexture texture = null;
-        for (TerraTexture key : textureTypes.keySet()) {
-            if(textureTypes.get(key) == 0) {
-                textureTypes.remove(texture);
-            } else if (textureTypes.get(key) > max) {
-                max = textureTypes.get(key);
-                texture = key;
-            }
-        }
-
-        return texture;
-    }
-
-    public int getTextureTypes() {
-        return textureTypes.size();
     }
 
     public ArrayList<Vector3f> getVector3fs() {
@@ -94,7 +52,7 @@ public class MeshContainer {
         return indices;
     }
 
-    public ArrayList<Vector2f> getTextureCoordinates() {
+    public ArrayList<Vector3f> getTextureCoordinates() {
         return texCoords;
     }
 }
