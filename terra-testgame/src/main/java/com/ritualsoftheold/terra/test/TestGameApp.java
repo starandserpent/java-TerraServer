@@ -1,6 +1,5 @@
 package com.ritualsoftheold.terra.test;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
@@ -13,15 +12,14 @@ import com.jme3.input.controls.ActionListener;
 import com.jme3.input.controls.KeyTrigger;
 import com.jme3.light.AmbientLight;
 import com.jme3.material.Material;
-import com.jme3.math.ColorRGBA;
-import com.jme3.math.Vector2f;
 import com.jme3.math.Vector3f;
 import com.jme3.scene.Geometry;
 import com.jme3.scene.Mesh;
 import com.jme3.scene.Spatial.CullHint;
 import com.jme3.scene.VertexBuffer.Type;
 import com.jme3.system.AppSettings;
-import com.jme3.texture.Texture2D;
+import com.jme3.texture.Texture;
+import com.jme3.texture.TextureArray;
 import com.jme3.util.BufferUtils;
 import com.ritualsoftheold.terra.core.TerraModule;
 import com.ritualsoftheold.terra.mesher.GreedyMesher;
@@ -46,7 +44,7 @@ public class TestGameApp extends SimpleApplication implements ActionListener {
     private OffheapWorld world;
     private LoadMarker player;
     private boolean wireframe = false;
-    private ArrayList<Material> materials;
+    private Material mat;
 
     private BlockingQueue<Geometry> geomCreateQueue = new ArrayBlockingQueue<>(10000);
 
@@ -66,13 +64,21 @@ public class TestGameApp extends SimpleApplication implements ActionListener {
     public void simpleInitApp() {
         //setDisplayFps(false);
         //setDisplayStatView(false);
-        materials = new ArrayList<>();
 
         TerraModule mod = new TerraModule("testgame");
         mod.newMaterial().name("dirt").texture(new TerraTexture(256, 256, "NorthenForestDirt256px.png"));
         mod.newMaterial().name("grass").texture(new TerraTexture(256, 256, "NorthenForestGrass256px.png"));
         MaterialRegistry reg = new MaterialRegistry();
         mod.registerMaterials(reg);
+
+        TextureManager texManager = new TextureManager(assetManager, reg);
+        TextureArray atlasTexture = texManager.getTextureArray();
+        atlasTexture.setWrap(Texture.WrapMode.Repeat);
+        atlasTexture.setMagFilter(Texture.MagFilter.Nearest);
+        atlasTexture.setMinFilter(Texture.MinFilter.NearestNoMipMaps);
+
+        mat = new Material(assetManager, "/shaders/terra/TerraArray.j3md");
+        mat.setTexture("ColorMap", atlasTexture);
 
         WorldGeneratorInterface<?> gen = new WorldGenerator();
         gen.setup(0, reg);
@@ -110,7 +116,6 @@ public class TestGameApp extends SimpleApplication implements ActionListener {
         world.addLoadMarker(player);
       //  world.addLoadMarker(secondchunk);
 
-        TextureManager texManager = new TextureManager(assetManager); // Initialize texture atlas/array manager
         VoxelMesher mesher = new GreedyMesher();
 
         world.setLoadListener(new WorldLoadListener() {
@@ -137,34 +142,34 @@ public class TestGameApp extends SimpleApplication implements ActionListener {
                         // Create mesh
                         Mesh mesh = new Mesh();
 
+                        //Set coordinates
                         Vector3f[] vector3fs = new Vector3f[container.getVector3fs().toArray().length];
                         container.getVector3fs().toArray(vector3fs);
-                        mesh.setBuffer(Type.Position, 2, BufferUtils.createFloatBuffer(vector3fs));
-
+                        mesh.setBuffer(Type.Position, 3, BufferUtils.createFloatBuffer(vector3fs));
+                        //Connects triangles
                         Integer[] integers = new Integer[container.getIndices().toArray().length];
                         container.getIndices().toArray(integers);
-
                         int[] indices = new int[container.getIndices().size()];
                         for (int i = 0; i < container.getIndices().size(); i++) {
                             indices[i] = integers[i];
                         }
+                        mesh.setBuffer(Type.Index, 2, BufferUtils.createIntBuffer(indices));
 
-                        mesh.setBuffer(Type.Index, 3, BufferUtils.createIntBuffer(indices));
-
-                        Vector2f[] vector2fs = new Vector2f[container.getTextureCoordinates().toArray().length];
+                        //Set texture scale and type
+                        Vector3f[] vector2fs = new Vector3f[container.getTextureCoordinates().toArray().length];
                         container.getTextureCoordinates().toArray(vector2fs);
+                        mesh.setBuffer(Type.TexCoord, 3, BufferUtils.createFloatBuffer(vector2fs));
 
-                        mesh.setBuffer(Type.TexCoord, 2, BufferUtils.createFloatBuffer(vector2fs));
+                        //Update mesh
                         mesh.updateBound();
 
                         // Create geometry
                         Geometry geom = new Geometry("chunk:" + x + "," + y + "," + z, mesh);
 
                         // Create material
-                        materials.add(new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md"));
-                        materials.get(materials.size() - 1).setColor("Color", ColorRGBA.Blue);
-                        geom.setMaterial(materials.get(materials.size() - 1));
+                        geom.setMaterial(mat);
 
+                        //Set chunk position in world
                         geom.setLocalTranslation(x, y, z);
                         geom.setCullHint(CullHint.Never);
 
@@ -218,9 +223,7 @@ public class TestGameApp extends SimpleApplication implements ActionListener {
         }
         if (name.equals("toggle wireframe") && !isPressed) {
             wireframe = !wireframe; // toggle boolean
-            for(Material material:materials) {
-                material.getAdditionalRenderState().setWireframe(wireframe);
-            }
+            mat.getAdditionalRenderState().setWireframe(wireframe);
         }
     }
 }

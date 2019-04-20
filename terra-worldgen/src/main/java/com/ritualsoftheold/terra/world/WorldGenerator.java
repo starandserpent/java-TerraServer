@@ -49,15 +49,12 @@ public class WorldGenerator implements WorldGeneratorInterface<Void> {
         BlockBuffer buf = control.getBuffer();
         System.out.println("x:" + task.getX() + " y:" + task.getY() + " z:" + task.getZ());
         if (task.getY() < 0) {
-            for (int i = 0; i < 2; i++) {
-                buf.next();
-            }
-            for (int i = 0; i < 64; i++) {
-                buf.write(dirt);
+            for (int i = 0; i < DataConstants.CHUNK_MAX_BLOCKS/4; i++) {
+                buf.write(grass);
                 buf.next();
             }
             for (int i = 0; i < DataConstants.CHUNK_MAX_BLOCKS; i++) {
-                buf.write(grass);
+                buf.write(dirt);
                 buf.next();
             }
         }else {

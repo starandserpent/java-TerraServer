@@ -19,7 +19,7 @@ public class Face {
     }
 
     public void setVector3f(int x, int y, int z, int position) {
-        this.vector3f[position] = new Vector3f(x/16f, y/16f, z/16f);
+        this.vector3f[position] = new Vector3f(x/4f, y/4f, z/4f);
     }
 
     public void setVector3f(Vector3f vector3f, int position) {

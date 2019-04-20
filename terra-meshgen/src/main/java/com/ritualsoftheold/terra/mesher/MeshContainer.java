@@ -1,13 +1,9 @@
 package com.ritualsoftheold.terra.mesher;
 
-        import com.jme3.math.Vector2f;
-        import com.jme3.math.Vector3f;
-        import com.ritualsoftheold.terra.core.Terra;
-        import com.ritualsoftheold.terra.core.material.TerraTexture;
+import com.jme3.math.Vector3f;
 
-        import java.util.ArrayList;
-        import java.util.Arrays;
-        import java.util.HashMap;
+import java.util.ArrayList;
+import java.util.Arrays;
 
 /**
  * Helps with building meshes for voxel data.

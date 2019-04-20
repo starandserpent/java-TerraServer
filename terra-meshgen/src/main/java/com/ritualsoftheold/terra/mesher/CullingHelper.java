@@ -18,6 +18,7 @@ public class CullingHelper {
         int index = 0;
         buf.seek(0);
         Voxel[] voxels = new Voxel[DataConstants.CHUNK_MAX_BLOCKS];
+        //Creates voxels from BlockBuffer and set its material
         while (buf.hasNext()) {
             TerraMaterial material = buf.read();
             if (material.getTexture() == null) { // TODO better AIR check
@@ -33,14 +34,19 @@ public class CullingHelper {
             buf.next();
         }
 
+        //Curremt voxel index
         index = 0;
         for (Voxel voxel : voxels) {
-            // Calculate current block position (normalized by shaders)
+
+            //Culls face only if voxel exist
             if (voxel != null) {
-                int z = index / 4096; // Integer division: current z index
+                //Position of current voxel
+                int z = index / 4096;
                 int y = (index - 4096 * z) / 64;
                 int x = index % 64;
 
+                //Culls face if there is in Left, Right, Top, Bottom, Back, Front exiting face
+                //Left, Bottom, Back faces are reversed
                 Face face;
 
                 // LEFT
