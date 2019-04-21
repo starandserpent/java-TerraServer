@@ -1,6 +1,0 @@
-dependencies {
-    compile project(':terra-offheap')
-    compile project(':terra-io-files')
-    compile project(':terra-meshgen')
-    compile group: 'com.sudoplay.joise', name: 'joise', version: '1.1.0'
-}

@@ -65,6 +65,11 @@ public class OffheapChunk implements Chunk, OffheapNode {
             this.format = format;
         }
 
+        public Storage(ChunkFormat format, MemoryArea area) {
+            super(area.memoryAddress(), area.length(), null, false);
+            this.format = format;
+        }
+
         @Override
         public void close() {
             userCountHandle.getAndAdd(this, -1);

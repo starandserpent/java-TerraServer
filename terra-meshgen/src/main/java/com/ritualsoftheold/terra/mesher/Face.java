@@ -27,7 +27,8 @@ public class Face {
     }
 
     public void setTextureCoords(float x, float y) {
-        this.textureCoords.add(new Vector3f(x, y, material.getWorldId() - 1));
+        //TODO better material positioning (maybe it is alright like this)
+        this.textureCoords.add(new Vector3f(x, y, material.getWorldId() - 2));
     }
 
     public Vector3f[] getTextureCoords() {

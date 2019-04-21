@@ -32,7 +32,6 @@ import com.ritualsoftheold.terra.offheap.memory.MemoryPanicHandler;
 import com.ritualsoftheold.terra.mesher.resource.TextureManager;
 import com.ritualsoftheold.terra.offheap.node.OffheapChunk;
 import com.ritualsoftheold.terra.offheap.world.OffheapWorld;
-import com.ritualsoftheold.terra.world.WorldGenerator;
 import com.ritualsoftheold.terra.offheap.world.WorldLoadListener;
 import com.ritualsoftheold.terra.mesher.MeshContainer;
 import com.ritualsoftheold.terra.mesher.VoxelMesher;
@@ -68,6 +67,7 @@ public class TestGameApp extends SimpleApplication implements ActionListener {
         TerraModule mod = new TerraModule("testgame");
         mod.newMaterial().name("dirt").texture(new TerraTexture(256, 256, "NorthenForestDirt256px.png"));
         mod.newMaterial().name("grass").texture(new TerraTexture(256, 256, "NorthenForestGrass256px.png"));
+
         MaterialRegistry reg = new MaterialRegistry();
         mod.registerMaterials(reg);
 
@@ -110,11 +110,11 @@ public class TestGameApp extends SimpleApplication implements ActionListener {
                 })
                 .build();
 
-        player = world.createLoadMarker(0,0, 0, 1, 1, 0);
-       // LoadMarker secondchunk = world.createLoadMarker(56+16+32,0, 56+16+32, 32, 32, 0);
+        player = world.createLoadMarker(0, 0, 0, 1, 1, 0);
+        // LoadMarker secondchunk = world.createLoadMarker(56+16+32,0, 56+16+32, 32, 32, 0);
 
         world.addLoadMarker(player);
-      //  world.addLoadMarker(secondchunk);
+        //  world.addLoadMarker(secondchunk);
 
         VoxelMesher mesher = new GreedyMesher();
 
@@ -128,53 +128,53 @@ public class TestGameApp extends SimpleApplication implements ActionListener {
 
             @Override
             public void chunkLoaded(OffheapChunk chunk, float x, float y, float z, LoadMarker trigger) {
-                        Vector3f center = cam.getLocation();
-                        if (Math.abs(x - center.x) > 128
-                                || Math.abs(y - center.y) > 128
-                                || Math.abs(z - center.z) > 128) {
-                            return;
-                        }
+                Vector3f center = cam.getLocation();
+                if (Math.abs(x - center.x) > 128
+                        || Math.abs(y - center.y) > 128
+                        || Math.abs(z - center.z) > 128) {
+                    return;
+                }
 
-                        //System.out.println("Loaded chunk: " + chunk.memoryAddress());
-                        MeshContainer container = new MeshContainer();
-                        mesher.chunk(chunk.getBuffer(), texManager, container);
+                //System.out.println("Loaded chunk: " + chunk.memoryAddress());
+                MeshContainer container = new MeshContainer();
+                mesher.chunk(chunk.getBuffer(), texManager, container);
 
-                        // Create mesh
-                        Mesh mesh = new Mesh();
+                // Create mesh
+                Mesh mesh = new Mesh();
 
-                        //Set coordinates
-                        Vector3f[] vector3fs = new Vector3f[container.getVector3fs().toArray().length];
-                        container.getVector3fs().toArray(vector3fs);
-                        mesh.setBuffer(Type.Position, 3, BufferUtils.createFloatBuffer(vector3fs));
-                        //Connects triangles
-                        Integer[] integers = new Integer[container.getIndices().toArray().length];
-                        container.getIndices().toArray(integers);
-                        int[] indices = new int[container.getIndices().size()];
-                        for (int i = 0; i < container.getIndices().size(); i++) {
-                            indices[i] = integers[i];
-                        }
-                        mesh.setBuffer(Type.Index, 2, BufferUtils.createIntBuffer(indices));
+                //Set coordinates
+                Vector3f[] vector3fs = new Vector3f[container.getVector3fs().toArray().length];
+                container.getVector3fs().toArray(vector3fs);
+                mesh.setBuffer(Type.Position, 3, BufferUtils.createFloatBuffer(vector3fs));
+                //Connects triangles
+                Integer[] integers = new Integer[container.getIndices().toArray().length];
+                container.getIndices().toArray(integers);
+                int[] indices = new int[container.getIndices().size()];
+                for (int i = 0; i < container.getIndices().size(); i++) {
+                    indices[i] = integers[i];
+                }
+                mesh.setBuffer(Type.Index, 2, BufferUtils.createIntBuffer(indices));
 
-                        //Set texture scale and type
-                        Vector3f[] vector2fs = new Vector3f[container.getTextureCoordinates().toArray().length];
-                        container.getTextureCoordinates().toArray(vector2fs);
-                        mesh.setBuffer(Type.TexCoord, 3, BufferUtils.createFloatBuffer(vector2fs));
+                //Set texture scale and type
+                Vector3f[] vector2fs = new Vector3f[container.getTextureCoordinates().toArray().length];
+                container.getTextureCoordinates().toArray(vector2fs);
+                mesh.setBuffer(Type.TexCoord, 3, BufferUtils.createFloatBuffer(vector2fs));
 
-                        //Update mesh
-                        mesh.updateBound();
+                //Update mesh
+                mesh.updateBound();
 
-                        // Create geometry
-                        Geometry geom = new Geometry("chunk:" + x + "," + y + "," + z, mesh);
+                // Create geometry
+                Geometry geom = new Geometry("chunk:" + x + "," + y + "," + z, mesh);
 
-                        // Create material
-                        geom.setMaterial(mat);
+                // Create material
+                geom.setMaterial(mat);
 
-                        //Set chunk position in world
-                        geom.setLocalTranslation(x, y, z);
-                        geom.setCullHint(CullHint.Never);
+                //Set chunk position in world
+                geom.setLocalTranslation(x, y, z);
+                geom.setCullHint(CullHint.Never);
 
-                        // Place geometry in queue for main thread
-                        geomCreateQueue.add(geom);
+                // Place geometry in queue for main thread
+                geomCreateQueue.add(geom);
             }
         });
 

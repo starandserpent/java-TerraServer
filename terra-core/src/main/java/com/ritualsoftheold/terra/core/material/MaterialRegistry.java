@@ -75,11 +75,13 @@ public class MaterialRegistry {
         
         // Lookup for previous ids first
         int worldId = preferredIds.indexOf(fullName);
-        if (worldId == -1) { // Oops, not found
+        if (worldId == - 1) { // Oops, not found
             worldId = preferredIds.size(); // Take next id...
             preferredIds.add(fullName); // ... and assign this here
         }
-        
+
+        worldId++;
+
         // Finally, assign world id to material
         material.setWorldId(worldId);
         

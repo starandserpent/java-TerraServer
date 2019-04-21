@@ -44,7 +44,7 @@ public class WorldGenManager {
     private TypeSelector typeSelector;
     
     private ChunkStorage chunkStorage;
-    
+
     private MaterialRegistry materialRegistry;
     
     private OffheapWorld world;
@@ -61,7 +61,7 @@ public class WorldGenManager {
      * Generates a piece of world at given coordinates with given scale.
      * The parent octree will be modified to include reference to
      * data once generation is complete.
-     * @param address Address of parent octree.
+     * @param addr Address of parent octree.
      * @param index Index of the piece in its parent octree.
      * @param x X coordinate of center.
      * @param y Y coordinate of center.
@@ -75,10 +75,10 @@ public class WorldGenManager {
         OffheapPipeline<Object> pipeline = new OffheapPipeline<>();
         
         // Ask world generator to initialize task
-        Object meta = generator.initialize(task, (Pipeline<Object>) pipeline);
+        Object meta = generator.initialize(task, pipeline);
         
         // Execute the whole generation pipeline!
-        pipeline.execute(task, control, (Object) meta);
+        pipeline.execute(task, control, meta);
         
         // Take results of the execution
         CriticalBlockBuffer buf = control.getBuffer();

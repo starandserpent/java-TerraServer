@@ -3,6 +3,7 @@ package com.ritualsoftheold.terra.offheap.chunk;
 import com.ritualsoftheold.terra.core.buffer.BlockBuffer;
 import com.ritualsoftheold.terra.core.material.MaterialRegistry;
 import com.ritualsoftheold.terra.core.material.TerraMaterial;
+import com.ritualsoftheold.terra.offheap.chunk.compress.Palette16ChunkFormat;
 import com.ritualsoftheold.terra.offheap.memory.MemoryAllocator;
 import com.ritualsoftheold.terra.offheap.chunk.compress.ChunkFormat;
 import com.ritualsoftheold.terra.offheap.data.BufferWithFormat;

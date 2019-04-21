@@ -66,6 +66,7 @@ public class GreedyMesher implements VoxelMesher {
         }
     }
 
+    //Greedy Meshing
     private void joinFaces(ArrayList<Face> faces) {
         for (int i = 0; i < faces.size(); i++) {
             joinFacesHorizonaly(faces, i);
@@ -76,6 +77,8 @@ public class GreedyMesher implements VoxelMesher {
         }
     }
 
+    //Setting textures for mesh
+    //TODO make different textures for blocks in united mesh
     private void setTextureCoords(ArrayList<Face> faces, int side) {
         for (Face completeFace : faces) {
             switch (side) {
@@ -86,6 +89,8 @@ public class GreedyMesher implements VoxelMesher {
                     completeFace.setTextureCoords(16 * completeFace.getVector3fs()[1].y, 16 * completeFace.getVector3fs()[1].z);
                     break;
                 case 1:
+
+                case 5:
                     completeFace.setTextureCoords(16 * completeFace.getVector3fs()[2].y, 0);
                     completeFace.setTextureCoords(0, 0);
                     completeFace.setTextureCoords(0, 16 * completeFace.getVector3fs()[2].x);
@@ -111,17 +116,11 @@ public class GreedyMesher implements VoxelMesher {
                     completeFace.setTextureCoords(0, 16 * completeFace.getVector3fs()[1].x);
                     completeFace.setTextureCoords(16 * completeFace.getVector3fs()[1].y, 16 * completeFace.getVector3fs()[1].x);
                     break;
-
-                case 5:
-                    completeFace.setTextureCoords(16 * completeFace.getVector3fs()[2].y, 0);
-                    completeFace.setTextureCoords(0, 0);
-                    completeFace.setTextureCoords(0, 16 * completeFace.getVector3fs()[2].x);
-                    completeFace.setTextureCoords(16 * completeFace.getVector3fs()[2].y, 16 * completeFace.getVector3fs()[2].x);
-                    break;
             }
         }
     }
 
+    //Moving all values to MeshContainer
     private void fillContainer(MeshContainer mesh, ArrayList<Face> faces) {
         for (Face completeFace : faces) {
             mesh.vector(completeFace.getVector3fs());
@@ -135,6 +134,7 @@ public class GreedyMesher implements VoxelMesher {
         if(start + 1< faces.size()) {
             Face face = faces.get(start);
             Face nextFace = faces.get(start + 1);
+            //TODO disable seprate meshes for different blocks when textures are properly set
             if(face.getMaterial() == nextFace.getMaterial()) {
                 if (face.getVector3fs()[3].equals(nextFace.getVector3fs()[0]) && face.getVector3fs()[2].equals(nextFace.getVector3fs()[1])) {
                     face.setVector3f(nextFace.getVector3fs()[3], 3);
@@ -160,6 +160,7 @@ public class GreedyMesher implements VoxelMesher {
         if(start + 1< faces.size()) {
             Face face = faces.get(start);
             Face nextFace = faces.get(start + 1);
+            //TODO disable seprate meshes for different blocks when textures are properly set
             if(face.getMaterial() == nextFace.getMaterial()) {
                 if (face.getVector3fs()[2].equals(nextFace.getVector3fs()[1]) && face.getVector3fs()[3].equals(nextFace.getVector3fs()[0])) {
                     face.setVector3f(nextFace.getVector3fs()[2], 2);

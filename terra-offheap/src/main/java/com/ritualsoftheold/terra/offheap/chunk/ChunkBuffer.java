@@ -275,7 +275,7 @@ public class ChunkBuffer {
     /**
      * Attempts to load given amount of chunks from data for which there is
      * provided a memory address.
-     * @param address Address of data's start.
+     * @param addr Address of data's start.
      * @param count How many chunks are in that data.
      */
     public void load(@Pointer long addr, int count) {
