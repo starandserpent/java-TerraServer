@@ -19,5 +19,3 @@ if (gradle.parent == null && file('../venom').exists()) {
 //        }
 //    }
 }
-include 'terra-worldgen'
-

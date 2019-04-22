@@ -1,9 +1,8 @@
 package com.ritualsoftheold.terra.mesher;
 
+import com.ritualsoftheold.terra.core.buffer.BlockBuffer;
 import com.ritualsoftheold.terra.core.material.TerraMaterial;
 import com.ritualsoftheold.terra.offheap.DataConstants;
-import com.ritualsoftheold.terra.core.buffer.BlockBuffer;
-import com.ritualsoftheold.terra.core.material.TerraTexture;
 
 import java.util.Objects;
 

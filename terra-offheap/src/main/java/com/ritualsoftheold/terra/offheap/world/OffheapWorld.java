@@ -1,5 +1,30 @@
 package com.ritualsoftheold.terra.offheap.world;
 
+import com.ritualsoftheold.terra.core.gen.interfaces.world.TerraWorld;
+import com.ritualsoftheold.terra.core.gen.interfaces.world.WorldGeneratorInterface;
+import com.ritualsoftheold.terra.core.gen.objects.LoadMarker;
+import com.ritualsoftheold.terra.core.material.MaterialRegistry;
+import com.ritualsoftheold.terra.core.node.Chunk;
+import com.ritualsoftheold.terra.core.node.Node;
+import com.ritualsoftheold.terra.core.node.Octree;
+import com.ritualsoftheold.terra.offheap.DataConstants;
+import com.ritualsoftheold.terra.offheap.Pointer;
+import com.ritualsoftheold.terra.offheap.chunk.ChunkBuffer;
+import com.ritualsoftheold.terra.offheap.chunk.ChunkStorage;
+import com.ritualsoftheold.terra.offheap.data.TypeSelector;
+import com.ritualsoftheold.terra.offheap.io.ChunkLoader;
+import com.ritualsoftheold.terra.offheap.io.OctreeLoader;
+import com.ritualsoftheold.terra.offheap.memory.MemoryManager;
+import com.ritualsoftheold.terra.offheap.memory.MemoryPanicHandler;
+import com.ritualsoftheold.terra.offheap.node.OffheapChunk;
+import com.ritualsoftheold.terra.offheap.node.OffheapOctree;
+import com.ritualsoftheold.terra.offheap.octree.OctreeStorage;
+import com.ritualsoftheold.terra.offheap.octree.UsageListener;
+import com.ritualsoftheold.terra.offheap.verifier.TerraVerifier;
+import com.ritualsoftheold.terra.offheap.world.gen.WorldGenManager;
+import net.openhft.chronicle.core.Memory;
+import net.openhft.chronicle.core.OS;
+
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Iterator;
@@ -7,32 +32,6 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.function.IntToLongFunction;
-
-import com.ritualsoftheold.terra.core.gen.objects.LoadMarker;
-import com.ritualsoftheold.terra.core.material.MaterialRegistry;
-import com.ritualsoftheold.terra.offheap.memory.MemoryManager;
-import com.ritualsoftheold.terra.offheap.memory.MemoryPanicHandler;
-import com.ritualsoftheold.terra.core.node.Chunk;
-import com.ritualsoftheold.terra.core.node.Node;
-import com.ritualsoftheold.terra.core.node.Octree;
-import com.ritualsoftheold.terra.offheap.octree.OctreeStorage;
-import com.ritualsoftheold.terra.offheap.octree.UsageListener;
-import com.ritualsoftheold.terra.offheap.verifier.TerraVerifier;
-import com.ritualsoftheold.terra.offheap.world.gen.WorldGenManager;
-import com.ritualsoftheold.terra.offheap.DataConstants;
-import com.ritualsoftheold.terra.offheap.Pointer;
-import com.ritualsoftheold.terra.offheap.io.ChunkLoader;
-import com.ritualsoftheold.terra.offheap.io.OctreeLoader;
-import com.ritualsoftheold.terra.core.gen.interfaces.world.TerraWorld;
-import com.ritualsoftheold.terra.core.gen.interfaces.world.WorldGeneratorInterface;
-import com.ritualsoftheold.terra.offheap.chunk.ChunkBuffer;
-import com.ritualsoftheold.terra.offheap.chunk.ChunkStorage;
-import com.ritualsoftheold.terra.offheap.data.TypeSelector;
-import com.ritualsoftheold.terra.offheap.node.OffheapChunk;
-import com.ritualsoftheold.terra.offheap.node.OffheapOctree;
-
-import net.openhft.chronicle.core.Memory;
-import net.openhft.chronicle.core.OS;
 
 /**
  * Represents world that is mainly backed by offheap memory.

@@ -19,6 +19,7 @@ import net.openhft.chronicle.core.OS;
  * Tests OffheapWorld.
  *
  */
+/*
 public class WorldTest {
     
     // FIXME broken, Palette16 requires functional materials to be available
@@ -66,3 +67,4 @@ public class WorldTest {
         // See init() above
     }
 }
+*/

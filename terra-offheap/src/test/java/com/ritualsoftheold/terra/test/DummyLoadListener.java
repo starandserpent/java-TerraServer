@@ -1,13 +1,12 @@
 package com.ritualsoftheold.terra.test;
 
-import com.ritualsoftheold.terra.offheap.node.OffheapChunk;
-import com.ritualsoftheold.terra.offheap.world.WorldLoadListener;
-import com.ritualsoftheold.terra.offheap.worldy.LoadMarker;
+/*import com.ritualsoftheold.terra.offheap.world.LoadMarker;
 
 /**
  * Ignores data.
  *
  */
+/*
 public class DummyLoadListener implements WorldLoadListener {
 
     @Override
@@ -24,3 +23,4 @@ public class DummyLoadListener implements WorldLoadListener {
     }
 
 }
+*/

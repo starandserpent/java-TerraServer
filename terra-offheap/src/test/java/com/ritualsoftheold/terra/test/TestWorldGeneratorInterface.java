@@ -4,7 +4,7 @@ import com.ritualsoftheold.terra.offheap.DataConstants;
 import com.ritualsoftheold.terra.core.buffer.BlockBuffer;
 import com.ritualsoftheold.terra.core.material.MaterialRegistry;
 import com.ritualsoftheold.terra.core.material.TerraMaterial;
-import com.ritualsoftheold.terra.offheap.world.gen.GenerationTask;
+/*import com.ritualsoftheold.terra.offheap.world.gen.GenerationTask;
 import com.ritualsoftheold.terra.offheap.world.gen.GeneratorControl;
 import com.ritualsoftheold.terra.offheap.world.gen.Pipeline;
 import com.ritualsoftheold.terra.offheap.world.gen.WorldGeneratorInterface;
@@ -43,3 +43,4 @@ public class TestWorldGeneratorInterface implements WorldGeneratorInterface<Void
     }
 
 }
+*/

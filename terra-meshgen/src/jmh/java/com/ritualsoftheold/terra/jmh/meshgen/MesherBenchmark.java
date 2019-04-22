@@ -19,6 +19,7 @@ import net.openhft.chronicle.core.OS;
  * Uses JMH to benchmark meshers bundled with Terra.
  *
  */
+/*
 public class MesherBenchmark {
     
     private static final Memory mem = OS.memory();
@@ -69,3 +70,4 @@ public class MesherBenchmark {
         data.container.release();
     }
 }
+*/

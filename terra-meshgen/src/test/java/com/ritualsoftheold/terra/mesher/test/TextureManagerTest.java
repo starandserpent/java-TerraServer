@@ -14,6 +14,7 @@ import com.ritualsoftheold.terra.core.TerraModule;
 import com.ritualsoftheold.terra.core.material.MaterialRegistry;
 import com.ritualsoftheold.terra.core.material.TerraTexture;
 
+/*
 public class TextureManagerTest extends SimpleApplication {
 
     public static void main(String... args) {
@@ -61,3 +62,4 @@ public class TextureManagerTest extends SimpleApplication {
         }
     } 
 }
+*/
