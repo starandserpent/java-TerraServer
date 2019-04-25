@@ -1,0 +1,34 @@
+MaterialDef PointSpriteShader {
+    MaterialParameters {
+        Float VoxelSize
+    }
+
+    Technique {
+        LightMode MultiPass
+
+        VertexShader   GLSL150 : shaders/terra/SplatShader.vert
+        FragmentShader GLSL150 : shaders/terra/SplatShader.frag
+
+        WorldParameters {
+            ProjectionMatrix
+            ViewProjectionMatrixInverse
+            ViewPort
+            WorldViewMatrix
+            WorldViewProjectionMatrix
+            ViewProjectionMatrix
+            ViewMatrix
+            Resolution
+            CameraPosition
+            CameraDirection
+            WorldMatrix
+            FrustumNearFar
+        }
+
+        Defines {
+            HAS_VOXELSIZE : VoxelSize
+        }
+
+        ForcedRenderState {
+        }
+    }
+}

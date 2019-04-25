@@ -1,16 +1,12 @@
 package com.ritualsoftheold.terra.mesher;
 
-        import com.jme3.math.ColorRGBA;
-        import com.jme3.math.Vector2f;
-        import com.jme3.math.Vector3f;
-        import com.ritualsoftheold.terra.core.material.TerraTexture;
-        import io.netty.buffer.ByteBuf;
-        import io.netty.buffer.ByteBufAllocator;
+import com.jme3.math.ColorRGBA;
+import com.jme3.math.Vector3f;
+import com.ritualsoftheold.terra.core.material.TerraTexture;
 
-        import java.util.ArrayList;
-        import java.util.Arrays;
-        import java.util.Collections;
-        import java.util.HashMap;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
 
 /**
  * Helps with building meshes for voxel data.
@@ -25,8 +21,10 @@ public class MeshContainer {
 
     private ArrayList<Integer> indices;
 
-    private ArrayList<Vector2f> texCoords;
+    private ArrayList<Vector3f> texCoords;
+
     private ArrayList<ColorRGBA> colors;
+
     /**
      * Creates a new mesh container.
      */
@@ -43,8 +41,8 @@ public class MeshContainer {
         colors.add(color);
     }
 
-    public void vector(Vector3f vec){
-        vector3fs.add(vec);
+    public void vector(Vector3f vector){
+        vector3fs.add(vector);
     }
 
     public void vector(Vector3f[] vectors) {
@@ -57,8 +55,8 @@ public class MeshContainer {
         }
     }
 
-    public void texture(Vector2f[] vector2fs) {
-        texCoords.addAll(Arrays.asList(vector2fs));
+    public void texture(Vector3f[] vector3fs) {
+        texCoords.addAll(Arrays.asList(vector3fs));
     }
 
     public void setTextures(int nX, int nY, int nZ, TerraTexture texture) {
@@ -103,7 +101,10 @@ public class MeshContainer {
         return indices;
     }
 
-    public ArrayList<Vector2f> getTextureCoordinates() {
+    public ArrayList<Vector3f> getTextureCoordinates() {
         return texCoords;
+    }
+    public  ArrayList<ColorRGBA> getColors(){
+        return colors;
     }
 }
