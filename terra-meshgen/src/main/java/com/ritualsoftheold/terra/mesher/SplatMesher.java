@@ -74,6 +74,9 @@ public class SplatMesher implements VoxelMesher {
 
             }
 
+
+
+
         }
     }
 
