@@ -1,5 +1,6 @@
 package com.ritualsoftheold.terra.mesher;
 
+        import com.jme3.math.ColorRGBA;
         import com.jme3.math.Vector2f;
         import com.jme3.math.Vector3f;
         import com.ritualsoftheold.terra.core.material.TerraTexture;
@@ -25,7 +26,7 @@ public class MeshContainer {
     private ArrayList<Integer> indices;
 
     private ArrayList<Vector2f> texCoords;
-
+    private ArrayList<ColorRGBA> colors;
     /**
      * Creates a new mesh container.
      */
@@ -35,6 +36,15 @@ public class MeshContainer {
         texCoords = new ArrayList<>();
         textures = new TerraTexture[64][64][64];
         textureTypes = new HashMap<>();
+        colors = new ArrayList<>();
+    }
+
+    public void color(ColorRGBA color){
+        colors.add(color);
+    }
+
+    public void vector(Vector3f vec){
+        vector3fs.add(vec);
     }
 
     public void vector(Vector3f[] vectors) {
