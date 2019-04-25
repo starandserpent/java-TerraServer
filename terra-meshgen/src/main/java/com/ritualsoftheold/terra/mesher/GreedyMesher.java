@@ -104,10 +104,10 @@ public class GreedyMesher implements VoxelMesher {
                     break;
 
                 case 3:
-                    completeFace.setTextureCoords(16 * completeFace.getVector3fs()[1].z, 0);
+                    completeFace.setTextureCoords(16 * completeFace.getVector3fs()[2].z, 0);
                     completeFace.setTextureCoords(0, 0);
-                    completeFace.setTextureCoords(0, 16 * completeFace.getVector3fs()[1].x);
-                    completeFace.setTextureCoords(16 * completeFace.getVector3fs()[1].z, 16 * completeFace.getVector3fs()[1].x);
+                    completeFace.setTextureCoords(0, 16 * completeFace.getVector3fs()[2].x);
+                    completeFace.setTextureCoords(16 * completeFace.getVector3fs()[2].z, 16 * completeFace.getVector3fs()[1].x);
                     break;
 
                 case 4:
