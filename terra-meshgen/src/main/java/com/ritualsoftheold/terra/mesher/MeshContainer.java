@@ -17,6 +17,8 @@ public class MeshContainer {
 
     private ArrayList<Vector3f> texCoords;
 
+    private ArrayList<Vector3f> normals;
+
     /**
      * Creates a new mesh container.
      */
@@ -24,7 +26,10 @@ public class MeshContainer {
         vector3fs = new ArrayList<>();
         indices = new ArrayList<>();
         texCoords = new ArrayList<>();
+        normals = new ArrayList<>();
     }
+
+    public void normals(Vector3f[] normal){normals.addAll(Arrays.asList(normal));}
 
     public void vector(Vector3f[] vectors) {
         vector3fs.addAll(Arrays.asList(vectors));
@@ -51,4 +56,6 @@ public class MeshContainer {
     public ArrayList<Vector3f> getTextureCoordinates() {
         return texCoords;
     }
+
+    public ArrayList<Vector3f> getNormals(){return normals;}
 }

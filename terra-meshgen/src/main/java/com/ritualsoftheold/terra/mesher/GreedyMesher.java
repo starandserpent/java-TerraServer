@@ -132,6 +132,7 @@ public class GreedyMesher implements VoxelMesher {
             mesh.vector(completeFace.getVector3fs());
             mesh.triangle(getIndexes(verticeIndex));
             mesh.texture(completeFace.getTextureCoords());
+            mesh.normals(completeFace.getNormals());
             verticeIndex += 4;
         }
     }

@@ -11,11 +11,24 @@ import java.util.ArrayList;
 public class Face {
     private ArrayList<Vector3f> textureCoords;
     private Vector3f[] vector3f;
+    private Vector3f[] normals;
     private TerraMaterial material;
 
     public Face() {
         textureCoords = new ArrayList<>();
         vector3f = new Vector3f[4];
+        normals = new Vector3f[4];
+    }
+
+    public void setNormals(Vector3f... normals) {
+        this.normals = normals;
+    }
+
+    public void setNormals(Vector3f normal, int position) {
+        this.normals[position]=normal;
+    }
+    public void setNormals(int x, int y, int z, int position){
+        this.normals[position] = new Vector3f(x,y,z);
     }
 
     public void setVector3f(int x, int y, int z, int position) {
@@ -47,5 +60,9 @@ public class Face {
 
     public TerraMaterial getMaterial() {
         return material;
+    }
+
+    public Vector3f[] getNormals() {
+        return normals;
     }
 }

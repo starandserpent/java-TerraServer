@@ -1,15 +1,22 @@
 uniform mat4 g_WorldViewProjectionMatrix;
+uniform mat4 g_WorldMatrix;
 
 attribute vec3 inPosition;
+attribute vec3 inNormal;//I think that is right
+
 
 in vec3 inTexCoord;
 out vec3 texCoord;
 out float postiony;
+out float positionx;
+out vec3 pos;
+out vec3 normal;
 
 void main() {
   texCoord = inTexCoord;
+  normal = inNormal;
 
-  postiony = inPosition.y;
+  pos = (g_WorldMatrix * vec4(inPosition,1.0)).xyz;
   // Calculate real position
   gl_Position = g_WorldViewProjectionMatrix * vec4(inPosition, 1.0); // Position for fragment shader
 }

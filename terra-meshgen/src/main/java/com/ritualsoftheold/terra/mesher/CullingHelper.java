@@ -1,5 +1,6 @@
 package com.ritualsoftheold.terra.mesher;
 
+import com.jme3.math.Vector3f;
 import com.ritualsoftheold.terra.core.buffer.BlockBuffer;
 import com.ritualsoftheold.terra.core.material.TerraMaterial;
 import com.ritualsoftheold.terra.offheap.DataConstants;
@@ -56,6 +57,8 @@ public class CullingHelper {
                     face.setVector3f(x, y + 1, z, 2);
                     face.setVector3f(x, y, z, 3);
                     Objects.requireNonNull(voxel).setFace(face, 0);
+
+                    face.setNormals(new Vector3f(-1,0,0),new Vector3f(-1,0,0),new Vector3f(-1,0,0),new Vector3f(-1,0,0));
                 }
 
                 // RIGHT
@@ -66,6 +69,8 @@ public class CullingHelper {
                     face.setVector3f(x + 1, y + 1, z + 1, 2);
                     face.setVector3f(x + 1, y, z + 1, 3);
                     Objects.requireNonNull(voxel).setFace(face, 1);
+
+                    face.setNormals(new Vector3f(1,0,0),new Vector3f(1,0,0),new Vector3f(1,0,0),new Vector3f(1,0,0));
                 }
 
                 // TOP
@@ -76,6 +81,8 @@ public class CullingHelper {
                     face.setVector3f(x + 1, y + 1, z + 1, 2);
                     face.setVector3f(x + 1, y + 1, z, 3);
                     Objects.requireNonNull(voxel).setFace(face, 2);
+
+                    face.setNormals(new Vector3f(0,1,0),new Vector3f(0,1,0),new Vector3f(0,1,0),new Vector3f(0,1,0));
                 }
 
                 // BOTTOM
@@ -86,6 +93,8 @@ public class CullingHelper {
                     face.setVector3f(x, y, z+ 1, 2);
                     face.setVector3f(x, y, z, 3);
                     Objects.requireNonNull(voxel).setFace(face, 3);
+
+                    face.setNormals(new Vector3f(0,-1,0),new Vector3f(0,-1,0),new Vector3f(0,-1,0),new Vector3f(0,-1,0));
                 }
 
                 // BACK
@@ -96,6 +105,8 @@ public class CullingHelper {
                     face.setVector3f(x, y + 1, z + 1, 2);
                     face.setVector3f(x, y, z + 1, 3);
                     Objects.requireNonNull(voxel).setFace(face, 4);
+
+                    face.setNormals(new Vector3f(0,0,1),new Vector3f(0,0,1),new Vector3f(0,0,1),new Vector3f(0,0,1));
                 }
 
                 // FRONT
@@ -106,6 +117,8 @@ public class CullingHelper {
                     face.setVector3f(x + 1, y + 1, z, 2);
                     face.setVector3f(x + 1, y, z, 3);
                     Objects.requireNonNull(voxel).setFace(face, 5);
+
+                    face.setNormals(new Vector3f(0,0,-1),new Vector3f(0,0,-1),new Vector3f(0,0,-1),new Vector3f(0,0,-1));
                 }
             }
             index++;
