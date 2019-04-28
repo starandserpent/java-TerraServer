@@ -8,8 +8,11 @@ void main() {
     color = texture(m_ColorMap, texCoord);
 
     gl_FragColor = color;
-    if (normal.y < 1){
-        color.rgb -= vec3(0.1, 0.1, 0.1);
+    if (normal.y > 0){
+        color.rgb += vec3(0.2, 0.2, 0.2);
+        if(normal.z == 1 || normal.x == 0){
+            color.rgb -= vec3(0.05, 0.05, 0.05);
+        }
     }
 
     if(normal.z == 1 || normal.x == 0){
