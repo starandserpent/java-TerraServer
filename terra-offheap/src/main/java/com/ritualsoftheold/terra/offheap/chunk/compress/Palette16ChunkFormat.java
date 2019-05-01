@@ -16,6 +16,8 @@ import com.ritualsoftheold.terra.offheap.node.OffheapChunk.Storage;
 import net.openhft.chronicle.core.Memory;
 import net.openhft.chronicle.core.OS;
 
+import javax.xml.crypto.Data;
+
 /**
  * 4 bits per block. Max 16 block types in a chunk.
  *
@@ -236,6 +238,16 @@ public class Palette16ChunkFormat implements ChunkFormat {
         }
 
         @Override
+        public TerraMaterial get(int index) {
+            if(index < DataConstants.CHUNK_MAX_BLOCKS) {
+                int worldId = readWorldId(area, index);
+                return registry.getForWorldId(worldId);
+            }
+
+            return registry.getForWorldId(1);
+        }
+
+        @Override
         public boolean hasNext() {
             return index < DataConstants.CHUNK_MAX_BLOCKS;
         }
@@ -248,8 +260,7 @@ public class Palette16ChunkFormat implements ChunkFormat {
 
         @Override
         public TerraMaterial read() {
-            int worldId = readWorldId(area, index);
-            return registry.getForWorldId(worldId);
+            return get(index);
         }
 
         @Override
@@ -322,6 +333,11 @@ public class Palette16ChunkFormat implements ChunkFormat {
 
         @Override
         public TerraMaterial read() {
+            return get(index);
+        }
+
+        @Override
+        public TerraMaterial get(int index) {
             int worldId = readWorldId(area, index);
             return registry.getForWorldId(worldId);
         }

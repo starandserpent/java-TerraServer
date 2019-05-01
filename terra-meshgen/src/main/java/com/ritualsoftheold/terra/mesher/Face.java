@@ -1,10 +1,7 @@
 package com.ritualsoftheold.terra.mesher;
 
-import com.jme3.math.Vector2f;
 import com.jme3.math.Vector3f;
-import com.ritualsoftheold.terra.core.Terra;
 import com.ritualsoftheold.terra.core.material.TerraMaterial;
-import com.ritualsoftheold.terra.core.material.TerraTexture;
 
 import java.util.ArrayList;
 

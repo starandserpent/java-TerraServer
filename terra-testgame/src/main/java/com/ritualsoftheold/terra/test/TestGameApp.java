@@ -110,7 +110,7 @@ public class TestGameApp extends SimpleApplication implements ActionListener {
                 })
                 .build();
 
-        player = world.createLoadMarker(0, 0, 0, 1, 1, 0);
+        player = world.createLoadMarker(0, 0, 0, 64, 64, 0);
         // LoadMarker secondchunk = world.createLoadMarker(56+16+32,0, 56+16+32, 32, 32, 0);
 
         world.addLoadMarker(player);

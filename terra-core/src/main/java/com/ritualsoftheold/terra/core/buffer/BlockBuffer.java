@@ -43,11 +43,18 @@ public interface BlockBuffer extends AutoCloseable {
      * @return Material of block.
      */
     TerraMaterial read();
-    
+
     /**
-     * Gets the reference that current block has, or null if it has none.
-     * @return Reference of the block or null.
+     * Gets material of requested block.
+     * @return Material of block.
      */
+    TerraMaterial get(int index);
+
+
+        /**
+         * Gets the reference that current block has, or null if it has none.
+         * @return Reference of the block or null.
+         */
     Object readRef();
     
     /**

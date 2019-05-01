@@ -10,6 +10,8 @@ import com.ritualsoftheold.terra.offheap.data.BufferWithFormat;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * Greedy mesher does culling and try to merge same blocks into bigger faces.
@@ -34,46 +36,16 @@ public class GreedyMesher implements VoxelMesher {
         assert mesh != null;
 
         // Generate mappings for culling
-        Voxel[] voxels = culling.cull(buf);
+        HashMap<Integer, ArrayList<Face>> sector = culling.cull(buf);
 
         // Reset buffer to starting position
         buf.seek(0);
-
-        HashMap<Integer, ArrayList<Face>> entity = new HashMap<>();
-        entity.put(0, new ArrayList<>());
-        entity.put(1, new ArrayList<>());
-        entity.put(2, new ArrayList<>());
-        entity.put(3, new ArrayList<>());
-        entity.put(4, new ArrayList<>());
-        entity.put(5, new ArrayList<>());
         verticeIndex = 0;
 
-        for(Voxel voxel:voxels) {
-            if (voxel != null) {
-                for (int i = 0; i < 6; i++) {
-                    if (voxel.getFace(i) != null) {
-                        Face face = voxel.getFace(i);
-                        entity.get(i).add(face);
-                    }
-                }
-            }
-        }
-
-        for(Integer key:entity.keySet()){
-            joinFaces(entity.get(key));
-            setTextureCoords(entity.get(key), key);
-            fillContainer(mesh, entity.get(key));
-        }
-    }
-
-    //Greedy Meshing
-    private void joinFaces(ArrayList<Face> faces) {
-        for (int i = 0; i < faces.size(); i++) {
-            joinFacesHorizonaly(faces, i);
-        }
-
-        for (int i = 0; i < faces.size(); i++) {
-            joinFacesVerticaly(faces, i);
+        for(Integer key:sector.keySet()){
+            joinReversed(sector.get(key), 0);
+            setTextureCoords(sector.get(key), key);
+            fillContainer(mesh, sector.get(key));
         }
     }
 
@@ -130,53 +102,32 @@ public class GreedyMesher implements VoxelMesher {
         }
     }
 
-    private void joinFacesHorizonaly(ArrayList<Face> faces, int start) {
+    private void joinReversed(ArrayList<Face> faces, int start) {
         if(start + 1< faces.size()) {
             Face face = faces.get(start);
             Face nextFace = faces.get(start + 1);
             //TODO disable seprate meshes for different blocks when textures are properly set
             if(face.getMaterial() == nextFace.getMaterial()) {
-                if (face.getVector3fs()[3].equals(nextFace.getVector3fs()[0]) && face.getVector3fs()[2].equals(nextFace.getVector3fs()[1])) {
-                    face.setVector3f(nextFace.getVector3fs()[3], 3);
+                if (face.getVector3fs()[2].equals(nextFace.getVector3fs()[3]) && face.getVector3fs()[1].equals(nextFace.getVector3fs()[0])) {
+                    face.setVector3f(nextFace.getVector3fs()[1], 1);
                     face.setVector3f(nextFace.getVector3fs()[2], 2);
                     faces.remove(nextFace);
-                    joinFacesHorizonaly(faces, start);
-                } else if (face.getVector3fs()[0].equals(nextFace.getVector3fs()[3]) && face.getVector3fs()[1].equals(nextFace.getVector3fs()[2])) {
+                    joinReversed(faces, start);
+                }else if (face.getVector3fs()[3].equals(nextFace.getVector3fs()[2]) && face.getVector3fs()[0].equals(nextFace.getVector3fs()[1])) {
+                    face.setVector3f(nextFace.getVector3fs()[3], 3);
+                    face.setVector3f(nextFace.getVector3fs()[0], 0);
+                    faces.remove(nextFace);
+                    joinReversed(faces, start);
+                }else if (face.getVector3fs()[0].equals(nextFace.getVector3fs()[3]) && face.getVector3fs()[1].equals(nextFace.getVector3fs()[2])) {
                     face.setVector3f(nextFace.getVector3fs()[0], 0);
                     face.setVector3f(nextFace.getVector3fs()[1], 1);
                     faces.remove(nextFace);
-                    joinFacesHorizonaly(faces, start);
-                } else if (face.getVector3fs()[1].equals(nextFace.getVector3fs()[0]) && face.getVector3fs()[2].equals(nextFace.getVector3fs()[3])) {
-                    face.setVector3f(nextFace.getVector3fs()[1], 1);
-                    face.setVector3f(nextFace.getVector3fs()[2], 2);
-                    faces.remove(nextFace);
-                    joinFacesHorizonaly(faces, start);
-                }
-            }
-        }
-    }
-
-    private void joinFacesVerticaly(ArrayList<Face> faces, int start) {
-        if(start + 1< faces.size()) {
-            Face face = faces.get(start);
-            Face nextFace = faces.get(start + 1);
-            //TODO disable seprate meshes for different blocks when textures are properly set
-            if(face.getMaterial() == nextFace.getMaterial()) {
-                if (face.getVector3fs()[2].equals(nextFace.getVector3fs()[1]) && face.getVector3fs()[3].equals(nextFace.getVector3fs()[0])) {
+                    joinReversed(faces, start);
+                } else if (face.getVector3fs()[3].equals(nextFace.getVector3fs()[0]) && face.getVector3fs()[2].equals(nextFace.getVector3fs()[1])) {
                     face.setVector3f(nextFace.getVector3fs()[2], 2);
                     face.setVector3f(nextFace.getVector3fs()[3], 3);
                     faces.remove(nextFace);
-                    joinFacesHorizonaly(faces, start);
-                } else if (face.getVector3fs()[1].equals(nextFace.getVector3fs()[2]) && face.getVector3fs()[0].equals(nextFace.getVector3fs()[3])) {
-                    face.setVector3f(nextFace.getVector3fs()[1], 1);
-                    face.setVector3f(nextFace.getVector3fs()[0], 0);
-                    faces.remove(nextFace);
-                    joinFacesHorizonaly(faces, start);
-                } else if (face.getVector3fs()[2].equals(nextFace.getVector3fs()[3]) && face.getVector3fs()[1].equals(nextFace.getVector3fs()[0])) {
-                    face.setVector3f(nextFace.getVector3fs()[2], 2);
-                    face.setVector3f(nextFace.getVector3fs()[1], 1);
-                    faces.remove(nextFace);
-                    joinFacesVerticaly(faces, start);
+                    joinReversed(faces, start);
                 }
             }
         }
