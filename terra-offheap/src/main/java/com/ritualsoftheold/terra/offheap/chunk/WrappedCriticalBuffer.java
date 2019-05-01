@@ -112,6 +112,11 @@ public class WrappedCriticalBuffer implements BufferWithFormat, CriticalBlockBuf
     }
 
     @Override
+    public TerraMaterial get(int index) {
+        return wrapped.get(index);
+    }
+
+    @Override
     public Object readRef() {
         return wrapped.readRef();
     }

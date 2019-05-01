@@ -14,7 +14,6 @@ dependencies {
     compile project(':terra-offheap')
     compile project(':terra-io-files')
     compile project(':terra-meshgen')
-    compile project(':terra-worldgen')
     compile 'org.jmonkeyengine:jme3-core:3.2.2-stable'
     compile 'org.jmonkeyengine:jme3-desktop:3.2.2-stable'
     compile 'org.jmonkeyengine:jme3-lwjgl3:3.2.2-stable'
