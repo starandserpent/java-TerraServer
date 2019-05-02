@@ -1,5 +1,6 @@
 package com.ritualsoftheold.terra.test;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
@@ -7,6 +8,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ForkJoinPool;
 
 import com.jme3.app.SimpleApplication;
+import com.jme3.asset.AssetManager;
 import com.jme3.input.KeyInput;
 import com.jme3.input.controls.ActionListener;
 import com.jme3.input.controls.KeyTrigger;
@@ -15,6 +17,7 @@ import com.jme3.material.Material;
 import com.jme3.math.Vector3f;
 import com.jme3.scene.Geometry;
 import com.jme3.scene.Mesh;
+import com.jme3.scene.Spatial;
 import com.jme3.scene.Spatial.CullHint;
 import com.jme3.scene.VertexBuffer.Type;
 import com.jme3.system.AppSettings;
@@ -37,6 +40,8 @@ import com.ritualsoftheold.terra.mesher.MeshContainer;
 import com.ritualsoftheold.terra.mesher.VoxelMesher;
 import com.ritualsoftheold.terra.offheap.io.dummy.DummyChunkLoader;
 import com.ritualsoftheold.terra.offheap.io.dummy.DummyOctreeLoader;
+import jme3tools.optimize.GeometryBatchFactory;
+import jme3tools.optimize.LodGenerator;
 
 public class TestGameApp extends SimpleApplication implements ActionListener {
 
@@ -44,6 +49,7 @@ public class TestGameApp extends SimpleApplication implements ActionListener {
     private LoadMarker player;
     private boolean wireframe = false;
     private Material mat;
+    private int index;
 
     private BlockingQueue<Geometry> geomCreateQueue = new ArrayBlockingQueue<>(10000);
 
@@ -118,8 +124,11 @@ public class TestGameApp extends SimpleApplication implements ActionListener {
 
         VoxelMesher mesher = new GreedyMesher();
 
+
+
         world.setLoadListener(new WorldLoadListener() {
 
+            int lol = 0;
             @Override
             public void octreeLoaded(long addr, long groupAddr, int id, float x,
                                      float y, float z, float scale, LoadMarker trigger) {
@@ -134,6 +143,9 @@ public class TestGameApp extends SimpleApplication implements ActionListener {
                         || Math.abs(z - center.z) > 128) {
                     return;
                 }
+
+                lol++;
+                System.out.println(lol);
 
                 //System.out.println("Loaded chunk: " + chunk.memoryAddress());
                 MeshContainer container = new MeshContainer();
@@ -160,8 +172,10 @@ public class TestGameApp extends SimpleApplication implements ActionListener {
                 container.getTextureCoordinates().toArray(vector2fs);
                 mesh.setBuffer(Type.TexCoord, 3, BufferUtils.createFloatBuffer(vector2fs));
 
-                //Update mesh
-                mesh.updateBound();
+                //Normals
+                Vector3f[] norm = new Vector3f[container.getNormals().toArray().length];
+                container.getNormals().toArray(norm);
+                mesh.setBuffer(Type.Normal,3,BufferUtils.createFloatBuffer(norm));
 
                 // Create geometry
                 Geometry geom = new Geometry("chunk:" + x + "," + y + "," + z, mesh);
@@ -172,6 +186,8 @@ public class TestGameApp extends SimpleApplication implements ActionListener {
                 //Set chunk position in world
                 geom.setLocalTranslation(x, y, z);
                 geom.setCullHint(CullHint.Never);
+
+                container.clear();
 
                 // Place geometry in queue for main thread
                 geomCreateQueue.add(geom);
@@ -195,7 +211,7 @@ public class TestGameApp extends SimpleApplication implements ActionListener {
 
     @Override
     public void simpleUpdate(float tpf) {
-        loadMarkersUpdated += tpf;
+     /*   loadMarkersUpdated += tpf;
         if (loadMarkersUpdated > 1) {
             loadMarkersUpdated = 0;
             Vector3f camLoc = cam.getLocation();
@@ -206,11 +222,31 @@ public class TestGameApp extends SimpleApplication implements ActionListener {
             //world.updateLoadMarkers(); // Update load markers
             //world.leave(stamp);
             //});
-        }
+        }*/
 
         while (!geomCreateQueue.isEmpty()) {
             Geometry geom = geomCreateQueue.poll();
+
+            ArrayList<Geometry> geometries = new ArrayList<>();
+            for(Spatial spatial:rootNode.getChildren()) {
+                if(spatial instanceof Geometry){
+                    geometries.add((Geometry) spatial);
+                }
+            }
+
+            geometries.add(geom);
+            Mesh terrain = new Mesh();
+            GeometryBatchFactory.mergeGeometries(geometries,  terrain);
             //System.out.println("create geom: " + geom.getLocalTranslation());
+            // Create geometry
+            rootNode.detachAllChildren();
+
+            Geometry terrainGeom = new Geometry("Map");
+            terrainGeom.setMesh(terrain);
+            terrainGeom.setMaterial(mat);
+            geom.setLocalTranslation(0, 0, 0);
+            geom.setCullHint(CullHint.Never);
+
             rootNode.attachChild(geom);
         }
     }

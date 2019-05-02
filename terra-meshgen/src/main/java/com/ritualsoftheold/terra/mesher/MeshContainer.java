@@ -58,4 +58,11 @@ public class MeshContainer {
     }
 
     public ArrayList<Vector3f> getNormals(){return normals;}
+
+    public void clear(){
+        texCoords.clear();
+        indices.clear();
+        vector3fs.clear();
+        normals.clear();
+    }
 }

@@ -14,7 +14,6 @@ public class WorldGenerator implements WorldGeneratorInterface<Void> {
     private TerraMaterial dirt;
     private TerraMaterial air;
     private TerraMaterial grass;
-    private int index;
 
     @Override
     public void setup(long seed, MaterialRegistry materialRegistry) {
@@ -35,7 +34,5 @@ public class WorldGenerator implements WorldGeneratorInterface<Void> {
             buf.write(dirt);
             buf.next();
         }
-        index++;
-        System.out.println(index);
     }
 }
