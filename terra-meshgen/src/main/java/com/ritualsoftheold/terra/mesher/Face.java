@@ -2,10 +2,11 @@ package com.ritualsoftheold.terra.mesher;
 
 import com.jme3.math.Vector3f;
 import com.ritualsoftheold.terra.core.material.TerraMaterial;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 
-public class Face {
+public class Face implements Comparable<Face> {
     private ArrayList<Vector3f> textureCoords;
     private Vector3f[] vector3f;
     private Vector3f[] normals;
@@ -61,5 +62,15 @@ public class Face {
 
     public Vector3f[] getNormals() {
         return normals;
+    }
+
+    @Override
+    public int compareTo(@NotNull Face o) {
+        if(o.vector3f[0].x < vector3f[0].x){
+            return 1;
+        }else if (o.vector3f[0].x > vector3f[0].x){
+            return -1;
+        }
+        return 0;
     }
 }

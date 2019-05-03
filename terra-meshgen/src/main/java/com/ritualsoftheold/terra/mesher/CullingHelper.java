@@ -1,5 +1,7 @@
 package com.ritualsoftheold.terra.mesher;
 
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.Multimap;
 import com.jme3.math.Vector3f;
 import com.ritualsoftheold.terra.core.buffer.BlockBuffer;
 import com.ritualsoftheold.terra.core.material.TerraMaterial;
@@ -14,15 +16,15 @@ import java.util.HashMap;
 
 public class CullingHelper {
 
-    public HashMap<Integer, ArrayList<Face>> cull(BlockBuffer buf) {
+    public HashMap<Integer, Multimap<TerraMaterial, Face>> cull(BlockBuffer buf) {
 
-        HashMap<Integer, ArrayList<Face>> sector = new HashMap<>();
-        sector.put(0, new ArrayList<>());
-        sector.put(1, new ArrayList<>());
-        sector.put(2, new ArrayList<>());
-        sector.put(3, new ArrayList<>());
-        sector.put(4, new ArrayList<>());
-        sector.put(5, new ArrayList<>());
+        HashMap<Integer, Multimap<TerraMaterial, Face>> sector = new HashMap<>();
+        sector.put(0, ArrayListMultimap.create());
+        sector.put(1, ArrayListMultimap.create());
+        sector.put(2, ArrayListMultimap.create());
+        sector.put(3, ArrayListMultimap.create());
+        sector.put(4, ArrayListMultimap.create());
+        sector.put(5, ArrayListMultimap.create());
 
         int index = 0;
         buf.seek(0);
@@ -46,24 +48,25 @@ public class CullingHelper {
             // LEFT
             if (x == 0 || buf.get(index - 1).getTexture() == null) {
                 Face face = new Face();
-                ArrayList<Face> side = sector.get(0);
+                Multimap<TerraMaterial, Face> side = sector.get(0);
                 face.setMaterial(material);
                 face.setNormals(new Vector3f(-1, 0, 0), new Vector3f(-1, 0, 0), new Vector3f(-1, 0, 0), new Vector3f(-1, 0, 0));
                 face.setVector3f(x, y, z + 1, 0);
                 face.setVector3f(x, y + 1, z + 1, 1);
                 face.setVector3f(x, y + 1, z, 2);
                 face.setVector3f(x, y, z, 3);
-                side.add(face);
+                side.put(material, face);
 
-                if (side.size() > 1 && buf.get(index - 1).getTexture() != null) {
-                    int last = side.size() - 2;
-                    Face previousFace = side.get(last);
+                if (side.get(material).size() > 1 && buf.get(index - 1).getTexture() != null) {
+                    ArrayList<Face> faces = new ArrayList<>(side.get(material));
+                    int last = faces.size() - 2;
+                    Face previousFace = faces.get(last);
                     if (face.getMaterial() == previousFace.getMaterial() &&
                             face.getVector3fs()[0].equals(previousFace.getVector3fs()[1]) &&
                             face.getVector3fs()[3].equals(previousFace.getVector3fs()[2])) {
                         previousFace.setVector3f(x, y + 1, z + 1, 1);
                         previousFace.setVector3f(x, y + 1, z, 2);
-                        side.remove(side.size() - 1);
+                        side.get(material).remove(face);
                     }
                 }
             }
@@ -73,23 +76,24 @@ public class CullingHelper {
                 Face face = new Face();
                 face.setMaterial(material);
                 face.setNormals(new Vector3f(1, 0, 0), new Vector3f(1, 0, 0), new Vector3f(1, 0, 0), new Vector3f(1, 0, 0));
-                ArrayList<Face> side = sector.get(1);
+                Multimap<TerraMaterial, Face> side = sector.get(1);
                 face.setVector3f(x + 1, y, z, 0);
                 face.setVector3f(x + 1, y + 1, z, 1);
                 face.setVector3f(x + 1, y + 1, z + 1, 2);
                 face.setVector3f(x + 1, y, z + 1, 3);
-                side.add(face);
+                side.put(material, face);
 
                 //Greedy Meshing
-                if (side.size() > 1 && buf.get(index - 1).getTexture() != null) {
-                    int last = side.size() - 2;
-                    Face previousFace = side.get(last);
+                if (side.get(material).size() > 1 && buf.get(index - 1).getTexture() != null) {
+                    ArrayList<Face> faces = new ArrayList<>(side.get(material));
+                    int last = faces.size() - 2;
+                    Face previousFace = faces.get(last);
                     if (face.getMaterial() == previousFace.getMaterial() &&
                             face.getVector3fs()[0].equals(previousFace.getVector3fs()[1]) &&
                             face.getVector3fs()[3].equals(previousFace.getVector3fs()[2])) {
                         previousFace.setVector3f(x + 1, y + 1, z, 1);
                         previousFace.setVector3f(x + 1, y + 1, z + 1, 2);
-                        side.remove(side.size() - 1);
+                        side.get(material).remove(face);
                     }
                 }
             }
@@ -99,23 +103,24 @@ public class CullingHelper {
                 Face face = new Face();
                 face.setMaterial(material);
                 face.setNormals(new Vector3f(0, 1, 0), new Vector3f(0, 1, 0), new Vector3f(0, 1, 0), new Vector3f(0, 1, 0));
-                ArrayList<Face> side = sector.get(2);
+                Multimap<TerraMaterial, Face> side = sector.get(2);
                 face.setVector3f(x, y + 1, z, 0);
                 face.setVector3f(x, y + 1, z + 1, 1);
                 face.setVector3f(x + 1, y + 1, z + 1, 2);
                 face.setVector3f(x + 1, y + 1, z, 3);
-                side.add(face);
+                side.put(material, face);
 
                 //Greedy Meshing
-                if (side.size() > 1 && buf.get(index - 4096).getTexture() != null) {
-                    int last = side.size() - 2;
-                    Face previousFace = side.get(last);
+                if (side.get(material).size() > 1 && buf.get(index - 1).getTexture() != null) {
+                    ArrayList<Face> faces = new ArrayList<>(side.get(material));
+                    int last = faces.size() - 2;
+                    Face previousFace = faces.get(last);
                     if (face.getMaterial() == previousFace.getMaterial() &&
                             face.getVector3fs()[0].equals(previousFace.getVector3fs()[3]) &&
                             face.getVector3fs()[1].equals(previousFace.getVector3fs()[2])) {
                         previousFace.setVector3f(x + 1, y + 1, z + 1, 2);
                         previousFace.setVector3f(x + 1, y + 1, z, 3);
-                        side.remove(side.size() - 1);
+                        side.get(material).remove(face);
                     }
                 }
             }
@@ -125,23 +130,24 @@ public class CullingHelper {
                 Face face = new Face();
                 face.setMaterial(material);
                 face.setNormals(new Vector3f(0,-1,0),new Vector3f(0,-1,0),new Vector3f(0,-1,0),new Vector3f(0,-1,0));
-                ArrayList<Face> side =  sector.get(3);
+                Multimap<TerraMaterial, Face> side = sector.get(3);
                 face.setVector3f(x + 1, y, z, 0);
                 face.setVector3f(x + 1, y, z + 1, 1);
                 face.setVector3f(x, y, z + 1, 2);
                 face.setVector3f(x, y, z, 3);
-                side.add(face);
+                side.put(material, face);
 
                 //Greedy Meshing
-                if (side.size() > 1 && buf.get(index - 1).getTexture() != null) {
-                    int last = side.size() - 2;
-                    Face previousFace = side.get(last);
+                if (side.get(material).size() > 1 && buf.get(index - 1).getTexture() != null) {
+                    ArrayList<Face> faces = new ArrayList<>(side.get(material));
+                    int last = faces.size() - 2;
+                    Face previousFace = faces.get(last);
                     if (face.getMaterial() == previousFace.getMaterial() &&
                             face.getVector3fs()[3].equals(previousFace.getVector3fs()[0]) &&
                             face.getVector3fs()[2].equals(previousFace.getVector3fs()[1])) {
                         previousFace.setVector3f(x + 1, y, z, 0);
                         previousFace.setVector3f(x + 1, y, z + 1, 1);
-                        side.remove(side.size() - 1);
+                        side.get(material).remove(face);
                     }
                 }
             }
@@ -151,23 +157,24 @@ public class CullingHelper {
                 Face face = new Face();
                 face.setMaterial(material);
                 face.setNormals(new Vector3f(0,0,1),new Vector3f(0,0,1),new Vector3f(0,0,1),new Vector3f(0,0,1));
-                ArrayList<Face> side =  sector.get(4);
+                Multimap<TerraMaterial, Face> side = sector.get(4);
                 face.setVector3f(x + 1, y, z + 1, 0);
                 face.setVector3f(x + 1, y + 1, z + 1, 1);
                 face.setVector3f(x, y + 1, z + 1, 2);
                 face.setVector3f(x, y, z + 1, 3);
-                side.add(face);
+                side.put(material, face);
 
                 //Greedy Meshing
-                if (side.size() > 1 && buf.get(index - 1).getTexture() != null) {
-                    int last = side.size() - 2;
-                    Face previousFace = side.get(last);
+                if (side.get(material).size() > 1 && buf.get(index - 1).getTexture() != null) {
+                    ArrayList<Face> faces = new ArrayList<>(side.get(material));
+                    int last = faces.size() - 2;
+                    Face previousFace = faces.get(last);
                     if (face.getMaterial() == previousFace.getMaterial() &&
                             face.getVector3fs()[3].equals(previousFace.getVector3fs()[0]) &&
                             face.getVector3fs()[2].equals(previousFace.getVector3fs()[1])) {
                         previousFace.setVector3f(x + 1, y, z + 1, 0);
                         previousFace.setVector3f(x + 1, y + 1, z + 1, 1);
-                        side.remove(side.size() - 1);
+                        side.get(material).remove(face);
                     }
                 }
             }
@@ -177,23 +184,24 @@ public class CullingHelper {
                 Face face = new Face();
                 face.setMaterial(material);
                 face.setNormals(new Vector3f(0,0,-1),new Vector3f(0,0,-1),new Vector3f(0,0,-1),new Vector3f(0,0,-1));
-                ArrayList<Face> side =  sector.get(5);
+                Multimap<TerraMaterial, Face> side = sector.get(5);
                 face.setVector3f(x, y, z, 0);
                 face.setVector3f(x, y + 1, z, 1);
                 face.setVector3f(x + 1, y + 1, z, 2);
                 face.setVector3f(x + 1, y, z, 3);
-                side.add(face);
+                side.put(material, face);
 
                 //Greedy Meshing
-                if (side.size() > 1 && buf.get(index - 1).getTexture() != null) {
-                    int last = side.size() - 2;
-                    Face previousFace = side.get(last);
+                if (side.get(material).size() > 1 && buf.get(index - 1).getTexture() != null) {
+                    ArrayList<Face> faces = new ArrayList<>(side.get(material));
+                    int last = faces.size() - 2;
+                    Face previousFace = faces.get(last);
                     if (face.getMaterial() == previousFace.getMaterial() &&
                             face.getVector3fs()[0].equals(previousFace.getVector3fs()[3]) &&
                             face.getVector3fs()[1].equals(previousFace.getVector3fs()[2])) {
                         previousFace.setVector3f(x + 1, y + 1, z, 2);
                         previousFace.setVector3f(x + 1, y, z, 3);
-                        side.remove(side.size() - 1);
+                        side.get(material).remove(face);
                     }
                 }
             }

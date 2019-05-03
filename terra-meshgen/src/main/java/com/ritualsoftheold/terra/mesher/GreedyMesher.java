@@ -1,6 +1,8 @@
 package com.ritualsoftheold.terra.mesher;
 
+import com.google.common.collect.Multimap;
 import com.jme3.math.Vector2f;
+import com.ritualsoftheold.terra.core.Terra;
 import com.ritualsoftheold.terra.core.buffer.BlockBuffer;
 import com.ritualsoftheold.terra.core.material.TerraMaterial;
 import com.ritualsoftheold.terra.core.material.TerraTexture;
@@ -8,10 +10,7 @@ import com.ritualsoftheold.terra.mesher.resource.TextureManager;
 import com.ritualsoftheold.terra.offheap.DataConstants;
 import com.ritualsoftheold.terra.offheap.data.BufferWithFormat;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Greedy mesher does culling and try to merge same blocks into bigger faces.
@@ -20,32 +19,36 @@ import java.util.Set;
 public class GreedyMesher implements VoxelMesher {
     private CullingHelper culling;
     private int verticeIndex;
-
-    public GreedyMesher(CullingHelper culling) {
-        this.culling = culling;
-    }
-
     public GreedyMesher() {
         this(new CullingHelper());
     }
-
-    @Override
+    public GreedyMesher(CullingHelper culling) {
+        this.culling = culling;
+    }
     public void chunk(BlockBuffer buf, TextureManager textures, MeshContainer mesh) {
         assert buf != null;
         assert textures != null;
         assert mesh != null;
 
         // Generate mappings for culling
-        HashMap<Integer, ArrayList<Face>> sector = culling.cull(buf);
+        HashMap<Integer, Multimap<TerraMaterial, Face>> sector = culling.cull(buf);
 
         // Reset buffer to starting position
         buf.seek(0);
         verticeIndex = 0;
 
         for(Integer key:sector.keySet()){
-            joinReversed(sector.get(key), 0);
-            setTextureCoords(sector.get(key), key);
-            fillContainer(mesh, sector.get(key));
+            TerraMaterial[] keys = new TerraMaterial[sector.get(key).keySet().toArray().length];
+            sector.get(key).keySet().toArray(keys);
+            for(TerraMaterial material:keys) {
+                ArrayList<Face> faces = new ArrayList<>(sector.get(key).removeAll(material));
+                Collections.sort(faces);
+                for(int i =0; i < faces.size(); i++) {
+                    joinReversed(faces, i);
+                }
+                setTextureCoords(faces, key);
+                fillContainer(mesh, faces);
+            }
         }
     }
 
@@ -110,7 +113,7 @@ public class GreedyMesher implements VoxelMesher {
     }
 
     private void joinReversed(ArrayList<Face> faces, int start) {
-        if(start + 1< faces.size()) {
+        if(start + 1 < faces.size()) {
             Face face = faces.get(start);
             Face nextFace = faces.get(start + 1);
             //TODO disable seprate meshes for different blocks when textures are properly set
