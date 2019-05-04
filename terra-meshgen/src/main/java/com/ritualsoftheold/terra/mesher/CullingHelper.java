@@ -99,7 +99,7 @@ public class CullingHelper {
             }
 
             // TOP
-            if (y == 63 || buf.get(index + 64) != material) {
+            if (y == 63 || buf.get(index + 64) != null) {
                 Face face = new Face();
                 face.setMaterial(material);
                 face.setNormals(new Vector3f(0, 1, 0), new Vector3f(0, 1, 0), new Vector3f(0, 1, 0), new Vector3f(0, 1, 0));
