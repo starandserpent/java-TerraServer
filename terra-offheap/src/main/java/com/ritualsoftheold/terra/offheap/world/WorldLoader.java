@@ -197,8 +197,11 @@ public class WorldLoader {
                 node = mem.readVolatileInt(nodeAddr);
                 
                 OffheapChunk chunk = chunkStorage.getChunkInternal(node);
-                listener.chunkLoaded(chunk, subNodeX, subNodeY, subNodeZ, trigger);
+                if (chunk.isGenerated()) {
+                    listener.chunkLoaded(chunk, subNodeX, subNodeY, subNodeZ, trigger);
+                }
                 trigger.addBuffer(chunk.getChunkBuffer()); // Add to load marker
+
                 break; // No further action necessary
             } else { // "Dereference" an octree
                 nodeId = node; // New node id to content of current node
@@ -232,7 +235,7 @@ public class WorldLoader {
      * Loads given node and its children which are closer than given range
      * from the center of the area. Note that node center and area center
      * are probably different. If you do not have a node if and its center
-     * coordinates, use {@link #seekArea(float, float, float, float, WorldLoadListener, boolean)}
+     * coordinates, use {@link #(float, float, float, float, WorldLoadListener, boolean)}
      * instead; it will call this method once it has figured those out.
      * @param x X coordinate of center of area.
      * @param y Y coordinate of center of area.
@@ -358,7 +361,9 @@ public class WorldLoader {
                     // Load chunk and then fire event to listener
                     chunkStorage.ensureAndKeepLoaded(node);
                     OffheapChunk chunk = chunkStorage.getChunkInternal(node);
-                    listener.chunkLoaded(chunk, subNodeX, subNodeY, subNodeZ, trigger);
+                    if(chunk.isGenerated()) {
+                        listener.chunkLoaded(chunk, subNodeX, subNodeY, subNodeZ, trigger);
+                    }
                     trigger.addBuffer(chunk.getChunkBuffer()); // Add to load marker
                 } else { // Octree. Here comes recursion...
                     // TODO multithreading

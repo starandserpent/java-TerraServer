@@ -176,7 +176,7 @@ public class ChunkBuffer {
     private void createEmptyChunks() {
         for (int i = 0; i < maxCount; i++) {
             chunks.set(i, new OffheapChunk(i, this, changeQueues + i * queueSize * 8 * 2,
-                    changeQueues + i * queueSize * 8 * 2 + queueSize * 8, queueSize));
+                    changeQueues + i * queueSize * 8 * 2 + queueSize * 8, queueSize, false));
         }
     }
     

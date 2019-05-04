@@ -14,6 +14,10 @@ public interface GeneratorControl {
      * @return Block buffer where data should be written.
      */
     BlockBuffer getBuffer();
+
+    void canGenerate(boolean generate);
+
+    boolean isGenerated();
     
     /**
      * Later methods in pipeline will be ignored this time, if there

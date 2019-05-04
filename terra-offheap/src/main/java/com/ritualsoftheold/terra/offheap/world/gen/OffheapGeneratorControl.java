@@ -19,6 +19,8 @@ public class OffheapGeneratorControl implements GeneratorControl {
     private boolean end;
     
     private SelfTrackAllocator allocator;
+
+    private boolean canGenerate;
     
     public OffheapGeneratorControl(WorldGenManager manager, SelfTrackAllocator allocator) {
         this.materialHints = new HashSet<>();
@@ -34,6 +36,17 @@ public class OffheapGeneratorControl implements GeneratorControl {
             buffer = manager.createBuffer(materialHints.size(), allocator);
         }
         return buffer;
+    }
+
+    @Override
+    public void canGenerate(boolean generate) {
+        this.canGenerate = generate;
+    }
+
+
+    @Override
+    public boolean isGenerated() {
+        return canGenerate;
     }
 
     @Override

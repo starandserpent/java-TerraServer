@@ -2,7 +2,6 @@ package com.ritualsoftheold.terra.offheap.world.gen;
 
 import com.ritualsoftheold.terra.core.buffer.BlockBuffer;
 import com.ritualsoftheold.terra.core.gen.tasks.GenerationTask;
-import com.ritualsoftheold.terra.core.gen.tasks.Pipeline;
 import com.ritualsoftheold.terra.core.material.MaterialRegistry;
 import com.ritualsoftheold.terra.offheap.memory.MemoryAllocator;
 import com.ritualsoftheold.terra.offheap.memory.MemoryUseListener;
@@ -108,7 +107,8 @@ public class WorldGenManager {
                 
                 ChunkBuffer chunkBuf = chunkStorage.getBuffer(chunkId >>> 16);
                 OffheapChunk chunk = chunkBuf.getChunk(chunkId & 0xffff);
-                
+                chunk.setGenerated(control.isGenerated());
+
                 // Set its storage to generated contents
                 Storage storage = buf.getStorage();
                 chunk.setStorageInternal(storage);

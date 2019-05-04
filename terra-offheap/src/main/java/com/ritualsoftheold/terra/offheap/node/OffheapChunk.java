@@ -277,21 +277,31 @@ public class OffheapChunk implements Chunk, OffheapNode {
      * Queue for changes to be applied to this chunk.
      */
     private final ChangeQueue queue;
+    private boolean isGenerated;
     
     /**
      * Contains references that blocks have. Key is block id, value is the ref.
      */
     private ConcurrentMap<Integer,Object> refs;
     
-    public OffheapChunk(int index, ChunkBuffer buffer, long queueAddr, long swapAddr, int queueSize) {
+    public OffheapChunk(int index, ChunkBuffer buffer, long queueAddr, long swapAddr, int queueSize, boolean isGenerated) {
         // Permanent (final) chunk parameters
         this.index = index;
         this.buffer = buffer;
+        this.isGenerated = isGenerated;
         this.queue = new ChangeQueue(this, queueAddr, swapAddr, queueSize);
         this.refs = new ConcurrentHashMap<>();
         
         // Initially empty chunk, will change later
         this.storage = new Storage(EmptyChunkFormat.INSTANCE, 0, 0);
+    }
+
+    public void setGenerated(boolean generated) {
+        isGenerated = generated;
+    }
+
+    public boolean isGenerated() {
+        return isGenerated;
     }
 
     @Override
