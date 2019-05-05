@@ -19,11 +19,12 @@ Terra is a voxel engine composed of multiple modules. Currently, those are:
 Dependency tree:
 * terra-core
   * terra-meshgen
-  * terra-offheap
-    * terra-io-files
-    * terra-net-core
-      * terra-net-server
-      * terra-net-client
+    * terra-offheap
+        * TestGame repository
+        * terra-io-files
+        * terra-net-core
+            * terra-net-server
+            * terra-net-client
       
 terra-testgame depends on everything but networking parts of Terra.
 
