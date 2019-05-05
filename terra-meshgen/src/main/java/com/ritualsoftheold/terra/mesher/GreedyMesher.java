@@ -50,6 +50,8 @@ public class GreedyMesher implements VoxelMesher {
                 fillContainer(mesh, faces);
             }
         }
+
+        sector.clear();
     }
 
     //Setting textures for mesh
