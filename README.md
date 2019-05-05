@@ -12,11 +12,8 @@ Terra is a voxel engine composed of multiple modules. Currently, those are:
 * terra-io-files: terra-offheap data saving and loading using files
 * terra-net-*: networking server and client using Aeron with terra-offheap
   * Not a full solution for multiplayer voxel game
-* terra-testgame: simple, ugly, singleplayer voxel world
-  * Does not use nearly all Terra features
-  * Did I mention it is ugly?
   
-Dependency tree:
+Terra dependency tree:
 * terra-core
   * terra-meshgen
   * terra-offheap
@@ -24,16 +21,33 @@ Dependency tree:
     * terra-net-core
       * terra-net-server
       * terra-net-client
-      
-terra-testgame depends on everything but networking parts of Terra.
+
+## Other projects using Terra
+**terra-test-game** Test game for Terra. Depends on everything but networking parts of Terra. Uses Weltschmerz and JavaMonkeyEngine.
+
+**weltschmerz** Terrain generator for Terra.
+
+## Instructions
+**Step 1:**
+
+```
+git clone https://github.com/starandserpent/terra-test-game --recursive
+```
+
+**Step 2:**
+
+Compile and run src/main/java/com/ritualsoftheold/testgame/TestGame.java
+
+## License
+Licensed under MIT. See LICENSE for more information.
 
 ## Questions, feedback, and contacting us
 
-**Discord chat**
+### Discord chat
 https://discord.ritualsoftheold.com/
 
-**Forums**
-https://community.ritualsoftheold.com/c/collaboration/terra
-
-**Email and more links**
+### Website, email, and more links
 https://www.starandserpent.com
+
+### Forums
+https://community.ritualsoftheold.com/c/collaboration/terra
