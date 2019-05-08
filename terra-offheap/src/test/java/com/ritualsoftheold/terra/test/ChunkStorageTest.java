@@ -7,10 +7,9 @@ import java.util.concurrent.Executors;
 import com.ritualsoftheold.terra.core.material.MaterialRegistry;
 import com.ritualsoftheold.terra.offheap.chunk.ChunkBuffer;
 import com.ritualsoftheold.terra.offheap.chunk.ChunkStorage;
+import com.ritualsoftheold.terra.offheap.io.dummy.DummyChunkLoaderInterface;
 import org.junit.Before;
 import org.junit.Test;
-
-import com.ritualsoftheold.terra.offheap.io.dummy.DummyChunkLoader;
 
 import net.openhft.chronicle.core.Memory;
 import net.openhft.chronicle.core.OS;
@@ -28,7 +27,7 @@ public class ChunkStorageTest {
                 .maxChunks(64)
                 .queueSize(4)
                 .memListener(new DummyMemoryUseListener());
-        storage = new ChunkStorage(null, builder, 256, new DummyChunkLoader(), Executors.newCachedThreadPool());
+        storage = new ChunkStorage(null, builder, 256, new DummyChunkLoaderInterface(), Executors.newCachedThreadPool());
         registry = new MaterialRegistry();
     }
     

@@ -6,10 +6,10 @@ import java.util.concurrent.atomic.AtomicIntegerArray;
 import java.util.concurrent.atomic.AtomicLongArray;
 
 import com.ritualsoftheold.terra.core.material.MaterialRegistry;
+import com.ritualsoftheold.terra.offheap.io.OctreeLoaderInterface;
 import com.ritualsoftheold.terra.offheap.memory.MemoryUseListener;
 import com.ritualsoftheold.terra.offheap.DataConstants;
 import com.ritualsoftheold.terra.offheap.Pointer;
-import com.ritualsoftheold.terra.offheap.io.OctreeLoader;
 import com.ritualsoftheold.terra.offheap.node.OffheapOctree;
 import com.ritualsoftheold.terra.offheap.world.OffheapLoadMarker;
 
@@ -50,7 +50,7 @@ public class OctreeStorage {
     /**
      * Octree loader implementation.
      */
-    private final OctreeLoader loader;
+    private final OctreeLoaderInterface loader;
     
     /**
      * Executor which will be used for asynchronous tasks.
@@ -67,8 +67,8 @@ public class OctreeStorage {
     
     private final UsageListener usageListener;
         
-    public OctreeStorage(int blockSize, OctreeLoader loader, Executor executor, MemoryUseListener memListener,
-            boolean availibility, UsageListener usageListener) {
+    public OctreeStorage(int blockSize, OctreeLoaderInterface loader, Executor executor, MemoryUseListener memListener,
+                         boolean availibility, UsageListener usageListener) {
         this.loader = loader;
         this.loaderExecutor = executor;
         this.memListener = memListener;

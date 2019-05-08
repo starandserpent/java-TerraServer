@@ -254,8 +254,10 @@ public class Palette16ChunkFormat implements ChunkFormat {
 
         @Override
         public void write(TerraMaterial material) {
-            // TODO make direct writes work, chunk buffers are supposed to be FAST!
-            chunk.queueChange(index, material.getWorldId());
+            boolean writeOk = writeWorldId(area, index, material.getWorldId());
+            if (!writeOk) {
+                throw new TooManyMaterialsException();
+            }
         }
 
         @Override

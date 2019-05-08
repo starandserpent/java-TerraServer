@@ -28,7 +28,7 @@ public class MemoryTest {
     public void testFree1() {
         AtomicBoolean called = new AtomicBoolean(false);
         OffheapWorld world = new OffheapWorld.Builder()
-                .chunkLoader(new DummyChunkLoader())
+                .chunkLoader(new DummyChunkLoaderInterface())
                 .octreeLoader(new DummyOctreeLoader(32768))
                 .storageExecutor(ForkJoinPool.commonPool())
                 .chunkStorage(bufferBuilder, 128)
@@ -99,7 +99,7 @@ public class MemoryTest {
         AtomicBoolean called = new AtomicBoolean(false);
         
         OffheapWorld world = new OffheapWorld.Builder()
-                .chunkLoader(new DummyChunkLoader())
+                .chunkLoader(new DummyChunkLoaderInterface())
                 .octreeLoader(new DummyOctreeLoader(32768))
                 .storageExecutor(ForkJoinPool.commonPool())
                 .chunkStorage(bufferBuilder, 128)
@@ -154,7 +154,7 @@ public class MemoryTest {
         AtomicBoolean called = new AtomicBoolean(false);
         
         OffheapWorld world = new OffheapWorld.Builder()
-                .chunkLoader(new DummyChunkLoader())
+                .chunkLoader(new DummyChunkLoaderInterface())
                 .octreeLoader(new DummyOctreeLoader(32768))
                 .storageExecutor(ForkJoinPool.commonPool())
                 .chunkStorage(bufferBuilder, 128)
@@ -201,7 +201,7 @@ public class MemoryTest {
         AtomicBoolean called = new AtomicBoolean(false);
         
         OffheapWorld world = new OffheapWorld.Builder()
-                .chunkLoader(new DummyChunkLoader())
+                .chunkLoader(new DummyChunkLoaderInterface())
                 .octreeLoader(new DummyOctreeLoader(32768))
                 .storageExecutor(ForkJoinPool.commonPool())
                 .chunkStorage(bufferBuilder, 128)

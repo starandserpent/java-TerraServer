@@ -361,6 +361,7 @@ public class WorldLoader {
                     // Load chunk and then fire event to listener
                     chunkStorage.ensureAndKeepLoaded(node);
                     OffheapChunk chunk = chunkStorage.getChunkInternal(node);
+                    chunk.setCoordinates(subNodeX, subNodeY, subNodeZ);
                     if(chunk.isGenerated()) {
                         listener.chunkLoaded(chunk, subNodeX, subNodeY, subNodeZ, trigger);
                     }

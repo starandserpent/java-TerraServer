@@ -6,7 +6,7 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.atomic.AtomicIntegerArray;
 import java.util.concurrent.atomic.AtomicReferenceArray;
 
-import com.ritualsoftheold.terra.offheap.io.ChunkLoader;
+import com.ritualsoftheold.terra.offheap.io.ChunkLoaderInterface;
 import com.ritualsoftheold.terra.core.material.MaterialRegistry;
 import com.ritualsoftheold.terra.offheap.world.OffheapLoadMarker;
 import com.ritualsoftheold.terra.offheap.node.OffheapChunk;
@@ -39,11 +39,11 @@ public class ChunkStorage {
     /**
      * Loads data from disk as necessary.
      */
-    private final ChunkLoader loader;
+    private final ChunkLoaderInterface loader;
     
     private final Executor executor;
     
-    public ChunkStorage(MaterialRegistry registry, ChunkBuffer.Builder bufferBuilder, int maxBuffers, ChunkLoader loader, Executor executor) {
+    public ChunkStorage(MaterialRegistry registry, ChunkBuffer.Builder bufferBuilder, int maxBuffers, ChunkLoaderInterface loader, Executor executor) {
         this.materialRegistry = registry;
         this.bufferBuilder = bufferBuilder;
         this.loader = loader;
@@ -101,8 +101,7 @@ public class ChunkStorage {
             buf.waitLoading();
             return buf;
         }
-        
-        loader.loadChunks(index, buffers.get(index));
+
         ChunkBuffer buf = buffers.get(index);
         buf.loadingReady(); // We're done, other threads can access the buffer now
         return buf;
@@ -189,7 +188,6 @@ public class ChunkStorage {
      * registry. Chunk must be closed once it is no longer used. Storing
      * a chunk for long period of time is not recommended.
      * @param chunkId
-     * @param materialRegistry
      * @return Chunk wrapper.
      */
     public OffheapChunk getChunk(int chunkId) {

@@ -17,25 +17,22 @@ import java.util.*;
  *
  */
 public class GreedyMesher implements VoxelMesher {
-    private CullingHelper culling;
-    private int verticeIndex;
-    public GreedyMesher() {
-        this(new CullingHelper());
-    }
-    public GreedyMesher(CullingHelper culling) {
-        this.culling = culling;
-    }
+    public GreedyMesher(){}
+
+    @Override
     public void chunk(BlockBuffer buf, TextureManager textures, MeshContainer mesh) {
         assert buf != null;
         assert textures != null;
         assert mesh != null;
+
+        CullingHelper culling = new CullingHelper();
 
         // Generate mappings for culling
         HashMap<Integer, Multimap<TerraMaterial, Face>> sector = culling.cull(buf);
 
         // Reset buffer to starting position
         buf.seek(0);
-        verticeIndex = 0;
+        int verticeIndex = 0;
 
         for(Integer key:sector.keySet()){
             TerraMaterial[] keys = new TerraMaterial[sector.get(key).keySet().toArray().length];
@@ -47,7 +44,7 @@ public class GreedyMesher implements VoxelMesher {
                     joinReversed(faces, i);
                 }
                 setTextureCoords(faces, key);
-                fillContainer(mesh, faces);
+                verticeIndex = fillContainer(mesh, faces, verticeIndex);
             }
         }
 
@@ -56,7 +53,7 @@ public class GreedyMesher implements VoxelMesher {
 
     //Setting textures for mesh
     //TODO make different textures for blocks in united mesh
-    private void setTextureCoords(ArrayList<Face> faces, int side) {
+    private static void setTextureCoords(ArrayList<Face> faces, int side) {
         for (Face completeFace : faces) {
             switch (side) {
                 case 0:
@@ -104,7 +101,7 @@ public class GreedyMesher implements VoxelMesher {
     }
 
     //Moving all values to MeshContainer
-    private void fillContainer(MeshContainer mesh, ArrayList<Face> faces) {
+    private static int fillContainer(MeshContainer mesh, ArrayList<Face> faces, int verticeIndex) {
         for (Face completeFace : faces) {
             mesh.vector(completeFace.getVector3fs());
             mesh.triangle(getIndexes(verticeIndex));
@@ -112,9 +109,11 @@ public class GreedyMesher implements VoxelMesher {
             mesh.normals(completeFace.getNormals());
             verticeIndex += 4;
         }
+
+        return verticeIndex;
     }
 
-    private void joinReversed(ArrayList<Face> faces, int start) {
+    private static void joinReversed(ArrayList<Face> faces, int start) {
         if(start + 1 < faces.size()) {
             Face face = faces.get(start);
             Face nextFace = faces.get(start + 1);
@@ -145,7 +144,7 @@ public class GreedyMesher implements VoxelMesher {
         }
     }
 
-    private int[] getIndexes(int verticeIndex) {
+    private static int[] getIndexes(int verticeIndex) {
         int[] indexes = new int[6];
         indexes[0] = verticeIndex;
         indexes[1] = verticeIndex + 2;

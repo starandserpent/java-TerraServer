@@ -6,7 +6,7 @@ import com.ritualsoftheold.terra.offheap.Pointer;
  * Handles loading octree data blocks and possibly saving them.
  *
  */
-public interface OctreeLoader {
+public interface OctreeLoaderInterface {
     
     /**
      * Loads octrees based on group/file index.

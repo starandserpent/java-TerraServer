@@ -1,20 +1,5 @@
 package com.ritualsoftheold.terra.test;
 
-import java.util.concurrent.ForkJoinPool;
-
-import com.ritualsoftheold.terra.core.material.MaterialRegistry;
-import com.ritualsoftheold.terra.offheap.memory.MemoryPanicHandler;
-import com.ritualsoftheold.terra.offheap.chunk.ChunkBuffer;
-import com.ritualsoftheold.terra.offheap.world.OffheapWorld;
-import org.junit.Before;
-import org.junit.Test;
-
-import com.ritualsoftheold.terra.offheap.io.dummy.DummyChunkLoader;
-import com.ritualsoftheold.terra.offheap.io.dummy.DummyOctreeLoader;
-
-import net.openhft.chronicle.core.Memory;
-import net.openhft.chronicle.core.OS;
-
 /**
  * Tests OffheapWorld.
  *
@@ -35,7 +20,7 @@ public class WorldTest {
                 .queueSize(4);
         
         world = new OffheapWorld.Builder()
-                .chunkLoader(new DummyChunkLoader())
+                .chunkLoader(new DummyChunkLoaderInterface())
                 .octreeLoader(new DummyOctreeLoader(32768))
                 .storageExecutor(ForkJoinPool.commonPool())
                 .chunkStorage(bufferBuilder, 128)

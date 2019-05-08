@@ -2,7 +2,10 @@ package com.ritualsoftheold.terra.offheap.world;
 
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.VarHandle;
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
@@ -18,6 +21,8 @@ public class OffheapLoadMarker extends LoadMarker implements Cloneable {
     private final IntFlushList octrees;
     
     private final UsageListener usageListener;
+
+    private Set<ChunkBuffer> buffersInside;
     
     public static class ChunkBufferUsers {
         
@@ -48,6 +53,7 @@ public class OffheapLoadMarker extends LoadMarker implements Cloneable {
         this.chunkBuffers = new ConcurrentHashMap<>();
         this.octrees = new IntFlushList(64, 2); // TODO tune these settings
         this.usageListener = usageListener;
+        buffersInside = new HashSet<>();
     }
     
     /**
@@ -63,9 +69,14 @@ public class OffheapLoadMarker extends LoadMarker implements Cloneable {
     
     public void addBuffer(ChunkBuffer buf) {
         ChunkBufferUsers users = chunkBuffers.computeIfAbsent(buf.getId(), (id) -> new ChunkBufferUsers());
+        buffersInside.add(buf);
         users.addUsers(1);
     }
-    
+
+    public Set<ChunkBuffer> getBuffersInside() {
+        return buffersInside;
+    }
+
     public void addOctree(int id, float scale, float x, float y, float z) {
         octrees.add(id);
         if (usageListener != null) {

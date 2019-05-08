@@ -12,8 +12,8 @@ import com.ritualsoftheold.terra.offheap.Pointer;
 import com.ritualsoftheold.terra.offheap.chunk.ChunkBuffer;
 import com.ritualsoftheold.terra.offheap.chunk.ChunkStorage;
 import com.ritualsoftheold.terra.offheap.data.TypeSelector;
-import com.ritualsoftheold.terra.offheap.io.ChunkLoader;
-import com.ritualsoftheold.terra.offheap.io.OctreeLoader;
+import com.ritualsoftheold.terra.offheap.io.ChunkLoaderInterface;
+import com.ritualsoftheold.terra.offheap.io.OctreeLoaderInterface;
 import com.ritualsoftheold.terra.offheap.memory.MemoryManager;
 import com.ritualsoftheold.terra.offheap.memory.MemoryPanicHandler;
 import com.ritualsoftheold.terra.offheap.node.OffheapChunk;
@@ -41,8 +41,8 @@ public class OffheapWorld implements TerraWorld {
     private static final Memory mem = OS.memory();
     
     // Loaders/savers
-    private ChunkLoader chunkLoader;
-    private OctreeLoader octreeLoader;
+    private ChunkLoaderInterface chunkLoader;
+    private OctreeLoaderInterface octreeLoaderInterface;
     
     // Data storage
     private Executor storageExecutor;
@@ -96,13 +96,13 @@ public class OffheapWorld implements TerraWorld {
             world = new OffheapWorld();
         }
         
-        public Builder chunkLoader(ChunkLoader loader) {
+        public Builder chunkLoader(ChunkLoaderInterface loader) {
             world.chunkLoader = loader;
             return this;
         }
         
-        public Builder octreeLoader(OctreeLoader loader) {
-            world.octreeLoader = loader;
+        public Builder octreeLoader(OctreeLoaderInterface loader) {
+            world.octreeLoaderInterface = loader;
             return this;
         }
         
@@ -164,7 +164,7 @@ public class OffheapWorld implements TerraWorld {
             world.memManager = new MemoryManager(world, memPreferred, memMax, memPanicHandler);
             
             // Initialize stuff that needs memory manager
-            world.octreeStorage = new OctreeStorage(octreeGroupSize, world.octreeLoader, world.storageExecutor, world.memManager,
+            world.octreeStorage = new OctreeStorage(octreeGroupSize, world.octreeLoaderInterface, world.storageExecutor, world.memManager,
                     perNodeReady, world.octreeUsageListener);
             chunkBufferBuilder.memListener(world.memManager);
             chunkBufferBuilder.perChunkReady(perNodeReady);
@@ -213,9 +213,9 @@ public class OffheapWorld implements TerraWorld {
 
     @Override
     public Chunk getChunk(float x, float y, float z) {
-        return null; // TODO
+        return null;
     }
-    
+
     /**
      * Attempts to get an id for smallest node at given coordinates.
      * @param x X coordinate.
@@ -269,15 +269,13 @@ public class OffheapWorld implements TerraWorld {
         List<CompletableFuture<Void>> pendingMarkers = new ArrayList<>(loadMarkers.size());
         // Delegate updating to async code, this might be costly
         for (OffheapLoadMarker marker : loadMarkers) {
-            if (marker.hasMoved()) { // Update only marker that has been moved
                 // When player moves a little, DO NOT, I repeat, DO NOT just blindly move load marker.
                 // Move it when player has moved a few meters or so!
-                pendingMarkers.add(CompletableFuture.runAsync(() -> updateLoadMarker(marker, loadListener, false), storageExecutor)
+                pendingMarkers.add(CompletableFuture.runAsync(() -> updateLoadMarker(marker, false), storageExecutor)
                         .exceptionally((e) -> {
                             e.printStackTrace(); // TODO better error handling
                             return null;
                         }));
-            }
         }
         
         return pendingMarkers;
@@ -290,7 +288,7 @@ public class OffheapWorld implements TerraWorld {
             if (ignoreMoved || marker.hasMoved()) { // Update only marker that has been moved
                 // When player moves a little, DO NOT, I repeat, DO NOT just blindly move load marker.
                 // Move it when player has moved a few meters or so!
-                pendingMarkers.add(CompletableFuture.runAsync(() -> updateLoadMarker(marker, listener, soft), storageExecutor));
+                pendingMarkers.add(CompletableFuture.runAsync(() -> updateLoadMarker(marker, soft), storageExecutor));
             }
         }
         
@@ -300,16 +298,15 @@ public class OffheapWorld implements TerraWorld {
     /**
      * Updates given load marker no matter what. Only used internally.
      * @param marker Load marker to update.
-     * @param listener Load listener.
      * @param soft If soft radius should be used.
      */
-    private void updateLoadMarker(OffheapLoadMarker marker, WorldLoadListener listener, boolean soft) {
+    public void updateLoadMarker(OffheapLoadMarker marker, boolean soft) {
         OffheapLoadMarker oldMarkerClone = marker.clone(); // Keep copy of old load marks for a while
         marker.clear(); // Remove all of them from original marker
         
         // Tell world loader to load stuff, and while doing so, update the load marker
         worldLoader.seekArea(marker.getX(), marker.getY(), marker.getZ(),
-                soft ? marker.getSoftRadius() : marker.getHardRadius(), listener, !soft, marker);
+                soft ? marker.getSoftRadius() : marker.getHardRadius(), loadListener, !soft, marker);
         marker.markUpdated(); // Tell it we updated it
         
         // Allow unloading things that previous marker kept loaded
@@ -356,6 +353,19 @@ public class OffheapWorld implements TerraWorld {
         
         // Update relevant data to world loader
         worldLoader.worldConfig(centerX, centerY, centerZ, masterIndex, masterScale);
+    }
+
+    public OffheapLoadMarker getLoadMarker(float x, float y, float z){
+        for(OffheapLoadMarker loadMarker:loadMarkers){
+            float lessX = loadMarker.getX() - loadMarker.getHardRadius() * 16;
+            float moreX = loadMarker.getX() + loadMarker.getHardRadius() * 16;
+            float lessZ = loadMarker.getZ() - loadMarker.getHardRadius() * 16;
+            float moreZ = loadMarker.getZ() + loadMarker.getHardRadius() * 16;
+            if(lessX < x && lessZ < z &&  moreX > x && moreZ > z){
+               return loadMarker;
+            }
+        }
+        return null;
     }
 
     /**
