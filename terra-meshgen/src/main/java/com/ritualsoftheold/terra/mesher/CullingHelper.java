@@ -126,7 +126,7 @@ public class CullingHelper {
             }
 
             // BOTTOM
-         /*   if (y == 0 && buf.get(index + 64).getTexture() == null || buf.get(index - 64).getTexture() == null) {
+            if (y == 0 && buf.get(index + 64) != material || y > 0 && buf.get(index - 64).getTexture() == null) {
                 Face face = new Face();
                 face.setMaterial(material);
                 face.setNormals(new Vector3f(0,-1,0),new Vector3f(0,-1,0),new Vector3f(0,-1,0),new Vector3f(0,-1,0));
@@ -150,7 +150,7 @@ public class CullingHelper {
                         side.get(material).remove(face);
                     }
                 }
-            }*/
+            }
 
             // BACK
             if (z == 63 && buf.get(index + 64) != material || z < 63 && buf.get(index + 4096).getTexture() == null) {

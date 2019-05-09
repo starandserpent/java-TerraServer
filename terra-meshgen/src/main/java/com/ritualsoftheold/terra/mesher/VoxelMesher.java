@@ -1,6 +1,7 @@
 package com.ritualsoftheold.terra.mesher;
 
 import com.ritualsoftheold.terra.core.buffer.BlockBuffer;
+import com.ritualsoftheold.terra.mesher.resource.MeshContainer;
 import com.ritualsoftheold.terra.mesher.resource.TextureManager;
 
 /**

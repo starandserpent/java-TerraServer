@@ -1,4 +1,4 @@
-package com.ritualsoftheold.terra.mesher;
+package com.ritualsoftheold.terra.mesher.resource;
 
 import com.jme3.math.Vector3f;
 
@@ -31,7 +31,7 @@ public class MeshContainer {
 
     public void normals(Vector3f[] normal){normals.addAll(Arrays.asList(normal));}
 
-    public void vector(Vector3f[] vectors) {
+    public void vertex(Vector3f[] vectors) {
         vector3fs.addAll(Arrays.asList(vectors));
     }
 
@@ -41,11 +41,11 @@ public class MeshContainer {
         }
     }
 
-    public void texture(Vector3f[] vector2fs) {
-        texCoords.addAll(Arrays.asList(vector2fs));
+    public void texture(Vector3f[] textureCoords) {
+        texCoords.addAll(Arrays.asList(textureCoords));
     }
 
-    public ArrayList<Vector3f> getVector3fs() {
+    public ArrayList<Vector3f> getVertice() {
         return vector3fs;
     }
 

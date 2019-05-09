@@ -7,7 +7,6 @@ void main() {
     vec4 color = vec4(1.0);// TODO support alpha channel
     color = texture(m_ColorMap, texCoord);
 
-    gl_FragColor = color;
     if (normal.y > 0){
         color.rgb += vec3(0.2, 0.2, 0.2);
         if(normal.z == 1 || normal.x == 0){
