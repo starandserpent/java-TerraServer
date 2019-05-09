@@ -25,7 +25,6 @@ Terra dependency tree:
       
 terra-testgame depends on everything but networking parts of Terra.
 
-
 ## Other projects using Terra
 **terra-test-game** Test game for Terra. Depends on everything but networking parts of Terra. Uses Weltschmerz and JavaMonkeyEngine.
 
