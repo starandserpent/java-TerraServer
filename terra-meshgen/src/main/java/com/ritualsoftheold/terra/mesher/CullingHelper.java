@@ -57,12 +57,12 @@ public class CullingHelper {
                 face.setVector3f(x, y, z, 3);
                 side.put(material, face);
 
-                if (side.get(material).size() > 1 && buf.get(index - 1).getTexture() != null) {
+                //Greedy Meshing
+                if (side.get(material).size() > 1 && index > 64 && buf.get(index - 64).getTexture() != null) {
                     ArrayList<Face> faces = new ArrayList<>(side.get(material));
                     int last = faces.size() - 2;
                     Face previousFace = faces.get(last);
-                    if (face.getMaterial() == previousFace.getMaterial() &&
-                            face.getVector3fs()[0].equals(previousFace.getVector3fs()[1]) &&
+                    if (face.getVector3fs()[0].equals(previousFace.getVector3fs()[1]) &&
                             face.getVector3fs()[3].equals(previousFace.getVector3fs()[2])) {
                         previousFace.setVector3f(x, y + 1, z + 1, 1);
                         previousFace.setVector3f(x, y + 1, z, 2);
@@ -84,12 +84,11 @@ public class CullingHelper {
                 side.put(material, face);
 
                 //Greedy Meshing
-                if (side.get(material).size() > 1 && buf.get(index - 1).getTexture() != null) {
+                if (side.get(material).size() > 1 && index > 64 && buf.get(index - 64).getTexture() != null) {
                     ArrayList<Face> faces = new ArrayList<>(side.get(material));
                     int last = faces.size() - 2;
                     Face previousFace = faces.get(last);
-                    if (face.getMaterial() == previousFace.getMaterial() &&
-                            face.getVector3fs()[0].equals(previousFace.getVector3fs()[1]) &&
+                    if (face.getVector3fs()[0].equals(previousFace.getVector3fs()[1]) &&
                             face.getVector3fs()[3].equals(previousFace.getVector3fs()[2])) {
                         previousFace.setVector3f(x + 1, y + 1, z, 1);
                         previousFace.setVector3f(x + 1, y + 1, z + 1, 2);
@@ -111,12 +110,11 @@ public class CullingHelper {
                 side.put(material, face);
 
                 //Greedy Meshing
-                if (side.get(material).size() > 1 && buf.get(index - 1).getTexture() != null) {
+                if (side.get(material).size() > 1 && index > 0 && buf.get(index - 1).getTexture() != null) {
                     ArrayList<Face> faces = new ArrayList<>(side.get(material));
                     int last = faces.size() - 2;
                     Face previousFace = faces.get(last);
-                    if (face.getMaterial() == previousFace.getMaterial() &&
-                            face.getVector3fs()[0].equals(previousFace.getVector3fs()[3]) &&
+                    if (face.getVector3fs()[0].equals(previousFace.getVector3fs()[3]) &&
                             face.getVector3fs()[1].equals(previousFace.getVector3fs()[2])) {
                         previousFace.setVector3f(x + 1, y + 1, z + 1, 2);
                         previousFace.setVector3f(x + 1, y + 1, z, 3);
@@ -138,12 +136,11 @@ public class CullingHelper {
                 side.put(material, face);
 
                 //Greedy Meshing
-                if (side.get(material).size() > 1 && buf.get(index - 1).getTexture() != null) {
+                if (side.get(material).size() > 1 && index > 0 && buf.get(index - 1).getTexture() != null) {
                     ArrayList<Face> faces = new ArrayList<>(side.get(material));
                     int last = faces.size() - 2;
                     Face previousFace = faces.get(last);
-                    if (face.getMaterial() == previousFace.getMaterial() &&
-                            face.getVector3fs()[3].equals(previousFace.getVector3fs()[0]) &&
+                    if (face.getVector3fs()[3].equals(previousFace.getVector3fs()[0]) &&
                             face.getVector3fs()[2].equals(previousFace.getVector3fs()[1])) {
                         previousFace.setVector3f(x + 1, y, z, 0);
                         previousFace.setVector3f(x + 1, y, z + 1, 1);
@@ -165,12 +162,11 @@ public class CullingHelper {
                 side.put(material, face);
 
                 //Greedy Meshing
-                if (side.get(material).size() > 1 && buf.get(index - 1).getTexture() != null) {
+                if (side.get(material).size() > 1 && index > 1 && buf.get(index - 1).getTexture() != null) {
                     ArrayList<Face> faces = new ArrayList<>(side.get(material));
                     int last = faces.size() - 2;
                     Face previousFace = faces.get(last);
-                    if (face.getMaterial() == previousFace.getMaterial() &&
-                            face.getVector3fs()[3].equals(previousFace.getVector3fs()[0]) &&
+                    if (face.getVector3fs()[3].equals(previousFace.getVector3fs()[0]) &&
                             face.getVector3fs()[2].equals(previousFace.getVector3fs()[1])) {
                         previousFace.setVector3f(x + 1, y, z + 1, 0);
                         previousFace.setVector3f(x + 1, y + 1, z + 1, 1);
@@ -192,12 +188,11 @@ public class CullingHelper {
                 side.put(material, face);
 
                 //Greedy Meshing
-                if (side.get(material).size() > 1 && buf.get(index - 1).getTexture() != null) {
+                if (side.get(material).size() > 1 && index > 0 && buf.get(index - 1).getTexture() != null) {
                     ArrayList<Face> faces = new ArrayList<>(side.get(material));
                     int last = faces.size() - 2;
                     Face previousFace = faces.get(last);
-                    if (face.getMaterial() == previousFace.getMaterial() &&
-                            face.getVector3fs()[0].equals(previousFace.getVector3fs()[3]) &&
+                    if (face.getVector3fs()[0].equals(previousFace.getVector3fs()[3]) &&
                             face.getVector3fs()[1].equals(previousFace.getVector3fs()[2])) {
                         previousFace.setVector3f(x + 1, y + 1, z, 2);
                         previousFace.setVector3f(x + 1, y, z, 3);

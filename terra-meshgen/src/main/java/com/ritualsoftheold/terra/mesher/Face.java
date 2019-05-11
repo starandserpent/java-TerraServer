@@ -60,6 +60,19 @@ public class Face implements Comparable<Face> {
         }else if (o.vector3f[0].x > vector3f[0].x){
             return -1;
         }
+
+        if(o.vector3f[0].y < vector3f[0].y){
+            return 1;
+        }else if (o.vector3f[0].y > vector3f[0].y){
+            return -1;
+        }
+
+        if(o.vector3f[0].z < vector3f[0].z){
+            return 1;
+        }else if (o.vector3f[0].z > vector3f[0].z){
+            return -1;
+        }
+
         return 0;
     }
 }

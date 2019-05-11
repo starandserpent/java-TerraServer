@@ -98,7 +98,7 @@ public class GreedyMesher implements VoxelMesher {
         if (start + 1 < faces.size()) {
             Face face = faces.get(start);
             Face nextFace = faces.get(start + 1);
-            if (face.getVector3fs()[2].equals(nextFace.getVector3fs()[3]) && face.getVector3fs()[1].equals(nextFace.getVector3fs()[0])) {
+           if (face.getVector3fs()[2].equals(nextFace.getVector3fs()[3]) && face.getVector3fs()[1].equals(nextFace.getVector3fs()[0])) {
                 face.setVector3f(nextFace.getVector3fs()[1], 1);
                 face.setVector3f(nextFace.getVector3fs()[2], 2);
                 faces.remove(nextFace);

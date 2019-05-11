@@ -1,5 +1,6 @@
 package com.ritualsoftheold.terra.core.gen.interfaces.world;
 
+import com.ritualsoftheold.terra.core.TerraModule;
 import com.ritualsoftheold.terra.core.gen.tasks.GenerationTask;
 import com.ritualsoftheold.terra.core.gen.tasks.Pipeline;
 import com.ritualsoftheold.terra.core.material.MaterialRegistry;
@@ -10,7 +11,7 @@ import com.ritualsoftheold.terra.core.material.MaterialRegistry;
  */
 public interface WorldGeneratorInterface<T> {
     
-    void setup(long seed, MaterialRegistry materialRegistry);
+    void setup(long seed, MaterialRegistry materialRegistry, TerraModule mod);
     
     /**
      * Called first when a part of world needs to be generated.
