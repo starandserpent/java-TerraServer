@@ -20,7 +20,7 @@ public class GreedyMesher implements VoxelMesher {
         assert textures != null;
         assert mesh != null;
 
-        CullingHelper culling = new CullingHelper();
+        NaiveMesher culling = new NaiveMesher();
 
         // Generate mappings for culling
         HashMap<Integer, Multimap<TerraMaterial, Face>> sector = culling.cull(buf);

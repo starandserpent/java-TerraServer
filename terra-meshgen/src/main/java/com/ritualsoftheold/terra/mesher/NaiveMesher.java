@@ -15,7 +15,7 @@ import java.util.HashMap;
  * iterate only once, culling at same time; they'll need something custom.
  */
 
-public class CullingHelper {
+public class NaiveMesher {
 
     public HashMap<Integer, Multimap<TerraMaterial, Face>> cull(BlockBuffer buf) {
 
@@ -58,17 +58,17 @@ public class CullingHelper {
                 face.setVector3f(x, y, z, 3);
                 side.put(material, face);
 
-                //Greedy Meshing
+                //Naive Meshing
                 if(index > 64 && buf.get(index - 64).getTexture() != null) {
                     ArrayList<Face> faces = new ArrayList<>(side.get(material));
                     Collections.sort(faces);
                     if (faces.indexOf(face) > 1) {
                         int last = faces.indexOf(face) - 1;
                         Face previousFace = faces.get(last);
-                        if (face.getVector3fs()[1].equals(previousFace.getVector3fs()[0]) &&
-                                face.getVector3fs()[2].equals(previousFace.getVector3fs()[3])) {
-                            previousFace.setVector3f(x, y, z + 1, 0);
-                            previousFace.setVector3f(x, y, z, 3);
+                        if (face.getVector3fs()[0].equals(previousFace.getVector3fs()[1]) &&
+                                face.getVector3fs()[3].equals(previousFace.getVector3fs()[2])) {
+                            previousFace.setVector3f(x, y + 1, z + 1, 1);
+                            previousFace.setVector3f(x, y + 1, z, 2);
                             side.get(material).remove(face);
                         }
                     }
@@ -90,7 +90,7 @@ public class CullingHelper {
                 if (index > 64 && buf.get(index - 64).getTexture() != null) {
                     ArrayList<Face> faces = new ArrayList<>(side.get(material));
                     Collections.sort(faces);
-                    //Greedy Meshing
+                    //Naive Meshing
                     if (faces.indexOf(face) > 1) {
                         int last = faces.indexOf(face) - 1;
                         Face previousFace = faces.get(last);
@@ -116,7 +116,7 @@ public class CullingHelper {
                 face.setVector3f(x + 1, y + 1, z, 3);
                 side.put(material, face);
 
-                //Greedy Meshing
+                //Naive Meshing
                 if (side.get(material).size() > 1 && index > 0 && buf.get(index - 1).getTexture() != null) {
                     ArrayList<Face> faces = new ArrayList<>(side.get(material));
                     int last = faces.size() - 2;
@@ -142,7 +142,7 @@ public class CullingHelper {
                 face.setVector3f(x, y, z, 3);
                 side.put(material, face);
 
-                //Greedy Meshing
+                //Naive Meshing
                 if (side.get(material).size() > 1 && index > 0 && buf.get(index - 1).getTexture() != null) {
                     ArrayList<Face> faces = new ArrayList<>(side.get(material));
                     int last = faces.size() - 2;
@@ -168,7 +168,7 @@ public class CullingHelper {
                 face.setVector3f(x, y, z + 1, 3);
                 side.put(material, face);
 
-                //Greedy Meshing
+                //Naive Meshing
                 if (side.get(material).size() > 1 && index > 1 && buf.get(index - 1).getTexture() != null) {
                     ArrayList<Face> faces = new ArrayList<>(side.get(material));
                     int last = faces.size() - 2;
@@ -194,7 +194,7 @@ public class CullingHelper {
                 face.setVector3f(x + 1, y, z, 3);
                 side.put(material, face);
 
-                //Greedy Meshing
+                //Naive Meshing
                 if (side.get(material).size() > 1 && index > 0 && buf.get(index - 1).getTexture() != null) {
                     ArrayList<Face> faces = new ArrayList<>(side.get(material));
                     int last = faces.size() - 2;
