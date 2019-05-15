@@ -10,7 +10,6 @@ import java.util.*;
 
 /**
  * Greedy mesher does culling and try to merge same blocks into bigger faces.
- *
  */
 public class GreedyMesher implements VoxelMesher {
     public GreedyMesher(){}
@@ -48,7 +47,6 @@ public class GreedyMesher implements VoxelMesher {
     }
 
     //Setting textures for mesh
-    //TODO make different textures for blocks in united mesh
     private static void setTextureCoords(ArrayList<Face> faces, int side) {
         for (Face completeFace : faces) {
             switch (side) {
@@ -64,9 +62,9 @@ public class GreedyMesher implements VoxelMesher {
 
                 case 3:
                     completeFace.setTextureCoords(completeFace.getVector3fs()[0].x*4, completeFace.getVector3fs()[0].z*4, 0);
-                    completeFace.setTextureCoords(completeFace.getVector3fs()[0].x*4,  completeFace.getVector3fs()[2].z*4,1);
-                    completeFace.setTextureCoords( completeFace.getVector3fs()[2].x*4,  completeFace.getVector3fs()[2].z*4, 2);
-                    completeFace.setTextureCoords( completeFace.getVector3fs()[2].x*4, completeFace.getVector3fs()[0].z*4, 3);
+                    completeFace.setTextureCoords(completeFace.getVector3fs()[0].x*4, completeFace.getVector3fs()[2].z*4,1);
+                    completeFace.setTextureCoords(completeFace.getVector3fs()[2].x*4, completeFace.getVector3fs()[2].z*4, 2);
+                    completeFace.setTextureCoords(completeFace.getVector3fs()[2].x*4, completeFace.getVector3fs()[0].z*4, 3);
                     break;
 
                 case 4:
@@ -98,17 +96,7 @@ public class GreedyMesher implements VoxelMesher {
         if (start + 1 < faces.size()) {
             Face face = faces.get(start);
             Face nextFace = faces.get(start + 1);
-           if (face.getVector3fs()[2].equals(nextFace.getVector3fs()[3]) && face.getVector3fs()[1].equals(nextFace.getVector3fs()[0])) {
-                face.setVector3f(nextFace.getVector3fs()[1], 1);
-                face.setVector3f(nextFace.getVector3fs()[2], 2);
-                faces.remove(nextFace);
-                joinReversed(faces, start);
-            } else if (face.getVector3fs()[3].equals(nextFace.getVector3fs()[2]) && face.getVector3fs()[0].equals(nextFace.getVector3fs()[1])) {
-                face.setVector3f(nextFace.getVector3fs()[3], 3);
-                face.setVector3f(nextFace.getVector3fs()[0], 0);
-                faces.remove(nextFace);
-                joinReversed(faces, start);
-            } else if (face.getVector3fs()[0].equals(nextFace.getVector3fs()[3]) && face.getVector3fs()[1].equals(nextFace.getVector3fs()[2])) {
+           if (face.getVector3fs()[0].equals(nextFace.getVector3fs()[3]) && face.getVector3fs()[1].equals(nextFace.getVector3fs()[2])) {
                 face.setVector3f(nextFace.getVector3fs()[0], 0);
                 face.setVector3f(nextFace.getVector3fs()[1], 1);
                 faces.remove(nextFace);
@@ -116,6 +104,16 @@ public class GreedyMesher implements VoxelMesher {
             } else if (face.getVector3fs()[3].equals(nextFace.getVector3fs()[0]) && face.getVector3fs()[2].equals(nextFace.getVector3fs()[1])) {
                 face.setVector3f(nextFace.getVector3fs()[2], 2);
                 face.setVector3f(nextFace.getVector3fs()[3], 3);
+                faces.remove(nextFace);
+                joinReversed(faces, start);
+            } else if (face.getVector3fs()[2].equals(nextFace.getVector3fs()[3]) && face.getVector3fs()[1].equals(nextFace.getVector3fs()[0])) {
+                face.setVector3f(nextFace.getVector3fs()[1], 1);
+                face.setVector3f(nextFace.getVector3fs()[2], 2);
+                faces.remove(nextFace);
+                joinReversed(faces, start);
+            } else if (face.getVector3fs()[3].equals(nextFace.getVector3fs()[2]) && face.getVector3fs()[0].equals(nextFace.getVector3fs()[1])) {
+                face.setVector3f(nextFace.getVector3fs()[3], 3);
+                face.setVector3f(nextFace.getVector3fs()[0], 0);
                 faces.remove(nextFace);
                 joinReversed(faces, start);
             }
