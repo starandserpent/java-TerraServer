@@ -169,7 +169,7 @@ public class NaiveMesher {
                 side.put(material, face);
 
                 //Naive Meshing
-                if (side.get(material).size() > 1 && index > 1 && buf.get(index - 1).getTexture() != null) {
+                if (side.get(material).size() > 1 && index > 0 && buf.get(index - 1).getTexture() != null) {
                     ArrayList<Face> faces = new ArrayList<>(side.get(material));
                     int last = faces.size() - 2;
                     Face previousFace = faces.get(last);
