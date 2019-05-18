@@ -1,6 +1,6 @@
 dependencies {
     compile project(':terra-core')
-
+    implementation 'org.xerial.larray:larray_2.12:0.4.1'
     compile group: 'net.openhft', name: 'chronicle-core', version: '2.17.10'
 }
 

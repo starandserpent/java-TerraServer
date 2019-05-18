@@ -31,16 +31,19 @@ public class MeshContainer {
         texCoords = new ArrayList<>();
         colors = new ArrayList<>();
         normals = new ArrayList<>();
-        normals = new ArrayList<>();
     }
+    public void color(ColorRGBA colorRGBA){
+        colors.add(colorRGBA);
+    }
+
     public void normals(Vector3f[] normal){normals.addAll(Arrays.asList(normal));}
 
     public void vertex(Vector3f[] vectors) {
         vector3fs.addAll(Arrays.asList(vectors));
     }
 
-    public void vector(Vector3f[] vectors) {
-        vector3fs.addAll(Arrays.asList(vectors));
+    public void vector(Vector3f vectors) {
+        vector3fs.add(vectors);
     }
 
     public void triangle(int[] indexes) {
@@ -65,6 +68,10 @@ public class MeshContainer {
         return texCoords;
     }
     public ArrayList<Vector3f> getNormals(){return normals;}
+
+    public ArrayList<ColorRGBA> getColors() {
+        return colors;
+    }
 
     public void clear(){
         texCoords.clear();
