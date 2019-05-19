@@ -92,7 +92,7 @@ public class GreedyMesher implements VoxelMesher {
     }
 
     private static void joinReversed(List<Face> faces, int start, int index) {
-        if (start + 1 < faces.size()) {
+   /*     if (start + 1 < faces.size()) {
             Collections.sort(faces);
             Face face = faces.get(start);
             Face nextFace = faces.get(start + 1);
@@ -125,7 +125,7 @@ public class GreedyMesher implements VoxelMesher {
                     }
                     break;
             }
-        }
+        }*/
     }
 
     private static int[] getIndexes(int verticeIndex) {
