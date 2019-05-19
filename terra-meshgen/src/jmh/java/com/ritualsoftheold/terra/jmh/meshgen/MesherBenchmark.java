@@ -43,7 +43,7 @@ public class MesherBenchmark {
     @Benchmark
     @BenchmarkMode(Mode.Throughput)
     public void naiveMesherBadContainer(ChunkData data) {
-        NaiveMesher mesher = new NaiveMesher();
+        NaiveGreedyMesher mesher = new NaiveGreedyMesher();
         data.container = new MeshContainer(100, ByteBufAllocator.DEFAULT);
         //mesher.chunk(ChunkIterator.forChunk(data.chunkData, ChunkType.RLE_2_2), data.textures, data.container);
         data.container.release();
@@ -52,7 +52,7 @@ public class MesherBenchmark {
     @Benchmark
     @BenchmarkMode(Mode.Throughput)
     public void naiveMesherGoodContainer(ChunkData data) {
-        NaiveMesher mesher = new NaiveMesher();
+        NaiveGreedyMesher mesher = new NaiveGreedyMesher();
         data.container = new MeshContainer(10000, ByteBufAllocator.DEFAULT);
         //mesher.chunk(ChunkIterator.forChunk(data.chunkData, ChunkType.RLE_2_2), data.textures, data.container);
         data.container.release();

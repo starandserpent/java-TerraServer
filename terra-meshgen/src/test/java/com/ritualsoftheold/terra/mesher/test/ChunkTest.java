@@ -60,7 +60,7 @@ public class ChunkTest extends SimpleApplication {
         
         manager.loadMaterials(registry);
         
-        VoxelMesher mesher = new NaiveMesher(); // Create mesher
+        VoxelMesher mesher = new NaiveGreedyMesher(); // Create mesher
         MeshContainer meshContainer = new MeshContainer(100, ByteBufAllocator.DEFAULT);
         //mesher.chunk(ChunkIterator.forChunk(addr, ChunkType.RLE_2_2), manager, meshContainer);
         

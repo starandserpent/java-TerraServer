@@ -17,11 +17,12 @@ public class GreedyMesher implements VoxelMesher {
 
     @Override
     public void chunk(BlockBuffer buf, TextureManager textures, MeshContainer mesh) {
+        System.out.println("Greedy meshing started");
         assert buf != null;
         assert textures != null;
         assert mesh != null;
 
-        NaiveMesher culling = new NaiveMesher();
+        NaiveGreedyMesher culling = new NaiveGreedyMesher();
 
         // Generate mappings for culling
         HashMap<Integer, Multimap<TerraMaterial, Face>> sector = culling.cull(buf);
@@ -39,12 +40,15 @@ public class GreedyMesher implements VoxelMesher {
                 for(int i =0; i < faces.size(); i++) {
                     joinReversed(faces, i, key);
                 }
+                System.out.println("Setting texture coords");
                 setTextureCoords(faces, key);
                 verticeIndex = fillContainer(mesh, faces, verticeIndex);
+                System.out.println("Mesh side " + key + " complete");
             }
         }
 
         sector.clear();
+        System.out.println("Chunk complete");
     }
 
     //Setting textures for mesh
@@ -91,18 +95,19 @@ public class GreedyMesher implements VoxelMesher {
         return verticeIndex;
     }
 
-    private static void joinReversed(List<Face> faces, int start, int index) {
-   /*     if (start + 1 < faces.size()) {
+    private static void joinReversed(List<Face> faces, int start, int side) {
+        if (start + 1 < faces.size()) {
+            System.out.println("Greedy meshing number " + start);
             Collections.sort(faces);
             Face face = faces.get(start);
             Face nextFace = faces.get(start + 1);
-            switch (index) {
+            switch (side) {
                 case 0:
                     if (face.getVector3fs()[0].equals(nextFace.getVector3fs()[3]) && face.getVector3fs()[1].equals(nextFace.getVector3fs()[2])) {
                         face.setVector3f(nextFace.getVector3fs()[0], 0);
                         face.setVector3f(nextFace.getVector3fs()[1], 1);
                         faces.remove(nextFace);
-                        joinReversed(faces, start, index);
+                        joinReversed(faces, start, side);
                     }
                     break;
 
@@ -112,23 +117,27 @@ public class GreedyMesher implements VoxelMesher {
                         face.setVector3f(nextFace.getVector3fs()[2], 2);
                         face.setVector3f(nextFace.getVector3fs()[3], 3);
                         faces.remove(nextFace);
-                        joinReversed(faces, start, index);
+                        joinReversed(faces, start, side);
                     }
                     break;
 
-                case 2, 3, 4, 5:
+                case 2:
+                case 3:
+                case 4:
+                case 5:
                     if (face.getVector3fs()[2].equals(nextFace.getVector3fs()[3]) && face.getVector3fs()[1].equals(nextFace.getVector3fs()[0])) {
                         face.setVector3f(nextFace.getVector3fs()[1], 1);
                         face.setVector3f(nextFace.getVector3fs()[2], 2);
                         faces.remove(nextFace);
-                        joinReversed(faces, start, index);
+                        joinReversed(faces, start, side);
                     }
                     break;
             }
-        }*/
+        }
     }
 
     private static int[] getIndexes(int verticeIndex) {
+        System.out.println("Setting indexes");
         int[] indexes = new int[6];
         indexes[0] = verticeIndex;
         indexes[1] = verticeIndex + 2;
