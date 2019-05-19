@@ -19,7 +19,7 @@ public class NaiveGreedyMesher {
 
     public HashMap<Integer, Multimap<TerraMaterial, Face>> cull(BlockBuffer buf) {
 
-        System.out.println("Naive greedy meshing started");
+        long startTime = System.currentTimeMillis();
         HashMap<Integer, Multimap<TerraMaterial, Face>> sector = new HashMap<>();
         sector.put(0, ArrayListMultimap.create());
         sector.put(1, ArrayListMultimap.create());
@@ -33,7 +33,6 @@ public class NaiveGreedyMesher {
         //Creates voxels from BlockBuffer and set its material
         while (buf.hasNext()) {
             TerraMaterial material = buf.read();
-            System.out.println("Block "+index+" is being proccesed");
             if (material.getTexture() == null) { // TODO better AIR check
                 buf.next();
                 index++;
@@ -62,7 +61,6 @@ public class NaiveGreedyMesher {
 
                 //Naive Meshing
                 if(index > 64 && buf.get(index - 64).getTexture() != null) {
-                    System.out.println("Block Meshed");
                     ArrayList<Face> faces = new ArrayList<>(side.get(material));
                     Collections.sort(faces);
                     if (faces.indexOf(face) > 1) {
@@ -91,7 +89,6 @@ public class NaiveGreedyMesher {
                 side.put(material, face);
 
                 if (index > 64 && buf.get(index - 64).getTexture() != null) {
-                    System.out.println("Block Meshed");
                     ArrayList<Face> faces = new ArrayList<>(side.get(material));
                     Collections.sort(faces);
                     //Naive Meshing
@@ -122,7 +119,6 @@ public class NaiveGreedyMesher {
 
                 //Naive Meshing
                 if (side.get(material).size() > 1 && index > 0 && buf.get(index - 1).getTexture() != null) {
-                    System.out.println("Block Meshed");
                     ArrayList<Face> faces = new ArrayList<>(side.get(material));
                     int last = faces.size() - 2;
                     Face previousFace = faces.get(last);
@@ -149,7 +145,6 @@ public class NaiveGreedyMesher {
 
                 //Naive Meshing
                 if (side.get(material).size() > 1 && index > 0 && buf.get(index - 1).getTexture() != null) {
-                    System.out.println("Block Meshed");
                     ArrayList<Face> faces = new ArrayList<>(side.get(material));
                     int last = faces.size() - 2;
                     Face previousFace = faces.get(last);
@@ -176,7 +171,6 @@ public class NaiveGreedyMesher {
 
                 //Naive Meshing
                 if (side.get(material).size() > 1 && index > 0 && buf.get(index - 1).getTexture() != null) {
-                    System.out.println("Block Meshed");
                     ArrayList<Face> faces = new ArrayList<>(side.get(material));
                     int last = faces.size() - 2;
                     Face previousFace = faces.get(last);
@@ -203,7 +197,6 @@ public class NaiveGreedyMesher {
 
                 //Naive Meshing
                 if (side.get(material).size() > 1 && index > 0 && buf.get(index - 1).getTexture() != null) {
-                    System.out.println("Block Meshed");
                     ArrayList<Face> faces = new ArrayList<>(side.get(material));
                     int last = faces.size() - 2;
                     Face previousFace = faces.get(last);
@@ -218,7 +211,8 @@ public class NaiveGreedyMesher {
             index++;
             buf.next();
         }
-        System.out.println("Naive greedy meshing ended");
+        long stopTime = System.currentTimeMillis();
+        System.out.println("Naive greedy meshing done: " + (stopTime - startTime) + " milliseconds.");
         return sector;
     }
 }

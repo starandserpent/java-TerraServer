@@ -17,7 +17,8 @@ public class GreedyMesher implements VoxelMesher {
 
     @Override
     public void chunk(BlockBuffer buf, TextureManager textures, MeshContainer mesh) {
-        System.out.println("Greedy meshing started");
+        System.out.println("Greedy meshing started.");
+        long startTime = System.currentTimeMillis();
         assert buf != null;
         assert textures != null;
         assert mesh != null;
@@ -40,15 +41,17 @@ public class GreedyMesher implements VoxelMesher {
                 for(int i =0; i < faces.size(); i++) {
                     joinReversed(faces, i, key);
                 }
-                System.out.println("Setting texture coords");
                 setTextureCoords(faces, key);
                 verticeIndex = fillContainer(mesh, faces, verticeIndex);
-                System.out.println("Mesh side " + key + " complete");
             }
         }
 
         sector.clear();
-        System.out.println("Chunk complete");
+        long finishTime = System.currentTimeMillis();
+        long differenceTime = finishTime - startTime;
+        System.out.println("Greedy meshing done: " + differenceTime + " milliseconds." );
+        System.out.println("System time: " + System.currentTimeMillis() + " milliseconds." );
+
     }
 
     //Setting textures for mesh
@@ -97,7 +100,6 @@ public class GreedyMesher implements VoxelMesher {
 
     private static void joinReversed(List<Face> faces, int start, int side) {
         if (start + 1 < faces.size()) {
-            System.out.println("Greedy meshing number " + start);
             Collections.sort(faces);
             Face face = faces.get(start);
             Face nextFace = faces.get(start + 1);
@@ -137,7 +139,6 @@ public class GreedyMesher implements VoxelMesher {
     }
 
     private static int[] getIndexes(int verticeIndex) {
-        System.out.println("Setting indexes");
         int[] indexes = new int[6];
         indexes[0] = verticeIndex;
         indexes[1] = verticeIndex + 2;
