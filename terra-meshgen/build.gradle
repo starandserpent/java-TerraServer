@@ -12,8 +12,7 @@ dependencies {
     compile 'io.netty:netty-buffer:4.1.34.Final'
     //testCompile 'com.github.jMonkeyEngine.jmonkeyengine:jme3-desktop:master-SNAPSHOT'
     //testCompile 'com.github.jMonkeyEngine.jmonkeyengine:jme3-lwjgl3:master-SNAPSHOT'
-    compile group: 'com.google.guava', name: 'guava', version: '27.1-jre'
-
+    
     testCompile 'org.jmonkeyengine:jme3-desktop:3.2.2-stable'
     testCompile 'org.jmonkeyengine:jme3-lwjgl3:3.2.2-stable'
 }

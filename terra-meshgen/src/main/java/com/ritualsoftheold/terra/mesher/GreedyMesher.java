@@ -1,8 +1,6 @@
 package com.ritualsoftheold.terra.mesher;
 
-import com.google.common.collect.Multimap;
 import com.ritualsoftheold.terra.core.buffer.BlockBuffer;
-import com.ritualsoftheold.terra.core.material.TerraMaterial;
 import com.ritualsoftheold.terra.mesher.resource.MeshContainer;
 import com.ritualsoftheold.terra.mesher.resource.TextureManager;
 
@@ -19,6 +17,7 @@ public class GreedyMesher implements VoxelMesher {
     public void chunk(BlockBuffer buf, TextureManager textures, MeshContainer mesh) {
         System.out.println("Greedy meshing started.");
         long startTime = System.currentTimeMillis();
+        System.out.println("System time: " + startTime + " milliseconds." );
         assert buf != null;
         assert textures != null;
         assert mesh != null;
@@ -26,24 +25,20 @@ public class GreedyMesher implements VoxelMesher {
         NaiveGreedyMesher culling = new NaiveGreedyMesher();
 
         // Generate mappings for culling
-        HashMap<Integer, Multimap<TerraMaterial, Face>> sector = culling.cull(buf);
+        HashMap<Integer, HashMap<Integer, Face>> sector = culling.cull(buf);
 
         // Reset buffer to starting position
         buf.seek(0);
         int verticeIndex = 0;
 
-        for(Integer key:sector.keySet()){
-            TerraMaterial[] keys = new TerraMaterial[sector.get(key).keySet().toArray().length];
-            sector.get(key).keySet().toArray(keys);
-            for(TerraMaterial material:keys) {
-                ArrayList<Face> rawFaces = new ArrayList<>(sector.get(key).removeAll(material));
-                List<Face> faces = rawFaces.stream().distinct().collect(Collectors.toList());
-                for(int i =0; i < faces.size(); i++) {
-                    joinReversed(faces, i, key);
-                }
-                setTextureCoords(faces, key);
-                verticeIndex = fillContainer(mesh, faces, verticeIndex);
+        for(Integer key:sector.keySet()) {
+            Collection<Face> rawFaces = sector.get(key).values();
+            List<Face> faces = rawFaces.stream().distinct().collect(Collectors.toList());
+            for (int i = 0; i < faces.size(); i++) {
+                joinReversed(faces, i, key);
             }
+            setTextureCoords(faces, key);
+            verticeIndex = fillContainer(mesh, faces, verticeIndex);
         }
 
         sector.clear();
@@ -51,7 +46,6 @@ public class GreedyMesher implements VoxelMesher {
         long differenceTime = finishTime - startTime;
         System.out.println("Greedy meshing done: " + differenceTime + " milliseconds." );
         System.out.println("System time: " + System.currentTimeMillis() + " milliseconds." );
-
     }
 
     //Setting textures for mesh
@@ -103,37 +97,31 @@ public class GreedyMesher implements VoxelMesher {
             Collections.sort(faces);
             Face face = faces.get(start);
             Face nextFace = faces.get(start + 1);
-            switch (side) {
-                case 0:
-                    if (face.getVector3fs()[0].equals(nextFace.getVector3fs()[3]) && face.getVector3fs()[1].equals(nextFace.getVector3fs()[2])) {
-                        face.setVector3f(nextFace.getVector3fs()[0], 0);
-                        face.setVector3f(nextFace.getVector3fs()[1], 1);
-                        faces.remove(nextFace);
-                        joinReversed(faces, start, side);
-                    }
-                    break;
-
-                case 1:
-                    Collections.reverse(faces);
-                    if (face.getVector3fs()[3].equals(nextFace.getVector3fs()[0]) && face.getVector3fs()[2].equals(nextFace.getVector3fs()[1])) {
-                        face.setVector3f(nextFace.getVector3fs()[2], 2);
+            if (face.getMaterial() == nextFace.getMaterial()) {
+                if (face.getVector3fs()[2].equals(nextFace.getVector3fs()[3]) && face.getVector3fs()[1].equals(nextFace.getVector3fs()[0])) {
+                    face.setVector3f(nextFace.getVector3fs()[1], 1);
+                    face.setVector3f(nextFace.getVector3fs()[2], 2);
+                    faces.remove(nextFace);
+                    joinReversed(faces, start, side);
+                } else if (face.getVector3fs()[3].equals(nextFace.getVector3fs()[2]) && face.getVector3fs()[0].equals(nextFace.getVector3fs()[1])) {
+                    face.setVector3f(nextFace.getVector3fs()[3], 3);
+                    face.setVector3f(nextFace.getVector3fs()[0], 0);
+                    faces.remove(nextFace);
+                    joinReversed(faces, start, side);
+                }
+            }
+            if (start + 1 < faces.size()) {
+                Collections.reverse(faces);
+                face = faces.get(start);
+                nextFace = faces.get(start + 1);
+                if (face.getMaterial() == nextFace.getMaterial()) {
+                    if (face.getVector3fs()[3].equals(nextFace.getVector3fs()[2]) && face.getVector3fs()[0].equals(nextFace.getVector3fs()[1])) {
                         face.setVector3f(nextFace.getVector3fs()[3], 3);
+                        face.setVector3f(nextFace.getVector3fs()[0], 0);
                         faces.remove(nextFace);
                         joinReversed(faces, start, side);
                     }
-                    break;
-
-                case 2:
-                case 3:
-                case 4:
-                case 5:
-                    if (face.getVector3fs()[2].equals(nextFace.getVector3fs()[3]) && face.getVector3fs()[1].equals(nextFace.getVector3fs()[0])) {
-                        face.setVector3f(nextFace.getVector3fs()[1], 1);
-                        face.setVector3f(nextFace.getVector3fs()[2], 2);
-                        faces.remove(nextFace);
-                        joinReversed(faces, start, side);
-                    }
-                    break;
+                }
             }
         }
     }
