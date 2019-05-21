@@ -34,7 +34,8 @@ public class GreedyMesher implements VoxelMesher {
             HashMap<Integer, Face> faces = sector.get(key);
             Integer[] keys = new Integer[faces.keySet().size()];
             faces.keySet().toArray(keys);
-            for (int i = keys.length  - 1; i > 0; i--) {
+            Arrays.sort(keys);
+            for (int i = keys.length - 1; i >= 0; i--) {
                 int index = keys[i];
                 joinReversed(faces, index, key);
             }
@@ -105,10 +106,7 @@ public class GreedyMesher implements VoxelMesher {
 
         Face nextFace = faces.get(index - neighbor);
         if (nextFace == null) {
-            nextFace = faces.get(index + neighbor);
-            if (nextFace == null) {
-                return;
-            }
+            return;
         }
 
         Face face = faces.get(index);
