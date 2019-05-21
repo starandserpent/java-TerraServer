@@ -36,7 +36,7 @@ public class ChunkTest {
         reg = new MaterialRegistry();
         ChunkStorage storage = new ChunkStorage(reg, null, 1, null, null);
         ChunkBuffer buf = new ChunkBuffer(storage, 0, 10, queueSize, new DummyMemoryUseListener(), false);
-        chunk = new OffheapChunk(0, buf, queueAddr, queueAddr + queueSize * 8, queueSize, false);
+        chunk = new OffheapChunk(0, buf, queueAddr, queueAddr + queueSize * 8, queueSize);
     }
     
     @Test

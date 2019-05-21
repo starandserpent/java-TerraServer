@@ -5,7 +5,6 @@ import com.ritualsoftheold.terra.mesher.resource.MeshContainer;
 import com.ritualsoftheold.terra.mesher.resource.TextureManager;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 /**
  * Greedy mesher does culling and try to merge same blocks into bigger faces.
@@ -32,13 +31,16 @@ public class GreedyMesher implements VoxelMesher {
         int verticeIndex = 0;
 
         for(Integer key:sector.keySet()) {
-            Collection<Face> rawFaces = sector.get(key).values();
-            List<Face> faces = rawFaces.stream().distinct().collect(Collectors.toList());
-            for (int i = 0; i < faces.size(); i++) {
-                joinReversed(faces, i, key);
+            HashMap<Integer, Face> faces = sector.get(key);
+            Integer[] keys = new Integer[faces.keySet().size()];
+            faces.keySet().toArray(keys);
+            for (int i = keys.length  - 1; i > 0; i--) {
+                int index = keys[i];
+                joinReversed(faces, index, key);
             }
-            setTextureCoords(faces, key);
-            verticeIndex = fillContainer(mesh, faces, verticeIndex);
+
+            setTextureCoords(faces.values(), key);
+            verticeIndex = fillContainer(mesh, faces.values(), verticeIndex);
         }
 
         sector.clear();
@@ -49,7 +51,7 @@ public class GreedyMesher implements VoxelMesher {
     }
 
     //Setting textures for mesh
-    private static void setTextureCoords(List<Face> faces, int side) {
+    private static void setTextureCoords(Collection<Face> faces, int side) {
         for (Face completeFace : faces) {
             switch (side) {
                 case 0:
@@ -80,7 +82,7 @@ public class GreedyMesher implements VoxelMesher {
     }
 
     //Moving all values to MeshContainer
-    private static int fillContainer(MeshContainer mesh, List<Face> faces, int verticeIndex) {
+    private static int fillContainer(MeshContainer mesh, Collection<Face> faces, int verticeIndex) {
         for (Face completeFace : faces) {
             mesh.vertex(completeFace.getVector3fs());
             mesh.triangle(getIndexes(verticeIndex));
@@ -92,36 +94,33 @@ public class GreedyMesher implements VoxelMesher {
         return verticeIndex;
     }
 
-    private static void joinReversed(List<Face> faces, int start, int side) {
-        if (start + 1 < faces.size()) {
-            Collections.sort(faces);
-            Face face = faces.get(start);
-            Face nextFace = faces.get(start + 1);
-            if (face.getMaterial() == nextFace.getMaterial()) {
-                if (face.getVector3fs()[2].equals(nextFace.getVector3fs()[3]) && face.getVector3fs()[1].equals(nextFace.getVector3fs()[0])) {
-                    face.setVector3f(nextFace.getVector3fs()[1], 1);
-                    face.setVector3f(nextFace.getVector3fs()[2], 2);
-                    faces.remove(nextFace);
-                    joinReversed(faces, start, side);
-                } else if (face.getVector3fs()[3].equals(nextFace.getVector3fs()[2]) && face.getVector3fs()[0].equals(nextFace.getVector3fs()[1])) {
-                    face.setVector3f(nextFace.getVector3fs()[3], 3);
-                    face.setVector3f(nextFace.getVector3fs()[0], 0);
-                    faces.remove(nextFace);
-                    joinReversed(faces, start, side);
-                }
+    private static void joinReversed(HashMap<Integer, Face> faces, int index, int side) {
+    int neighbor = 64;
+        switch (side) {
+            case 2:
+            case 3:
+                neighbor = 4096;
+                break;
+        }
+
+        Face nextFace = faces.get(index - neighbor);
+        if (nextFace == null) {
+            nextFace = faces.get(index + neighbor);
+            if (nextFace == null) {
+                return;
             }
-            if (start + 1 < faces.size()) {
-                Collections.reverse(faces);
-                face = faces.get(start);
-                nextFace = faces.get(start + 1);
-                if (face.getMaterial() == nextFace.getMaterial()) {
-                    if (face.getVector3fs()[3].equals(nextFace.getVector3fs()[2]) && face.getVector3fs()[0].equals(nextFace.getVector3fs()[1])) {
-                        face.setVector3f(nextFace.getVector3fs()[3], 3);
-                        face.setVector3f(nextFace.getVector3fs()[0], 0);
-                        faces.remove(nextFace);
-                        joinReversed(faces, start, side);
-                    }
-                }
+        }
+
+        Face face = faces.get(index);
+        if (face.getMaterial() == nextFace.getMaterial()) {
+            if (nextFace.getVector3fs()[2].equals(face.getVector3fs()[3]) && nextFace.getVector3fs()[1].equals(face.getVector3fs()[0])) {
+                nextFace.setVector3f(face.getVector3fs()[1], 1);
+                nextFace.setVector3f(face.getVector3fs()[2], 2);
+                faces.remove(index);
+            } else if (nextFace.getVector3fs()[3].equals(face.getVector3fs()[2]) && nextFace.getVector3fs()[0].equals(face.getVector3fs()[1])) {
+                nextFace.setVector3f(face.getVector3fs()[3], 3);
+                nextFace.setVector3f(face.getVector3fs()[0], 0);
+                faces.remove(index);
             }
         }
     }
