@@ -15,7 +15,7 @@ import java.util.HashMap;
 public class NaiveGreedyMesher {
 
     public HashMap<Integer, HashMap<Integer, Face>> cull(BlockBuffer buf) {
-        long startTime = System.currentTimeMillis();
+
         HashMap<Integer, HashMap<Integer, Face>> sector = new HashMap<>();
 
         for (int i = 0; i < 6; i++){
@@ -199,8 +199,6 @@ public class NaiveGreedyMesher {
             index++;
             buf.next();
         }
-        long stopTime = System.currentTimeMillis();
-        System.out.println("Naive greedy meshing done: " + (stopTime - startTime) + " milliseconds.");
         return sector;
     }
 }

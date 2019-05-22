@@ -14,9 +14,6 @@ public class GreedyMesher implements VoxelMesher {
 
     @Override
     public void chunk(BlockBuffer buf, TextureManager textures, MeshContainer mesh) {
-        System.out.println("Greedy meshing started.");
-        long startTime = System.currentTimeMillis();
-        System.out.println("System time: " + startTime + " milliseconds." );
         assert buf != null;
         assert textures != null;
         assert mesh != null;
@@ -42,13 +39,10 @@ public class GreedyMesher implements VoxelMesher {
 
             setTextureCoords(faces.values(), key);
             verticeIndex = fillContainer(mesh, faces.values(), verticeIndex);
+            faces.clear();
         }
 
         sector.clear();
-        long finishTime = System.currentTimeMillis();
-        long differenceTime = finishTime - startTime;
-        System.out.println("Greedy meshing done: " + differenceTime + " milliseconds." );
-        System.out.println("System time: " + System.currentTimeMillis() + " milliseconds." );
     }
 
     //Setting textures for mesh
