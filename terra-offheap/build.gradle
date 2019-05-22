@@ -1,7 +1,10 @@
 dependencies {
     compile project(':terra-core')
-
+    implementation 'org.xerial.larray:larray_2.12:0.4.1'
     compile group: 'net.openhft', name: 'chronicle-core', version: '2.17.10'
+    compile 'org.openjdk.jmh:jmh-core:1.21'
+    compile 'org.openjdk.jmh:jmh-generator-annprocess:1.21'
+
 }
 
 // Exclude the SLOW tests from Gradle build
