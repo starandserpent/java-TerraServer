@@ -45,32 +45,31 @@ public class GreedyMesher implements VoxelMesher {
         sector.clear();
     }
 
-    //Setting textures for mesh
     private static void setTextureCoords(Collection<Face> faces, int side) {
         for (Face completeFace : faces) {
             switch (side) {
                 case 0:
                 case 1:
-                    completeFace.setTextureCoords(completeFace.getVector3fs()[0].z*4, completeFace.getVector3fs()[0].y*4, 0);
-                    completeFace.setTextureCoords(completeFace.getVector3fs()[0].z*4,  completeFace.getVector3fs()[2].y*4,1);
-                    completeFace.setTextureCoords( completeFace.getVector3fs()[2].z*4,  completeFace.getVector3fs()[2].y*4, 2);
-                    completeFace.setTextureCoords( completeFace.getVector3fs()[2].z*4, completeFace.getVector3fs()[0].y*4, 3);
+                    completeFace.setTextureCoords(completeFace.getVector3fs()[0].z*2048f/completeFace.getMaterial().getTexture().getWidth(),completeFace.getVector3fs()[0].y*2048f/completeFace.getMaterial().getTexture().getHeight(),0);
+                    completeFace.setTextureCoords(completeFace.getVector3fs()[0].z*2048f/completeFace.getMaterial().getTexture().getWidth(),completeFace.getVector3fs()[2].y*2048f/completeFace.getMaterial().getTexture().getHeight(),1);
+                    completeFace.setTextureCoords(completeFace.getVector3fs()[2].z*2048f/completeFace.getMaterial().getTexture().getWidth(),completeFace.getVector3fs()[2].y*2048f/completeFace.getMaterial().getTexture().getHeight(),2);
+                    completeFace.setTextureCoords(completeFace.getVector3fs()[2].z*2048f/completeFace.getMaterial().getTexture().getWidth(),completeFace.getVector3fs()[0].y*2048f/completeFace.getMaterial().getTexture().getHeight(),3);
                     break;
 
                 case 2:
                 case 3:
-                    completeFace.setTextureCoords(completeFace.getVector3fs()[0].x*4, completeFace.getVector3fs()[0].z*4, 0);
-                    completeFace.setTextureCoords(completeFace.getVector3fs()[0].x*4, completeFace.getVector3fs()[2].z*4,1);
-                    completeFace.setTextureCoords(completeFace.getVector3fs()[2].x*4, completeFace.getVector3fs()[2].z*4, 2);
-                    completeFace.setTextureCoords(completeFace.getVector3fs()[2].x*4, completeFace.getVector3fs()[0].z*4, 3);
+                    completeFace.setTextureCoords(completeFace.getVector3fs()[0].x*2048f/completeFace.getMaterial().getTexture().getWidth(), completeFace.getVector3fs()[0].z*2048f/completeFace.getMaterial().getTexture().getHeight(),0);
+                    completeFace.setTextureCoords(completeFace.getVector3fs()[0].x*2048f/completeFace.getMaterial().getTexture().getWidth(), completeFace.getVector3fs()[2].z*2048f/completeFace.getMaterial().getTexture().getHeight(),1);
+                    completeFace.setTextureCoords(completeFace.getVector3fs()[2].x*2048f/completeFace.getMaterial().getTexture().getWidth(), completeFace.getVector3fs()[2].z*2048f/completeFace.getMaterial().getTexture().getHeight(),2);
+                    completeFace.setTextureCoords(completeFace.getVector3fs()[2].x*2048f/completeFace.getMaterial().getTexture().getWidth(), completeFace.getVector3fs()[0].z*2048f/completeFace.getMaterial().getTexture().getHeight(),3);
                     break;
 
                 case 4:
                 case 5:
-                    completeFace.setTextureCoords(completeFace.getVector3fs()[0].x*4, completeFace.getVector3fs()[0].y*4, 0);
-                    completeFace.setTextureCoords(completeFace.getVector3fs()[0].x*4,  completeFace.getVector3fs()[2].y*4,1);
-                    completeFace.setTextureCoords( completeFace.getVector3fs()[2].x*4,  completeFace.getVector3fs()[2].y*4, 2);
-                    completeFace.setTextureCoords( completeFace.getVector3fs()[2].x*4, completeFace.getVector3fs()[0].y*4, 3);
+                    completeFace.setTextureCoords(completeFace.getVector3fs()[0].x*2048f/completeFace.getMaterial().getTexture().getWidth(),completeFace.getVector3fs()[0].y*2048f/completeFace.getMaterial().getTexture().getWidth(), 0);
+                    completeFace.setTextureCoords(completeFace.getVector3fs()[0].x*2048f/completeFace.getMaterial().getTexture().getWidth(),completeFace.getVector3fs()[2].y*2048f/completeFace.getMaterial().getTexture().getWidth(),1);
+                    completeFace.setTextureCoords(completeFace.getVector3fs()[2].x*2048f/completeFace.getMaterial().getTexture().getWidth(),completeFace.getVector3fs()[2].y*2048f/completeFace.getMaterial().getTexture().getWidth(), 2);
+                    completeFace.setTextureCoords(completeFace.getVector3fs()[2].x*2048f/completeFace.getMaterial().getTexture().getWidth(),completeFace.getVector3fs()[0].y*2048f/completeFace.getMaterial().getTexture().getWidth(), 3);
                     break;
             }
         }
