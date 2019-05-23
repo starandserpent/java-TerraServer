@@ -39,17 +39,6 @@ public class OffheapGeneratorControl implements GeneratorControl {
     }
 
     @Override
-    public void canGenerate(boolean generate) {
-        this.canGenerate = generate;
-    }
-
-
-    @Override
-    public boolean isGenerated() {
-        return canGenerate;
-    }
-
-    @Override
     public void endPipeline() {
         end = true;
     }
