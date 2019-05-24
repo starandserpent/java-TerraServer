@@ -4,6 +4,8 @@ import com.ritualsoftheold.terra.core.buffer.BlockBuffer;
 import com.ritualsoftheold.terra.mesher.resource.MeshContainer;
 import com.ritualsoftheold.terra.mesher.resource.TextureManager;
 
+import java.util.HashMap;
+
 /**
  * Creates a mesh based on Terra's voxel data.
  *
@@ -13,9 +15,8 @@ public interface VoxelMesher {
     /**
      * Creates a mesh for chunk data that given iterator provides.
      * @param data Block buffer for data.
-     * @param textures Texture manager.
-     */
-    void chunk(BlockBuffer data, TextureManager textures, MeshContainer mesh);
+     * */
+    HashMap<Integer, HashMap<Integer, Face>> chunk(BlockBuffer data);
     
     /**
      * Creates a mesh for a simple cube, perhaps an octree node.
