@@ -77,6 +77,25 @@ public class WorldLoader {
         this.masterOctree = octree;
         this.worldScale = scale;
     }
+
+    public void seekSector(float x, float y, float z, float range, WorldLoadListener listener, OffheapLoadMarker trigger){
+        for(float f = 0; f < range; f++){
+            for(float rangeZ = z; rangeZ < f; rangeZ ++) {
+                loadArea(x + 16 * f, y, 16 * rangeZ + z, listener, trigger);
+            }
+            for(float rangeX = x; rangeX < f; rangeX ++) {
+                loadArea( 16 * rangeX + x, y, z + 16 * f, listener, trigger);
+            }
+            loadArea(x + 16 * f, y, z + 16 * f, listener, trigger);
+        }
+    }
+
+    public void loadArea(float x, float y, float z, WorldLoadListener listener, OffheapLoadMarker trigger){
+        OffheapChunk chunk = genManager.generate(x, 0, z);
+        chunk.setCoordinates(x, 0, z);
+        trigger.addBuffer(chunk.getChunkBuffer());
+        listener.chunkLoaded(chunk, x, 0, z, trigger);
+    }
     
     /**
      * Seeks the smallest possible octree in the world which can hold
@@ -197,9 +216,7 @@ public class WorldLoader {
                 node = mem.readVolatileInt(nodeAddr);
                 
                 OffheapChunk chunk = chunkStorage.getChunkInternal(node);
-                if (chunk.isGenerated()) {
-                    listener.chunkLoaded(chunk, subNodeX, subNodeY, subNodeZ, trigger);
-                }
+                listener.chunkLoaded(chunk, subNodeX, subNodeY, subNodeZ, trigger);
                 trigger.addBuffer(chunk.getChunkBuffer()); // Add to load marker
 
                 break; // No further action necessary
@@ -224,7 +241,6 @@ public class WorldLoader {
             // And since this is not master octree anymore, remember to fire an event
             listener.octreeLoaded(addr, octreeStorage.getGroup(nodeId >>> 24), nodeId, nodeX, nodeY, nodeZ, scale, trigger);
             trigger.addOctree(nodeId, scale, nodeX, nodeY, nodeZ); // Add to load marker
-
         }
         
         // Finally, tell listener we are done (mainly to support network batching)
@@ -362,9 +378,7 @@ public class WorldLoader {
                     chunkStorage.ensureAndKeepLoaded(node);
                     OffheapChunk chunk = chunkStorage.getChunkInternal(node);
                     chunk.setCoordinates(subNodeX, subNodeY, subNodeZ);
-                    if(chunk.isGenerated()) {
-                        listener.chunkLoaded(chunk, subNodeX, subNodeY, subNodeZ, trigger);
-                    }
+                    listener.chunkLoaded(chunk, subNodeX, subNodeY, subNodeZ, trigger);
                     trigger.addBuffer(chunk.getChunkBuffer()); // Add to load marker
                 } else { // Octree. Here comes recursion...
                     // TODO multithreading

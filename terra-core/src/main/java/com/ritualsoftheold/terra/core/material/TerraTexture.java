@@ -15,22 +15,19 @@ public class TerraTexture{
     private float scale;
     
     private String asset;
-    
-    private int tileId;
-    
-    private int page;
-    
-    private int texturesPerSide;
-    
-    public TerraTexture(int width, int height, float scale, String asset) {
-        this.width = width;
-        this.height = height;
+
+    public TerraTexture(float scale, String asset) {
         this.asset = asset;
         this.scale = scale;
     }
     
-    public TerraTexture(int width, int height, String asset) {
-        this(width, height, DEFAULT_SCALE, asset);
+    public TerraTexture(String asset) {
+        this(DEFAULT_SCALE, asset);
+    }
+
+    public void setSize(int width, int height){
+        this.width = width;
+        this.height = height;
     }
     
     /**
@@ -65,30 +62,6 @@ public class TerraTexture{
      */
     public String getAsset() {
         return asset;
-    }
-    
-    public int getTileId() {
-        return tileId;
-    }
-    
-    public void setTileId(int tileId) {
-        this.tileId = tileId;
-    }
-    
-    public int getPage() {
-        return page;
-    }
-    
-    public void setPage(int page) {
-        this.page = page;
-    }
-
-    public int getTexturesPerSide() {
-        return texturesPerSide;
-    }
-
-    public void setTexturesPerSide(int texturesPerPage) {
-        this.texturesPerSide = texturesPerPage;
     }
 
     @Override

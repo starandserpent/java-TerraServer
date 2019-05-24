@@ -46,7 +46,7 @@ public class OffheapLoadMarker extends LoadMarker implements Cloneable {
             usersVar.getAndAdd(this, i);
         }
     }
-    
+
     protected OffheapLoadMarker(float x, float y, float z, float hardRadius, float softRadius, int priority,
             UsageListener usageListener) {
         super(x, y, z, hardRadius, softRadius, priority);

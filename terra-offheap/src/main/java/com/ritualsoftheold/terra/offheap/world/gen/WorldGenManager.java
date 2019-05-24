@@ -55,6 +55,33 @@ public class WorldGenManager {
         this.chunkStorage = world.getChunkStorage();
         this.world = world;
     }
+
+    public OffheapChunk generate(float x, float y, float z) {
+        SelfTrackAllocator trackedAllocator = new SelfTrackAllocator(true); // Must zero that memory!
+        OffheapGeneratorControl control = new OffheapGeneratorControl(this, trackedAllocator);
+        GenerationTask task = new GenerationTask(x, y, z);
+        OffheapPipeline<Object> pipeline = new OffheapPipeline<>();
+
+        // Ask world generator to initialize task
+        Object meta = generator.initialize(task, pipeline);
+
+        // Execute the whole generation pipeline!
+        pipeline.execute(task, control, meta);
+
+        // Take results of the execution
+        CriticalBlockBuffer buf = control.getBuffer();
+
+        int chunkId = chunkStorage.newChunk();
+
+        ChunkBuffer chunkBuf = chunkStorage.getBuffer(chunkId >>> 16);
+        OffheapChunk chunk = chunkBuf.getChunk(chunkId & 0xffff);
+        chunk.setCoordinates(task.getX(), task.getY(), task.getZ());
+
+        // Set its storage to generated contents
+        Storage storage = buf.getStorage();
+        chunk.setStorageInternal(storage);
+        return chunk;
+    }
     
     /**
      * Generates a piece of world at given coordinates with given scale.
@@ -107,7 +134,6 @@ public class WorldGenManager {
                 
                 ChunkBuffer chunkBuf = chunkStorage.getBuffer(chunkId >>> 16);
                 OffheapChunk chunk = chunkBuf.getChunk(chunkId & 0xffff);
-                chunk.setGenerated(control.isGenerated());
 
                 // Set its storage to generated contents
                 Storage storage = buf.getStorage();

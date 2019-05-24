@@ -305,8 +305,8 @@ public class OffheapWorld implements TerraWorld {
         marker.clear(); // Remove all of them from original marker
         
         // Tell world loader to load stuff, and while doing so, update the load marker
-        worldLoader.seekArea(marker.getX(), marker.getY(), marker.getZ(),
-                soft ? marker.getSoftRadius() : marker.getHardRadius(), loadListener, !soft, marker);
+        worldLoader.seekSector(marker.getX(), marker.getY(), marker.getZ(),
+                soft ? marker.getSoftRadius() : marker.getHardRadius(), loadListener, marker);
         marker.markUpdated(); // Tell it we updated it
         
         // Allow unloading things that previous marker kept loaded

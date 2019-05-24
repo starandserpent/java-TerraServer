@@ -7,9 +7,15 @@ package com.ritualsoftheold.terra.core.gen.tasks;
  */
 public class GenerationTask {
 
-    private final float x, y, z;
+    private float x, y, z;
     
     public GenerationTask(float x, float y, float z) {
+        this.x = x;
+        this.y = y;
+        this.z = z;
+    }
+
+    public void setCoordinates(float x, float y, float z){
         this.x = x;
         this.y = y;
         this.z = z;

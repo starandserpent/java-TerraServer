@@ -277,7 +277,6 @@ public class OffheapChunk implements Chunk, OffheapNode {
      * Queue for changes to be applied to this chunk.
      */
     private final ChangeQueue queue;
-    private boolean isGenerated = false;
     
     /**
      * Contains references that blocks have. Key is block id, value is the ref.
@@ -315,14 +314,6 @@ public class OffheapChunk implements Chunk, OffheapNode {
 
     public float getZ() {
         return z;
-    }
-
-    public void setGenerated(boolean generated) {
-        isGenerated = generated;
-    }
-
-    public boolean isGenerated() {
-        return isGenerated;
     }
 
     @Override
