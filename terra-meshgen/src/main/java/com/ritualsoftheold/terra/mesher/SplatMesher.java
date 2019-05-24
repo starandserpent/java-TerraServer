@@ -12,6 +12,7 @@ import com.ritualsoftheold.terra.offheap.DataConstants;
 public class SplatMesher implements VoxelMesher {
     @Override
     public void chunk(BlockBuffer data, TextureManager textures, MeshContainer mesh) {
+        long startTime = System.currentTimeMillis();
         assert data != null;
         assert  textures != null;
         assert  mesh != null;
@@ -74,7 +75,8 @@ public class SplatMesher implements VoxelMesher {
                 }
 
             }
-
+            long stopTime = System.currentTimeMillis();
+//            System.out.println("Splat meshing done: " + (stopTime - startTime) + " milliseconds.");
 
 
 
