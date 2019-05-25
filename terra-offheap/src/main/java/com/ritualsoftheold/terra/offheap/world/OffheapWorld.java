@@ -537,8 +537,7 @@ public class OffheapWorld implements TerraWorld {
                 chunkStorage.getAllBuffers().length());
     }
 
-    @Override
-    public LoadMarker createLoadMarker(float x, float y, float z, float hardRadius, float softRadius, int priority) {
+    public OffheapLoadMarker createLoadMarker(float x, float y, float z, float hardRadius, float softRadius, int priority) {
         return new OffheapLoadMarker(x, y, z, hardRadius, softRadius, priority, octreeUsageListener);
     }
 }
