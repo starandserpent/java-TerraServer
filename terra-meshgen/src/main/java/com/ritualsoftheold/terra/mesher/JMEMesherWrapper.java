@@ -1,7 +1,5 @@
 package com.ritualsoftheold.terra.mesher;
 
-import com.jme3.math.Vector2f;
-import com.jme3.math.Vector3f;
 import com.jme3.scene.Mesh;
 import com.jme3.scene.VertexBuffer;
 import com.jme3.util.BufferUtils;
@@ -28,7 +26,10 @@ public class JMEMesherWrapper {
         int texCoordSize = 0;
         int normalSize = 0;
 
-        for(Integer key:sector.keySet()) {
+        Integer[] keySet = new Integer[sector.keySet().size()];
+        sector.keySet().toArray(keySet);
+
+        for(Integer key : keySet) {
             HashMap<Integer, Face> faces = sector.get(key);
             Integer[] keys = new Integer[faces.keySet().size()];
             faces.keySet().toArray(keys);
@@ -50,17 +51,23 @@ public class JMEMesherWrapper {
         FloatBuffer texCoordsBuffer = BufferUtils.createFloatBuffer(texCoordSize);
         FloatBuffer normalsBuffer = BufferUtils.createFloatBuffer(normalSize);
 
-        for(Integer key:sector.keySet()) {
-            for (Face completeFace:sector.get(key).values()) {
+        for(Integer key : keySet) {
+
+            Integer[] faceSet = new Integer[sector.get(key).keySet().size()];
+            sector.get(key).keySet().toArray(faceSet);
+
+            for (Integer faceKey:faceSet) {
+                Face completeFace = sector.get(key).get(faceKey);
                 verticeBuffer.put(BufferUtils.createFloatBuffer(completeFace.getVector3fs()));
                 indexBuffer.put(BufferUtils.createIntBuffer(greedyMesher.getIndexes(verticeIndex)));
                 texCoordsBuffer.put(BufferUtils.createFloatBuffer(completeFace.getTextureCoords()));
                 normalsBuffer.put(BufferUtils.createFloatBuffer(completeFace.getNormals()));
                 verticeIndex += 4;
+                sector.get(key).remove(faceKey);
             }
-        }
 
-        sector.clear();
+            sector.remove(key);
+        }
 
         Mesh mesh = new Mesh();
 
