@@ -32,7 +32,7 @@ public class WorldLoader {
      * Center coordinates of world. These will be moved when the world is
      * enlarged, and start at (0,0,0).
      */
-    private float centerX, centerY, centerZ;
+    private float centerX, centerZ;
 
     /**
      * Full id of master octree.
@@ -136,7 +136,7 @@ public class WorldLoader {
         ChunkLoader chunkLoader = new ChunkLoader(listener);
         OffheapChunk chunk = chunkLoader.getChunk(x, -10, z, trigger);
         if(chunk != null) {
-            genManager.remove(chunk);
+            //genManager.remove(chunk);
             listener.chunkUnloaded(chunk);
         }
     }
@@ -163,13 +163,13 @@ public class WorldLoader {
         /**
          * Node coordinates, start at world center.
          */
-        float nodeX, nodeY, nodeZ;
+        float nodeX, nodeZ;
         
         /**
          * Relative coordinates to current node. Starting from relative
          * to center of world.
          */
-        float rX, rY, rZ;
+        float rX,  rZ;
         
         /**
          * Scale of node that is currently operated
@@ -178,11 +178,9 @@ public class WorldLoader {
         
         // Update/create some values we need later on
         nodeX = centerX;
-        nodeY = centerY;
         nodeZ = centerZ;
         
         rX = x - centerX;
-        rY = y - centerY;
         rZ = z - centerZ;
         
         scale = worldScale;
@@ -207,22 +205,15 @@ public class WorldLoader {
             float pos2Mod = 2 * posMod;
             // Reduce coordinates now, then add doubly to them if needed!
             float subNodeX = nodeX - posMod;
-            float subNodeY = nodeY - posMod;
             float subNodeZ = nodeZ - posMod;
             // Increase coordinates now, then reduce them doubly if needed
             rX += posMod;
-            rY += posMod;
             rZ += posMod;
             
             if (rX > 0) {
                 index += 1;
                 subNodeX += pos2Mod;
                 rX -= pos2Mod;
-            }
-            if (rY > 0) {
-                index += 2;
-                subNodeY += pos2Mod;
-                rY -= pos2Mod;
             }
             if (rZ > 0) {
                 index += 4;
@@ -247,7 +238,7 @@ public class WorldLoader {
                 // Ok, this is something that has not been generated, so it is
                 // "octree null": flag is 1, but node is 0 (kind of null pointer)
                 if (scale == DataConstants.CHUNK_SCALE) {
-                    genManager.generate(addr, index, subNodeX, subNodeY, subNodeZ, scale);
+                    genManager.generate(addr, index, subNodeX, subNodeZ, scale);
                 } else {
                     //System.out.println("Will create octree...");
                     node = octreeStorage.newOctree(); // Create octree and attempt to swap it
@@ -276,21 +267,19 @@ public class WorldLoader {
             
             // Check if range is small enough to fit in that child node with our coordinates
             if (rX + range > subNodeX + posMod || rX - range < subNodeX - posMod // X coordinate
-                    || rY + range > subNodeY + posMod || rY - range < subNodeY - posMod // Y coordinate
                     || rZ + range > subNodeZ + posMod || rZ - range < subNodeZ - posMod) { // Z coordinate
                 // When ANY fails: we have found the node over which we must load all
-                loadArea(x, y, z, range, nodeId, scale, nodeX, nodeY, nodeZ, listener, generate, trigger);
+                //loadArea(x, y, z, range, nodeId, scale, nodeX, nodeZ, listener, generate, trigger);
                 break;
             }
             
             // If we are still going to continue, replace node coordinates with subnode coordinates
             nodeX = subNodeX;
-            nodeY = subNodeY;
             nodeZ = subNodeZ;
             
             // And since this is not master octree anymore, remember to fire an event
-            listener.octreeLoaded(addr, octreeStorage.getGroup(nodeId >>> 24), nodeId, nodeX, nodeY, nodeZ, scale, trigger);
-            trigger.addOctree(nodeId, scale, nodeX, nodeY, nodeZ); // Add to load marker
+          //  listener.octreeLoaded(addr, octreeStorage.getGroup(nodeId >>> 24), nodeId, nodeX, nodeZ, scale, trigger);
+            //trigger.addOctree(nodeId, scale, nodeX, nodeY, nodeZ); // Add to load marker
         }
         
         // Finally, tell listener we are done (mainly to support network batching)
@@ -304,8 +293,7 @@ public class WorldLoader {
      * coordinates, use {@link #(float, float, float, float, WorldLoadListener, boolean)}
      * instead; it will call this method once it has figured those out.
      * @param x X coordinate of center of area.
-     * @param y Y coordinate of center of area.
-     * @param z Z coordinate of center of area.
+     *  @param z Z coordinate of center of area.
      * @param range Range of area.
      * @param nodeId Node id. It will be first node that is loaded, and some of
      * its child nodes and their children will be loaded.
@@ -317,7 +305,7 @@ public class WorldLoader {
      * @param generate If new terrain should be generated when needed.
      * @param trigger Load marker that triggered this operation or null.
      */
-    public void loadArea(float x, float y, float z, float range, int nodeId, float scale,
+    public void loadArea(float x, float z, float range, int nodeId, float scale,
             float nodeX, float nodeY, float nodeZ, WorldLoadListener listener, boolean generate, OffheapLoadMarker trigger) {
         //System.out.println("loadArea, scale: " + scale);
         // Fetch data about given node
@@ -391,7 +379,6 @@ public class WorldLoader {
                 // Check if we should load this (range)
                 float hitRange = range + scale;
                 if (Math.abs(subNodeX - x) > hitRange
-                        || Math.abs(subNodeY - y) > hitRange
                         || Math.abs(subNodeZ - z) > hitRange) {
                     continue; // Range exceeded, do not load
                 }
@@ -409,7 +396,7 @@ public class WorldLoader {
                     // "octree null": flag is 1, but node is 0 (kind of null pointer)
                     if (scale == DataConstants.CHUNK_SCALE) {                        
                         //System.out.println("Create chunk (i: " + i + ")");
-                        genManager.generate(addr, i, subNodeX, subNodeY, subNodeZ, scale);
+                        genManager.generate(addr, i, subNodeX, subNodeZ, scale);
                         node = mem.readVolatileInt(nodeAddr); // Read node, whatever it is
                     } else {
                         node = octreeStorage.newOctree(); // Create octree and attempt to swap it
@@ -433,7 +420,7 @@ public class WorldLoader {
                 } else { // Octree. Here comes recursion...
                     // TODO multithreading
                     //System.out.println("Octree path, node: " + node);
-                    loadArea(x, y, z, range, node, scale, subNodeX, subNodeY, subNodeZ, listener, generate, trigger);
+                    loadArea(x, z, range, node, scale, subNodeX, subNodeY, subNodeZ, listener, generate, trigger);
                 }
             } // else: no action needed, single node was loaded with getOctreeAddr
             //System.out.println("end of i: " + i);

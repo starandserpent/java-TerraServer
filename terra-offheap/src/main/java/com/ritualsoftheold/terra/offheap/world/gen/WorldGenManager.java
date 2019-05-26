@@ -97,11 +97,10 @@ public class WorldGenManager {
      * @param addr Address of parent octree.
      * @param index Index of the piece in its parent octree.
      * @param x X coordinate of center.
-     * @param y Y coordinate of center.
      * @param z Z coordinate of center.
      * @param scale Scale.
      */
-    public void generate(long addr, int index, float x, float y, float z, float scale) {
+    public void generate(long addr, int index, float x, float z, float scale) {
         SelfTrackAllocator trackedAllocator = new SelfTrackAllocator(true); // Must zero that memory!
         OffheapGeneratorControl control = new OffheapGeneratorControl(this, trackedAllocator);
         GenerationTask task = new GenerationTask(x, z);
