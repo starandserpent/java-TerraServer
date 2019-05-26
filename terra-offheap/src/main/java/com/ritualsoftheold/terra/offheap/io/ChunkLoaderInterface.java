@@ -17,7 +17,7 @@ import com.ritualsoftheold.terra.offheap.world.WorldLoadListener;
  */
 public interface ChunkLoaderInterface {
 
-    void loadChunk (float x, float y, float z, OffheapChunk chunk, OffheapLoadMarker marker);
+    void loadChunk (OffheapChunk chunk);
 
     OffheapChunk getChunk (float x, float y, float z, OffheapLoadMarker loadMarker);
 

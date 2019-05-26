@@ -14,12 +14,12 @@ public class ChunkLoader implements ChunkLoaderInterface {
     }
 
     @Override
-    public void loadChunk(float x, float y, float z, OffheapChunk chunk, OffheapLoadMarker marker) {
-        loadListener.chunkLoaded(chunk, x, y, z, marker);
+    public void loadChunk(OffheapChunk chunk) {
+        loadListener.chunkLoaded(chunk);
     }
 
     @Override
-    public OffheapChunk getChunk(float x, float y, float z, OffheapLoadMarker loadMarker) {
+    public synchronized OffheapChunk getChunk(float x, float y, float z, OffheapLoadMarker loadMarker) {
         for (ChunkBuffer buffer:loadMarker.getBuffersInside()){
             for(int i = 0; i < buffer.getChunkCount(); i++){
                 OffheapChunk chunk = buffer.getChunk(i);

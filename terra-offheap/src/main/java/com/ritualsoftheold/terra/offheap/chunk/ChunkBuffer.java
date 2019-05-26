@@ -126,7 +126,7 @@ public class ChunkBuffer {
     }
     
     private final Allocator allocator;
-    
+
     private volatile int staticDataLength;
     
     /**
