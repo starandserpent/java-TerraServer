@@ -269,6 +269,7 @@ public class OffheapWorld implements TerraWorld {
         List<CompletableFuture<Void>> pendingMarkers = new ArrayList<>(loadMarkers.size());
         // Delegate updating to async code, this might be costly
         for (OffheapLoadMarker marker : loadMarkers) {
+/*
                 // When player moves a little, DO NOT, I repeat, DO NOT just blindly move load marker.
                 // Move it when player has moved a few meters or so!
                 pendingMarkers.add(CompletableFuture.runAsync(() -> updateLoadMarker(marker, false), storageExecutor)
@@ -276,6 +277,9 @@ public class OffheapWorld implements TerraWorld {
                             e.printStackTrace(); // TODO better error handling
                             return null;
                         }));
+                        */
+
+            updateLoadMarker(marker, false);
         }
         
         return pendingMarkers;
