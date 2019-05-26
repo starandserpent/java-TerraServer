@@ -13,7 +13,6 @@ import net.openhft.chronicle.core.OS;
 /**
  * Handles loading of offheap worlds. Usually this class is used by load
  * markers; direct usage is not recommended for application developers.
- *
  */
 public class WorldLoader {
 
@@ -97,18 +96,18 @@ public class WorldLoader {
     public void updateSector(float x, float z, float range, WorldLoadListener listener, OffheapLoadMarker trigger) {
 
         if (x > centerX) {
-            for (float rangeZ = -range; rangeZ <= range; rangeZ++) {
-                loadArea(16 * range + x, 16 * rangeZ + z, listener, trigger);
-            }
             for (float rangeX = -range; rangeX <= range; rangeX++) {
                 unloadArea(-16 * range + centerX, -16 * rangeX + centerZ, listener, trigger);
             }
-        } else if (x < centerX) {
             for (float rangeZ = -range; rangeZ <= range; rangeZ++) {
-                loadArea(-16 * range + x, -16 * rangeZ + z, listener, trigger);
+                loadArea(16 * range + x, 16 * rangeZ + z, listener, trigger);
             }
+        } else if (x < centerX) {
             for (float rangeX = -range; rangeX <= range; rangeX++) {
                 unloadArea(16 * range + centerX, 16 * rangeX + centerZ, listener, trigger);
+            }
+            for (float rangeZ = -range; rangeZ <= range; rangeZ++) {
+                loadArea(-16 * range + x, -16 * rangeZ + z, listener, trigger);
             }
         }
 
@@ -117,7 +116,7 @@ public class WorldLoader {
                 unloadArea(-16 * range + centerX, -16 * rangeZ + centerZ, listener, trigger);
             }
             for (float rangeX = -range; rangeX <= range; rangeX++) {
-                loadArea(16 * range + x, 16 * rangeX + z, listener, trigger);
+                loadArea(16 * rangeX + x, 16 * range + z, listener, trigger);
             }
         } else if (z < centerZ) {
             for (float rangeZ = -range; rangeZ <= range; rangeZ++) {
@@ -129,34 +128,6 @@ public class WorldLoader {
             }
         }
 
-      /*
-
-            newPositionX--;
-            newPositionZ--;
-
-            loadArea(16 * range + x, 16 * range + z, listener, trigger);
-            loadArea(-16 * range + x, -16 * range + z, listener, trigger);
-
-
-            for (float rangeX = -f; rangeX < f; rangeX++) {
-                loadArea(-16 * range + x, -16 * rangeX + z, listener, trigger);
-                loadArea(16 * rangeX + x, 16 * range + z, listener, trigger);
-            }
-        }
-
-
-        loadArea(16 * range + x, -16 * range + z, listener, trigger);
-        loadArea(-16 * range + x, 16 * range + z, listener, trigger);
-        loadArea(16 * range + x, 16 * range + z, listener, trigger);
-        loadArea(-16 * range + x, -16 * range + z, listener, trigger);
-
-        for (float f = 0; f <= range; f++) {
-            for (float rangeZ = -f; rangeZ < f; rangeZ++) {
-                loadArea(-16 * rangeZ + x, -16 * range + z, listener, trigger);
-                loadArea(16 * range + x, 16 * rangeZ + z, listener, trigger);
-            }
-       */
-
         centerX = x;
         centerZ = z;
     }
@@ -164,11 +135,13 @@ public class WorldLoader {
     public void unloadArea(float x, float z, WorldLoadListener listener, OffheapLoadMarker trigger){
         ChunkLoader chunkLoader = new ChunkLoader(listener);
         OffheapChunk chunk = chunkLoader.getChunk(x, -10, z, trigger);
+        if(chunk != null) {
             genManager.remove(chunk);
             listener.chunkUnloaded(chunk);
+        }
     }
 
-    public void loadArea(float x, float z, WorldLoadListener listener, OffheapLoadMarker trigger){
+    public void loadArea(float x, float z, WorldLoadListener listener, OffheapLoadMarker trigger) {
         OffheapChunk chunk = genManager.generate(x, z);
         trigger.addBuffer(chunk.getChunkBuffer());
         listener.chunkLoaded(chunk);

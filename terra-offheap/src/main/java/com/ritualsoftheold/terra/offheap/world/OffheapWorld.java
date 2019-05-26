@@ -12,7 +12,6 @@ import com.ritualsoftheold.terra.offheap.Pointer;
 import com.ritualsoftheold.terra.offheap.chunk.ChunkBuffer;
 import com.ritualsoftheold.terra.offheap.chunk.ChunkStorage;
 import com.ritualsoftheold.terra.offheap.data.TypeSelector;
-import com.ritualsoftheold.terra.offheap.io.ChunkLoader;
 import com.ritualsoftheold.terra.offheap.io.ChunkLoaderInterface;
 import com.ritualsoftheold.terra.offheap.io.OctreeLoaderInterface;
 import com.ritualsoftheold.terra.offheap.memory.MemoryManager;
