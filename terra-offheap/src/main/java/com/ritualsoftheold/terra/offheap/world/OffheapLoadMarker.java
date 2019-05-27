@@ -55,7 +55,7 @@ public class OffheapLoadMarker extends LoadMarker implements Cloneable {
         this.usageListener = usageListener;
         buffersInside = new HashSet<>();
     }
-    
+
     /**
      * Clone constructor.
      * @param another Another to clone.
@@ -63,6 +63,7 @@ public class OffheapLoadMarker extends LoadMarker implements Cloneable {
     protected OffheapLoadMarker(OffheapLoadMarker another) {
         super(another.getX(), another.getY(), another.getZ(), another.getHardRadius(), another.getSoftRadius(), another.getPriority());
         this.chunkBuffers = new ConcurrentHashMap<>(another.chunkBuffers);
+        this.buffersInside = another.buffersInside;
         this.octrees = another.octrees.clone();
         this.usageListener = another.usageListener;
     }

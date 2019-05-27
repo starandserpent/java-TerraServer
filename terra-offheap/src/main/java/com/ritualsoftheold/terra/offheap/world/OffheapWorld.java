@@ -269,16 +269,6 @@ public class OffheapWorld implements TerraWorld {
         List<CompletableFuture<Void>> pendingMarkers = new ArrayList<>(loadMarkers.size());
         // Delegate updating to async code, this might be costly
         for (OffheapLoadMarker marker : loadMarkers) {
-/*
-                // When player moves a little, DO NOT, I repeat, DO NOT just blindly move load marker.
-                // Move it when player has moved a few meters or so!
-                pendingMarkers.add(CompletableFuture.runAsync(() -> updateLoadMarker(marker, false), storageExecutor)
-                        .exceptionally((e) -> {
-                            e.printStackTrace(); // TODO better error handling
-                            return null;
-                        }));
-                        */
-
             updateLoadMarker(marker, false);
         }
         
@@ -316,19 +306,11 @@ public class OffheapWorld implements TerraWorld {
      * @param marker Load marker to update.
      * @param soft If soft radius should be used.
      */
-    private void updateLoadMarker(OffheapLoadMarker marker, boolean soft) {
-        OffheapLoadMarker oldMarkerClone = marker.clone(); // Keep copy of old load marks for a while
-        marker.clear(); // Remove all of them from original marker
-
+    public void updateLoadMarker(OffheapLoadMarker marker, boolean soft) {
         // Tell world loader to load stuff, and while doing so, update the load marker
         worldLoader.updateSector(marker.getX(), marker.getZ(),
                 soft ? marker.getSoftRadius() : marker.getHardRadius(), loadListener, marker);
-        marker.markUpdated(); // Tell it we updated it
-
-        // Allow unloading things that previous marker kept loaded
-        // (unless new marker also requires them, of course)
-        chunkStorage.removeLoadMarker(oldMarkerClone);
-        octreeStorage.removeLoadMarker(oldMarkerClone);
+        marker.markUpdated();
     }
 
     /**

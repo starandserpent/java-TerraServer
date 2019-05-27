@@ -39,7 +39,11 @@ public class LoadMarker implements Comparable<LoadMarker> {
     private final int priority;
     
     protected LoadMarker(float x, float y, float z, float hardRadius, float softRadius, int priority) {
-        move(x, y, z);
+        this.x = x;
+        this.y = y;
+        this.z = z;
+
+        this.hasMoved = false;
         this.hardRadius = hardRadius;
         this.softRadius = softRadius;
         this.priority = priority;
