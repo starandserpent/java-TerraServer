@@ -134,7 +134,7 @@ public class WorldLoader {
 
     public void unloadArea(float x, float z, WorldLoadListener listener, OffheapLoadMarker trigger){
         ChunkLoader chunkLoader = new ChunkLoader(listener);
-        OffheapChunk chunk = chunkLoader.getChunk(x, -10, z, trigger);
+        OffheapChunk chunk = chunkLoader.getChunk(x, z, trigger);
         if(chunk != null) {
             //genManager.remove(chunk);
             listener.chunkUnloaded(chunk);
