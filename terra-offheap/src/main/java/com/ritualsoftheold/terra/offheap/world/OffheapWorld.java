@@ -289,16 +289,10 @@ public class OffheapWorld implements TerraWorld {
         return pendingMarkers;
     }
 
-    public List<CompletableFuture<Void>> initialChunkGeneration() {
+    public void initialChunkGeneration(OffheapLoadMarker player) {
         // Tell world loader to load stuff, and while doing so, update the load marker
-        List<CompletableFuture<Void>> pendingMarkers = new ArrayList<>(loadMarkers.size());
-        // Delegate updating to async code, this might be costly
-        for (OffheapLoadMarker marker : loadMarkers) {
-                // When player moves a little, DO NOT, I repeat, DO NOT just blindly move load marker.
-                // Move it when player has moved a few meters or so!
-                pendingMarkers.add(CompletableFuture.runAsync(() -> worldLoader.seekSector(marker.getX(), marker.getZ(), marker.getHardRadius(), loadListener, marker)));
-        }
-        return pendingMarkers;
+        worldLoader.seekSector(player.getX(), player.getZ(), player.getHardRadius(), loadListener, player);
+        player.markUpdated();
     }
 
     /**
