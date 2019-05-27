@@ -113,7 +113,7 @@ public class WorldLoader {
 
         if (z > centerZ) {
             for (float rangeZ = -range; rangeZ <= range; rangeZ++) {
-                unloadArea(-16 * range + centerX, -16 * rangeZ + centerZ, listener, trigger);
+                unloadArea(-16 * rangeZ + centerX, -16 * range + centerZ, listener, trigger);
             }
             for (float rangeX = -range; rangeX <= range; rangeX++) {
                 loadArea(16 * rangeX + x, 16 * range + z, listener, trigger);
