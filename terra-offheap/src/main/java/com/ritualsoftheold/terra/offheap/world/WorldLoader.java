@@ -96,18 +96,18 @@ public class WorldLoader {
     public void updateSector(float x, float z, float range, WorldLoadListener listener, OffheapLoadMarker trigger) {
 
         if (x > centerX) {
-            for (float rangeX = -range; rangeX <= range; rangeX++) {
-                unloadArea(-16 * range + centerX, -16 * rangeX + centerZ, listener, trigger);
-            }
             for (float rangeZ = -range; rangeZ <= range; rangeZ++) {
                 loadArea(16 * range + x, 16 * rangeZ + z, listener, trigger);
             }
-        } else if (x < centerX) {
             for (float rangeX = -range; rangeX <= range; rangeX++) {
-                unloadArea(16 * range + centerX, 16 * rangeX + centerZ, listener, trigger);
+                unloadArea(-16 * range + centerX, -16 * rangeX + centerZ, listener, trigger);
             }
+        } else if (x < centerX) {
             for (float rangeZ = -range; rangeZ <= range; rangeZ++) {
                 loadArea(-16 * range + x, -16 * rangeZ + z, listener, trigger);
+            }
+            for (float rangeX = -range; rangeX <= range; rangeX++) {
+                unloadArea(16 * range + centerX, 16 * rangeX + centerZ, listener, trigger);
             }
         }
 
@@ -119,12 +119,11 @@ public class WorldLoader {
                 loadArea(16 * rangeX + x, 16 * range + z, listener, trigger);
             }
         } else if (z < centerZ) {
-            for (float rangeZ = -range; rangeZ <= range; rangeZ++) {
-                unloadArea(16 * rangeZ + centerX, 16 * range + centerZ, listener, trigger);
-            }
-
             for (float rangeX = -range; rangeX <= range; rangeX++) {
                 loadArea(-16 * rangeX + x, -16 * range + z, listener, trigger);
+            }
+            for (float rangeZ = -range; rangeZ <= range; rangeZ++) {
+                unloadArea(16 * rangeZ + centerX, 16 * range + centerZ, listener, trigger);
             }
         }
 
