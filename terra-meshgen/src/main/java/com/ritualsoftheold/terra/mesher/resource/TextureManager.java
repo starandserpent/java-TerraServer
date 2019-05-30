@@ -2,6 +2,7 @@ package com.ritualsoftheold.terra.mesher.resource;
 
 import com.jme3.asset.AssetManager;
 import com.jme3.texture.Image;
+import com.jme3.texture.Texture;
 import com.jme3.texture.TextureArray;
 import com.jme3.texture.image.ColorSpace;
 import com.ritualsoftheold.terra.core.material.MaterialRegistry;
@@ -28,7 +29,10 @@ public class TextureManager{
 
         for (TerraMaterial material : registry.getAllMaterials()) {
             if (material.getTexture() != null) {
-                Image image = assetManager.loadTexture(material.getTexture().getAsset()).getImage();
+                Texture tex = assetManager.loadTexture(material.getTexture().getAsset());
+//                tex.setMagFilter(Texture.MagFilter.Nearest);
+//                tex.setMinFilter(Texture.MinFilter.NearestNearestMipMap);
+                Image image = tex.getImage();
 
                 if (image.getHeight() > maxHeight) {
                     maxHeight = image.getHeight();
