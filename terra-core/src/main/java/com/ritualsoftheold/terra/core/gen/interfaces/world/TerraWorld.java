@@ -71,5 +71,4 @@ public interface TerraWorld {
      * @param priority Load marker priority.
      * @return A new load marker, that is usable with this world.
      */
-    LoadMarker createLoadMarker(float x, float y, float z, float hardRadius, float softRadius, int priority);
 }

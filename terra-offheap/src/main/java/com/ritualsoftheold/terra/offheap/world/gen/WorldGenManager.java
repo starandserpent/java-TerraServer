@@ -56,10 +56,10 @@ public class WorldGenManager {
         this.world = world;
     }
 
-    public OffheapChunk generate(float x, float y, float z) {
+    public OffheapChunk generate(float x, float z) {
         SelfTrackAllocator trackedAllocator = new SelfTrackAllocator(true); // Must zero that memory!
         OffheapGeneratorControl control = new OffheapGeneratorControl(this, trackedAllocator);
-        GenerationTask task = new GenerationTask(x, y, z);
+        GenerationTask task = new GenerationTask(x, z);
         OffheapPipeline<Object> pipeline = new OffheapPipeline<>();
 
         // Ask world generator to initialize task
@@ -82,6 +82,13 @@ public class WorldGenManager {
         chunk.setStorageInternal(storage);
         return chunk;
     }
+
+    public void remove(OffheapChunk chunk) {
+        // Take results of the execution
+        int chunkId = chunk.getFullId();
+
+        chunkStorage.unloadBuffer(chunkId >>> 16, false);
+    }
     
     /**
      * Generates a piece of world at given coordinates with given scale.
@@ -90,14 +97,13 @@ public class WorldGenManager {
      * @param addr Address of parent octree.
      * @param index Index of the piece in its parent octree.
      * @param x X coordinate of center.
-     * @param y Y coordinate of center.
      * @param z Z coordinate of center.
      * @param scale Scale.
      */
-    public void generate(long addr, int index, float x, float y, float z, float scale) {
+    public void generate(long addr, int index, float x, float z, float scale) {
         SelfTrackAllocator trackedAllocator = new SelfTrackAllocator(true); // Must zero that memory!
         OffheapGeneratorControl control = new OffheapGeneratorControl(this, trackedAllocator);
-        GenerationTask task = new GenerationTask(x, y, z);
+        GenerationTask task = new GenerationTask(x, z);
         OffheapPipeline<Object> pipeline = new OffheapPipeline<>();
         
         // Ask world generator to initialize task

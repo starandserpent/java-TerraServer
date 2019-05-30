@@ -28,18 +28,18 @@ public interface WorldLoadListener {
      * This method is called when a chunk is loaded to storage.
      * @param chunk Temporary on-heap wrapper of the chunk. When this method
      * returns, it is not safe to use anymore.
-     * @param x X coordinate of the chunk.
-     * @param y Y coordinate of the chunk
-     * @param z Z coordinate of the chunk.
-     * @param trigger Load marker that triggered this operation or null.
      */
-    void chunkLoaded(OffheapChunk chunk, float x, float y, float z, LoadMarker trigger);
+    void chunkLoaded(OffheapChunk chunk);
     
+
+    void chunkUnloaded(OffheapChunk chunk);
+
     /**
      * Called when loading world is finished.
      * @param trigger Load marker that originally triggered the loading that
      * is now completed.
      */
+
     default void finished(LoadMarker trigger) {
         
     }

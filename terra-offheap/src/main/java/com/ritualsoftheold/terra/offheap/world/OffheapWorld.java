@@ -175,7 +175,7 @@ public class OffheapWorld implements TerraWorld {
             
             // Initialize world generation
             world.genManager = new WorldGenManager(world.generator, new TypeSelector(), world);
-            
+
             // ... and world loading
             world.worldLoader = new WorldLoader(world.octreeStorage, world.chunkStorage, world.genManager);
             
@@ -269,13 +269,7 @@ public class OffheapWorld implements TerraWorld {
         List<CompletableFuture<Void>> pendingMarkers = new ArrayList<>(loadMarkers.size());
         // Delegate updating to async code, this might be costly
         for (OffheapLoadMarker marker : loadMarkers) {
-                // When player moves a little, DO NOT, I repeat, DO NOT just blindly move load marker.
-                // Move it when player has moved a few meters or so!
-                pendingMarkers.add(CompletableFuture.runAsync(() -> updateLoadMarker(marker, false), storageExecutor)
-                        .exceptionally((e) -> {
-                            e.printStackTrace(); // TODO better error handling
-                            return null;
-                        }));
+            updateLoadMarker(marker, false);
         }
         
         return pendingMarkers;
@@ -294,27 +288,25 @@ public class OffheapWorld implements TerraWorld {
         
         return pendingMarkers;
     }
-    
+
+    public void initialChunkGeneration(OffheapLoadMarker player) {
+        // Tell world loader to load stuff, and while doing so, update the load marker
+        worldLoader.seekSector(player.getX(), player.getZ(), player.getHardRadius(), loadListener, player);
+        player.markUpdated();
+    }
+
     /**
      * Updates given load marker no matter what. Only used internally.
      * @param marker Load marker to update.
      * @param soft If soft radius should be used.
      */
     public void updateLoadMarker(OffheapLoadMarker marker, boolean soft) {
-        OffheapLoadMarker oldMarkerClone = marker.clone(); // Keep copy of old load marks for a while
-        marker.clear(); // Remove all of them from original marker
-        
         // Tell world loader to load stuff, and while doing so, update the load marker
-        worldLoader.seekSector(marker.getX(), marker.getY(), marker.getZ(),
+        worldLoader.updateSector(marker.getX(), marker.getZ(),
                 soft ? marker.getSoftRadius() : marker.getHardRadius(), loadListener, marker);
-        marker.markUpdated(); // Tell it we updated it
-        
-        // Allow unloading things that previous marker kept loaded
-        // (unless new marker also requires them, of course)
-        chunkStorage.removeLoadMarker(oldMarkerClone);
-        octreeStorage.removeLoadMarker(oldMarkerClone);
+        marker.markUpdated();
     }
-    
+
     /**
      * Sets default load listener for this world. It will be used when loading
      * world with TerraWorld's API; this implementation also allows you to
@@ -352,7 +344,7 @@ public class OffheapWorld implements TerraWorld {
         mem.writeByte(octreeStorage.getOctreeAddrInternal(masterIndex), (byte) 0xff); // Just in case, master octree has no single nodes
         
         // Update relevant data to world loader
-        worldLoader.worldConfig(centerX, centerY, centerZ, masterIndex, masterScale);
+        worldLoader.worldConfig(masterIndex, masterScale);
     }
 
     public OffheapLoadMarker getLoadMarker(float x, float y, float z){
@@ -537,8 +529,7 @@ public class OffheapWorld implements TerraWorld {
                 chunkStorage.getAllBuffers().length());
     }
 
-    @Override
-    public LoadMarker createLoadMarker(float x, float y, float z, float hardRadius, float softRadius, int priority) {
+    public OffheapLoadMarker createLoadMarker(float x, float y, float z, float hardRadius, float softRadius, int priority) {
         return new OffheapLoadMarker(x, y, z, hardRadius, softRadius, priority, octreeUsageListener);
     }
 }

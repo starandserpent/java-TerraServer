@@ -42,7 +42,7 @@ public class NaiveGreedyMesher {
             //Left, Bottom, Back faces are reversed
 
             // LEFT
-            if (x == 0 && buf.get(index + 64) != material || x > 0 && buf.get(index - 1).getTexture() == null) {
+            if (x == 0 /*&& buf.get(index + 64) != material*/ || x > 0 && buf.get(index - 1).getTexture() == null) {
                 Face face = new Face();
                 HashMap<Integer, Face> side = sector.get(0);
                 face.setMaterial(material);
@@ -68,7 +68,7 @@ public class NaiveGreedyMesher {
             }
 
             // RIGHT
-            if (x == 63 && buf.get(index + 64) != material || x < 63 && buf.get(index + 1).getTexture() == null) {
+            if (x == 63 /*&& buf.get(index + 64) != material*/ || x < 63 && buf.get(index + 1).getTexture() == null) {
                 Face face = new Face();
                 face.setMaterial(material);
                 face.setNormals(new Vector3f(1, 0, 0), new Vector3f(1, 0, 0), new Vector3f(1, 0, 0), new Vector3f(1, 0, 0));
@@ -146,7 +146,7 @@ public class NaiveGreedyMesher {
             }
 
             // BACK
-            if (z == 63 && buf.get(index + 64) != material || z < 63 && buf.get(index + 4096).getTexture() == null) {
+            if (z == 63 /*&& buf.get(index + 64) != material*/ || z < 63 && buf.get(index + 4096).getTexture() == null) {
                 Face face = new Face();
                 face.setMaterial(material);
                 face.setNormals(new Vector3f(0,0,1),new Vector3f(0,0,1),new Vector3f(0,0,1),new Vector3f(0,0,1));
@@ -172,7 +172,7 @@ public class NaiveGreedyMesher {
             }
 
             // FRONT
-            if (z == 0 && buf.get(index + 64) != material || z > 0 && buf.get(index - 4096).getTexture() == null) {
+            if (z == 0 /*&& buf.get(index + 64) != material*/ || z > 0 && buf.get(index - 4096).getTexture() == null) {
                 Face face = new Face();
                 face.setMaterial(material);
                 face.setNormals(new Vector3f(0,0,-1),new Vector3f(0,0,-1),new Vector3f(0,0,-1),new Vector3f(0,0,-1));

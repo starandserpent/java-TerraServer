@@ -9,18 +9,15 @@ public class GenerationTask {
 
     private float x, y, z;
     
-    public GenerationTask(float x, float y, float z) {
+    public GenerationTask(float x, float z) {
         this.x = x;
-        this.y = y;
         this.z = z;
     }
 
-    public void setCoordinates(float x, float y, float z){
-        this.x = x;
+    public void setY(float y) {
         this.y = y;
-        this.z = z;
     }
-    
+
     public float getX() {
         return x;
     }
