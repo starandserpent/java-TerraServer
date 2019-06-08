@@ -35,13 +35,10 @@ public class ChunkBufferTest {
     
     @Before
     public void initBuf() {
-        ChunkStorage storage = new ChunkStorage(reg, null, 0, null, null);
-        
-        buf = new ChunkBuffer.Builder()
-                .maxChunks(64)
-                .queueSize(4)
-                .memListener(new DummyMemoryUseListener())
-                .build(storage, (short) 1);
+
+        ChunkStorage storage = new ChunkStorage(reg, null, 1, null, null);
+        int queueSize = 65;
+        buf = new ChunkBuffer(storage, 0, 10, queueSize, new DummyMemoryUseListener(), false);
     }
     
     @Before
