@@ -141,9 +141,11 @@ public class WorldLoader {
     }
 
     public void loadArea(float x, float z, WorldLoadListener listener, OffheapLoadMarker trigger) {
-        OffheapChunk chunk = genManager.generate(x, z);
-        trigger.addBuffer(chunk.getChunkBuffer());
-        listener.chunkLoaded(chunk);
+        if(x > 0 && z > 0) {
+            OffheapChunk chunk = genManager.generate(x, z);
+            trigger.addBuffer(chunk.getChunkBuffer());
+            listener.chunkLoaded(chunk);
+        }
     }
     
     /**
