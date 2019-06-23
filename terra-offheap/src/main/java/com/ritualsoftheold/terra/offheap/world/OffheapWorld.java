@@ -156,7 +156,7 @@ public class OffheapWorld implements TerraWorld {
             return this;
         }
         
-        public OffheapWorld build() {
+        public OffheapWorld build(int hight) {
             // Initialize some internal structures AFTER all user-controller initialization
             world.loadMarkers = new ArrayList<>();
             
@@ -177,7 +177,7 @@ public class OffheapWorld implements TerraWorld {
             world.genManager = new WorldGenManager(world.generator, new TypeSelector(), world);
 
             // ... and world loading
-            world.worldLoader = new WorldLoader(world.octreeStorage, world.chunkStorage, world.genManager);
+            world.worldLoader = new WorldLoader(world.octreeStorage, world.chunkStorage, world.genManager, hight);
             
             // Update master octree (and finish loader stuff)
             world.updateMasterOctree();

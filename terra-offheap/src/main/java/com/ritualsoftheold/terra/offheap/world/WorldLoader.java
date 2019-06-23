@@ -50,6 +50,8 @@ public class WorldLoader {
      */
     private WorldGenManager genManager;
 
+    private int hight;
+
     /**
      * Initializes a new world loader.
      *
@@ -57,10 +59,11 @@ public class WorldLoader {
      * @param chunkStorage  Chunk storage of the world.
      * @param genManager    World generation manager.
      */
-    public WorldLoader(OctreeStorage octreeStorage, ChunkStorage chunkStorage, WorldGenManager genManager) {
+    public WorldLoader(OctreeStorage octreeStorage, ChunkStorage chunkStorage, WorldGenManager genManager, int hight) {
         this.octreeStorage = octreeStorage;
         this.chunkStorage = chunkStorage;
         this.genManager = genManager;
+        this.hight = hight;
     }
 
     /**
@@ -78,7 +81,7 @@ public class WorldLoader {
         this.centerX = 0;
         this.centerZ = 0;
 
-        for(float rangeY = -range*16; rangeY < range*16; rangeY +=16) {
+        for(float rangeY = -hight*2; rangeY <= hight*2; rangeY +=16) {
             loadArea(0, rangeY, 0, listener,  trigger);
             for (float f = 1; f <= range; f++) {
                 for (float rangeZ = -f; rangeZ < f; rangeZ++) {
@@ -96,8 +99,7 @@ public class WorldLoader {
     }
 
     public void updateSector(float x, float z, float range, WorldLoadListener listener, OffheapLoadMarker trigger) {
-
-        for(float rangeY = -range*16; rangeY < range*16; rangeY +=16) {
+        for(float rangeY = -hight*2; rangeY <= hight*2; rangeY +=16) {
             if (x > centerX) {
                 for (float rangeZ = -range; rangeZ <= range; rangeZ++) {
                     loadArea(16 * range + x, rangeY, 16 * rangeZ + z, listener, trigger);
@@ -145,7 +147,7 @@ public class WorldLoader {
 
     public void loadArea(float x, float y, float z, WorldLoadListener listener, OffheapLoadMarker trigger) {
         if(x > 0 && z > 0) {
-            OffheapChunk chunk = genManager.generate(x,  y, z);
+            OffheapChunk chunk = genManager.generate(x, y, z);
             trigger.addBuffer(chunk.getChunkBuffer());
             listener.chunkLoaded(chunk);
         }
