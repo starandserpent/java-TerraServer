@@ -10,8 +10,8 @@ import com.ritualsoftheold.terra.core.material.MaterialRegistry;
  *
  */
 public interface WorldGeneratorInterface<T> {
-    
-    void setup(MaterialRegistry materialRegistry, TerraModule mod);
+
+    WorldGeneratorInterface<?> setup(MaterialRegistry materialRegistry, TerraModule mod);
 
     /**
      * Called first when a part of world needs to be generated.

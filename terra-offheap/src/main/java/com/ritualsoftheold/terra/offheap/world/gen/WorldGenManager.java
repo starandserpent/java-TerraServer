@@ -56,10 +56,10 @@ public class WorldGenManager {
         this.world = world;
     }
 
-    public OffheapChunk generate(float x, float z) {
+    public OffheapChunk generate(float x, float y, float z) {
         SelfTrackAllocator trackedAllocator = new SelfTrackAllocator(true); // Must zero that memory!
         OffheapGeneratorControl control = new OffheapGeneratorControl(this, trackedAllocator);
-        GenerationTask task = new GenerationTask(x, z);
+        GenerationTask task = new GenerationTask(x, y, z);
         OffheapPipeline<Object> pipeline = new OffheapPipeline<>();
 
         // Ask world generator to initialize task
@@ -100,10 +100,10 @@ public class WorldGenManager {
      * @param z Z coordinate of center.
      * @param scale Scale.
      */
-    public void generate(long addr, int index, float x, float z, float scale) {
+    public void generate(long addr, int index, float x, float y, float z, float scale) {
         SelfTrackAllocator trackedAllocator = new SelfTrackAllocator(true); // Must zero that memory!
         OffheapGeneratorControl control = new OffheapGeneratorControl(this, trackedAllocator);
-        GenerationTask task = new GenerationTask(x, z);
+        GenerationTask task = new GenerationTask(x, y, z);
         OffheapPipeline<Object> pipeline = new OffheapPipeline<>();
         
         // Ask world generator to initialize task

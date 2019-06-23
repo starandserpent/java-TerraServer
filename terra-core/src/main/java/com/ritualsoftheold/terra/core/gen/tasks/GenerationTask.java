@@ -9,12 +9,9 @@ public class GenerationTask {
 
     private float x, y, z;
     
-    public GenerationTask(float x, float z) {
+    public GenerationTask(float x, float y, float z) {
         this.x = x;
         this.z = z;
-    }
-
-    public void setY(float y) {
         this.y = y;
     }
 

@@ -19,11 +19,11 @@ public class ChunkLoader implements ChunkLoaderInterface {
     }
 
     @Override
-    public synchronized OffheapChunk getChunk(float x, float z, OffheapLoadMarker loadMarker) {
+    public synchronized OffheapChunk getChunk(float x, float y, float z, OffheapLoadMarker loadMarker) {
         for (ChunkBuffer buffer:loadMarker.getBuffersInside()){
             for(int i = 0; i < buffer.getChunkCount(); i++){
                 OffheapChunk chunk = buffer.getChunk(i);
-                if(chunk.getX() == x && chunk.getZ() == z){
+                if(chunk.getX() == x && chunk.getY() == y && chunk.getZ() == z){
                     return chunk;
                 }
             }

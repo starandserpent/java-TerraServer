@@ -19,7 +19,7 @@ public interface ChunkLoaderInterface {
 
     void loadChunk (OffheapChunk chunk);
 
-    OffheapChunk getChunk (float x, float z, OffheapLoadMarker loadMarker);
+    OffheapChunk getChunk (float x, float y, float z, OffheapLoadMarker loadMarker);
 
     ChunkBuffer saveChunks(int i, ChunkBuffer buf);
 }

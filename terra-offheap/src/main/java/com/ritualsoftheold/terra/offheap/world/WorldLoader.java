@@ -77,72 +77,75 @@ public class WorldLoader {
     public void seekSector(float x, float z, float range, WorldLoadListener listener, OffheapLoadMarker trigger) {
         this.centerX = 0;
         this.centerZ = 0;
-        loadArea(0, 0, listener, trigger);
 
-        for (float f = 1; f <= range; f++) {
-            for (float rangeZ = -f; rangeZ < f; rangeZ++) {
-                loadArea(-16 * rangeZ, -16 * f, listener, trigger);
-                loadArea(16 * f, 16 * rangeZ, listener, trigger);
+        for(float rangeY = -range*16; rangeY < range*16; rangeY +=16) {
+            loadArea(0, rangeY, 0, listener,  trigger);
+            for (float f = 1; f <= range; f++) {
+                for (float rangeZ = -f; rangeZ < f; rangeZ++) {
+                    loadArea(-16 * rangeZ, rangeY, -16 * f, listener, trigger);
+                    loadArea(16 * f, rangeY, 16 * rangeZ, listener, trigger);
+                }
+                for (float rangeX = -f; rangeX < f; rangeX++) {
+                    loadArea(-16 * f, rangeY, -16 * rangeX, listener, trigger);
+                    loadArea(16 * rangeX, rangeY, 16 * f, listener, trigger);
+                }
+                loadArea(16 * f, rangeY,16 * f , listener, trigger);
+                loadArea(-16 * f, rangeY,  -16 * f , listener, trigger);
             }
-            for (float rangeX = -f; rangeX < f; rangeX++) {
-                loadArea(-16 * f, -16 * rangeX, listener, trigger);
-                loadArea(16 * rangeX, 16 * f, listener, trigger);
-            }
-            loadArea(16 * f, 16 * f, listener, trigger);
-            loadArea(-16 * f, -16 * f, listener, trigger);
         }
     }
 
     public void updateSector(float x, float z, float range, WorldLoadListener listener, OffheapLoadMarker trigger) {
 
-        if (x > centerX) {
-            for (float rangeZ = -range; rangeZ <= range; rangeZ++) {
-                loadArea(16 * range + x, 16 * rangeZ + z, listener, trigger);
+        for(float rangeY = -range*16; rangeY < range*16; rangeY +=16) {
+            if (x > centerX) {
+                for (float rangeZ = -range; rangeZ <= range; rangeZ++) {
+                    loadArea(16 * range + x, rangeY, 16 * rangeZ + z, listener, trigger);
+                }
+                for (float rangeX = -range; rangeX <= range; rangeX++) {
+                    unloadArea(-16 * range + centerX, rangeY, -16 * rangeX + centerZ, listener, trigger);
+                }
+            } else if (x < centerX) {
+                for (float rangeZ = -range; rangeZ <= range; rangeZ++) {
+                    loadArea(-16 * range + x, rangeY, -16 * rangeZ + z, listener, trigger);
+                }
+                for (float rangeX = -range; rangeX <= range; rangeX++) {
+                    unloadArea(16 * range + centerX, rangeY, 16 * rangeX + centerZ, listener, trigger);
+                }
             }
-            for (float rangeX = -range; rangeX <= range; rangeX++) {
-                unloadArea(-16 * range + centerX, -16 * rangeX + centerZ, listener, trigger);
-            }
-        } else if (x < centerX) {
-            for (float rangeZ = -range; rangeZ <= range; rangeZ++) {
-                loadArea(-16 * range + x, -16 * rangeZ + z, listener, trigger);
-            }
-            for (float rangeX = -range; rangeX <= range; rangeX++) {
-                unloadArea(16 * range + centerX, 16 * rangeX + centerZ, listener, trigger);
+
+            if (z > centerZ) {
+                for (float rangeZ = -range; rangeZ <= range; rangeZ++) {
+                    unloadArea(-16 * rangeZ + centerX, rangeY, -16 * range + centerZ, listener, trigger);
+                }
+                for (float rangeX = -range; rangeX <= range; rangeX++) {
+                    loadArea(16 * rangeX + x, rangeY, 16 * range + z, listener, trigger);
+                }
+            } else if (z < centerZ) {
+                for (float rangeX = -range; rangeX <= range; rangeX++) {
+                    loadArea(-16 * rangeX + x, rangeY, -16 * range + z, listener, trigger);
+                }
+                for (float rangeZ = -range; rangeZ <= range; rangeZ++) {
+                    unloadArea(16 * rangeZ + centerX, rangeY, 16 * range + centerZ, listener, trigger);
+                }
             }
         }
-
-        if (z > centerZ) {
-            for (float rangeZ = -range; rangeZ <= range; rangeZ++) {
-                unloadArea(-16 * rangeZ + centerX, -16 * range + centerZ, listener, trigger);
-            }
-            for (float rangeX = -range; rangeX <= range; rangeX++) {
-                loadArea(16 * rangeX + x, 16 * range + z, listener, trigger);
-            }
-        } else if (z < centerZ) {
-            for (float rangeX = -range; rangeX <= range; rangeX++) {
-                loadArea(-16 * rangeX + x, -16 * range + z, listener, trigger);
-            }
-            for (float rangeZ = -range; rangeZ <= range; rangeZ++) {
-                unloadArea(16 * rangeZ + centerX, 16 * range + centerZ, listener, trigger);
-            }
-        }
-
         centerX = x;
         centerZ = z;
     }
 
-    public void unloadArea(float x, float z, WorldLoadListener listener, OffheapLoadMarker trigger){
+    public void unloadArea(float x, float y, float z, WorldLoadListener listener, OffheapLoadMarker trigger){
         ChunkLoader chunkLoader = new ChunkLoader(listener);
-        OffheapChunk chunk = chunkLoader.getChunk(x, z, trigger);
+        OffheapChunk chunk = chunkLoader.getChunk(x, y, z, trigger);
         if(chunk != null) {
             //genManager.remove(chunk);
             listener.chunkUnloaded(chunk);
         }
     }
 
-    public void loadArea(float x, float z, WorldLoadListener listener, OffheapLoadMarker trigger) {
+    public void loadArea(float x, float y, float z, WorldLoadListener listener, OffheapLoadMarker trigger) {
         if(x > 0 && z > 0) {
-            OffheapChunk chunk = genManager.generate(x, z);
+            OffheapChunk chunk = genManager.generate(x,  y, z);
             trigger.addBuffer(chunk.getChunkBuffer());
             listener.chunkLoaded(chunk);
         }
@@ -239,7 +242,7 @@ public class WorldLoader {
                 // Ok, this is something that has not been generated, so it is
                 // "octree null": flag is 1, but node is 0 (kind of null pointer)
                 if (scale == DataConstants.CHUNK_SCALE) {
-                    genManager.generate(addr, index, subNodeX, subNodeZ, scale);
+                 //   genManager.generate(addr, index, subNodeX, subNodeZ, scale);
                 } else {
                     //System.out.println("Will create octree...");
                     node = octreeStorage.newOctree(); // Create octree and attempt to swap it
@@ -397,7 +400,7 @@ public class WorldLoader {
                     // "octree null": flag is 1, but node is 0 (kind of null pointer)
                     if (scale == DataConstants.CHUNK_SCALE) {                        
                         //System.out.println("Create chunk (i: " + i + ")");
-                        genManager.generate(addr, i, subNodeX, subNodeZ, scale);
+                   //     genManager.generate(addr, i, subNodeX, subNodeZ, scale);
                         node = mem.readVolatileInt(nodeAddr); // Read node, whatever it is
                     } else {
                         node = octreeStorage.newOctree(); // Create octree and attempt to swap it

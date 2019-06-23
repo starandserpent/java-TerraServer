@@ -13,10 +13,15 @@ import java.util.HashMap;
  */
 
 public class NaiveGreedyMesher {
+    private HashMap<Integer, HashMap<Integer, Face>> sector;
+
+    public NaiveGreedyMesher(){
+        sector = new HashMap<>();
+    }
 
     public HashMap<Integer, HashMap<Integer, Face>> cull(BlockBuffer buf) {
 
-        HashMap<Integer, HashMap<Integer, Face>> sector = new HashMap<>();
+        sector.clear();
 
         for (int i = 0; i < 6; i++){
             sector.put(i, new HashMap<>());
