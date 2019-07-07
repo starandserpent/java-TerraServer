@@ -2,6 +2,7 @@ package com.ritualsoftheold.terra.core.gen.interfaces;
 
 import com.ritualsoftheold.terra.core.buffer.BlockBuffer;
 import com.ritualsoftheold.terra.core.material.TerraMaterial;
+import xerial.larray.LByteArray;
 
 /**
  * Allows world generator to interact with Terra's implementation.
@@ -14,6 +15,8 @@ public interface GeneratorControl {
      * @return Block buffer where data should be written.
      */
     BlockBuffer getBuffer();
+
+    LByteArray getLArray();
     
     /**
      * Later methods in pipeline will be ignored this time, if there

@@ -20,6 +20,8 @@ import com.ritualsoftheold.terra.offheap.data.OffheapNode;
 
 import net.openhft.chronicle.core.Memory;
 import net.openhft.chronicle.core.OS;
+import xerial.larray.LByteArray;
+import xerial.larray.japi.LArrayJ;
 
 /**
  * A chunk that stores its blocks outside of JVM heap.
@@ -286,6 +288,8 @@ public class OffheapChunk implements Chunk, OffheapNode {
     private float x;
     private float y;
     private float z;
+
+    private LByteArray lByteArray;
     
     public OffheapChunk(int index, ChunkBuffer buffer, long queueAddr, long swapAddr, int queueSize) {
         // Permanent (final) chunk parameters
@@ -293,9 +297,13 @@ public class OffheapChunk implements Chunk, OffheapNode {
         this.buffer = buffer;
         this.queue = new ChangeQueue(this, queueAddr, swapAddr, queueSize);
         this.refs = new ConcurrentHashMap<>();
-        
+
         // Initially empty chunk, will change later
         this.storage = new Storage(EmptyChunkFormat.INSTANCE, 0, 0);
+    }
+
+    public void setlByteArray(LByteArray lByteArray) {
+        this.lByteArray = lByteArray;
     }
 
     public void setCoordinates(float x, float y, float z) {
@@ -331,6 +339,10 @@ public class OffheapChunk implements Chunk, OffheapNode {
          */
         Storage storage = getStorage(); // Adds 1 to user count
         return storage.format.createBuffer(this, storage);
+    }
+
+    public LByteArray getLArray(){
+        return lByteArray;
     }
 
     @Override

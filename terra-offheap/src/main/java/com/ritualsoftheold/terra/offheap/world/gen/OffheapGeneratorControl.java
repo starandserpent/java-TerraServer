@@ -7,6 +7,8 @@ import com.ritualsoftheold.terra.core.material.TerraMaterial;
 import com.ritualsoftheold.terra.offheap.memory.SelfTrackAllocator;
 import com.ritualsoftheold.terra.core.gen.interfaces.GeneratorControl;
 import com.ritualsoftheold.terra.offheap.data.CriticalBlockBuffer;
+import xerial.larray.LByteArray;
+import xerial.larray.japi.LArrayJ;
 
 public class OffheapGeneratorControl implements GeneratorControl {
     
@@ -20,6 +22,8 @@ public class OffheapGeneratorControl implements GeneratorControl {
     
     private SelfTrackAllocator allocator;
 
+    private LByteArray lByteArray;
+
     private boolean canGenerate;
     
     public OffheapGeneratorControl(WorldGenManager manager, SelfTrackAllocator allocator) {
@@ -28,6 +32,8 @@ public class OffheapGeneratorControl implements GeneratorControl {
         this.manager = manager;
         this.end = false;
         this.allocator = allocator;
+
+        lByteArray = LArrayJ.newLByteArray(262144);
     }
     
     @Override
@@ -36,6 +42,11 @@ public class OffheapGeneratorControl implements GeneratorControl {
             buffer = manager.createBuffer(materialHints.size(), allocator);
         }
         return buffer;
+    }
+
+    @Override
+    public LByteArray getLArray() {
+        return lByteArray;
     }
 
     @Override

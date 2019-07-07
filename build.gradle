@@ -38,6 +38,7 @@ allprojects {
 
         testCompile("junit:junit:4.12")
         testRuntime("org.junit.vintage:junit-vintage-engine:5.4.0")
+        compile 'org.xerial.larray:larray_2.12:0.4.1'
     }
     
     task sourceJar(type: Jar) {

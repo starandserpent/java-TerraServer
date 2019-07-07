@@ -1,8 +1,10 @@
 package com.ritualsoftheold.terra.mesher;
 
 import com.ritualsoftheold.terra.core.buffer.BlockBuffer;
+import com.ritualsoftheold.terra.core.material.MaterialRegistry;
 import com.ritualsoftheold.terra.mesher.resource.MeshContainer;
 import com.ritualsoftheold.terra.mesher.resource.TextureManager;
+import xerial.larray.LByteArray;
 
 import java.util.*;
 
@@ -10,13 +12,15 @@ import java.util.*;
  * Greedy mesher does culling and try to merge same blocks into bigger faces.
  */
 public class GreedyMesher implements VoxelMesher {
-    public GreedyMesher(){}
+    private NaiveGreedyMesher culling;
+
+    public GreedyMesher(MaterialRegistry reg){
+         culling = new NaiveGreedyMesher(reg);
+    }
 
     @Override
-    public HashMap<Integer, HashMap<Integer, Face>> chunk(BlockBuffer buf) {
+    public HashMap<Integer, HashMap<Integer, Face>> chunk(LByteArray buf) {
         assert buf != null;
-
-        NaiveGreedyMesher culling = new NaiveGreedyMesher();
 
         // Generate mappings for culling
        return  culling.cull(buf);

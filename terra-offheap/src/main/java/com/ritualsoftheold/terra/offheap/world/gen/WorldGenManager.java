@@ -76,6 +76,7 @@ public class WorldGenManager {
         ChunkBuffer chunkBuf = chunkStorage.getBuffer(chunkId >>> 16);
         OffheapChunk chunk = chunkBuf.getChunk(chunkId & 0xffff);
         chunk.setCoordinates(task.getX(), task.getY(), task.getZ());
+        chunk.setlByteArray(control.getLArray());
 
         // Set its storage to generated contents
         Storage storage = buf.getStorage();
