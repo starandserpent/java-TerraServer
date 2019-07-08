@@ -1,80 +1,26 @@
 package com.ritualsoftheold.terra.offheap.world;
 
-import com.ritualsoftheold.terra.offheap.io.ChunkLoader;
-import com.ritualsoftheold.terra.offheap.octree.OctreeStorage;
-import com.ritualsoftheold.terra.offheap.world.gen.WorldGenManager;
-import com.ritualsoftheold.terra.offheap.DataConstants;
-import com.ritualsoftheold.terra.offheap.chunk.ChunkStorage;
-import com.ritualsoftheold.terra.offheap.node.OffheapChunk;
-
-import net.openhft.chronicle.core.Memory;
-import net.openhft.chronicle.core.OS;
-
+import com.ritualsoftheold.terra.core.material.MaterialRegistry;
+import com.ritualsoftheold.terra.offheap.WorldGeneratorInterface;
+import com.ritualsoftheold.terra.offheap.chunk.ChunkLArray;
 /**
  * Handles loading of offheap worlds. Usually this class is used by load
  * markers; direct usage is not recommended for application developers.
  */
-public class WorldLoader {
+public class ChunkSVOGenerator {
+    private float centerX;
+    private float centerZ;
 
-    private static final Memory mem = OS.memory();
-
-    /**
-     * Reference to octree storage of the world this that operates with.
-     */
-    private OctreeStorage octreeStorage;
-
-    /**
-     * Reference to chunk storage of the world that this operates with.
-     */
-    private ChunkStorage chunkStorage;
-
-    /**
-     * Center coordinates of world. These will be moved when the world is
-     * enlarged, and start at (0,0,0).
-     */
-    private float centerX, centerZ;
-
-    /**
-     * Full id of master octree.
-     */
     private int masterOctree;
-
-    /**
-     * Scale of the whole world.
-     */
     private float worldScale;
-
-    /**
-     * World generation manager. Mandatory if this loader ever needs to
-     * generate stuff, otherwise not needed.
-     */
-    private WorldGenManager genManager;
-
+    private WorldGeneratorInterface generator;
+    private MaterialRegistry reg;
     private int hight;
 
-    /**
-     * Initializes a new world loader.
-     *
-     * @param octreeStorage Octree storage of the world.
-     * @param chunkStorage  Chunk storage of the world.
-     * @param genManager    World generation manager.
-     */
-    public WorldLoader(OctreeStorage octreeStorage, ChunkStorage chunkStorage, WorldGenManager genManager, int hight) {
-        this.octreeStorage = octreeStorage;
-        this.chunkStorage = chunkStorage;
-        this.genManager = genManager;
+    public ChunkSVOGenerator(WorldGeneratorInterface generator, MaterialRegistry reg, int hight) {
         this.hight = hight;
-    }
-
-    /**
-     * Sets world center, master octree and world scale.
-     *
-     * @param octree Master octree index.
-     * @param scale  Scale of the world.
-     */
-    public void worldConfig(int octree, float scale) {
-        this.masterOctree = octree;
-        this.worldScale = scale;
+        this.generator = generator;
+        this.reg = reg;
     }
 
     public void seekSector(float x, float z, float range, WorldLoadListener listener, OffheapLoadMarker trigger) {
@@ -82,18 +28,18 @@ public class WorldLoader {
         this.centerZ = 0;
 
         for(float rangeY = -hight*2; rangeY <= hight*2; rangeY +=16) {
-            loadArea(0, rangeY, 0, listener,  trigger);
+            loadArea(0, rangeY, 0, listener);
             for (float f = 1; f <= range; f++) {
                 for (float rangeZ = -f; rangeZ < f; rangeZ++) {
-                    loadArea(-16 * rangeZ, rangeY, -16 * f, listener, trigger);
-                    loadArea(16 * f, rangeY, 16 * rangeZ, listener, trigger);
+                    loadArea(-16 * rangeZ, rangeY, -16 * f, listener);
+                    loadArea(16 * f, rangeY, 16 * rangeZ, listener);
                 }
                 for (float rangeX = -f; rangeX < f; rangeX++) {
-                    loadArea(-16 * f, rangeY, -16 * rangeX, listener, trigger);
-                    loadArea(16 * rangeX, rangeY, 16 * f, listener, trigger);
+                    loadArea(-16 * f, rangeY, -16 * rangeX, listener);
+                    loadArea(16 * rangeX, rangeY, 16 * f, listener);
                 }
-                loadArea(16 * f, rangeY,16 * f , listener, trigger);
-                loadArea(-16 * f, rangeY,  -16 * f , listener, trigger);
+                loadArea(16 * f, rangeY,16 * f , listener);
+                loadArea(-16 * f, rangeY,  -16 * f , listener);
             }
         }
     }
@@ -102,33 +48,33 @@ public class WorldLoader {
         for(float rangeY = -hight*2; rangeY <= hight*2; rangeY +=16) {
             if (x > centerX) {
                 for (float rangeZ = -range; rangeZ <= range; rangeZ++) {
-                    loadArea(16 * range + x, rangeY, 16 * rangeZ + z, listener, trigger);
+                    loadArea(16 * range + x, rangeY, 16 * rangeZ + z, listener);
                 }
                 for (float rangeX = -range; rangeX <= range; rangeX++) {
-                    unloadArea(-16 * range + centerX, rangeY, -16 * rangeX + centerZ, listener, trigger);
+                    //unloadArea(-16 * range + centerX, rangeY, -16 * rangeX + centerZ, listener, trigger);
                 }
             } else if (x < centerX) {
                 for (float rangeZ = -range; rangeZ <= range; rangeZ++) {
-                    loadArea(-16 * range + x, rangeY, -16 * rangeZ + z, listener, trigger);
+                    loadArea(-16 * range + x, rangeY, -16 * rangeZ + z, listener);
                 }
                 for (float rangeX = -range; rangeX <= range; rangeX++) {
-                    unloadArea(16 * range + centerX, rangeY, 16 * rangeX + centerZ, listener, trigger);
+                    //unloadArea(16 * range + centerX, rangeY, 16 * rangeX + centerZ, listener, trigger);
                 }
             }
 
             if (z > centerZ) {
                 for (float rangeZ = -range; rangeZ <= range; rangeZ++) {
-                    unloadArea(-16 * rangeZ + centerX, rangeY, -16 * range + centerZ, listener, trigger);
+                    //unloadArea(-16 * rangeZ + centerX, rangeY, -16 * range + centerZ, listener, trigger);
                 }
                 for (float rangeX = -range; rangeX <= range; rangeX++) {
-                    loadArea(16 * rangeX + x, rangeY, 16 * range + z, listener, trigger);
+                    loadArea(16 * rangeX + x, rangeY, 16 * range + z, listener);
                 }
             } else if (z < centerZ) {
                 for (float rangeX = -range; rangeX <= range; rangeX++) {
-                    loadArea(-16 * rangeX + x, rangeY, -16 * range + z, listener, trigger);
+                    loadArea(-16 * rangeX + x, rangeY, -16 * range + z, listener);
                 }
                 for (float rangeZ = -range; rangeZ <= range; rangeZ++) {
-                    unloadArea(16 * rangeZ + centerX, rangeY, 16 * range + centerZ, listener, trigger);
+                   // unloadArea(16 * rangeZ + centerX, rangeY, 16 * range + centerZ, listener, trigger);
                 }
             }
         }
@@ -136,19 +82,19 @@ public class WorldLoader {
         centerZ = z;
     }
 
-    public void unloadArea(float x, float y, float z, WorldLoadListener listener, OffheapLoadMarker trigger){
+  /*  public void unloadArea(float x, float y, float z, WorldLoadListener listener, OffheapLoadMarker trigger){
         ChunkLoader chunkLoader = new ChunkLoader(listener);
-        OffheapChunk chunk = chunkLoader.getChunk(x, y, z, trigger);
+        ChunkLArray chunk = chunkLoader.getChunk(x, y, z, trigger);
         if(chunk != null) {
             //genManager.remove(chunk);
             listener.chunkUnloaded(chunk);
         }
-    }
+    }*/
 
-    public void loadArea(float x, float y, float z, WorldLoadListener listener, OffheapLoadMarker trigger) {
+    public void loadArea(float x, float y, float z, WorldLoadListener listener) {
         if(x > 0 && z > 0) {
-            OffheapChunk chunk = genManager.generate(x, y, z);
-            trigger.addBuffer(chunk.getChunkBuffer());
+            ChunkLArray chunk = new ChunkLArray(x, y, z, reg);
+            generator.generate(chunk);
             listener.chunkLoaded(chunk);
         }
     }
@@ -166,20 +112,17 @@ public class WorldLoader {
      * @param trigger Load marker that triggered this operation or null.
      */
     public void seekArea(float x, float y, float z, float range, WorldLoadListener listener, boolean generate, OffheapLoadMarker trigger) {
-        /**
+      /*  /**
          * Node coordinates, start at world center.
          */
-        float nodeX, nodeZ;
+       /*   float nodeX, nodeZ;
         
         /**
          * Relative coordinates to current node. Starting from relative
          * to center of world.
-         */
+
         float rX,  rZ;
-        
-        /**
-         * Scale of node that is currently operated
-         */
+
         float scale;
         
         // Update/create some values we need later on
@@ -190,10 +133,6 @@ public class WorldLoader {
         rZ = z - centerZ;
         
         scale = worldScale;
-        
-        /**
-         * Id of current node, starts as master octree.
-         */
         int nodeId = masterOctree;
         
         while (true) {
@@ -263,7 +202,7 @@ public class WorldLoader {
                 node = mem.readVolatileInt(nodeAddr);
                 
                 OffheapChunk chunk = chunkStorage.getChunkInternal(node);
-                listener.chunkLoaded(chunk);
+             //   listener.chunkLoaded(chunk);
                 //trigger.addBuffer(chunk.getChunkBuffer()); // Add to load marker
 
                 break; // No further action necessary
@@ -290,6 +229,7 @@ public class WorldLoader {
         
         // Finally, tell listener we are done (mainly to support network batching)
         listener.finished(trigger);
+        */
     }
     
     /**
@@ -303,16 +243,9 @@ public class WorldLoader {
      * @param range Range of area.
      * @param nodeId Node id. It will be first node that is loaded, and some of
      * its child nodes and their children will be loaded.
-     * @param scale Scale of node where to start loading.
-     * @param nodeX Node center X coordinate.
-     * @param nodeY Node center Y coordinate.
-     * @param nodeZ Node center Z coordinate.
-     * @param listener World load listener.
-     * @param generate If new terrain should be generated when needed.
-     * @param trigger Load marker that triggered this operation or null.
      */
-    public void loadArea(float x, float z, float range, int nodeId, float scale,
-            float nodeX, float nodeY, float nodeZ, WorldLoadListener listener, boolean generate, OffheapLoadMarker trigger) {
+    public void loadArea(float x, float z, float range, int nodeId, float scale){
+          /*  float nodeX, float nodeY, float nodeZ, WorldLoadListener listener, boolean generate, OffheapLoadMarker trigger) {
         //System.out.println("loadArea, scale: " + scale);
         // Fetch data about given node
         octreeStorage.markUnused(nodeId >>> 24);
@@ -421,7 +354,7 @@ public class WorldLoader {
                     chunkStorage.ensureAndKeepLoaded(node);
                     OffheapChunk chunk = chunkStorage.getChunkInternal(node);
                     chunk.setCoordinates(subNodeX, subNodeY, subNodeZ);
-                    listener.chunkLoaded(chunk);
+                    //listener.chunkLoaded(chunk);
                  //   trigger.addBuffer(chunk.getChunkBuffer()); // Add to load marker
                 } else { // Octree. Here comes recursion...
                     // TODO multithreading
@@ -430,6 +363,6 @@ public class WorldLoader {
                 }
             } // else: no action needed, single node was loaded with getOctreeAddr
             //System.out.println("end of i: " + i);
-        }
+        }*/
     }
 }

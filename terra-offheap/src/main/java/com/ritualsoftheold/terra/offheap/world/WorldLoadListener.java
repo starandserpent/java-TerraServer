@@ -2,6 +2,7 @@ package com.ritualsoftheold.terra.offheap.world;
 
 import com.ritualsoftheold.terra.core.gen.objects.LoadMarker;
 import com.ritualsoftheold.terra.offheap.Pointer;
+import com.ritualsoftheold.terra.offheap.chunk.ChunkLArray;
 import com.ritualsoftheold.terra.offheap.node.OffheapChunk;
 
 /**
@@ -29,10 +30,10 @@ public interface WorldLoadListener {
      * @param chunk Temporary on-heap wrapper of the chunk. When this method
      * returns, it is not safe to use anymore.
      */
-    void chunkLoaded(OffheapChunk chunk);
+    void chunkLoaded(ChunkLArray chunk);
     
 
-    void chunkUnloaded(OffheapChunk chunk);
+    void chunkUnloaded(ChunkLArray chunk);
 
     /**
      * Called when loading world is finished.

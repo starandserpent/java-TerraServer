@@ -152,7 +152,7 @@ public class MemoryManager implements MemoryUseListener {
         
         // Unload (and save) octrees
         // Begin at 1, master group must not be unloaded; ever
-        for (int i = 1; i < octreeStorage.getGroupCount(); i++) {
+      /*  for (int i = 1; i < octreeStorage.getGroupCount(); i++) {
             if (octreeStorage.getUsedCount(i) < 1) { // Need to unload this group
                 System.out.println("Can unload: " + i);
                 octreeStorage.removeOctrees(i, true); // Remove groups, but save first
@@ -185,7 +185,7 @@ public class MemoryManager implements MemoryUseListener {
                 }
             }
         }
-        
+        */
         System.out.println("Could free: " + freed);
         
         // Ok, everything saved and so on... Can we save enough?

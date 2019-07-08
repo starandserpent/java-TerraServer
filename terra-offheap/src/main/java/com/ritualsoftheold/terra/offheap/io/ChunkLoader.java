@@ -1,6 +1,7 @@
 package com.ritualsoftheold.terra.offheap.io;
 
 import com.ritualsoftheold.terra.offheap.chunk.ChunkBuffer;
+import com.ritualsoftheold.terra.offheap.chunk.ChunkLArray;
 import com.ritualsoftheold.terra.offheap.io.ChunkLoaderInterface;
 import com.ritualsoftheold.terra.offheap.node.OffheapChunk;
 import com.ritualsoftheold.terra.offheap.world.OffheapLoadMarker;
@@ -15,19 +16,19 @@ public class ChunkLoader implements ChunkLoaderInterface {
 
     @Override
     public void loadChunk(OffheapChunk chunk) {
-        loadListener.chunkLoaded(chunk);
+        /*loadListener.chunkLoaded(chunk);*/
     }
 
     @Override
     public synchronized OffheapChunk getChunk(float x, float y, float z, OffheapLoadMarker loadMarker) {
-        for (ChunkBuffer buffer:loadMarker.getBuffersInside()){
+    /*    for (ChunkBuffer buffer:loadMarker.getBuffersInside()){
             for(int i = 0; i < buffer.getChunkCount(); i++){
-                OffheapChunk chunk = buffer.getChunk(i);
+                ChunkLArray chunk = buffer.getChunk(i);
                 if(chunk.getX() == x && chunk.getY() == y && chunk.getZ() == z){
                     return chunk;
                 }
             }
-        }
+        }*/
         return null;
     }
 

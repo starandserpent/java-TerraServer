@@ -2,7 +2,6 @@ package com.ritualsoftheold.terra.offheap.world;
 
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.VarHandle;
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -10,7 +9,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
 import com.ritualsoftheold.terra.core.gen.objects.LoadMarker;
-import com.ritualsoftheold.terra.offheap.octree.UsageListener;
 import com.ritualsoftheold.terra.offheap.chunk.ChunkBuffer;
 import com.ritualsoftheold.terra.offheap.util.IntFlushList;
 
@@ -19,8 +17,6 @@ public class OffheapLoadMarker extends LoadMarker implements Cloneable {
     private final ConcurrentMap<Integer, ChunkBufferUsers> chunkBuffers;
     
     private final IntFlushList octrees;
-    
-    private final UsageListener usageListener;
 
     private Set<ChunkBuffer> buffersInside;
     
@@ -47,12 +43,10 @@ public class OffheapLoadMarker extends LoadMarker implements Cloneable {
         }
     }
 
-    protected OffheapLoadMarker(float x, float y, float z, float hardRadius, float softRadius, int priority,
-            UsageListener usageListener) {
+    protected OffheapLoadMarker(float x, float y, float z, float hardRadius, float softRadius, int priority) {
         super(x, y, z, hardRadius, softRadius, priority);
         this.chunkBuffers = new ConcurrentHashMap<>();
         this.octrees = new IntFlushList(64, 2); // TODO tune these settings
-        this.usageListener = usageListener;
         buffersInside = new HashSet<>();
     }
 
@@ -65,7 +59,6 @@ public class OffheapLoadMarker extends LoadMarker implements Cloneable {
         this.chunkBuffers = new ConcurrentHashMap<>(another.chunkBuffers);
         this.buffersInside = another.buffersInside;
         this.octrees = another.octrees.clone();
-        this.usageListener = another.usageListener;
     }
     
     public void addBuffer(ChunkBuffer buf) {
@@ -76,13 +69,6 @@ public class OffheapLoadMarker extends LoadMarker implements Cloneable {
 
     public Set<ChunkBuffer> getBuffersInside() {
         return buffersInside;
-    }
-
-    public void addOctree(int id, float scale, float x, float y, float z) {
-        octrees.add(id);
-        if (usageListener != null) {
-            usageListener.used(id, scale, x, y, z);
-        }
     }
     
     public Map<Integer, ChunkBufferUsers> getChunkBuffers() {

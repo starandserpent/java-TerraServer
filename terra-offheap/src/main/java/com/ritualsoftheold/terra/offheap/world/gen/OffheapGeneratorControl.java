@@ -16,20 +16,16 @@ public class OffheapGeneratorControl implements GeneratorControl {
     
     private CriticalBlockBuffer buffer;
     
-    private WorldGenManager manager;
-    
     private boolean end;
     
     private SelfTrackAllocator allocator;
 
     private LByteArray lByteArray;
 
-    private boolean canGenerate;
     
-    public OffheapGeneratorControl(WorldGenManager manager, SelfTrackAllocator allocator) {
+    public OffheapGeneratorControl(SelfTrackAllocator allocator) {
         this.materialHints = new HashSet<>();
         this.buffer = null;
-        this.manager = manager;
         this.end = false;
         this.allocator = allocator;
 
@@ -39,7 +35,7 @@ public class OffheapGeneratorControl implements GeneratorControl {
     @Override
     public CriticalBlockBuffer getBuffer() {
         if (buffer == null) {
-            buffer = manager.createBuffer(materialHints.size(), allocator);
+           // buffer = manager.createBuffer(materialHints.size(), allocator);
         }
         return buffer;
     }

@@ -1,9 +1,8 @@
 package com.ritualsoftheold.terra.mesher;
 
 import com.jme3.math.Vector3f;
-import com.ritualsoftheold.terra.core.material.MaterialRegistry;
 import com.ritualsoftheold.terra.core.material.TerraMaterial;
-import xerial.larray.LByteArray;
+import com.ritualsoftheold.terra.offheap.chunk.ChunkLArray;
 
 import java.util.HashMap;
 
@@ -14,14 +13,12 @@ import java.util.HashMap;
 
 public class NaiveGreedyMesher {
     private HashMap<Integer, HashMap<Integer, Face>> sector;
-    private MaterialRegistry reg;
 
-    public NaiveGreedyMesher(MaterialRegistry reg){
-        this.reg = reg;
+    public NaiveGreedyMesher(){
         sector = new HashMap<>();
     }
 
-    public HashMap<Integer, HashMap<Integer, Face>> cull(LByteArray lArray) {
+    public HashMap<Integer, HashMap<Integer, Face>> cull(ChunkLArray lArray) {
 
         sector.clear();
 
@@ -31,7 +28,7 @@ public class NaiveGreedyMesher {
 
         //Creates voxels from BlockBuffer and set its material
         for (int i = 0; i < 262144; i++) {
-            TerraMaterial material = reg.getForWorldId((int)lArray.apply(i));
+            TerraMaterial material = lArray.get(i);
             if (material.getTexture() == null) { // TODO better AIR check
                 continue;
             }
@@ -45,7 +42,7 @@ public class NaiveGreedyMesher {
             //Left, Bottom, Back faces are reversed
 
             // LEFT
-            if (x == 0 /*&& buf.get(i + 64) != material*/ || x > 0 && reg.getForWorldId(lArray.apply(i - 1)).getTexture() == null) {
+            if (x == 0 /*&& buf.get(i + 64) != material*/ || x > 0 && lArray.get(i - 1).getTexture() == null) {
                 Face face = new Face();
                 HashMap<Integer, Face> side = sector.get(0);
                 face.setMaterial(material);
@@ -71,7 +68,7 @@ public class NaiveGreedyMesher {
             }
 
             // RIGHT
-            if (x == 63 /*&& buf.get(i + 64) != material*/ || x < 63 && reg.getForWorldId(lArray.apply(i + 1)).getTexture() == null){
+            if (x == 63 /*&& buf.get(i + 64) != material*/ || x < 63 && lArray.get(i + 1).getTexture() == null){
                 Face face = new Face();
                 face.setMaterial(material);
                 face.setNormals(new Vector3f(1, 0, 0), new Vector3f(1, 0, 0), new Vector3f(1, 0, 0), new Vector3f(1, 0, 0));
@@ -97,7 +94,7 @@ public class NaiveGreedyMesher {
             }
 
             // TOP
-            if (y == 63 || reg.getForWorldId(lArray.apply(i + 64)).getTexture() == null) {
+            if (y == 63 || lArray.get(i + 64).getTexture() == null) {
                 Face face = new Face();
                 face.setMaterial(material);
                 face.setNormals(new Vector3f(0, 1, 0), new Vector3f(0, 1, 0), new Vector3f(0, 1, 0), new Vector3f(0, 1, 0));
@@ -123,7 +120,7 @@ public class NaiveGreedyMesher {
             }
 
             // BOTTOM
-            if (y == 0 && reg.getForWorldId(lArray.apply(i + 64)) != material|| y > 0 && reg.getForWorldId(lArray.apply(i - 64)).getTexture() == null) {
+            if (y == 0 /*lArray.get(i + 64)) != material*/ || y > 0 && lArray.get(i - 64).getTexture() == null) {
                 Face face = new Face();
                 face.setMaterial(material);
                 face.setNormals(new Vector3f(0,-1,0),new Vector3f(0,-1,0),new Vector3f(0,-1,0),new Vector3f(0,-1,0));
@@ -149,7 +146,7 @@ public class NaiveGreedyMesher {
             }
 
             // BACK
-            if (z == 63 /*&& buf.get(i + 64) != material*/ || z < 63 && reg.getForWorldId(lArray.apply(i + 4096)).getTexture() == null) {
+            if (z == 63 /*&& buf.get(i + 64) != material*/ || z < 63 && lArray.get(i + 4096).getTexture() == null) {
                 Face face = new Face();
                 face.setMaterial(material);
                 face.setNormals(new Vector3f(0,0,1),new Vector3f(0,0,1),new Vector3f(0,0,1),new Vector3f(0,0,1));
@@ -175,7 +172,7 @@ public class NaiveGreedyMesher {
             }
 
             // FRONT
-            if (z == 0 /*&& buf.get(i + 64) != material*/ || z > 0 && reg.getForWorldId(lArray.apply(i - 4096)).getTexture() == null) {
+            if (z == 0 /*&& buf.get(i + 64) != material*/ || z > 0 && lArray.get(i - 4096).getTexture() == null) {
                 Face face = new Face();
                 face.setMaterial(material);
                 face.setNormals(new Vector3f(0,0,-1),new Vector3f(0,0,-1),new Vector3f(0,0,-1),new Vector3f(0,0,-1));

@@ -1,219 +1,53 @@
 package com.ritualsoftheold.terra.offheap.world;
 
 import com.ritualsoftheold.terra.core.gen.interfaces.world.TerraWorld;
-import com.ritualsoftheold.terra.core.gen.interfaces.world.WorldGeneratorInterface;
+import com.ritualsoftheold.terra.offheap.WorldGeneratorInterface;
 import com.ritualsoftheold.terra.core.gen.objects.LoadMarker;
 import com.ritualsoftheold.terra.core.material.MaterialRegistry;
 import com.ritualsoftheold.terra.core.node.Chunk;
 import com.ritualsoftheold.terra.core.node.Node;
 import com.ritualsoftheold.terra.core.node.Octree;
-import com.ritualsoftheold.terra.offheap.DataConstants;
-import com.ritualsoftheold.terra.offheap.Pointer;
-import com.ritualsoftheold.terra.offheap.chunk.ChunkBuffer;
-import com.ritualsoftheold.terra.offheap.chunk.ChunkStorage;
-import com.ritualsoftheold.terra.offheap.data.TypeSelector;
-import com.ritualsoftheold.terra.offheap.io.ChunkLoaderInterface;
-import com.ritualsoftheold.terra.offheap.io.OctreeLoaderInterface;
-import com.ritualsoftheold.terra.offheap.memory.MemoryManager;
-import com.ritualsoftheold.terra.offheap.memory.MemoryPanicHandler;
-import com.ritualsoftheold.terra.offheap.node.OffheapChunk;
 import com.ritualsoftheold.terra.offheap.node.OffheapOctree;
-import com.ritualsoftheold.terra.offheap.octree.OctreeStorage;
-import com.ritualsoftheold.terra.offheap.octree.UsageListener;
-import com.ritualsoftheold.terra.offheap.verifier.TerraVerifier;
-import com.ritualsoftheold.terra.offheap.world.gen.WorldGenManager;
-import net.openhft.chronicle.core.Memory;
-import net.openhft.chronicle.core.OS;
 
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Executor;
-import java.util.function.IntToLongFunction;
 
 /**
  * Represents world that is mainly backed by offheap memory.
  */
-public class OffheapWorld implements TerraWorld {
-    
-    private static final Memory mem = OS.memory();
-    
-    // Loaders/savers
-    private ChunkLoaderInterface chunkLoader;
-    private OctreeLoaderInterface octreeLoaderInterface;
-    
-    // Data storage
-    private Executor storageExecutor;
-    private ChunkStorage chunkStorage;
-    private OctreeStorage octreeStorage;
-    
+public class OffheapWorld {
     // Some cached stuff
     private OffheapOctree masterOctree;
     private float masterScale;
     
-    // World generation
-    private WorldGeneratorInterface<?> generator;
-    private WorldGenManager genManager;
-    private Executor generatorExecutor;
-    
-    private MaterialRegistry registry;
-    
-    // Load markers
-    private List<OffheapLoadMarker> loadMarkers;
-    private WorldLoadListener loadListener;
-    
-    // Memory management
-    private MemoryManager memManager;
-        
+    // World generatio
+
     // Coordinates of world center
-    private float centerX;
-    private float centerY;
-    private float centerZ;
+    /*private float centerX = 0;
+    private float centerY = 0;
+    private float centerZ = 0;
+    /*
+     */
     
     // New world loader, no more huge methods in this class!
-    private WorldLoader worldLoader;
-    
-    private UsageListener octreeUsageListener;
-    
-    public static class Builder {
-        
-        private OffheapWorld world;
-        
-        private int octreeGroupSize;
-        
-        private long memPreferred;
-        private long memMax;
-        private MemoryPanicHandler memPanicHandler;
-        
-        private ChunkBuffer.Builder chunkBufferBuilder;
-        private int chunkMaxBuffers;
-        
-        private boolean perNodeReady;
-        
-        public Builder() {
-            world = new OffheapWorld();
-        }
-        
-        public Builder chunkLoader(ChunkLoaderInterface loader) {
-            world.chunkLoader = loader;
-            return this;
-        }
-        
-        public Builder octreeLoader(OctreeLoaderInterface loader) {
-            world.octreeLoaderInterface = loader;
-            return this;
-        }
-        
-        public Builder storageExecutor(Executor executor) {
-            world.storageExecutor = executor;
-            return this;
-        }
-        
-        public Builder chunkStorage(ChunkBuffer.Builder bufferBuilder, int maxBuffers) {
-            this.chunkBufferBuilder = bufferBuilder;
-            this.chunkMaxBuffers = maxBuffers;
-            
-            return this;
-        }
-        
-        public Builder octreeStorage(int groupSize) {
-            this.octreeGroupSize = groupSize;
-            return this;
-        }
-        
-        public Builder generator(WorldGeneratorInterface<?> generator) {
-            world.generator = generator;
-            return this;
-        }
-        
-        public Builder generatorExecutor(Executor executor) {
-            world.generatorExecutor = executor;
-            return this;
-        }
-        
-        public Builder materialRegistry(MaterialRegistry registry) {
-            world.registry = registry;
-            return this;
-        }
-        
-        public Builder memorySettings(long preferred, long max, MemoryPanicHandler panicHandler) {
-            this.memPreferred = preferred;
-            this.memMax = max;
-            this.memPanicHandler = panicHandler;
-            
-            return this;
-        }
-        
-        public Builder perNodeReadyCheck(boolean enabled) {
-            this.perNodeReady = enabled;
-            return this;
-        }
-        
-        public Builder octreeUsageListener(UsageListener listener) {
-            world.octreeUsageListener = listener;
-            return this;
-        }
-        
-        public OffheapWorld build(int hight) {
-            // Initialize some internal structures AFTER all user-controller initialization
-            world.loadMarkers = new ArrayList<>();
-            
-            // Create memory manager
-            world.memManager = new MemoryManager(world, memPreferred, memMax, memPanicHandler);
-            
-            // Initialize stuff that needs memory manager
-            world.octreeStorage = new OctreeStorage(octreeGroupSize, world.octreeLoaderInterface, world.storageExecutor, world.memManager,
-                    perNodeReady, world.octreeUsageListener);
-            chunkBufferBuilder.memListener(world.memManager);
-            chunkBufferBuilder.perChunkReady(perNodeReady);
-            world.chunkStorage = new ChunkStorage(world.registry, chunkBufferBuilder, chunkMaxBuffers, world.chunkLoader, world.storageExecutor);
-            
-            // Initialize memory manager with storages
-            world.memManager.initialize(world.octreeStorage, world.chunkStorage);
-            
-            // Initialize world generation
-            world.genManager = new WorldGenManager(world.generator, new TypeSelector(), world);
+    private ChunkSVOGenerator chunkGenerator;
+    private List<OffheapLoadMarker> loadMarkers;
+    private MaterialRegistry reg;
+    private WorldLoadListener worldListener;
 
-            // ... and world loading
-            world.worldLoader = new WorldLoader(world.octreeStorage, world.chunkStorage, world.genManager, hight);
-            
-            // Update master octree (and finish loader stuff)
-            world.updateMasterOctree();
-            
-            return world;
-        }
-    }
-    
     // Only used by the builder
-    private OffheapWorld() {}
-
-    @Override
-    public Octree getMasterOctree() {
-        return masterOctree;
+    public OffheapWorld(WorldGeneratorInterface generator, MaterialRegistry reg, int height, WorldLoadListener worldListener) {
+        this.reg = reg;
+        this.worldListener = worldListener;
+        loadMarkers = new ArrayList<>();
+        chunkGenerator = new ChunkSVOGenerator(generator, reg, height);
     }
 
-    @Override
     public MaterialRegistry getMaterialRegistry() {
-        return registry;
-    }
-    
-    public Node getNode(float x, float y, float z) {
-        long nodeData = getNodeId(x, y, z);
-        boolean isChunk = nodeData >>> 32 == 1;
-        int nodeId = (int) (nodeData & 0xffffff);
-        
-        if (isChunk) {
-            return chunkStorage.getChunk(nodeId);
-        } else {
-            return octreeStorage.getOctree(nodeId, registry);
-        }
-    }
-
-    @Override
-    public Chunk getChunk(float x, float y, float z) {
-        return null;
+        return reg;
     }
 
     /**
@@ -228,28 +62,18 @@ public class OffheapWorld implements TerraWorld {
         return 0; // TODO redo this
     }
     
-    public OctreeStorage getOctreeStorage() {
-        return octreeStorage;
-    }
-    
-    public ChunkStorage getChunkStorage() {
-        return chunkStorage;
-    }
-    
     private OffheapLoadMarker checkLoadMarker(LoadMarker marker) {
         if (!(marker instanceof OffheapLoadMarker))
             throw new IllegalArgumentException("incompatible load marker");
         return (OffheapLoadMarker) marker;
     }
 
-    @Override
     public void addLoadMarker(LoadMarker marker) {
         loadMarkers.add(checkLoadMarker(marker));
         loadMarkers.sort(Comparator.reverseOrder()); // Sort most important first
     }
     
 
-    @Override
     public void removeLoadMarker(LoadMarker marker) {
         checkLoadMarker(marker); // Wrong type wouldn't actually break anything
         // But user probably wants to know if they're passing wrong marker to us
@@ -264,7 +88,6 @@ public class OffheapWorld implements TerraWorld {
         }
     }
 
-    @Override
     public List<CompletableFuture<Void>> updateLoadMarkers() {
         List<CompletableFuture<Void>> pendingMarkers = new ArrayList<>(loadMarkers.size());
         // Delegate updating to async code, this might be costly
@@ -282,7 +105,7 @@ public class OffheapWorld implements TerraWorld {
             if (ignoreMoved || marker.hasMoved()) { // Update only marker that has been moved
                 // When player moves a little, DO NOT, I repeat, DO NOT just blindly move load marker.
                 // Move it when player has moved a few meters or so!
-                pendingMarkers.add(CompletableFuture.runAsync(() -> updateLoadMarker(marker, soft), storageExecutor));
+                pendingMarkers.add(CompletableFuture.runAsync(() -> updateLoadMarker(marker, soft)));
             }
         }
         
@@ -291,7 +114,7 @@ public class OffheapWorld implements TerraWorld {
 
     public void initialChunkGeneration(OffheapLoadMarker player) {
         // Tell world loader to load stuff, and while doing so, update the load marker
-        worldLoader.seekSector(player.getX(), player.getZ(), player.getHardRadius(), loadListener, player);
+        chunkGenerator.seekSector(player.getX(), player.getZ(), player.getHardRadius(), worldListener, player);
         player.markUpdated();
     }
 
@@ -302,8 +125,8 @@ public class OffheapWorld implements TerraWorld {
      */
     public void updateLoadMarker(OffheapLoadMarker marker, boolean soft) {
         // Tell world loader to load stuff, and while doing so, update the load marker
-        worldLoader.updateSector(marker.getX(), marker.getZ(),
-                soft ? marker.getSoftRadius() : marker.getHardRadius(), loadListener, marker);
+        chunkGenerator.updateSector(marker.getX(), marker.getZ(),
+                soft ? marker.getSoftRadius() : marker.getHardRadius(), worldListener, marker);
         marker.markUpdated();
     }
 
@@ -313,40 +136,9 @@ public class OffheapWorld implements TerraWorld {
      * override the load listener.
      * @param listener Load listener.
      */
-    public void setLoadListener(WorldLoadListener listener) {
-        this.loadListener = listener;
-    }
-    
-    public WorldLoadListener getLoadListener() {
-        return loadListener;
-    }
-    
-    /**
-     * Requests memory manager to start unloading data if that is needed.
-     */
-    public void requestUnload() {
-        memManager.queueUnload();
-    }
     
     /**
      * Updates master octree data from offheap data storage.
-     */
-    public void updateMasterOctree() {
-        System.out.println("masterIndex: " + octreeStorage.getMasterIndex());
-        int masterIndex = octreeStorage.getMasterIndex();
-        // TODO cleanup
-//        masterOctree = octreeStorage.getOctree(masterIndex, registry); // TODO do we really need OffheapOctree in world for this?
-        masterScale = octreeStorage.getMasterScale(2048); // TODO need to have this CONFIGURABLE!
-        centerX = octreeStorage.getCenterPoint(0);
-        centerY = octreeStorage.getCenterPoint(1);
-        centerZ = octreeStorage.getCenterPoint(2);
-        System.out.println("world center: " + centerX + ", " + centerY + ", " + centerZ + ", scale: " + masterScale);
-        mem.writeByte(octreeStorage.getOctreeAddrInternal(masterIndex), (byte) 0xff); // Just in case, master octree has no single nodes
-        
-        // Update relevant data to world loader
-        worldLoader.worldConfig(masterIndex, masterScale);
-    }
-
     public OffheapLoadMarker getLoadMarker(float x, float y, float z){
         for(OffheapLoadMarker loadMarker:loadMarkers){
             float lessX = loadMarker.getX() - loadMarker.getHardRadius() * 16;
@@ -416,31 +208,6 @@ public class OffheapWorld implements TerraWorld {
      * @param target Target memory address
      * @return Relevant information about copied chunk.
      */
-    public CopyChunkResult copyChunkData(int id, @Pointer long target) {
-        int bufId = id >>> 16;
-        chunkStorage.markUsed(bufId);
-        
-        // Get buffer and relevant memory addresses
-        ChunkBuffer buf = chunkStorage.getOrLoadBuffer(bufId);
-        int index = id & 0xffff;
-        long length;
-        byte type;
-        try (OffheapChunk.Storage storage = buf.getChunk(index).getStorage()) {
-            long addr = storage.memoryAddress();
-            length = storage.length();
-            type = storage.format.getChunkType();
-            
-            // Only copy if there is something to copy
-            if (length > 0) {
-                mem.copyMemory(addr, target, length);
-            }
-        }
-        
-        chunkStorage.markUnused(bufId);
-        
-        return new CopyChunkResult(true, type, (int) length);
-    }
-    
     /**
      * Attempts to copy data of given chunk. You'll provide a function which
      * can give memory addresses based on length of data.
@@ -451,85 +218,19 @@ public class OffheapWorld implements TerraWorld {
      * @return Relevant information about copied chunk, or indication of
      * failure to copy it.
      */
-    public CopyChunkResult copyChunkData(int id, IntToLongFunction handler) {
-        int bufId = id >>> 16;
-        chunkStorage.markUsed(bufId);
-        
-        // Get buffer and relevant memory addresses
-        ChunkBuffer buf = chunkStorage.getOrLoadBuffer(bufId);
-        int index = id & 0xffff;
-        long length;
-        byte type;
-        try (OffheapChunk.Storage storage = buf.getChunk(index).getStorage()) {
-            long addr = storage.memoryAddress();
-            length = storage.length();
-            type = storage.format.getChunkType();
-            
-            // Only copy if there is something to copy
-            if (length > 0) {
-                long target = handler.applyAsLong((int) length);
-                if (target == 0) { // Chunk length is more than 0 but we got NULL pointer...
-                    return new CopyChunkResult(false, (byte) 0, 0); // Fail
-                }
-                mem.copyMemory(addr, target, length);
-            }
-        }
-        
-        chunkStorage.markUnused(bufId);
-        
-        return new CopyChunkResult(true, type, (int) length);
-    }
-    
     /**
      * Copies an octree group or parts of one to given memory address.
      * Make sure there is enough space allocated!
-     * @param index Group index.
-     * @param target Target memory address.
-     * @param beginIndex Index of first octree to be copied.
-     * @param endIndex Index of last octree to be copied. Negative values
      * are interpreted as last octree of the group
      * @return How much bytes were eventually copied.
-     */
-    public int copyOctreeGroup(int index, @Pointer long target, int beginIndex, int endIndex) {
-        if (endIndex < 0) { // Default to last octree in group
-            endIndex = octreeStorage.getGroupSize() - 1;
-        }
-        
-        // Calculate count, validate it, if passed then calculate length
-        int count = endIndex - beginIndex;
-        if (beginIndex < 0) {
-            throw new IllegalArgumentException("beginIndex cannot be less than 0");
-        }
-        if (endIndex >= octreeStorage.getGroupSize()) {
-            throw new IllegalArgumentException("endIndex cannot be greater than size of group");
-        }
-        if (count < 1) {
-            throw new IllegalArgumentException("copying less than one octree is not possible");
-        }
-        int length = count * DataConstants.OCTREE_SIZE;
-        
-        octreeStorage.markUsed(index); // Prevent group from being unloaded
-        
-        // Get address of group and copy relevant nodes
-        long addr = octreeStorage.getGroup(index);
-        mem.copyMemory(addr + beginIndex * DataConstants.OCTREE_SIZE, target + endIndex * DataConstants.OCTREE_SIZE, length);
-        
-        octreeStorage.markUnused(index); // Allow unloading again, copy finished
-        
-        return length;
-    }
     
     /**
      * Creates a new data verifier, configured to work with settings of this
      * world. It is not valid for any other worlds!
      * @return A new Terra verifier for this world.
      */
-    public TerraVerifier createVerifier() {
-        return new TerraVerifier(octreeStorage.getGroupSize(), chunkStorage.getBufferBuilder().maxChunks(),
-                chunkStorage.getAllBuffers().length());
-    }
 
     public OffheapLoadMarker createLoadMarker(float x, float y, float z, float hardRadius, float softRadius, int priority) {
-        return new OffheapLoadMarker(x, y, z, hardRadius, softRadius, priority, octreeUsageListener);
+        return new OffheapLoadMarker(x, y, z, hardRadius, softRadius, priority);
     }
 }
