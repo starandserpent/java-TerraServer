@@ -44,6 +44,7 @@ public class OffheapWorld {
         this.worldListener = worldListener;
         loadMarkers = new ArrayList<>();
         chunkGenerator = new ChunkSVOGenerator(generator, reg, height);
+        masterOctree = new OffheapOctree(reg);
     }
 
     public MaterialRegistry getMaterialRegistry() {
@@ -125,8 +126,8 @@ public class OffheapWorld {
      */
     public void updateLoadMarker(OffheapLoadMarker marker, boolean soft) {
         // Tell world loader to load stuff, and while doing so, update the load marker
-        chunkGenerator.updateSector(marker.getX(), marker.getZ(),
-                soft ? marker.getSoftRadius() : marker.getHardRadius(), worldListener, marker);
+//        chunkGenerator.updateSector(marker.getX(), marker.getZ(),
+//                soft ? marker.getSoftRadius() : marker.getHardRadius(), worldListener, marker);
         marker.markUpdated();
     }
 

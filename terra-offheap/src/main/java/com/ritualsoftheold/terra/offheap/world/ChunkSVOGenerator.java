@@ -3,6 +3,7 @@ package com.ritualsoftheold.terra.offheap.world;
 import com.ritualsoftheold.terra.core.material.MaterialRegistry;
 import com.ritualsoftheold.terra.offheap.WorldGeneratorInterface;
 import com.ritualsoftheold.terra.offheap.chunk.ChunkLArray;
+
 /**
  * Handles loading of offheap worlds. Usually this class is used by load
  * markers; direct usage is not recommended for application developers.
@@ -15,19 +16,21 @@ public class ChunkSVOGenerator {
     private float worldScale;
     private WorldGeneratorInterface generator;
     private MaterialRegistry reg;
-    private int hight;
+    private int height;
 
-    public ChunkSVOGenerator(WorldGeneratorInterface generator, MaterialRegistry reg, int hight) {
-        this.hight = hight;
+    public ChunkSVOGenerator(WorldGeneratorInterface generator, MaterialRegistry reg, int height) {
+        this.height = height;
         this.generator = generator;
         this.reg = reg;
+        System.out.println("Called------------------------------- "+height);
     }
 
     public void seekSector(float x, float z, float range, WorldLoadListener listener, OffheapLoadMarker trigger) {
+
         this.centerX = 0;
         this.centerZ = 0;
 
-        for(float rangeY = -hight*2; rangeY <= hight*2; rangeY +=16) {
+        for(float rangeY = -height *2; rangeY <= height *2; rangeY +=16) {
             loadArea(0, rangeY, 0, listener);
             for (float f = 1; f <= range; f++) {
                 for (float rangeZ = -f; rangeZ < f; rangeZ++) {
@@ -45,7 +48,7 @@ public class ChunkSVOGenerator {
     }
 
     public void updateSector(float x, float z, float range, WorldLoadListener listener, OffheapLoadMarker trigger) {
-        for(float rangeY = -hight*2; rangeY <= hight*2; rangeY +=16) {
+        for(float rangeY = -height *2; rangeY <= height *2; rangeY +=16) {
             if (x > centerX) {
                 for (float rangeZ = -range; rangeZ <= range; rangeZ++) {
                     loadArea(16 * range + x, rangeY, 16 * rangeZ + z, listener);

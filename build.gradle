@@ -39,6 +39,8 @@ allprojects {
         testCompile("junit:junit:4.12")
         testRuntime("org.junit.vintage:junit-vintage-engine:5.4.0")
         compile 'org.xerial.larray:larray_2.12:0.4.1'
+        implementation 'net.openhft:chronicle-core:2.17.12'
+        implementation 'net.openhft:chronicle-map:3.17.3'
     }
     
     task sourceJar(type: Jar) {

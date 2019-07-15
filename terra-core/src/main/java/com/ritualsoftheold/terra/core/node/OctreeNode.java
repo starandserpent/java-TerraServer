@@ -1,14 +1,22 @@
 package com.ritualsoftheold.terra.core.node;
 
+import java.io.Serializable;
+
 /*
 *   New Octree definition. Basic Node for a linear octree
 *
 *
 */
-public class OctreeNode {
+public class OctreeNode implements Serializable {
     public int chunkLoc;
     public int locCode;
     public byte childExists;
+
+    public OctreeNode(){
+        chunkLoc = 0;
+        locCode = 0;
+        childExists = 0;
+    }
 
     public int getNodeDepth(){
         int lcIterator = locCode;
@@ -24,4 +32,5 @@ public class OctreeNode {
         }
         return depth;
     }
+
 }
