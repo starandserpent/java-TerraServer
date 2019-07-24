@@ -115,7 +115,8 @@ public class OffheapWorld {
 
     public void initialChunkGeneration(OffheapLoadMarker player) {
         // Tell world loader to load stuff, and while doing so, update the load marker
-        chunkGenerator.seekSector(player.getX(), player.getZ(), player.getHardRadius(), worldListener, player);
+//        chunkGenerator.seekSector(player.getX(), player.getZ(), player.getHardRadius()*2, worldListener, player);
+        chunkGenerator.seekSector(player.getX(),player.getY(),player.getZ(),player.getHardRadius(),worldListener,player);
         player.markUpdated();
     }
 

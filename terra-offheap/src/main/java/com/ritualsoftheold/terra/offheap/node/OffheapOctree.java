@@ -3,14 +3,12 @@ package com.ritualsoftheold.terra.offheap.node;
 import com.ritualsoftheold.terra.core.buffer.BlockBuffer;
 import com.ritualsoftheold.terra.core.material.MaterialRegistry;
 import com.ritualsoftheold.terra.core.material.TerraMaterial;
-import com.ritualsoftheold.terra.core.node.Chunk;
-import com.ritualsoftheold.terra.core.node.Node;
-import com.ritualsoftheold.terra.core.node.Octree;
-import com.ritualsoftheold.terra.core.node.OctreeNode;
+import com.ritualsoftheold.terra.core.node.*;
 import com.ritualsoftheold.terra.offheap.DataConstants;
 import com.ritualsoftheold.terra.offheap.chunk.ChunkLArray;
 import com.ritualsoftheold.terra.offheap.data.OffheapNode;
 
+import net.openhft.chronicle.bytes.NativeBytesStore;
 import net.openhft.chronicle.core.Memory;
 import net.openhft.chronicle.core.OS;
 import net.openhft.chronicle.core.values.IntValue;
@@ -39,6 +37,7 @@ public class OffheapOctree implements Octree, OffheapNode {
 
     private int x,y,z;
 
+
     public OffheapOctree(long addr, int octreeId, MaterialRegistry materialRegistry) {
         this.addr = addr;
         this.octreeId = octreeId;
@@ -49,11 +48,21 @@ public class OffheapOctree implements Octree, OffheapNode {
 //        IntValue avgKeyTmp = Values.newHeapInstance(IntValue.class);
 //        avgKeyTmp.setValue(Integer.MAX_VALUE);
         linearOctree = new HashMap<>();
+        OctreeNode root = new OctreeNode();
+        linearOctree.put(root.locCode,root);
+//        Point offHeapPoint = Values.newNativeReference(Point.class);
+//        long size = offHeapPoint.maxSize();
+//        NativeBytesStore<Void> offHeapStore = NativeBytesStore.nativeStore(size);
+//        offHeapPoint.bytesStore(offHeapStore,0,size);
+//        offHeapPoint.setX(0);
+//        offHeapPoint.setY(0);
+//        System.out.println("Value: "+offHeapPoint);
+//        offHeapStore.release();
     }
     //--------------------------------------
     // NEW LINEAR OCTREE METHODS
     //--------------------------------------
-    public void SetOctreeOrigin(int x,int y, int z){
+    public void SetOctreeOrigin(int x,int y, int z, int size){
         this.x = x;
         this.y = y;
         this.z = z;
