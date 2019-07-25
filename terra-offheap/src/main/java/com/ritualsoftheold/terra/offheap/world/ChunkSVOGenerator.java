@@ -77,7 +77,7 @@ public class ChunkSVOGenerator {
             float yWorld = (yOffset * chunkWorldSize) + genOriginY;
             float zWorld = (zOffset * chunkWorldSize) + genOriginZ;
 
-            System.out.println("World coord: "+xWorld+" "+yWorld+" "+zWorld);
+//            System.out.println("World coord: "+xWorld+" "+yWorld+" "+zWorld);
 
             loadArea(xWorld,yWorld,zWorld,listener);
         }
