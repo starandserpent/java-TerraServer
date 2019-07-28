@@ -4,6 +4,7 @@ import com.ritualsoftheold.terra.core.material.MaterialRegistry;
 import com.ritualsoftheold.terra.offheap.DataConstants;
 import com.ritualsoftheold.terra.offheap.WorldGeneratorInterface;
 import com.ritualsoftheold.terra.offheap.chunk.ChunkLArray;
+import com.ritualsoftheold.terra.offheap.util.Morton3D;
 
 /**
  * Handles loading of offheap worlds. Usually this class is used by load
@@ -23,6 +24,7 @@ public class ChunkSVOGenerator {
     private WorldGeneratorInterface generator;
     private MaterialRegistry reg;
     private int height;
+    private Morton3D morton3D = new Morton3D();
 
     public ChunkSVOGenerator(WorldGeneratorInterface generator, MaterialRegistry reg, int height) {
         this.height = height;
@@ -78,8 +80,9 @@ public class ChunkSVOGenerator {
             float zWorld = (zOffset * chunkWorldSize) + genOriginZ;
 
 //            System.out.println("World coord: "+xWorld+" "+yWorld+" "+zWorld);
-
+           long lolong = morton3D.encode(xOffset,yOffset,zOffset);
             loadArea(xWorld,yWorld,zWorld,listener);
+
         }
 
     }
