@@ -47,11 +47,12 @@ public class OffheapOctree implements Octree, OffheapNode {
         this.materialRegistry = materialRegistry;
 //        IntValue avgKeyTmp = Values.newHeapInstance(IntValue.class);
 //        avgKeyTmp.setValue(Integer.MAX_VALUE);
-        linearOctree = new HashMap<>();
-        OctreeNode root = new OctreeNode();
-        linearOctree.put(root.locCode,root);
+//        linearOctree = new HashMap<>();
+//        OctreeNode root = new OctreeNode();
+//        linearOctree.put(root.locCode,root);
 //        Point offHeapPoint = Values.newNativeReference(Point.class);
-//        long size = offHeapPoint.maxSize();
+//        long size = offHeap159632asdf
+//        Point.maxSize();
 //        NativeBytesStore<Void> offHeapStore = NativeBytesStore.nativeStore(size);
 //        offHeapPoint.bytesStore(offHeapStore,0,size);
 //        offHeapPoint.setX(0);
@@ -62,25 +63,25 @@ public class OffheapOctree implements Octree, OffheapNode {
     //--------------------------------------
     // NEW LINEAR OCTREE METHODS
     //--------------------------------------
-    public void SetOctreeOrigin(int x,int y, int z, int size){
-        this.x = x;
-        this.y = y;
-        this.z = z;
-    }
-    public OctreeNode GetParentNode(OctreeNode node){
-        int locParent = node.locCode >> 3;
-        return linearOctree.get(locParent);
-    }
-    public boolean InsertChunkOctree(int chunkLoc, int dx, int dy, int dz){
-        //Case 1: Empty Octree
-        if(linearOctree.size() == 0){
-            OctreeNode octreeNode = new OctreeNode();
-            octreeNode.chunkLoc = chunkLoc;
-            linearOctree.put(octreeNode.locCode,octreeNode);
-            return true;
-        }
-        return false;
-    }
+//    public void SetOctreeOrigin(int x,int y, int z, int size){
+//        this.x = x;
+//        this.y = y;
+//        this.z = z;
+//    }
+//    public OctreeNode GetParentNode(OctreeNode node){
+//        int locParent = node.locCode >> 3;
+//        return linearOctree.get(locParent);
+//    }
+//    public boolean InsertChunkOctree(int chunkLoc, int dx, int dy, int dz){
+//        //Case 1: Empty Octree
+//        if(linearOctree.size() == 0){
+//            OctreeNode octreeNode = new OctreeNode();
+//            octreeNode.chunkLoc = chunkLoc;
+//            linearOctree.put(octreeNode.locCode,octreeNode);
+//            return true;
+//        }
+//        return false;
+//    }
     //--------------------------------------
     @Override
     public Type getNodeType() {

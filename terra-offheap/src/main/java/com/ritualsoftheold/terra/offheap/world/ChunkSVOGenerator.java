@@ -1,10 +1,14 @@
 package com.ritualsoftheold.terra.offheap.world;
 
 import com.ritualsoftheold.terra.core.material.MaterialRegistry;
+import com.ritualsoftheold.terra.core.node.OctreeNode;
 import com.ritualsoftheold.terra.offheap.DataConstants;
 import com.ritualsoftheold.terra.offheap.WorldGeneratorInterface;
 import com.ritualsoftheold.terra.offheap.chunk.ChunkLArray;
 import com.ritualsoftheold.terra.offheap.util.Morton3D;
+import net.openhft.chronicle.values.Values;
+
+import java.sql.Timestamp;
 
 /**
  * Handles loading of offheap worlds. Usually this class is used by load
@@ -25,6 +29,7 @@ public class ChunkSVOGenerator {
     private MaterialRegistry reg;
     private int height;
     private Morton3D morton3D = new Morton3D();
+
 
     public ChunkSVOGenerator(WorldGeneratorInterface generator, MaterialRegistry reg, int height) {
         this.height = height;
@@ -70,6 +75,11 @@ public class ChunkSVOGenerator {
         System.out.println("Origin: "+genOriginX+","+genOriginY+","+genOriginZ);
         int size = (int)(range)*2;
         int maxSize = size * size * size;
+        Timestamp timestamp = new Timestamp(System.currentTimeMillis());
+        System.out.println("Started sector seek "+timestamp);
+
+        OctreeNode[] OctreeLeafs = new OctreeNode[maxSize];
+
         for(int i = 0; i < maxSize; i++){
             int xOffset =  i % size;
             int yOffset =  (i/size)%size;
@@ -81,9 +91,14 @@ public class ChunkSVOGenerator {
 
 //            System.out.println("World coord: "+xWorld+" "+yWorld+" "+zWorld);
            long lolong = morton3D.encode(xOffset,yOffset,zOffset);
-            loadArea(xWorld,yWorld,zWorld,listener);
+           System.out.println(lolong);
+//            loadArea(xWorld,yWorld,zWorld,listener);
+            OctreeNode leafNode = new OctreeNode();
+            OctreeLeafs[(int)lolong] = leafNode;
 
         }
+        timestamp = new Timestamp(System.currentTimeMillis());
+        System.out.println("Ended sector seek "+timestamp);
 
     }
 
@@ -135,11 +150,11 @@ public class ChunkSVOGenerator {
     }*/
 
     public void loadArea(float x, float y, float z, WorldLoadListener listener) {
-        if(x > 0 && z > 0) {
+//        if(x > 0 && z > 0) {
             ChunkLArray chunk = new ChunkLArray(x, y, z, reg);
-            generator.generate(chunk);
-            listener.chunkLoaded(chunk);
-        }
+//            generator.generate(chunk);
+//            listener.chunkLoaded(chunk);
+//        }
     }
     
     /**
