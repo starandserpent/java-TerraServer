@@ -16,7 +16,7 @@ import net.openhft.chronicle.map.ChronicleMap;
 import net.openhft.chronicle.map.ChronicleMapBuilder;
 import net.openhft.chronicle.values.Values;
 
-import java.util.HashMap;
+import java.util.*;
 
 // TODO implement this class or figure out something better
 public class OffheapOctree implements Octree, OffheapNode {
@@ -32,10 +32,11 @@ public class OffheapOctree implements Octree, OffheapNode {
     
     private MaterialRegistry materialRegistry;
 
-    //This will be out octree, the locational code of the octree node will be used as the key
-    private HashMap<Integer,OctreeNode> linearOctree;
+    private OctreeNode rootNode = null;
+    private ArrayList<OctreeNode> octree;
 
     private int x,y,z;
+    private int size;
 
 
     public OffheapOctree(long addr, int octreeId, MaterialRegistry materialRegistry) {
@@ -45,6 +46,7 @@ public class OffheapOctree implements Octree, OffheapNode {
     }
     public OffheapOctree(MaterialRegistry materialRegistry){
         this.materialRegistry = materialRegistry;
+        octree = new ArrayList<>();
 //        IntValue avgKeyTmp = Values.newHeapInstance(IntValue.class);
 //        avgKeyTmp.setValue(Integer.MAX_VALUE);
 //        linearOctree = new HashMap<>();
@@ -63,25 +65,67 @@ public class OffheapOctree implements Octree, OffheapNode {
     //--------------------------------------
     // NEW LINEAR OCTREE METHODS
     //--------------------------------------
-//    public void SetOctreeOrigin(int x,int y, int z, int size){
-//        this.x = x;
-//        this.y = y;
-//        this.z = z;
-//    }
-//    public OctreeNode GetParentNode(OctreeNode node){
-//        int locParent = node.locCode >> 3;
-//        return linearOctree.get(locParent);
-//    }
-//    public boolean InsertChunkOctree(int chunkLoc, int dx, int dy, int dz){
-//        //Case 1: Empty Octree
-//        if(linearOctree.size() == 0){
-//            OctreeNode octreeNode = new OctreeNode();
-//            octreeNode.chunkLoc = chunkLoc;
-//            linearOctree.put(octreeNode.locCode,octreeNode);
-//            return true;
-//        }
-//        return false;
-//    }
+    public void SetOctreeOrigin(int x,int y, int z, int size){
+        this.x = x;
+        this.y = y;
+        this.z = z;
+        this.size = size;
+    }
+    public OctreeNode GetParentNode(){
+        return rootNode;
+    }
+    //We create the octree from a bottom up approach
+    public void createOctree(OctreeNode[] leafNodes){
+        byte childCounter = 0;
+        int nodeCounter = 0;
+        Queue nodeQueue = new LinkedList();
+        for(int i = 0;i < leafNodes.length;i++){
+            if(childCounter < 8){
+                octree.add(leafNodes[i]);
+                childCounter+=1;
+                nodeCounter+=1;
+            }
+            else{
+                OctreeNode c1 = octree.get(nodeCounter-1);
+                OctreeNode c2 = octree.get(nodeCounter-2);
+                OctreeNode c3 = octree.get(nodeCounter-3);
+                OctreeNode c4 = octree.get(nodeCounter-4);
+                OctreeNode c5 = octree.get(nodeCounter-5);
+                OctreeNode c6 = octree.get(nodeCounter-6);
+                OctreeNode c7 = octree.get(nodeCounter-7);
+                OctreeNode c8 = octree.get(nodeCounter-8);
+
+                OctreeNode parent = new OctreeNode(false);
+                octree.add(parent);
+                nodeCounter+=1;
+                childCounter=0;
+                nodeQueue.add(nodeQueue);
+            }
+        }
+        while(!nodeQueue.isEmpty()){
+            if(childCounter < 8){
+                OctreeNode node =(OctreeNode) nodeQueue.poll();
+                childCounter+=1;
+                nodeCounter+=1;
+            }else{
+                OctreeNode c1 = octree.get(nodeCounter-1);
+                OctreeNode c2 = octree.get(nodeCounter-2);
+                OctreeNode c3 = octree.get(nodeCounter-3);
+                OctreeNode c4 = octree.get(nodeCounter-4);
+                OctreeNode c5 = octree.get(nodeCounter-5);
+                OctreeNode c6 = octree.get(nodeCounter-6);
+                OctreeNode c7 = octree.get(nodeCounter-7);
+                OctreeNode c8 = octree.get(nodeCounter-8);
+
+                OctreeNode parent = new OctreeNode(false);
+                octree.add(parent);
+                nodeCounter+=1;
+                childCounter=0;
+                nodeQueue.add(nodeQueue);
+            }
+
+        }
+    }
     //--------------------------------------
     @Override
     public Type getNodeType() {

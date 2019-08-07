@@ -5,6 +5,7 @@ import com.ritualsoftheold.terra.core.node.OctreeNode;
 import com.ritualsoftheold.terra.offheap.DataConstants;
 import com.ritualsoftheold.terra.offheap.WorldGeneratorInterface;
 import com.ritualsoftheold.terra.offheap.chunk.ChunkLArray;
+import com.ritualsoftheold.terra.offheap.node.OffheapOctree;
 import com.ritualsoftheold.terra.offheap.util.Morton3D;
 import net.openhft.chronicle.values.Values;
 
@@ -29,12 +30,13 @@ public class ChunkSVOGenerator {
     private MaterialRegistry reg;
     private int height;
     private Morton3D morton3D = new Morton3D();
+    private OffheapOctree offheapOctree;
 
-
-    public ChunkSVOGenerator(WorldGeneratorInterface generator, MaterialRegistry reg, int height) {
+    public ChunkSVOGenerator(WorldGeneratorInterface generator, MaterialRegistry reg, int height, OffheapOctree offheapOctree) {
         this.height = height;
         this.generator = generator;
         this.reg = reg;
+        this.offheapOctree = offheapOctree;
         System.out.println("Called------------------------------- "+height);
     }
 
@@ -94,9 +96,12 @@ public class ChunkSVOGenerator {
            System.out.println(lolong);
 //            loadArea(xWorld,yWorld,zWorld,listener);
             OctreeNode leafNode = new OctreeNode();
+            leafNode.locCode = lolong;
             OctreeLeafs[(int)lolong] = leafNode;
 
         }
+        offheapOctree.SetOctreeOrigin((int) x,(int) y,(int) z,maxSize);
+        offheapOctree.createOctree(OctreeLeafs);
         timestamp = new Timestamp(System.currentTimeMillis());
         System.out.println("Ended sector seek "+timestamp);
 

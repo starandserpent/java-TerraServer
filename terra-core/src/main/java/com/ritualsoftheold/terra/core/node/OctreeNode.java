@@ -14,16 +14,16 @@ import java.io.Serializable;
 */
 public class OctreeNode {
     public int chunkLoc;
-    public int locCode;
+    public long locCode;
     public byte childExists;
 
     public OctreeNode[] children;
 
-    public OctreeNode(boolean isChild){
+    public OctreeNode(boolean isLeaf){
         chunkLoc = 0;
         locCode = 0;
         childExists = 0;
-        if(!isChild)
+        if(!isLeaf)
             children = new OctreeNode[]{null,null,null,null,null,null,null,null};
     }
     public OctreeNode(){

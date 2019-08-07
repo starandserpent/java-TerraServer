@@ -43,8 +43,9 @@ public class OffheapWorld {
         this.reg = reg;
         this.worldListener = worldListener;
         loadMarkers = new ArrayList<>();
-        chunkGenerator = new ChunkSVOGenerator(generator, reg, height);
+
         masterOctree = new OffheapOctree(reg);
+        chunkGenerator = new ChunkSVOGenerator(generator, reg, height,masterOctree);
     }
 
     public MaterialRegistry getMaterialRegistry() {
