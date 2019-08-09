@@ -149,9 +149,8 @@ gradle-app.setting
 
 # End of https://www.gitignore.io/api/java,eclipse,intellij,gradle
 
-# Terra data files
-terra-testgame/chunks
-terra-testgame/octrees
-
 # Subproject build folders
 */build/
+
+# Private assets
+*.fbx

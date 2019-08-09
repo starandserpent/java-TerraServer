@@ -10,25 +10,25 @@ public class Face implements Comparable<Face> {
     private Vector3f[] normals;
     private TerraMaterial material;
 
-    public Face() {
+    Face() {
         textureCoords = new Vector3f[4];
         vector3f = new Vector3f[4];
         normals = new Vector3f[4];
     }
 
-    public void setNormals(Vector3f... normals) {
+    void setNormals(Vector3f... normals) {
         this.normals = normals;
     }
 
-    public void setVector3f(int x, int y, int z, int position) {
+    void setVector3f(int x, int y, int z, int position) {
         this.vector3f[position] = new Vector3f(x/4f, y/4f, z/4f);
     }
 
-    public void setVector3f(Vector3f vector3f, int position) {
+    void setVector3f(Vector3f vector3f, int position) {
         this.vector3f[position] = vector3f;
     }
 
-    public void setTextureCoords(float x, float y, int position) {
+    void setTextureCoords(float x, float y, int position) {
         //TODO better material positioning (maybe it is alright like this)
         this.textureCoords[position] = new Vector3f(x, y, material.getWorldId() - 2);
     }
