@@ -1,0 +1,25 @@
+//Inverse radius is just 1/radius
+struct Box {
+    vec3     position;
+    vec3     radius;
+    vec3     invRadius;
+    mat3     rotation;
+    vec3     min_pos;
+    vec3     max_pos;
+};
+struct Ray{
+    vec3 origin;
+    vec3 direction;
+    vec3 invDirection;
+};
+
+float safeInverse(float x) { return (x == 0.0) ? 1e12 : (1.0 / x); }
+vec3 safeInverse(vec3 v) { return vec3(safeInverse(v.x), safeInverse(v.y), safeInverse(v.z)); }
+
+float max3(float a, float b, float c) {
+    return max(a, max(b, c));
+}
+
+float maxComponent(vec3 a) {
+    return max3(a.x, a.y, a.z);
+}

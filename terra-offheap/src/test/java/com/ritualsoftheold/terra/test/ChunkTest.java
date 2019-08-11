@@ -31,7 +31,7 @@ public class ChunkTest {
     
     @Before
     public void init() {
-        int queueSize = 10;
+        int queueSize = 65;
         long queueAddr = mem.allocate(queueSize * 8 * 2);
         reg = new MaterialRegistry();
         ChunkStorage storage = new ChunkStorage(reg, null, 1, null, null);
@@ -79,7 +79,7 @@ public class ChunkTest {
     @Test
     public void palette16Test() {
         long addr = mem.allocate(DataConstants.CHUNK_MAX_BLOCKS / 2);
-        OffheapChunk.Storage storage = new OffheapChunk.Storage(Palette16ChunkFormat.INSTANCE, addr, DataConstants.CHUNK_MAX_BLOCKS / 2);
+        OffheapChunk.Storage storage = new OffheapChunk.Storage(Palette16ChunkFormat.INSTANCE, addr, DataConstants.CHUNK_MAX_BLOCKS );
         chunk.setStorageInternal(storage);
         
         // Create 11 new materials
@@ -121,7 +121,7 @@ public class ChunkTest {
     @Test
     public void queueStress() {
         long addr = mem.allocate(DataConstants.CHUNK_MAX_BLOCKS / 2);
-        OffheapChunk.Storage storage = new OffheapChunk.Storage(Palette16ChunkFormat.INSTANCE, addr, DataConstants.CHUNK_MAX_BLOCKS / 2);
+        OffheapChunk.Storage storage = new OffheapChunk.Storage(Palette16ChunkFormat.INSTANCE, addr, DataConstants.CHUNK_MAX_BLOCKS );
         chunk.setStorageInternal(storage);
         
         // Create 11 new materials

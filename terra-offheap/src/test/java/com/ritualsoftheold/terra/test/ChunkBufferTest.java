@@ -42,7 +42,9 @@ public class ChunkBufferTest {
                 .queueSize(4)
                 .memListener(new DummyMemoryUseListener())
                 .build(storage, (short) 1);
-        
+
+        int queueSize = 65;
+        buf = new ChunkBuffer(storage, 0, 10, queueSize, new DummyMemoryUseListener(), false);
     }
     
     @Before
