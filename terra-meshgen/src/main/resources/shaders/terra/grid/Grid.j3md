@@ -1,0 +1,15 @@
+MaterialDef Terrain {
+
+    MaterialParameters {
+    }
+
+    Technique {
+        VertexShader GLSL400:   shaders/terra/grid/Grid.vert
+        FragmentShader GLSL400: shaders/terra/grid/Grid.frag
+
+        WorldParameters {
+            WorldViewProjectionMatrix
+            WorldMatrix
+        }
+    }
+}

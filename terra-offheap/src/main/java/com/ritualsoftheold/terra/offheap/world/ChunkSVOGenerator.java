@@ -76,7 +76,7 @@ public class ChunkSVOGenerator {
         int size = (int)(range)*2;
         int maxSize = size * size * size;
         Timestamp timestamp = new Timestamp(System.currentTimeMillis());
-        System.out.println("Started sector seek "+timestamp);
+       // System.out.println("Started sector seek "+timestamp);
 
         OctreeNode[] OctreeLeafs = new OctreeNode[maxSize];
 
@@ -91,7 +91,7 @@ public class ChunkSVOGenerator {
 
 //            System.out.println("World coord: "+xWorld+" "+yWorld+" "+zWorld);
            long lolong = morton3D.encode(xOffset,yOffset,zOffset);
-           System.out.println(lolong);
+           //System.out.println(lolong);
 //            loadArea(xWorld,yWorld,zWorld,listener);
             OctreeNode leafNode = new OctreeNode();
             leafNode.locCode = lolong;
@@ -99,7 +99,7 @@ public class ChunkSVOGenerator {
 
         }
         offheapOctree.SetOctreeOrigin((int) x,(int) y,(int) z,maxSize);
-        offheapOctree.createOctree(OctreeLeafs);
+      //  offheapOctree.createOctree(OctreeLeafs);
         //timestamp = new Timestamp(System.currentTimeMillis());
         //System.out.println("Ended sector seek "+timestamp);
     }

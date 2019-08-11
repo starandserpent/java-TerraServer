@@ -5,8 +5,8 @@ MaterialDef Terrain {
     }
 
     Technique {
-        VertexShader GLSL400:   shaders/terra/TerraArray.vert
-        FragmentShader GLSL400: shaders/terra/TerraArray.frag
+        VertexShader GLSL400:   shaders/terra/voxel/TerraArray.vert
+        FragmentShader GLSL400: shaders/terra/voxel/TerraArray.frag
 
         WorldParameters {
             WorldViewProjectionMatrix
