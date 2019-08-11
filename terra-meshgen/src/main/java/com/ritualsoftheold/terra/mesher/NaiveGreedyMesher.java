@@ -27,7 +27,7 @@ public class NaiveGreedyMesher {
         }
 
         //Creates voxels from BlockBuffer and set its material
-        for (int i = 0; i < 262144; i++) {
+        for (int i = 0; i < ChunkLArray.CHUNK_SIZE; i++) {
             TerraMaterial material = lArray.get(i);
             if (material.getTexture() == null) { // TODO better AIR check
                 continue;
@@ -172,7 +172,7 @@ public class NaiveGreedyMesher {
             }
 
             // FRONT
-            if (z == 0 /*&& buf.get(i + 64) != material*/ || z > 0 && lArray.get(i - 4096).getTexture() == null) {
+            if (z == 0 || lArray.get(i - 4096).getTexture() == null) {
                 Face face = new Face();
                 face.setMaterial(material);
                 face.setNormals(new Vector3f(0,0,-1),new Vector3f(0,0,-1),new Vector3f(0,0,-1),new Vector3f(0,0,-1));

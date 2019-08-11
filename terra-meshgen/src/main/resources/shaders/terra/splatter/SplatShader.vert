@@ -1,4 +1,4 @@
-#import "shaders/terra/SplatShaderLib.glsllib"
+#import "shaders/terra/splatter/SplatShaderLib.glsllib"
 
 uniform mat4 g_WorldMatrix;
 uniform mat4 g_WorldViewProjectionMatrix;

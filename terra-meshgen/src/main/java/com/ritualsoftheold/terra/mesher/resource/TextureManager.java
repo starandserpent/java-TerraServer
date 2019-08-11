@@ -4,7 +4,6 @@ import com.jme3.asset.AssetManager;
 import com.jme3.texture.Image;
 import com.jme3.texture.Texture;
 import com.jme3.texture.TextureArray;
-import com.jme3.texture.image.ColorSpace;
 import com.ritualsoftheold.terra.core.material.MaterialRegistry;
 import com.ritualsoftheold.terra.core.material.TerraMaterial;
 
@@ -54,7 +53,7 @@ public class TextureManager{
         for (Image image:atlas) {
             image.setFormat(DEFAULT_IMAGE_FORMAT);
             if (image.getWidth() < maxWidth || image.getHeight() < maxHeight) {
-                int size = image.getWidth() < image.getHeight() ? image.getHeight() : image.getWidth();
+                int size = Math.max(image.getWidth(), image.getHeight());
                 completeImages(image, size);
             }
         }
@@ -63,7 +62,7 @@ public class TextureManager{
     }
 
     private void completeImages(Image image, int size) {
-        int atlasSize = maxHeight < maxWidth ? maxWidth : maxHeight;
+        int atlasSize = Math.max(maxHeight, maxWidth);
         int atlasSizeImage = atlasSize * BYTES_PER_PIXEL;
 
         ByteBuffer atlasBuf = ByteBuffer.allocateDirect(atlasSize * atlasSize * BYTES_PER_PIXEL); // 4 for alpha channel+colors, TODO configurable

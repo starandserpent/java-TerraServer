@@ -1,4 +1,4 @@
-#import "shaders/terra/SplatShaderLib.glsllib"
+#import "shaders/terra/splatter/SplatShaderLib.glsllib"
 uniform vec3 g_CameraPosition;
 uniform mat4 g_ViewProjectionMatrixInverse;
 uniform vec4 g_ViewPort;

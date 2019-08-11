@@ -6,8 +6,8 @@ MaterialDef PointSpriteShader {
     Technique {
         LightMode MultiPass
 
-        VertexShader   GLSL150 : shaders/terra/SplatShader.vert
-        FragmentShader GLSL150 : shaders/terra/SplatShader.frag
+        VertexShader   GLSL150 : shaders/terra/splatter/SplatShader.vert
+        FragmentShader GLSL150 : shaders/terra/splatter/SplatShader.frag
 
         WorldParameters {
             ProjectionMatrix
