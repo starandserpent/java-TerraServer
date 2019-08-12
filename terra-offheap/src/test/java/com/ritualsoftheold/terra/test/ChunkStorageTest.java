@@ -7,7 +7,7 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Executors;
 
 import com.jme3.scene.Geometry;
-import com.ritualsoftheold.terra.core.material.MaterialRegistry;
+import com.ritualsoftheold.terra.core.material.Registry;
 import com.ritualsoftheold.terra.offheap.chunk.ChunkBuffer;
 import com.ritualsoftheold.terra.offheap.chunk.ChunkStorage;
 //import com.ritualsoftheold.terra.offheap.io.dummy.DummyChunkLoaderInterface;
@@ -23,7 +23,7 @@ public class ChunkStorageTest {
     private static final Memory mem = OS.memory();
 
     private ChunkStorage storage;
-    private MaterialRegistry registry;
+    private Registry registry;
 
     @Before
     public void init() {
@@ -36,7 +36,7 @@ public class ChunkStorageTest {
         BlockingQueue<String> geoDeletQueue = new ArrayBlockingQueue<String>(1024);
         var meshListner = new com.ritualsoftheold.testgame.generation.MeshListener(mat,geometryBlockingQueue,geoDeletQueue);
         storage = new ChunkStorage(null, builder, 256, new ChunkLoader(meshListner), Executors.newCachedThreadPool());
-        registry = new MaterialRegistry();
+        registry = new Registry();
     }
 
     @Test

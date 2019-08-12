@@ -1,14 +1,10 @@
 package com.ritualsoftheold.terra.offheap.world;
 
-import com.ritualsoftheold.terra.core.material.MaterialRegistry;
-import com.ritualsoftheold.terra.core.node.OctreeNode;
-import com.ritualsoftheold.terra.offheap.DataConstants;
+import com.ritualsoftheold.terra.core.material.Registry;
 import com.ritualsoftheold.terra.offheap.WorldGeneratorInterface;
 import com.ritualsoftheold.terra.offheap.chunk.ChunkLArray;
 import com.ritualsoftheold.terra.offheap.node.OffheapOctree;
 import com.ritualsoftheold.terra.offheap.util.Morton3D;
-
-import java.sql.Timestamp;
 
 /**
  * Handles loading of offheap worlds. Usually this class is used by load
@@ -25,12 +21,12 @@ public class ChunkSVOGenerator {
 
     private float worldScale;
     private WorldGeneratorInterface generator;
-    private MaterialRegistry reg;
+    private Registry reg;
     private int height;
     private Morton3D morton3D = new Morton3D();
     private OffheapOctree offheapOctree;
 
-    ChunkSVOGenerator(WorldGeneratorInterface generator, MaterialRegistry reg, int height, OffheapOctree offheapOctree) {
+    ChunkSVOGenerator(WorldGeneratorInterface generator, Registry reg, int height, OffheapOctree offheapOctree) {
         this.height = height;
         this.generator = generator;
         this.reg = reg;

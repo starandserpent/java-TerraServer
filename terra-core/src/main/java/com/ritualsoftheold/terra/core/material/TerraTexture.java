@@ -16,13 +16,26 @@ public class TerraTexture{
     
     private String asset;
 
-    public TerraTexture(float scale, String asset) {
+    private boolean resource;
+
+    private int position;
+
+    public TerraTexture(float scale, String asset, boolean resource) {
         this.asset = asset;
         this.scale = scale;
+        this.resource = resource;
+    }
+
+    public void setPosition(int pos){
+        this.position = pos;
+    }
+
+    public TerraTexture(String asset){
+        this(asset, false);
     }
     
-    public TerraTexture(String asset) {
-        this(DEFAULT_SCALE, asset);
+    public TerraTexture(String asset, boolean resource) {
+        this(DEFAULT_SCALE, asset, resource);
     }
 
     public void setSize(int width, int height){
@@ -45,7 +58,11 @@ public class TerraTexture{
     public int getHeight() {
         return height;
     }
-    
+
+    public int getPosition() {
+        return position - 2;
+    }
+
     /**
      * Gets scale of this texture. In the other words,
      * this big amount of the texture will go to 0.25m square meter area.
@@ -62,6 +79,10 @@ public class TerraTexture{
      */
     public String getAsset() {
         return asset;
+    }
+
+    public boolean isResource() {
+        return resource;
     }
 
     @Override

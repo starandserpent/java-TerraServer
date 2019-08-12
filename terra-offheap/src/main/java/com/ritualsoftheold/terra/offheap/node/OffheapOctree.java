@@ -1,20 +1,14 @@
 package com.ritualsoftheold.terra.offheap.node;
 
 import com.ritualsoftheold.terra.core.buffer.BlockBuffer;
-import com.ritualsoftheold.terra.core.material.MaterialRegistry;
-import com.ritualsoftheold.terra.core.material.TerraMaterial;
+import com.ritualsoftheold.terra.core.material.Registry;
+import com.ritualsoftheold.terra.core.material.TerraObject;
 import com.ritualsoftheold.terra.core.node.*;
 import com.ritualsoftheold.terra.offheap.DataConstants;
-import com.ritualsoftheold.terra.offheap.chunk.ChunkLArray;
 import com.ritualsoftheold.terra.offheap.data.OffheapNode;
 
-import net.openhft.chronicle.bytes.NativeBytesStore;
 import net.openhft.chronicle.core.Memory;
 import net.openhft.chronicle.core.OS;
-import net.openhft.chronicle.core.values.IntValue;
-import net.openhft.chronicle.map.ChronicleMap;
-import net.openhft.chronicle.map.ChronicleMapBuilder;
-import net.openhft.chronicle.values.Values;
 
 import java.util.*;
 
@@ -30,7 +24,7 @@ public class OffheapOctree implements Octree, OffheapNode {
 
     private int octreeId;
     
-    private MaterialRegistry materialRegistry;
+    private Registry registry;
 
     private OctreeNode rootNode = null;
     private ArrayList<OctreeNode> octree;
@@ -39,13 +33,13 @@ public class OffheapOctree implements Octree, OffheapNode {
     private int size;
 
 
-    public OffheapOctree(long addr, int octreeId, MaterialRegistry materialRegistry) {
+    public OffheapOctree(long addr, int octreeId, Registry registry) {
         this.addr = addr;
         this.octreeId = octreeId;
-        this.materialRegistry = materialRegistry;
+        this.registry = registry;
     }
-    public OffheapOctree(MaterialRegistry materialRegistry){
-        this.materialRegistry = materialRegistry;
+    public OffheapOctree(Registry registry){
+        this.registry = registry;
         octree = new ArrayList<>();
 //        IntValue avgKeyTmp = Values.newHeapInstance(IntValue.class);
 //        avgKeyTmp.setValue(Integer.MAX_VALUE);
@@ -151,7 +145,7 @@ public class OffheapOctree implements Octree, OffheapNode {
     }
     
     @Override
-    public TerraMaterial getBlockAt(int index) throws ClassCastException {
+    public TerraObject getBlockAt(int index) throws ClassCastException {
         // TODO Auto-generated method stub
         return null;
     }

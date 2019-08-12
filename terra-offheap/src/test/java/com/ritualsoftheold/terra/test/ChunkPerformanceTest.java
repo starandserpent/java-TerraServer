@@ -1,8 +1,8 @@
 package com.ritualsoftheold.terra.test;
 
-import com.ritualsoftheold.terra.core.TerraModule;
-import com.ritualsoftheold.terra.core.material.MaterialRegistry;
-import com.ritualsoftheold.terra.core.material.TerraMaterial;
+import com.ritualsoftheold.terra.core.material.TerraModule;
+import com.ritualsoftheold.terra.core.material.Registry;
+import com.ritualsoftheold.terra.core.material.TerraObject;
 import com.ritualsoftheold.terra.offheap.DataConstants;
 import com.ritualsoftheold.terra.offheap.chunk.ChunkBuffer;
 import com.ritualsoftheold.terra.offheap.chunk.ChunkLArray;
@@ -25,10 +25,10 @@ public class ChunkPerformanceTest {
         public static final Memory mem = OS.memory();
 
         public OffheapChunk chunk;
-        public MaterialRegistry reg;
+        public Registry reg;
 
         public ChunkLArray chunkLArray;
-        public TerraMaterial[] mats;
+        public TerraObject[] mats;
         public Byte[] chunkByteArray;
 
 
@@ -36,7 +36,7 @@ public class ChunkPerformanceTest {
         public void init() {
             int queueSize = 65;
             long queueAddr = mem.allocate(queueSize * 8 * 2);
-            reg = new MaterialRegistry();
+            reg = new Registry();
             ChunkStorage storage = new ChunkStorage(reg, null, 1, null, null);
             ChunkBuffer buf = new ChunkBuffer(storage, 0, 10, queueSize, new DummyMemoryUseListener(), false);
             chunk = new OffheapChunk(0, buf, queueAddr, queueAddr + queueSize * 8, queueSize);
@@ -44,7 +44,7 @@ public class ChunkPerformanceTest {
             chunkLArray = new ChunkLArray();
 
             TerraModule mod = new TerraModule("test");
-            mats = new TerraMaterial[64];
+            mats = new TerraObject[64];
             for (int i = 0; i < 64; i++) {
                 mats[i] = mod.newMaterial().name("test" + i).build();
             }

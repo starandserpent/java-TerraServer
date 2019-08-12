@@ -1,7 +1,7 @@
 package com.ritualsoftheold.terra.offheap.chunk;
 
-import com.ritualsoftheold.terra.core.material.MaterialRegistry;
-import com.ritualsoftheold.terra.core.material.TerraMaterial;
+import com.ritualsoftheold.terra.core.material.Registry;
+import com.ritualsoftheold.terra.core.material.TerraObject;
 import com.ritualsoftheold.terra.offheap.DataConstants;
 import xerial.larray.LByteArray;
 import xerial.larray.japi.LArrayJ;
@@ -12,16 +12,16 @@ public class ChunkLArray {
     public final float z;
 
     private boolean isDifferent;
-    private MaterialRegistry reg;
+    private Registry reg;
 
     public static int CHUNK_SIZE = DataConstants.CHUNK_MAX_BLOCKS;
     private LByteArray chunkVoxelData;
 
-    public ChunkLArray(float x, float y, float z, MaterialRegistry reg){
+    public ChunkLArray(float x, float y, float z, Registry reg){
         this(x, y, z, LArrayJ.newLByteArray(CHUNK_SIZE), reg);
     }
 
-    public ChunkLArray(float x, float y, float z, LByteArray chunkVoxelData, MaterialRegistry reg) {
+    public ChunkLArray(float x, float y, float z, LByteArray chunkVoxelData, Registry reg) {
         this.x = x;
         this.y = y;
         this.z = z;
@@ -35,7 +35,7 @@ public class ChunkLArray {
         return chunkVoxelData.apply(idx);
 
     }
-    public TerraMaterial get (int idx){
+    public TerraObject get (int idx){
         return reg.getForWorldId(chunkVoxelData.getByte(idx));
     }
     public void set(int x, int y, int z, byte data){

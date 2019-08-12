@@ -4,10 +4,8 @@ in vec3 normal;
 in vec3 texCoord;
 
 void main() {
-    vec4 color = texture(m_ColorMap, texCoord);
-
-    if(color.a < 0.1)
-        discard;
+    vec4 color = vec4(1.0);// TODO support alpha channel
+    color = texture(m_ColorMap, texCoord);
 
     if (normal.y > 0){
         color.rgb += vec3(0.2, 0.2, 0.2);

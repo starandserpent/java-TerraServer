@@ -1,6 +1,6 @@
 package com.ritualsoftheold.terra.core.node;
 
-import com.ritualsoftheold.terra.core.material.TerraMaterial;
+import com.ritualsoftheold.terra.core.material.TerraObject;
 
 /**
  * Terra's octree. Underlying implementation might be pooled.
@@ -12,7 +12,7 @@ public interface Octree extends Node {
     
     Octree getOctreeAt(int index) throws ClassCastException;
     
-    TerraMaterial getBlockAt(int index) throws ClassCastException;
+    TerraObject getBlockAt(int index) throws ClassCastException;
     
     Chunk getChunkAt(int index) throws ClassCastException;
     

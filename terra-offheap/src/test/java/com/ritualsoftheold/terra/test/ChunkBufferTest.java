@@ -2,10 +2,10 @@ package com.ritualsoftheold.terra.test;
 
 import static org.junit.Assert.*;
 
-import com.ritualsoftheold.terra.core.TerraModule;
+import com.ritualsoftheold.terra.core.material.TerraModule;
 import com.ritualsoftheold.terra.core.buffer.BlockBuffer;
-import com.ritualsoftheold.terra.core.material.MaterialRegistry;
-import com.ritualsoftheold.terra.core.material.TerraMaterial;
+import com.ritualsoftheold.terra.core.material.Registry;
+import com.ritualsoftheold.terra.core.material.TerraObject;
 import com.ritualsoftheold.terra.offheap.chunk.ChunkBuffer;
 import com.ritualsoftheold.terra.offheap.chunk.ChunkStorage;
 import com.ritualsoftheold.terra.offheap.chunk.compress.EmptyChunkFormat;
@@ -30,8 +30,8 @@ public class ChunkBufferTest {
     private static final Memory mem = OS.memory();
     
     private ChunkBuffer buf;
-    private MaterialRegistry reg;
-    private TerraMaterial[] mats;
+    private Registry reg;
+    private TerraObject[] mats;
     
     @Before
     public void initBuf() {
@@ -49,9 +49,9 @@ public class ChunkBufferTest {
     
     @Before
     public void initMaterials() {
-        reg = new MaterialRegistry();
+        reg = new Registry();
         TerraModule mod = new TerraModule("test");
-        mats = new TerraMaterial[11];
+        mats = new TerraObject[11];
         for (int i = 0; i < 11; i++) {
             mats[i] = mod.newMaterial().name("test" + i).build();
         }

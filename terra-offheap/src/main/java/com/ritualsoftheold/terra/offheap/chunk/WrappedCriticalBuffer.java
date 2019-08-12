@@ -1,9 +1,8 @@
 package com.ritualsoftheold.terra.offheap.chunk;
 
 import com.ritualsoftheold.terra.core.buffer.BlockBuffer;
-import com.ritualsoftheold.terra.core.material.MaterialRegistry;
-import com.ritualsoftheold.terra.core.material.TerraMaterial;
-import com.ritualsoftheold.terra.offheap.chunk.compress.Palette16ChunkFormat;
+import com.ritualsoftheold.terra.core.material.Registry;
+import com.ritualsoftheold.terra.core.material.TerraObject;
 import com.ritualsoftheold.terra.offheap.memory.MemoryAllocator;
 import com.ritualsoftheold.terra.offheap.chunk.compress.ChunkFormat;
 import com.ritualsoftheold.terra.offheap.data.BufferWithFormat;
@@ -46,16 +45,16 @@ public class WrappedCriticalBuffer implements BufferWithFormat, CriticalBlockBuf
      */
     private TypeSelector typeSelector;
     
-    private MaterialRegistry materialRegistry;
+    private Registry registry;
     
     public WrappedCriticalBuffer(ChunkFormat format, BlockBuffer wrapped, Storage storage,
-            MemoryAllocator allocator, TypeSelector typeSelector, MaterialRegistry registry) {
+            MemoryAllocator allocator, TypeSelector typeSelector, Registry registry) {
         this.format = format;
         this.wrapped = wrapped;
         this.storage = storage;
         this.allocator = allocator;
         this.typeSelector = typeSelector;
-        this.materialRegistry = registry;
+        this.registry = registry;
     }
 
     @Override
@@ -84,7 +83,7 @@ public class WrappedCriticalBuffer implements BufferWithFormat, CriticalBlockBuf
     }
 
     @Override
-    public void write(TerraMaterial material) {
+    public void write(TerraObject material) {
         try {
             wrapped.write(material);
         } catch (TooManyMaterialsException e) {
@@ -93,7 +92,7 @@ public class WrappedCriticalBuffer implements BufferWithFormat, CriticalBlockBuf
             Storage newStorage = format.convert(storage, nextFormat, allocator);
             allocator.free(storage.memoryAddress(), storage.length());
             
-            BlockBuffer newBuf = nextFormat.createCriticalBuffer(newStorage, materialRegistry);
+            BlockBuffer newBuf = nextFormat.createCriticalBuffer(newStorage, registry);
             newBuf.seek(position());
             
             // Swap data to the new format
@@ -107,12 +106,12 @@ public class WrappedCriticalBuffer implements BufferWithFormat, CriticalBlockBuf
     }
 
     @Override
-    public TerraMaterial read() {
+    public TerraObject read() {
         return wrapped.read();
     }
 
     @Override
-    public TerraMaterial get(int index) {
+    public TerraObject get(int index) {
         return wrapped.get(index);
     }
 

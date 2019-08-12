@@ -1,7 +1,7 @@
 package com.ritualsoftheold.terra.offheap;
 
-import com.ritualsoftheold.terra.core.TerraModule;
-import com.ritualsoftheold.terra.core.material.MaterialRegistry;
+import com.ritualsoftheold.terra.core.material.TerraModule;
+import com.ritualsoftheold.terra.core.material.Registry;
 import com.ritualsoftheold.terra.offheap.chunk.ChunkLArray;
 
 /**
@@ -9,6 +9,6 @@ import com.ritualsoftheold.terra.offheap.chunk.ChunkLArray;
  *
  */
 public interface WorldGeneratorInterface {
-    WorldGeneratorInterface setup(MaterialRegistry materialRegistry, TerraModule mod);
+    WorldGeneratorInterface setup(Registry registry, TerraModule mod);
     void generate(ChunkLArray chunk);
 }

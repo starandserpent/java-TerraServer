@@ -1,7 +1,7 @@
 package com.ritualsoftheold.terra.offheap.chunk.compress;
 
-import com.ritualsoftheold.terra.core.material.MaterialRegistry;
-import com.ritualsoftheold.terra.core.material.TerraMaterial;
+import com.ritualsoftheold.terra.core.material.Registry;
+import com.ritualsoftheold.terra.core.material.TerraObject;
 import com.ritualsoftheold.terra.offheap.memory.MemoryAllocator;
 import com.ritualsoftheold.terra.offheap.DataConstants;
 import com.ritualsoftheold.terra.offheap.MemoryArea;
@@ -15,8 +15,6 @@ import com.ritualsoftheold.terra.offheap.node.OffheapChunk.Storage;
 
 import net.openhft.chronicle.core.Memory;
 import net.openhft.chronicle.core.OS;
-
-import javax.xml.crypto.Data;
 
 /**
  * 4 bits per block. Max 16 block types in a chunk.
@@ -208,7 +206,7 @@ public class Palette16ChunkFormat implements ChunkFormat {
 
         private final OffheapChunk chunk;
         private final MemoryArea area;
-        private final MaterialRegistry registry;
+        private final Registry registry;
         private int index;
         
         public Palette16BlockBuffer(OffheapChunk chunk, MemoryArea area) {
@@ -238,7 +236,7 @@ public class Palette16ChunkFormat implements ChunkFormat {
         }
 
         @Override
-        public TerraMaterial get(int index) {
+        public TerraObject get(int index) {
             if(index < DataConstants.CHUNK_MAX_BLOCKS) {
                 int worldId = readWorldId(area, index);
                 return registry.getForWorldId(worldId);
@@ -253,7 +251,7 @@ public class Palette16ChunkFormat implements ChunkFormat {
         }
 
         @Override
-        public void write(TerraMaterial material) {
+        public void write(TerraObject material) {
             boolean writeOk = writeWorldId(area, index, material.getWorldId());
             if (!writeOk) {
                 throw new TooManyMaterialsException();
@@ -261,7 +259,7 @@ public class Palette16ChunkFormat implements ChunkFormat {
         }
 
         @Override
-        public TerraMaterial read() {
+        public TerraObject read() {
             return get(index);
         }
 
@@ -285,10 +283,10 @@ public class Palette16ChunkFormat implements ChunkFormat {
     public class Palette16CriticalBuffer implements CriticalBlockBuffer {
         
         private final MemoryArea area;
-        private final MaterialRegistry registry;
+        private final Registry registry;
         private int index;
 
-        public Palette16CriticalBuffer(MemoryArea area, MaterialRegistry registry) {
+        public Palette16CriticalBuffer(MemoryArea area, Registry registry) {
             this.area = area;
             this.registry = registry;
             index = 0;
@@ -326,7 +324,7 @@ public class Palette16ChunkFormat implements ChunkFormat {
         }
 
         @Override
-        public void write(TerraMaterial material) {
+        public void write(TerraObject material) {
             boolean writeOk = writeWorldId(area, index, material.getWorldId());
             if (!writeOk) {
                 throw new TooManyMaterialsException();
@@ -334,12 +332,12 @@ public class Palette16ChunkFormat implements ChunkFormat {
         }
 
         @Override
-        public TerraMaterial read() {
+        public TerraObject read() {
             return get(index);
         }
 
         @Override
-        public TerraMaterial get(int index) {
+        public TerraObject get(int index) {
             int worldId = readWorldId(area, index);
             return registry.getForWorldId(worldId);
         }
@@ -380,8 +378,8 @@ public class Palette16ChunkFormat implements ChunkFormat {
     }
 
     @Override
-    public CriticalBlockBuffer createCriticalBuffer(Storage storage, MaterialRegistry materialRegistry) {
-        return new Palette16CriticalBuffer(storage, materialRegistry);
+    public CriticalBlockBuffer createCriticalBuffer(Storage storage, Registry registry) {
+        return new Palette16CriticalBuffer(storage, registry);
     }
 
 }

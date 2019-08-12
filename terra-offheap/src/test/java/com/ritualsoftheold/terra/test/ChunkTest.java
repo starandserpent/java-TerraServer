@@ -4,10 +4,10 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
-import com.ritualsoftheold.terra.core.TerraModule;
+import com.ritualsoftheold.terra.core.material.TerraModule;
 import com.ritualsoftheold.terra.core.buffer.BlockBuffer;
-import com.ritualsoftheold.terra.core.material.MaterialRegistry;
-import com.ritualsoftheold.terra.core.material.TerraMaterial;
+import com.ritualsoftheold.terra.core.material.Registry;
+import com.ritualsoftheold.terra.core.material.TerraObject;
 import com.ritualsoftheold.terra.core.node.Node;
 import com.ritualsoftheold.terra.offheap.chunk.ChunkBuffer;
 import com.ritualsoftheold.terra.offheap.chunk.ChunkStorage;
@@ -27,13 +27,13 @@ public class ChunkTest {
     private static final Memory mem = OS.memory();
     
     private OffheapChunk chunk;
-    private MaterialRegistry reg;
+    private Registry reg;
     
     @Before
     public void init() {
         int queueSize = 65;
         long queueAddr = mem.allocate(queueSize * 8 * 2);
-        reg = new MaterialRegistry();
+        reg = new Registry();
         ChunkStorage storage = new ChunkStorage(reg, null, 1, null, null);
         ChunkBuffer buf = new ChunkBuffer(storage, 0, 10, queueSize, new DummyMemoryUseListener(), false);
         chunk = new OffheapChunk(0, buf, queueAddr, queueAddr + queueSize * 8, queueSize);
@@ -84,7 +84,7 @@ public class ChunkTest {
         
         // Create 11 new materials
         TerraModule mod = new TerraModule("test");
-        TerraMaterial[] mats = new TerraMaterial[11];
+        TerraObject[] mats = new TerraObject[11];
         for (int i = 0; i < 11; i++) {
             mats[i] = mod.newMaterial().name("test" + i).build();
         }
@@ -126,7 +126,7 @@ public class ChunkTest {
         
         // Create 11 new materials
         TerraModule mod = new TerraModule("test");
-        TerraMaterial[] mats = new TerraMaterial[64];
+        TerraObject[] mats = new TerraObject[64];
         for (int i = 0; i < 64; i++) {
             mats[i] = mod.newMaterial().name("test" + i).build();
         }

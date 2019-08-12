@@ -1,7 +1,7 @@
 package com.ritualsoftheold.terra.core.gen.interfaces;
 
 import com.ritualsoftheold.terra.core.buffer.BlockBuffer;
-import com.ritualsoftheold.terra.core.material.TerraMaterial;
+import com.ritualsoftheold.terra.core.material.TerraObject;
 import xerial.larray.LByteArray;
 
 /**
@@ -30,5 +30,5 @@ public interface GeneratorControl {
      * acquires the block buffer.
      * @param material Material hint.
      */
-    void useMaterial(TerraMaterial material);
+    void useMaterial(TerraObject material);
 }

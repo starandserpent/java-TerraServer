@@ -4,7 +4,7 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 import com.ritualsoftheold.terra.core.gen.objects.LoadMarker;
-import com.ritualsoftheold.terra.core.material.MaterialRegistry;
+import com.ritualsoftheold.terra.core.material.Registry;
 import com.ritualsoftheold.terra.core.node.Chunk;
 import com.ritualsoftheold.terra.core.node.Node;
 import com.ritualsoftheold.terra.core.node.Octree;
@@ -27,7 +27,7 @@ public interface TerraWorld {
      * This method can be called without entering world.
      * @return Material registry.
      */
-    MaterialRegistry getMaterialRegistry();
+    Registry getMaterialRegistry();
     
     Node getNode(float x, float y, float z);
     

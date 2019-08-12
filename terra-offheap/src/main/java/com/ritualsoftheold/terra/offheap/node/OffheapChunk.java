@@ -12,7 +12,7 @@ import com.ritualsoftheold.terra.offheap.chunk.ChunkBuffer;
 import com.ritualsoftheold.terra.offheap.chunk.TooManyMaterialsException;
 import com.ritualsoftheold.terra.offheap.chunk.compress.ChunkFormat;
 import com.ritualsoftheold.terra.offheap.chunk.compress.EmptyChunkFormat;
-import com.ritualsoftheold.terra.core.material.MaterialRegistry;
+import com.ritualsoftheold.terra.core.material.Registry;
 import com.ritualsoftheold.terra.offheap.MemoryArea;
 import com.ritualsoftheold.terra.offheap.Pointer;
 import com.ritualsoftheold.terra.offheap.data.BufferWithFormat;
@@ -21,7 +21,6 @@ import com.ritualsoftheold.terra.offheap.data.OffheapNode;
 import net.openhft.chronicle.core.Memory;
 import net.openhft.chronicle.core.OS;
 import xerial.larray.LByteArray;
-import xerial.larray.japi.LArrayJ;
 
 /**
  * A chunk that stores its blocks outside of JVM heap.
@@ -411,8 +410,8 @@ public class OffheapChunk implements Chunk, OffheapNode {
         refs.put(blockId, ref);
     }
     
-    public MaterialRegistry getWorldMaterialRegistry() {
-        return buffer.getStorage().getMaterialRegistry();
+    public Registry getWorldMaterialRegistry() {
+        return buffer.getStorage().getRegistry();
     }
     
     /**

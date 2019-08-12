@@ -1,12 +1,10 @@
 package com.ritualsoftheold.terra.core.material;
 
-import com.ritualsoftheold.terra.core.TerraModule;
-
 /**
  * Represents a material of block.
  *
  */
-public class TerraMaterial {
+public class TerraObject {
     
     /**
      * Constructs a new material builder.
@@ -16,7 +14,7 @@ public class TerraMaterial {
         return new Builder();
     }
     
-    private TerraMaterial() {} // Only builder can create this
+    private TerraObject() {} // Only builder can create this
     
     /**
      * Id of this material in world data. Set by material registry. May vary
@@ -29,6 +27,8 @@ public class TerraMaterial {
      * registry.
      */
     private String fullName;
+
+    private boolean hasMesh = false;
     
     /**
      * Module this was originally registered to. Set by builder.
@@ -44,6 +44,8 @@ public class TerraMaterial {
      * Texture definition. Set by builder.
      */
     private TerraTexture texture;
+
+    private TerraMesh mesh;
     
     /**
      * Gets this material's id in world data.
@@ -76,7 +78,11 @@ public class TerraMaterial {
     void setFullName(String name) {
         fullName = name;
     }
-    
+
+    public boolean hasMesh() {
+        return hasMesh;
+    }
+
     /**
      * Gets texture definition associated with this material.
      * @return Texture definition or null.
@@ -84,7 +90,11 @@ public class TerraMaterial {
     public TerraTexture getTexture() {
         return texture;
     }
-    
+
+    public TerraMesh getMesh() {
+        return mesh;
+    }
+
     /**
      * Builder for Terra's materials.
      *
@@ -94,10 +104,10 @@ public class TerraMaterial {
         /**
          * Reference to material we are building right now.
          */
-        private TerraMaterial material;
+        private TerraObject object;
         
         private Builder() {
-            material = new TerraMaterial();
+            object = new TerraObject();
         }
         
         /**
@@ -107,7 +117,7 @@ public class TerraMaterial {
          * @return This builder.
          */
         public Builder module(TerraModule mod) {
-            material.mod = mod;
+            object.mod = mod;
             return this;
         }
         
@@ -117,7 +127,13 @@ public class TerraMaterial {
          * @return This builder.
          */
         public Builder name(String name) {
-            material.name = name;
+            object.name = name;
+            return this;
+        }
+
+        public Builder setModel(TerraMesh mesh) {
+            object.mesh = mesh;
+            object.hasMesh = true;
             return this;
         }
         
@@ -127,7 +143,7 @@ public class TerraMaterial {
          * @return This builder.
          */
         public Builder texture(TerraTexture texture) {
-            material.texture = texture;
+            object.texture = texture;
             return this;
         }
         
@@ -135,8 +151,8 @@ public class TerraMaterial {
          * Constructs a new Terra material.
          * @return Material.
          */
-        public TerraMaterial build() {
-            return material;
+        public TerraObject build() {
+            return object;
         }
     }
 }

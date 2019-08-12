@@ -4,8 +4,8 @@ import com.jme3.asset.AssetManager;
 import com.jme3.texture.Image;
 import com.jme3.texture.Texture;
 import com.jme3.texture.TextureArray;
-import com.ritualsoftheold.terra.core.material.MaterialRegistry;
-import com.ritualsoftheold.terra.core.material.TerraMaterial;
+import com.ritualsoftheold.terra.core.material.Registry;
+import com.ritualsoftheold.terra.core.material.TerraObject;
 
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
@@ -23,12 +23,14 @@ public class TextureManager{
     //Size of the cube
     private TextureArray textureArray;
 
-    public TextureManager(AssetManager assetManager, MaterialRegistry registry) {
+    public TextureManager(AssetManager assetManager, Registry registry) {
         ArrayList<Image> atlas = new ArrayList<>();
 
-        for (TerraMaterial material : registry.getAllMaterials()) {
-            if (material.getTexture() != null) {
-                Texture tex = assetManager.loadTexture(material.getTexture().getAsset());
+        for (int i = 2; i < registry.getAllMaterials().size(); i++) {
+            TerraObject object = registry.getForWorldId(i);
+            object.getTexture().setPosition(i);
+            if (object.getTexture() != null && !object.hasMesh()) {
+                Texture tex = assetManager.loadTexture(object.getTexture().getAsset());
 //                tex.setMagFilter(Texture.MagFilter.Nearest);
 //                tex.setMinFilter(Texture.MinFilter.NearestNearestMipMap);
                 Image image = tex.getImage();
@@ -44,7 +46,7 @@ public class TextureManager{
             }
         }
 
-        for (TerraMaterial material : registry.getAllMaterials()) {
+        for (TerraObject material : registry.getAllMaterials()) {
             if (material.getTexture() != null) {
                 material.getTexture().setSize(maxWidth, maxHeight);
             }
@@ -71,7 +73,6 @@ public class TextureManager{
         for(int x = 0; x < 16; x++) {
             for (int y = 0; y < 16; y++) {
                 int atlasStart = x * size * BYTES_PER_PIXEL + y * size * atlasSizeImage;
-
                 for (int i = 0; i < size; i++) {
                     byte[] row = new byte[size * BYTES_PER_PIXEL]; // Create array for one row of image data
                     imgData.position(i * size * BYTES_PER_PIXEL);

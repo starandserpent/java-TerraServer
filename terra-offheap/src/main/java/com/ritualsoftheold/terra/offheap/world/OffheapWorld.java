@@ -1,12 +1,8 @@
 package com.ritualsoftheold.terra.offheap.world;
 
-import com.ritualsoftheold.terra.core.gen.interfaces.world.TerraWorld;
 import com.ritualsoftheold.terra.offheap.WorldGeneratorInterface;
 import com.ritualsoftheold.terra.core.gen.objects.LoadMarker;
-import com.ritualsoftheold.terra.core.material.MaterialRegistry;
-import com.ritualsoftheold.terra.core.node.Chunk;
-import com.ritualsoftheold.terra.core.node.Node;
-import com.ritualsoftheold.terra.core.node.Octree;
+import com.ritualsoftheold.terra.core.material.Registry;
 import com.ritualsoftheold.terra.offheap.node.OffheapOctree;
 
 import java.util.ArrayList;
@@ -35,11 +31,11 @@ public class OffheapWorld {
     // New world loader, no more huge methods in this class!
     private ChunkSVOGenerator chunkGenerator;
     private List<OffheapLoadMarker> loadMarkers;
-    private MaterialRegistry reg;
+    private Registry reg;
     private WorldLoadListener worldListener;
 
     // Only used by the builder
-    public OffheapWorld(WorldGeneratorInterface generator, MaterialRegistry reg, int height, WorldLoadListener worldListener) {
+    public OffheapWorld(WorldGeneratorInterface generator, Registry reg, int height, WorldLoadListener worldListener) {
         this.reg = reg;
         this.worldListener = worldListener;
         loadMarkers = new ArrayList<>();
@@ -48,7 +44,7 @@ public class OffheapWorld {
         chunkGenerator = new ChunkSVOGenerator(generator, reg, height,masterOctree);
     }
 
-    public MaterialRegistry getMaterialRegistry() {
+    public Registry getMaterialRegistry() {
         return reg;
     }
 

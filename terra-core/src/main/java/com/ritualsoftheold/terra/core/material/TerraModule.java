@@ -1,10 +1,10 @@
-package com.ritualsoftheold.terra.core;
+package com.ritualsoftheold.terra.core.material;
 
 import java.util.HashSet;
 import java.util.Set;
 
-import com.ritualsoftheold.terra.core.material.MaterialRegistry;
-import com.ritualsoftheold.terra.core.material.TerraMaterial;
+import com.ritualsoftheold.terra.core.material.Registry;
+import com.ritualsoftheold.terra.core.material.TerraObject;
 
 /**
  * Terra modules are used to register materials. After that has been done,
@@ -23,7 +23,7 @@ public class TerraModule {
     /**
      * Materials registered here.
      */
-    private final Set<TerraMaterial> materials;
+    private final Set<TerraObject> materials;
     
     /**
      * Whether this module has been registered yet or not.
@@ -52,11 +52,11 @@ public class TerraModule {
      * then remembers that material so it can be correctly registered.
      * @return A material builder.
      */
-    public TerraMaterial.Builder newMaterial() {
+    public TerraObject.Builder newMaterial() {
         if (registered) {
             throw new IllegalStateException("materials already registered");
         }
-        TerraMaterial.Builder builder = TerraMaterial.builder().module(this);
+        TerraObject.Builder builder = TerraObject.builder().module(this);
         materials.add(builder.build());
         return builder;
     }
@@ -66,8 +66,8 @@ public class TerraModule {
      * No new materials may be added to this module after registration.
      * @param reg Material registry.
      */
-    public void registerMaterials(MaterialRegistry reg) {
-        for (TerraMaterial mat : materials) {
+    public void registerMaterials(Registry reg) {
+        for (TerraObject mat : materials) {
             reg.registerMaterial(mat, this);
         }
         registered = true; // Disallow future registrations

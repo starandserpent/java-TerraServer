@@ -1,6 +1,6 @@
 package com.ritualsoftheold.terra.core.buffer;
 
-import com.ritualsoftheold.terra.core.material.TerraMaterial;
+import com.ritualsoftheold.terra.core.material.TerraObject;
 
 /**
  * Allows fast access to block data in one chunk or an octree node whose scale
@@ -36,19 +36,19 @@ public interface BlockBuffer extends AutoCloseable {
      * Sets material of current block.
      * @param material New material.
      */
-    void write(TerraMaterial material);
+    void write(TerraObject material);
     
     /**
      * Gets material of current block.
      * @return Material of block.
      */
-    TerraMaterial read();
+    TerraObject read();
 
     /**
      * Gets material of requested block.
      * @return Material of block.
      */
-    TerraMaterial get(int index);
+    TerraObject get(int index);
 
 
         /**

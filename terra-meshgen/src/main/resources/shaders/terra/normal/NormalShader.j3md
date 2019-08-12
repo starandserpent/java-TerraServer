@@ -1,11 +1,12 @@
 MaterialDef Terrain {
 
     MaterialParameters {
+        TextureArray ColorMap
     }
 
     Technique {
-        VertexShader GLSL400:   shaders/terra/grid/Grid.vert
-        FragmentShader GLSL400: shaders/terra/grid/Grid.frag
+        VertexShader GLSL400:   shaders/terra/voxel/TerraArray.vert
+        FragmentShader GLSL400: shaders/terra/voxel/TerraArray.frag
 
         WorldParameters {
             WorldViewProjectionMatrix

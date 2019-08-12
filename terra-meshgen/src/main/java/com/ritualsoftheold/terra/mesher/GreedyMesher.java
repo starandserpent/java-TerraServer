@@ -13,6 +13,7 @@ public class GreedyMesher {
 
     public GreedyMesher() {
         culling = new NaiveGreedyMesher();
+
     }
 
     public HashMap<Integer, HashMap<Integer, Face>> cull(ChunkLArray lArray) {
@@ -28,7 +29,7 @@ public class GreedyMesher {
                 HashMap<Integer, Face> faces = new HashMap<>();
                 Face face = new Face();
 
-                face.setMaterial(lArray.get(0));
+                face.setObject(lArray.get(0));
                 face.setNormals(new Vector3f(-1, 0, 0), new Vector3f(-1, 0, 0), new Vector3f(-1, 0, 0), new Vector3f(-1, 0, 0));
                 face.setVector3f(0, 0, 64, 0);
                 face.setVector3f(0, 64, 64, 1);
@@ -42,7 +43,7 @@ public class GreedyMesher {
                 faces = new HashMap<>();
                 face = new Face();
 
-                face.setMaterial(lArray.get(0));
+                face.setObject(lArray.get(0));
                 face.setNormals(new Vector3f(1, 0, 0), new Vector3f(1, 0, 0), new Vector3f(1, 0, 0), new Vector3f(1, 0, 0));
                 face.setVector3f(64, 0, 0, 0);
                 face.setVector3f(64, 64, 0, 1);
@@ -56,7 +57,7 @@ public class GreedyMesher {
                 faces = new HashMap<>();
                 face = new Face();
 
-                face.setMaterial(lArray.get(0));
+                face.setObject(lArray.get(0));
                 face.setNormals(new Vector3f(0, 1, 0), new Vector3f(0, 1, 0), new Vector3f(0, 1, 0), new Vector3f(0, 1, 0));
                 face.setVector3f(0, 64, 0, 0);
                 face.setVector3f(0, 64, 64, 1);
@@ -70,7 +71,7 @@ public class GreedyMesher {
                 faces = new HashMap<>();
                 face = new Face();
 
-                face.setMaterial(lArray.get(0));
+                face.setObject(lArray.get(0));
                 face.setNormals(new Vector3f(0, -1, 0), new Vector3f(0, -1, 0), new Vector3f(0, -1, 0), new Vector3f(0, -1, 0));
                 face.setVector3f(64, 0, 0, 0);
                 face.setVector3f(64, 0, 64, 1);
@@ -84,7 +85,7 @@ public class GreedyMesher {
                 faces = new HashMap<>();
                 face = new Face();
 
-                face.setMaterial(lArray.get(0));
+                face.setObject(lArray.get(0));
                 face.setNormals(new Vector3f(0, 0, 1), new Vector3f(0, 0, 1), new Vector3f(0, 0, 1), new Vector3f(0, 0, 1));
                 face.setVector3f(64, 0, 64, 0);
                 face.setVector3f(64, 64, 64, 1);
@@ -98,7 +99,7 @@ public class GreedyMesher {
                 faces = new HashMap<>();
                 face = new Face();
 
-                face.setMaterial(lArray.get(0));
+                face.setObject(lArray.get(0));
                 face.setNormals(new Vector3f(0, 0, -1), new Vector3f(0, 0, -1), new Vector3f(0, 0, -1), new Vector3f(0, 0, -1));
                 face.setVector3f(0, 0, 0, 0);
                 face.setVector3f(0, 64, 0, 1);
@@ -108,6 +109,7 @@ public class GreedyMesher {
 
                 cubeFaces.put(5, faces);
             }
+            cubeFaces.put(6, new HashMap<>());
             return cubeFaces;
         }
     }
@@ -117,26 +119,26 @@ public class GreedyMesher {
             switch (side) {
                 case 0:
                 case 1:
-                    completeFace.setTextureCoords(completeFace.getVector3fs()[0].z * 2048f / completeFace.getMaterial().getTexture().getWidth(), completeFace.getVector3fs()[0].y * 2048f / completeFace.getMaterial().getTexture().getHeight(), 0);
-                    completeFace.setTextureCoords(completeFace.getVector3fs()[0].z * 2048f / completeFace.getMaterial().getTexture().getWidth(), completeFace.getVector3fs()[2].y * 2048f / completeFace.getMaterial().getTexture().getHeight(), 1);
-                    completeFace.setTextureCoords(completeFace.getVector3fs()[2].z * 2048f / completeFace.getMaterial().getTexture().getWidth(), completeFace.getVector3fs()[2].y * 2048f / completeFace.getMaterial().getTexture().getHeight(), 2);
-                    completeFace.setTextureCoords(completeFace.getVector3fs()[2].z * 2048f / completeFace.getMaterial().getTexture().getWidth(), completeFace.getVector3fs()[0].y * 2048f / completeFace.getMaterial().getTexture().getHeight(), 3);
+                    completeFace.setTextureCoords(completeFace.getVector3fs()[0].z * 2048f / completeFace.getObject().getTexture().getWidth(), completeFace.getVector3fs()[0].y * 2048f / completeFace.getObject().getTexture().getHeight(), 0);
+                    completeFace.setTextureCoords(completeFace.getVector3fs()[0].z * 2048f / completeFace.getObject().getTexture().getWidth(), completeFace.getVector3fs()[2].y * 2048f / completeFace.getObject().getTexture().getHeight(), 1);
+                    completeFace.setTextureCoords(completeFace.getVector3fs()[2].z * 2048f / completeFace.getObject().getTexture().getWidth(), completeFace.getVector3fs()[2].y * 2048f / completeFace.getObject().getTexture().getHeight(), 2);
+                    completeFace.setTextureCoords(completeFace.getVector3fs()[2].z * 2048f / completeFace.getObject().getTexture().getWidth(), completeFace.getVector3fs()[0].y * 2048f / completeFace.getObject().getTexture().getHeight(), 3);
                     break;
 
                 case 2:
                 case 3:
-                    completeFace.setTextureCoords(completeFace.getVector3fs()[0].x * 2048f / completeFace.getMaterial().getTexture().getWidth(), completeFace.getVector3fs()[0].z * 2048f / completeFace.getMaterial().getTexture().getHeight(), 0);
-                    completeFace.setTextureCoords(completeFace.getVector3fs()[0].x * 2048f / completeFace.getMaterial().getTexture().getWidth(), completeFace.getVector3fs()[2].z * 2048f / completeFace.getMaterial().getTexture().getHeight(), 1);
-                    completeFace.setTextureCoords(completeFace.getVector3fs()[2].x * 2048f / completeFace.getMaterial().getTexture().getWidth(), completeFace.getVector3fs()[2].z * 2048f / completeFace.getMaterial().getTexture().getHeight(), 2);
-                    completeFace.setTextureCoords(completeFace.getVector3fs()[2].x * 2048f / completeFace.getMaterial().getTexture().getWidth(), completeFace.getVector3fs()[0].z * 2048f / completeFace.getMaterial().getTexture().getHeight(), 3);
+                    completeFace.setTextureCoords(completeFace.getVector3fs()[0].x * 2048f / completeFace.getObject().getTexture().getWidth(), completeFace.getVector3fs()[0].z * 2048f / completeFace.getObject().getTexture().getHeight(), 0);
+                    completeFace.setTextureCoords(completeFace.getVector3fs()[0].x * 2048f / completeFace.getObject().getTexture().getWidth(), completeFace.getVector3fs()[2].z * 2048f / completeFace.getObject().getTexture().getHeight(), 1);
+                    completeFace.setTextureCoords(completeFace.getVector3fs()[2].x * 2048f / completeFace.getObject().getTexture().getWidth(), completeFace.getVector3fs()[2].z * 2048f / completeFace.getObject().getTexture().getHeight(), 2);
+                    completeFace.setTextureCoords(completeFace.getVector3fs()[2].x * 2048f / completeFace.getObject().getTexture().getWidth(), completeFace.getVector3fs()[0].z * 2048f / completeFace.getObject().getTexture().getHeight(), 3);
                     break;
 
                 case 4:
                 case 5:
-                    completeFace.setTextureCoords(completeFace.getVector3fs()[0].x * 2048f / completeFace.getMaterial().getTexture().getWidth(), completeFace.getVector3fs()[0].y * 2048f / completeFace.getMaterial().getTexture().getWidth(), 0);
-                    completeFace.setTextureCoords(completeFace.getVector3fs()[0].x * 2048f / completeFace.getMaterial().getTexture().getWidth(), completeFace.getVector3fs()[2].y * 2048f / completeFace.getMaterial().getTexture().getWidth(), 1);
-                    completeFace.setTextureCoords(completeFace.getVector3fs()[2].x * 2048f / completeFace.getMaterial().getTexture().getWidth(), completeFace.getVector3fs()[2].y * 2048f / completeFace.getMaterial().getTexture().getWidth(), 2);
-                    completeFace.setTextureCoords(completeFace.getVector3fs()[2].x * 2048f / completeFace.getMaterial().getTexture().getWidth(), completeFace.getVector3fs()[0].y * 2048f / completeFace.getMaterial().getTexture().getWidth(), 3);
+                    completeFace.setTextureCoords(completeFace.getVector3fs()[0].x * 2048f / completeFace.getObject().getTexture().getWidth(), completeFace.getVector3fs()[0].y * 2048f / completeFace.getObject().getTexture().getWidth(), 0);
+                    completeFace.setTextureCoords(completeFace.getVector3fs()[0].x * 2048f / completeFace.getObject().getTexture().getWidth(), completeFace.getVector3fs()[2].y * 2048f / completeFace.getObject().getTexture().getWidth(), 1);
+                    completeFace.setTextureCoords(completeFace.getVector3fs()[2].x * 2048f / completeFace.getObject().getTexture().getWidth(), completeFace.getVector3fs()[2].y * 2048f / completeFace.getObject().getTexture().getWidth(), 2);
+                    completeFace.setTextureCoords(completeFace.getVector3fs()[2].x * 2048f / completeFace.getObject().getTexture().getWidth(), completeFace.getVector3fs()[0].y * 2048f / completeFace.getObject().getTexture().getWidth(), 3);
                     break;
             }
         }
@@ -157,7 +159,7 @@ public class GreedyMesher {
         }
 
         Face face = faces.get(index);
-        if (face.getMaterial() == nextFace.getMaterial()) {
+        if (face.getObject() == nextFace.getObject()) {
             if (nextFace.getVector3fs()[2].equals(face.getVector3fs()[3]) && nextFace.getVector3fs()[1].equals(face.getVector3fs()[0])) {
                 nextFace.setVector3f(face.getVector3fs()[1], 1);
                 nextFace.setVector3f(face.getVector3fs()[2], 2);

@@ -1,14 +1,14 @@
 package com.ritualsoftheold.terra.mesher;
 
 import com.jme3.math.Vector3f;
-import com.ritualsoftheold.terra.core.material.TerraMaterial;
+import com.ritualsoftheold.terra.core.material.TerraObject;
 import org.jetbrains.annotations.NotNull;
 
 public class Face implements Comparable<Face> {
     private Vector3f[] textureCoords;
     private Vector3f[] vector3f;
     private Vector3f[] normals;
-    private TerraMaterial material;
+    private TerraObject terraObject;
 
     Face() {
         textureCoords = new Vector3f[4];
@@ -29,8 +29,7 @@ public class Face implements Comparable<Face> {
     }
 
     void setTextureCoords(float x, float y, int position) {
-        //TODO better material positioning (maybe it is alright like this)
-        this.textureCoords[position] = new Vector3f(x, y, material.getWorldId() - 2);
+        this.textureCoords[position] = new Vector3f(x, y, terraObject.getTexture().getPosition());
     }
 
     public Vector3f[] getTextureCoords() {
@@ -41,17 +40,18 @@ public class Face implements Comparable<Face> {
         return vector3f;
     }
 
-    public void setMaterial(TerraMaterial material) {
-        this.material = material;
+    void setObject(TerraObject terraObject) {
+        this.terraObject = terraObject;
     }
 
-    public TerraMaterial getMaterial() {
-        return material;
+    public TerraObject getObject() {
+        return terraObject;
     }
 
     public Vector3f[] getNormals() {
         return normals;
     }
+
 
     @Override
     public int compareTo(@NotNull Face o) {

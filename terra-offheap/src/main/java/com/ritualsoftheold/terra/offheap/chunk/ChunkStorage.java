@@ -7,7 +7,7 @@ import java.util.concurrent.atomic.AtomicIntegerArray;
 import java.util.concurrent.atomic.AtomicReferenceArray;
 
 import com.ritualsoftheold.terra.offheap.io.ChunkLoaderInterface;
-import com.ritualsoftheold.terra.core.material.MaterialRegistry;
+import com.ritualsoftheold.terra.core.material.Registry;
 import com.ritualsoftheold.terra.offheap.world.OffheapLoadMarker;
 import com.ritualsoftheold.terra.offheap.node.OffheapChunk;
 
@@ -17,7 +17,7 @@ import com.ritualsoftheold.terra.offheap.node.OffheapChunk;
  */
 public class ChunkStorage {
     
-    private final MaterialRegistry materialRegistry;
+    private final Registry registry;
     
     /**
      * Array of all chunk buffers. May contain nulls for buffers which have not
@@ -43,8 +43,8 @@ public class ChunkStorage {
     
     private final Executor executor;
     
-    public ChunkStorage(MaterialRegistry registry, ChunkBuffer.Builder bufferBuilder, int maxBuffers, ChunkLoaderInterface loader, Executor executor) {
-        this.materialRegistry = registry;
+    public ChunkStorage(Registry registry, ChunkBuffer.Builder bufferBuilder, int maxBuffers, ChunkLoaderInterface loader, Executor executor) {
+        this.registry = registry;
         this.bufferBuilder = bufferBuilder;
         this.loader = loader;
         this.buffers = new AtomicReferenceArray<>(maxBuffers);
@@ -254,8 +254,8 @@ public class ChunkStorage {
         return bufferBuilder;
     }
 
-    public MaterialRegistry getMaterialRegistry() {
-        return materialRegistry;
+    public Registry getRegistry() {
+        return registry;
     }
     
     public void removeLoadMarker(OffheapLoadMarker marker) {

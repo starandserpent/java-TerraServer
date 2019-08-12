@@ -3,7 +3,7 @@ package com.ritualsoftheold.terra.offheap.world.gen;
 import java.util.HashSet;
 import java.util.Set;
 
-import com.ritualsoftheold.terra.core.material.TerraMaterial;
+import com.ritualsoftheold.terra.core.material.TerraObject;
 import com.ritualsoftheold.terra.offheap.memory.SelfTrackAllocator;
 import com.ritualsoftheold.terra.core.gen.interfaces.GeneratorControl;
 import com.ritualsoftheold.terra.offheap.data.CriticalBlockBuffer;
@@ -12,7 +12,7 @@ import xerial.larray.japi.LArrayJ;
 
 public class OffheapGeneratorControl implements GeneratorControl {
     
-    private Set<TerraMaterial> materialHints;
+    private Set<TerraObject> materialHints;
     
     private CriticalBlockBuffer buffer;
     
@@ -55,7 +55,7 @@ public class OffheapGeneratorControl implements GeneratorControl {
     }
 
     @Override
-    public void useMaterial(TerraMaterial material) {
+    public void useMaterial(TerraObject material) {
         materialHints.add(material); // Adds only if it is not there yet
     }
 

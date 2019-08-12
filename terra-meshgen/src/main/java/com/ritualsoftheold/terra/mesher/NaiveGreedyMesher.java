@@ -1,7 +1,7 @@
 package com.ritualsoftheold.terra.mesher;
 
 import com.jme3.math.Vector3f;
-import com.ritualsoftheold.terra.core.material.TerraMaterial;
+import com.ritualsoftheold.terra.core.material.TerraObject;
 import com.ritualsoftheold.terra.offheap.chunk.ChunkLArray;
 
 import java.util.HashMap;
@@ -11,25 +11,29 @@ import java.util.HashMap;
  * iterate only once, culling at same time; they'll need something custom.
  */
 
-public class NaiveGreedyMesher {
+class NaiveGreedyMesher {
     private HashMap<Integer, HashMap<Integer, Face>> sector;
 
-    public NaiveGreedyMesher(){
+    NaiveGreedyMesher() {
         sector = new HashMap<>();
-    }
-
-    public HashMap<Integer, HashMap<Integer, Face>> cull(ChunkLArray lArray) {
-
-        sector.clear();
-
-        for (int i = 0; i < 6; i++){
+        for (int i = 0; i < 7; i++) {
             sector.put(i, new HashMap<>());
         }
+    }
 
-        //Creates voxels from BlockBuffer and set its material
+    HashMap<Integer, HashMap<Integer, Face>> cull(ChunkLArray lArray) {
+        //Creates voxels from BlockBuffer and set its object
         for (int i = 0; i < ChunkLArray.CHUNK_SIZE; i++) {
-            TerraMaterial material = lArray.get(i);
-            if (material.getTexture() == null) { // TODO better AIR check
+            TerraObject object = lArray.get(i);
+            if (object.getTexture() == null) {
+                continue;
+            }
+
+            if (object.hasMesh()) {
+                HashMap<Integer, Face> resources = sector.get(6);
+                Face face = new Face();
+                face.setObject(object);
+                resources.put(i, face);
                 continue;
             }
 
@@ -42,10 +46,11 @@ public class NaiveGreedyMesher {
             //Left, Bottom, Back faces are reversed
 
             // LEFT
-            if (x == 0 /*&& buf.get(i + 64) != material*/ || x > 0 && lArray.get(i - 1).getTexture() == null) {
+            /*&& buf.get(i + 64) != object*/
+            if (x == 0 || lArray.get(i - 1).getTexture() == null || lArray.get(i - 1).hasMesh()) {
                 Face face = new Face();
                 HashMap<Integer, Face> side = sector.get(0);
-                face.setMaterial(material);
+                face.setObject(object);
                 face.setNormals(new Vector3f(-1, 0, 0), new Vector3f(-1, 0, 0), new Vector3f(-1, 0, 0), new Vector3f(-1, 0, 0));
                 face.setVector3f(x, y, z + 1, 0);
                 face.setVector3f(x, y + 1, z + 1, 1);
@@ -56,7 +61,7 @@ public class NaiveGreedyMesher {
                 //Naive Greedy Meshing
                 if (i > 4096) {
                     Face previousFace = side.get(i - 4096);
-                    if (previousFace != null && previousFace.getMaterial() == face.getMaterial()) {
+                    if (previousFace != null && previousFace.getObject() == face.getObject()) {
                         if (face.getVector3fs()[3].equals(previousFace.getVector3fs()[0]) &&
                                 face.getVector3fs()[2].equals(previousFace.getVector3fs()[1])) {
                             face.setVector3f(previousFace.getVector3fs()[2], 2);
@@ -68,9 +73,10 @@ public class NaiveGreedyMesher {
             }
 
             // RIGHT
-            if (x == 63 /*&& buf.get(i + 64) != material*/ || x < 63 && lArray.get(i + 1).getTexture() == null){
+            /*&& buf.get(i + 64) != object*/
+            if (x == 63 || lArray.get(i + 1).getTexture() == null || lArray.get(i + 1).hasMesh()) {
                 Face face = new Face();
-                face.setMaterial(material);
+                face.setObject(object);
                 face.setNormals(new Vector3f(1, 0, 0), new Vector3f(1, 0, 0), new Vector3f(1, 0, 0), new Vector3f(1, 0, 0));
                 HashMap<Integer, Face> side = sector.get(1);
                 face.setVector3f(x + 1, y, z, 0);
@@ -82,8 +88,8 @@ public class NaiveGreedyMesher {
                 //Naive Greedy Meshing
                 if (i > 4096) {
                     Face previousFace = side.get(i - 4096);
-                    if (previousFace != null && previousFace.getMaterial() == face.getMaterial()) {
-                        if(face.getVector3fs()[0].equals(previousFace.getVector3fs()[3]) &&
+                    if (previousFace != null && previousFace.getObject() == face.getObject()) {
+                        if (face.getVector3fs()[0].equals(previousFace.getVector3fs()[3]) &&
                                 face.getVector3fs()[1].equals(previousFace.getVector3fs()[2])) {
                             face.setVector3f(previousFace.getVector3fs()[0], 0);
                             face.setVector3f(previousFace.getVector3fs()[1], 1);
@@ -94,9 +100,9 @@ public class NaiveGreedyMesher {
             }
 
             // TOP
-            if (y == 63 || lArray.get(i + 64).getTexture() == null) {
+            if (y == 63 || lArray.get(i + 64).getTexture() == null || lArray.get(i + 64).hasMesh()) {
                 Face face = new Face();
-                face.setMaterial(material);
+                face.setObject(object);
                 face.setNormals(new Vector3f(0, 1, 0), new Vector3f(0, 1, 0), new Vector3f(0, 1, 0), new Vector3f(0, 1, 0));
                 HashMap<Integer, Face> side = sector.get(2);
                 face.setVector3f(x, y + 1, z, 0);
@@ -108,8 +114,8 @@ public class NaiveGreedyMesher {
                 //Naive Greedy Meshing
                 if (i > 1) {
                     Face previousFace = side.get(i - 1);
-                    if (previousFace != null && previousFace.getMaterial() == face.getMaterial()) {
-                        if(face.getVector3fs()[0].equals(previousFace.getVector3fs()[3]) &&
+                    if (previousFace != null && previousFace.getObject() == face.getObject()) {
+                        if (face.getVector3fs()[0].equals(previousFace.getVector3fs()[3]) &&
                                 face.getVector3fs()[1].equals(previousFace.getVector3fs()[2])) {
                             face.setVector3f(previousFace.getVector3fs()[0], 0);
                             face.setVector3f(previousFace.getVector3fs()[1], 1);
@@ -120,10 +126,10 @@ public class NaiveGreedyMesher {
             }
 
             // BOTTOM
-            if (y == 0 /*lArray.get(i + 64)) != material*/ || y > 0 && lArray.get(i - 64).getTexture() == null) {
+            if (y == 0 || y > 0 && lArray.get(i - 64).getTexture() == null || lArray.get(i - 64).hasMesh()) {
                 Face face = new Face();
-                face.setMaterial(material);
-                face.setNormals(new Vector3f(0,-1,0),new Vector3f(0,-1,0),new Vector3f(0,-1,0),new Vector3f(0,-1,0));
+                face.setObject(object);
+                face.setNormals(new Vector3f(0, -1, 0), new Vector3f(0, -1, 0), new Vector3f(0, -1, 0), new Vector3f(0, -1, 0));
                 HashMap<Integer, Face> side = sector.get(3);
                 face.setVector3f(x + 1, y, z, 0);
                 face.setVector3f(x + 1, y, z + 1, 1);
@@ -134,8 +140,8 @@ public class NaiveGreedyMesher {
                 //Naive Greedy Meshing
                 if (i > 1) {
                     Face previousFace = side.get(i - 1);
-                    if (previousFace != null && previousFace.getMaterial() == face.getMaterial()) {
-                        if(face.getVector3fs()[3].equals(previousFace.getVector3fs()[0]) &&
+                    if (previousFace != null && previousFace.getObject() == face.getObject()) {
+                        if (face.getVector3fs()[3].equals(previousFace.getVector3fs()[0]) &&
                                 face.getVector3fs()[2].equals(previousFace.getVector3fs()[1])) {
                             face.setVector3f(previousFace.getVector3fs()[3], 3);
                             face.setVector3f(previousFace.getVector3fs()[2], 2);
@@ -144,12 +150,12 @@ public class NaiveGreedyMesher {
                     }
                 }
             }
-
+            //&& buf.get(i + 64) != object*/ || z < 63
             // BACK
-            if (z == 63 /*&& buf.get(i + 64) != material*/ || z < 63 && lArray.get(i + 4096).getTexture() == null) {
+            if (z == 63 || lArray.get(i + 4096).getTexture() == null || lArray.get(i + 4096).hasMesh()) {
                 Face face = new Face();
-                face.setMaterial(material);
-                face.setNormals(new Vector3f(0,0,1),new Vector3f(0,0,1),new Vector3f(0,0,1),new Vector3f(0,0,1));
+                face.setObject(object);
+                face.setNormals(new Vector3f(0, 0, 1), new Vector3f(0, 0, 1), new Vector3f(0, 0, 1), new Vector3f(0, 0, 1));
                 HashMap<Integer, Face> side = sector.get(4);
                 face.setVector3f(x + 1, y, z + 1, 0);
                 face.setVector3f(x + 1, y + 1, z + 1, 1);
@@ -160,8 +166,8 @@ public class NaiveGreedyMesher {
                 //Naive Greedy Meshing
                 if (i > 1) {
                     Face previousFace = side.get(i - 1);
-                    if (previousFace != null && previousFace.getMaterial() == face.getMaterial()) {
-                        if(face.getVector3fs()[3].equals(previousFace.getVector3fs()[0]) &&
+                    if (previousFace != null && previousFace.getObject() == face.getObject()) {
+                        if (face.getVector3fs()[3].equals(previousFace.getVector3fs()[0]) &&
                                 face.getVector3fs()[2].equals(previousFace.getVector3fs()[1])) {
                             face.setVector3f(previousFace.getVector3fs()[3], 3);
                             face.setVector3f(previousFace.getVector3fs()[2], 2);
@@ -172,10 +178,10 @@ public class NaiveGreedyMesher {
             }
 
             // FRONT
-            if (z == 0 || lArray.get(i - 4096).getTexture() == null) {
+            if (z == 0 || lArray.get(i - 4096).getTexture() == null || lArray.get(i - 4096).hasMesh()) {
                 Face face = new Face();
-                face.setMaterial(material);
-                face.setNormals(new Vector3f(0,0,-1),new Vector3f(0,0,-1),new Vector3f(0,0,-1),new Vector3f(0,0,-1));
+                face.setObject(object);
+                face.setNormals(new Vector3f(0, 0, -1), new Vector3f(0, 0, -1), new Vector3f(0, 0, -1), new Vector3f(0, 0, -1));
                 HashMap<Integer, Face> side = sector.get(5);
                 face.setVector3f(x, y, z, 0);
                 face.setVector3f(x, y + 1, z, 1);
@@ -186,8 +192,8 @@ public class NaiveGreedyMesher {
                 //Naive Greedy Meshing
                 if (i > 1) {
                     Face previousFace = side.get(i - 1);
-                    if (previousFace != null && previousFace.getMaterial() == face.getMaterial()) {
-                        if(face.getVector3fs()[0].equals(previousFace.getVector3fs()[3]) &&
+                    if (previousFace != null && previousFace.getObject() == face.getObject()) {
+                        if (face.getVector3fs()[0].equals(previousFace.getVector3fs()[3]) &&
                                 face.getVector3fs()[1].equals(previousFace.getVector3fs()[2])) {
                             face.setVector3f(previousFace.getVector3fs()[0], 0);
                             face.setVector3f(previousFace.getVector3fs()[1], 1);

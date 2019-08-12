@@ -1,6 +1,6 @@
 package com.ritualsoftheold.terra.offheap.chunk.compress;
 
-import com.ritualsoftheold.terra.core.material.MaterialRegistry;
+import com.ritualsoftheold.terra.core.material.Registry;
 import com.ritualsoftheold.terra.offheap.memory.MemoryAllocator;
 import com.ritualsoftheold.terra.offheap.chunk.ChunkType;
 import com.ritualsoftheold.terra.offheap.data.BufferWithFormat;
@@ -42,7 +42,7 @@ public class EmptyChunkFormat implements ChunkFormat {
 
     @Override
     public CriticalBlockBuffer createCriticalBuffer(Storage storage,
-            MaterialRegistry materialRegistry) {
+            Registry registry) {
         throw new UnsupportedOperationException();
     }
 

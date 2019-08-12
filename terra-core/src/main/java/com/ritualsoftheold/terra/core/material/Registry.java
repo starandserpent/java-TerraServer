@@ -5,29 +5,28 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
-import com.ritualsoftheold.terra.core.TerraModule;
 
 import it.unimi.dsi.fastutil.ints.Int2ObjectArrayMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 
-public class MaterialRegistry {
+public class Registry {
     
     // Preferred ids for materials
     private List<String> preferredIds;
     
-    private Int2ObjectMap<TerraMaterial> idToMaterial;
-    private Object2ObjectMap<String, TerraMaterial> nameToMaterial;
+    private Int2ObjectMap<TerraObject> idToObject;
+    private Object2ObjectMap<String, TerraObject> nameToObject;
     
-    public MaterialRegistry(List<String> preferredIds) {
+    public Registry(List<String> preferredIds) {
         this.preferredIds = new ArrayList<>(preferredIds);
-        idToMaterial = new Int2ObjectArrayMap<>(preferredIds.size());
-        nameToMaterial = new Object2ObjectOpenHashMap<>(preferredIds.size());
+        idToObject = new Int2ObjectArrayMap<>(preferredIds.size());
+        nameToObject = new Object2ObjectOpenHashMap<>(preferredIds.size());
         registerDefaultMaterials();
     }
     
-    public MaterialRegistry() {
+    public Registry() {
         this(new ArrayList<>());
     }
     
@@ -45,16 +44,16 @@ public class MaterialRegistry {
      * @param name Name of material.
      * @return The material.
      */
-    public TerraMaterial getMaterial(TerraModule mod, String name) {
-        TerraMaterial material = nameToMaterial.get(mod.getUniqueId() + ":" + name);
+    public TerraObject getMaterial(TerraModule mod, String name) {
+        TerraObject material = nameToObject.get(mod.getUniqueId() + ":" + name);
         if (material == null) {
             throw new IllegalArgumentException("material not found");
         }
         return material;
     }
     
-    public TerraMaterial getMaterial(String fullName) {
-        TerraMaterial material = nameToMaterial.get(fullName);
+    public TerraObject getMaterial(String fullName) {
+        TerraObject material = nameToObject.get(fullName);
         if (material == null) {
             throw new IllegalArgumentException("material not found");
         }
@@ -64,12 +63,12 @@ public class MaterialRegistry {
     /**
      * Attempts to register a material. If it has been already registered,
      * nothing will happen. The material will be assigned world id (short),
-     * which can then be retrieved with {@link TerraMaterial#getWorldId()}.
+     * which can then be retrieved with {@link TerraObject#getWorldId()}.
      * How the ids will be assigned depends on implementation.
      * @param material Material to register.
      * @param mod Module which owns the material.
      */
-    public void registerMaterial(TerraMaterial material, TerraModule mod) {
+    void registerMaterial(TerraObject material, TerraModule mod) {
         String fullName = mod.getUniqueId() + ":" + material.getName();
         material.setFullName(fullName);
         
@@ -86,8 +85,8 @@ public class MaterialRegistry {
         material.setWorldId(worldId);
         
         // Put it to few other maps for ease of use
-        nameToMaterial.put(fullName, material);
-        idToMaterial.put((short) worldId, material);
+        nameToObject.put(fullName, material);
+        idToObject.put((short) worldId, material);
         System.out.println(fullName + ": " + worldId);
     }
     
@@ -97,12 +96,12 @@ public class MaterialRegistry {
      * @param id World id.
      * @return The material.
      */
-    public TerraMaterial getForWorldId(int id) {
-        return idToMaterial.get(id);
+    public TerraObject getForWorldId(int id) {
+        return idToObject.get(id);
     }
     
-    public Collection<TerraMaterial> getAllMaterials() {
-        return Collections.unmodifiableCollection(idToMaterial.values()); // Just take the values, probably works well enough
+    public Collection<TerraObject> getAllMaterials() {
+        return Collections.unmodifiableCollection(nameToObject.values()); // Just take the values, probably works well enough
     }
     
     public List<String> getPreferredIds() {

@@ -5,7 +5,7 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.atomic.AtomicIntegerArray;
 import java.util.concurrent.atomic.AtomicLongArray;
 
-import com.ritualsoftheold.terra.core.material.MaterialRegistry;
+import com.ritualsoftheold.terra.core.material.Registry;
 import com.ritualsoftheold.terra.offheap.io.OctreeLoaderInterface;
 import com.ritualsoftheold.terra.offheap.memory.MemoryUseListener;
 import com.ritualsoftheold.terra.offheap.DataConstants;
@@ -265,7 +265,7 @@ public class OctreeStorage {
         return newIndex; // Finally return new index, as this is ready to be used
     }
     
-    public OffheapOctree getOctree(int index, MaterialRegistry registry) {
+    public OffheapOctree getOctree(int index, Registry registry) {
         long addr = getOctreeAddr(index);
         
         // TODO memory management aka UserOffheapOctree
