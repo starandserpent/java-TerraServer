@@ -28,8 +28,8 @@ public class TextureManager{
 
         for (int i = 2; i < registry.getAllMaterials().size(); i++) {
             TerraObject object = registry.getForWorldId(i);
-            object.getTexture().setPosition(i);
             if (object.getTexture() != null && !object.hasMesh()) {
+                object.getTexture().setPosition(i);
                 Texture tex = assetManager.loadTexture(object.getTexture().getAsset());
 //                tex.setMagFilter(Texture.MagFilter.Nearest);
 //                tex.setMinFilter(Texture.MinFilter.NearestNearestMipMap);

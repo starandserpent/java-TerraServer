@@ -13,7 +13,29 @@ public class TerraObject {
     public static Builder builder() {
         return new Builder();
     }
-    
+
+    private int x;
+    private int y;
+    private int z;
+
+    public void position(int x, int y, int z){
+        this.x = x;
+        this.y = y;
+        this.z = z;
+    }
+
+    public int getX() {
+        return x;
+    }
+
+    public int getY() {
+        return y;
+    }
+
+    public int getZ() {
+        return z;
+    }
+
     private TerraObject() {} // Only builder can create this
     
     /**
@@ -57,6 +79,9 @@ public class TerraObject {
     
     void setWorldId(int id) {
         worldId = id;
+        if(mesh != null){
+            mesh.setVoxelId((byte) id);
+        }
     }
     
     /**
@@ -131,7 +156,7 @@ public class TerraObject {
             return this;
         }
 
-        public Builder setModel(TerraMesh mesh) {
+        public Builder model(TerraMesh mesh) {
             object.mesh = mesh;
             object.hasMesh = true;
             return this;
