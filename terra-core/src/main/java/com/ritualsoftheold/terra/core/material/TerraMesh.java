@@ -1,17 +1,36 @@
 package com.ritualsoftheold.terra.core.material;
 
+import org.apache.commons.collections4.map.MultiKeyMap;
+
 import java.util.Arrays;
 
 public class TerraMesh {
 
     private String asset;
-    private boolean resource;
-    private byte[][][] voxels;
+    private MultiKeyMap<Integer, byte[][][]> voxels;
+    private int size;
 
-    public TerraMesh(String asset, boolean resource, byte[][][] voxels) {
+    private float defaultDistanceX;
+    private float defaultDistanceY;
+    private float defaultDistanceZ;
+
+    public TerraMesh(String asset, MultiKeyMap<Integer, byte[][][]> voxels, float defaultDistanceX,
+                     float defaultDistanceY, float defaultDistanceZ) {
         this.asset = asset;
-        this.resource = resource;
         this.voxels = voxels;
+
+        this.defaultDistanceX = defaultDistanceX;
+        this.defaultDistanceY = defaultDistanceY;
+        this.defaultDistanceZ = defaultDistanceZ;
+
+        size = 0;
+        for (byte[][][] bounds : voxels.values()) {
+            for (byte[][] bound : bounds) {
+                for (byte[] bytes : bound) {
+                    size += bytes.length;
+                }
+            }
+        }
     }
 
     /**
@@ -23,41 +42,33 @@ public class TerraMesh {
     }
 
     void setVoxelId(byte id) {
-        for (int z = 0; z < voxels.length; z++){
-            for (int y = 0; y < voxels[z].length; y++) {
-                Arrays.fill(voxels[z][y], id);
+        for(byte[][][] bounds : voxels.values()) {
+            for (byte[][] bound : bounds) {
+                for (byte[] bytes : bound) {
+                    Arrays.fill(bytes, id);
+                }
             }
         }
     }
 
-    public boolean isResource() {
-        return resource;
-    }
-
-    public byte[][][] getVoxels() {
+    public MultiKeyMap<Integer, byte[][][]> getVoxels() {
         return voxels;
     }
 
-    public int getSizeInVoxels(){
-        int lenght = 0;
-        for (int z = 0; z < voxels.length; z++){
-            for (int y = 0; y < voxels[z].length; y++) {
-                lenght += voxels[z][y].length;
-            }
-        }
-        return lenght;
+    public int getSize() {
+        return size;
     }
 
-    public float getLenghtX(){
-        return voxels[0][0].length * 0.25f;
+    public float getDefaultDistanceX() {
+        return defaultDistanceX;
     }
 
-    public float getLenghtY(){
-        return voxels[0].length * 0.25f;
+    public float getDefaultDistanceY() {
+        return defaultDistanceY;
     }
 
-    public float getLenghtZ(){
-        return voxels.length * 0.25f;
+    public float getDefaultDistanceZ() {
+        return defaultDistanceZ;
     }
 
     @Override
