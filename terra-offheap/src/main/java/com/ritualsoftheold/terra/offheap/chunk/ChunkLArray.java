@@ -36,7 +36,7 @@ public class ChunkLArray {
 
     }
     public TerraObject get (int idx){
-        return reg.getForWorldId(chunkVoxelData.getByte(idx));
+        return reg.getForWorldId((int)chunkVoxelData.getByte(idx));
     }
     public void set(int x, int y, int z, byte data){
         int idx = x + CHUNK_SIZE * (y + CHUNK_SIZE * z);
