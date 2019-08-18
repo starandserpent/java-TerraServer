@@ -50,6 +50,10 @@ public class ChunkLArray {
         return chunkVoxelData;
     }
 
+    public void free(){
+        chunkVoxelData.free();
+    }
+
     public void setDifferent(boolean different){
         isDifferent = different;
     }

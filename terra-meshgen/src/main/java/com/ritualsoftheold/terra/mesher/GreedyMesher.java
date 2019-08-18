@@ -16,20 +16,21 @@ public class GreedyMesher {
 
     }
 
-    public HashMap<Integer, HashMap<Integer, Face>> cull(ChunkLArray lArray) {
-        assert lArray != null;
+    public HashMap<Integer, HashMap<Integer, Face>> cull(ChunkLArray chunk) {
+        assert chunk != null;
 
-        if (lArray.isDifferent()) {
+        if (chunk.isDifferent()) {
             // Generate mappings for culling
-            return culling.cull(lArray);
+            return culling.cull(chunk);
         } else {
             HashMap<Integer, HashMap<Integer, Face>> cubeFaces = new HashMap<>();
-            if(lArray.get(0).getTexture() != null) {
+            if (chunk.get(0).getTexture() != null) {
+
                 // LEFT
                 HashMap<Integer, Face> faces = new HashMap<>();
                 Face face = new Face();
 
-                face.setObject(lArray.get(0));
+                face.setObject(chunk.get(0));
                 face.setNormals(new Vector3f(-1, 0, 0), new Vector3f(-1, 0, 0), new Vector3f(-1, 0, 0), new Vector3f(-1, 0, 0));
                 face.setVector3f(0, 0, 64, 0);
                 face.setVector3f(0, 64, 64, 1);
@@ -43,7 +44,7 @@ public class GreedyMesher {
                 faces = new HashMap<>();
                 face = new Face();
 
-                face.setObject(lArray.get(0));
+                face.setObject(chunk.get(0));
                 face.setNormals(new Vector3f(1, 0, 0), new Vector3f(1, 0, 0), new Vector3f(1, 0, 0), new Vector3f(1, 0, 0));
                 face.setVector3f(64, 0, 0, 0);
                 face.setVector3f(64, 64, 0, 1);
@@ -57,7 +58,7 @@ public class GreedyMesher {
                 faces = new HashMap<>();
                 face = new Face();
 
-                face.setObject(lArray.get(0));
+                face.setObject(chunk.get(0));
                 face.setNormals(new Vector3f(0, 1, 0), new Vector3f(0, 1, 0), new Vector3f(0, 1, 0), new Vector3f(0, 1, 0));
                 face.setVector3f(0, 64, 0, 0);
                 face.setVector3f(0, 64, 64, 1);
@@ -71,7 +72,7 @@ public class GreedyMesher {
                 faces = new HashMap<>();
                 face = new Face();
 
-                face.setObject(lArray.get(0));
+                face.setObject(chunk.get(0));
                 face.setNormals(new Vector3f(0, -1, 0), new Vector3f(0, -1, 0), new Vector3f(0, -1, 0), new Vector3f(0, -1, 0));
                 face.setVector3f(64, 0, 0, 0);
                 face.setVector3f(64, 0, 64, 1);
@@ -85,7 +86,7 @@ public class GreedyMesher {
                 faces = new HashMap<>();
                 face = new Face();
 
-                face.setObject(lArray.get(0));
+                face.setObject(chunk.get(0));
                 face.setNormals(new Vector3f(0, 0, 1), new Vector3f(0, 0, 1), new Vector3f(0, 0, 1), new Vector3f(0, 0, 1));
                 face.setVector3f(64, 0, 64, 0);
                 face.setVector3f(64, 64, 64, 1);
@@ -99,16 +100,17 @@ public class GreedyMesher {
                 faces = new HashMap<>();
                 face = new Face();
 
-                face.setObject(lArray.get(0));
+                face.setObject(chunk.get(0));
                 face.setNormals(new Vector3f(0, 0, -1), new Vector3f(0, 0, -1), new Vector3f(0, 0, -1), new Vector3f(0, 0, -1));
                 face.setVector3f(0, 0, 0, 0);
                 face.setVector3f(0, 64, 0, 1);
                 face.setVector3f(64, 64, 0, 2);
                 face.setVector3f(64, 0, 0, 3);
                 faces.put(0, face);
-
                 cubeFaces.put(5, faces);
             }
+            
+            chunk.free();
             cubeFaces.put(6, new HashMap<>());
             return cubeFaces;
         }

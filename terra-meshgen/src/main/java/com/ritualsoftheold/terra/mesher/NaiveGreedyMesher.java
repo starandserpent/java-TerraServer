@@ -21,10 +21,10 @@ class NaiveGreedyMesher {
         }
     }
 
-    HashMap<Integer, HashMap<Integer, Face>> cull(ChunkLArray lArray) {
+    HashMap<Integer, HashMap<Integer, Face>> cull(ChunkLArray chunk) {
         //Creates voxels from BlockBuffer and set its object
         for (int i = 0; i < ChunkLArray.CHUNK_SIZE; i++) {
-            TerraObject object = lArray.get(i);
+            TerraObject object = chunk.get(i);
             if (object.getTexture() == null) {
                 continue;
             }
@@ -47,7 +47,7 @@ class NaiveGreedyMesher {
 
             // LEFT
             /*&& buf.get(i + 64) != object*/
-            if (x == 0 || lArray.get(i - 1).getTexture() == null || lArray.get(i - 1).hasMesh()) {
+            if (x == 0 || chunk.get(i - 1).getTexture() == null || chunk.get(i - 1).hasMesh()) {
                 Face face = new Face();
                 HashMap<Integer, Face> side = sector.get(0);
                 face.setObject(object);
@@ -74,7 +74,7 @@ class NaiveGreedyMesher {
 
             // RIGHT
             /*&& buf.get(i + 64) != object*/
-            if (x == 63 || lArray.get(i + 1).getTexture() == null || lArray.get(i + 1).hasMesh()) {
+            if (x == 63 || chunk.get(i + 1).getTexture() == null || chunk.get(i + 1).hasMesh()) {
                 Face face = new Face();
                 face.setObject(object);
                 face.setNormals(new Vector3f(1, 0, 0), new Vector3f(1, 0, 0), new Vector3f(1, 0, 0), new Vector3f(1, 0, 0));
@@ -100,7 +100,7 @@ class NaiveGreedyMesher {
             }
 
             // TOP
-            if (y == 63 || lArray.get(i + 64).getTexture() == null || lArray.get(i + 64).hasMesh()) {
+            if (y == 63 || chunk.get(i + 64).getTexture() == null || chunk.get(i + 64).hasMesh()) {
                 Face face = new Face();
                 face.setObject(object);
                 face.setNormals(new Vector3f(0, 1, 0), new Vector3f(0, 1, 0), new Vector3f(0, 1, 0), new Vector3f(0, 1, 0));
@@ -126,7 +126,7 @@ class NaiveGreedyMesher {
             }
 
             // BOTTOM
-            if (y == 0 || y > 0 && lArray.get(i - 64).getTexture() == null || lArray.get(i - 64).hasMesh()) {
+            if (y == 0 || y > 0 && chunk.get(i - 64).getTexture() == null || chunk.get(i - 64).hasMesh()) {
                 Face face = new Face();
                 face.setObject(object);
                 face.setNormals(new Vector3f(0, -1, 0), new Vector3f(0, -1, 0), new Vector3f(0, -1, 0), new Vector3f(0, -1, 0));
@@ -152,7 +152,7 @@ class NaiveGreedyMesher {
             }
             //&& buf.get(i + 64) != object*/ || z < 63
             // BACK
-            if (z == 63 || lArray.get(i + 4096).getTexture() == null || lArray.get(i + 4096).hasMesh()) {
+            if (z == 63 || chunk.get(i + 4096).getTexture() == null || chunk.get(i + 4096).hasMesh()) {
                 Face face = new Face();
                 face.setObject(object);
                 face.setNormals(new Vector3f(0, 0, 1), new Vector3f(0, 0, 1), new Vector3f(0, 0, 1), new Vector3f(0, 0, 1));
@@ -178,7 +178,7 @@ class NaiveGreedyMesher {
             }
 
             // FRONT
-            if (z == 0 || lArray.get(i - 4096).getTexture() == null || lArray.get(i - 4096).hasMesh()) {
+            if (z == 0 || chunk.get(i - 4096).getTexture() == null || chunk.get(i - 4096).hasMesh()) {
                 Face face = new Face();
                 face.setObject(object);
                 face.setNormals(new Vector3f(0, 0, -1), new Vector3f(0, 0, -1), new Vector3f(0, 0, -1), new Vector3f(0, 0, -1));
@@ -203,6 +203,7 @@ class NaiveGreedyMesher {
                 }
             }
         }
+        chunk.free();
         return sector;
     }
 }
