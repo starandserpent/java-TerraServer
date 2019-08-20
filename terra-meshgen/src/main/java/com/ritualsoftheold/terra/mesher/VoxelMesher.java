@@ -1,10 +1,6 @@
 package com.ritualsoftheold.terra.mesher;
 
-import com.ritualsoftheold.terra.mesher.resource.TextureManager;
 import com.ritualsoftheold.terra.offheap.chunk.ChunkLArray;
-import xerial.larray.LByteArray;
-
-import java.util.HashMap;
 
 /**
  * Creates a mesh based on Terra's voxel data.
@@ -24,5 +20,4 @@ public interface VoxelMesher {
      * @param scale
      * @param textures
      */
-    void cube(int id, float scale, TextureManager textures);
 }

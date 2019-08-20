@@ -4,7 +4,7 @@ in vec3 normal;
 in vec3 texCoord;
 
 void main() {
-    vec4 color = texture(m_ColorMap, texCoord);
+    vec4 color = texture(m_ColorMap, vec3(texCoord.xy, round(texCoord.z)));
 
     if(color.a < 0.1)
         discard;
