@@ -1,10 +1,16 @@
 package com.ritualsoftheold.terra.offheap.world;
 
 import com.ritualsoftheold.terra.core.material.Registry;
+import com.ritualsoftheold.terra.core.node.OctreeBase;
+import com.ritualsoftheold.terra.core.node.OctreeLeaf;
+import com.ritualsoftheold.terra.offheap.DataConstants;
 import com.ritualsoftheold.terra.offheap.WorldGeneratorInterface;
 import com.ritualsoftheold.terra.offheap.chunk.ChunkLArray;
 import com.ritualsoftheold.terra.offheap.node.OffheapOctree;
 import com.ritualsoftheold.terra.offheap.util.Morton3D;
+
+import java.sql.Timestamp;
+import java.util.ArrayList;
 
 /**
  * Handles loading of offheap worlds. Usually this class is used by load
@@ -55,10 +61,10 @@ public class ChunkSVOGenerator {
                 loadArea(-16 * f, rangeY, -16 * f, listener);
             }
         }
-
     }
 
-  /*  void seekSector(float x, float y, float z, float range, WorldLoadListener listener, OffheapLoadMarker trigger) {
+    public void seekSector(float x, float y, float z, float range, WorldLoadListener listener, OffheapLoadMarker
+            trigger, ArrayList<OctreeBase> nodes) {
         this.centerX = x;
         this.centerY = y;
         this.centerZ = z;
@@ -75,7 +81,7 @@ public class ChunkSVOGenerator {
         Timestamp timestamp = new Timestamp(System.currentTimeMillis());
         // System.out.println("Started sector seek "+timestamp);
 
-        OctreeNode[] OctreeLeafs = new OctreeNode[maxSize];
+        OctreeBase[] OctreeLeafs = new OctreeBase[maxSize];
 
         for (int i = 0; i < maxSize; i++) {
             int xOffset = i % size;
@@ -87,19 +93,32 @@ public class ChunkSVOGenerator {
             float zWorld = (zOffset * chunkWorldSize) + genOriginZ;
 
 //            System.out.println("World coord: "+xWorld+" "+yWorld+" "+zWorld);
-            long lolong = morton3D.encode(xOffset, yOffset, zOffset);
             //System.out.println(lolong);
 //            loadArea(xWorld,yWorld,zWorld,listener);
-            OctreeNode leafNode = new OctreeNode();
+            offheapOctree.SetOctreeOrigin((int) x, (int) y, (int) z, maxSize);
+            //  offheapOctree.createOctree(OctreeLeafs);
+            //timestamp = new Timestamp(System.currentTimeMillis());
+            //System.out.println("Ended sector seek "+timestamp);
+
+            long lolong = morton3D.encode(xOffset, yOffset, zOffset);
+            //           System.out.println(lolong);
+//            loadArea(xWorld-8,yWorld-8,zWorld-8,listener);
+            OctreeLeaf leafNode = new OctreeLeaf();
+            leafNode.worldX = xWorld;
+            leafNode.worldY = yWorld;
+            leafNode.worldZ = zWorld;
             leafNode.locCode = lolong;
             OctreeLeafs[(int) lolong] = leafNode;
+            offheapOctree.SetOctreeOrigin((int) x, (int) y, (int) z, maxSize);
+            offheapOctree.createOctree(OctreeLeafs);
+            if (nodes != null)
+                nodes.addAll(offheapOctree.getOctreeNodes());
+            timestamp = new
 
+                    Timestamp(System.currentTimeMillis());
+            System.out.println("Ended sector seek " + timestamp);
         }
-        offheapOctree.SetOctreeOrigin((int) x, (int) y, (int) z, maxSize);
-        //  offheapOctree.createOctree(OctreeLeafs);
-        //timestamp = new Timestamp(System.currentTimeMillis());
-        //System.out.println("Ended sector seek "+timestamp);
-    }*/
+    }
 
     public void updateSector(float x, float z, float range, WorldLoadListener listener, OffheapLoadMarker trigger) {
         for (float rangeY = -height * 2; rangeY <= height * 2; rangeY += 16) {
