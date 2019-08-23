@@ -1,12 +1,10 @@
 package com.ritualsoftheold.terra.offheap.world;
 
 import com.ritualsoftheold.terra.core.gen.interfaces.world.TerraWorld;
+import com.ritualsoftheold.terra.core.node.*;
 import com.ritualsoftheold.terra.offheap.WorldGeneratorInterface;
 import com.ritualsoftheold.terra.core.gen.objects.LoadMarker;
 import com.ritualsoftheold.terra.core.material.MaterialRegistry;
-import com.ritualsoftheold.terra.core.node.Chunk;
-import com.ritualsoftheold.terra.core.node.Node;
-import com.ritualsoftheold.terra.core.node.Octree;
 import com.ritualsoftheold.terra.offheap.node.OffheapOctree;
 
 import java.util.ArrayList;
@@ -23,7 +21,7 @@ public class OffheapWorld {
     private OffheapOctree masterOctree;
     private float masterScale;
     
-    // World generatio
+    // World generation
 
     // Coordinates of world center
     /*private float centerX = 0;
@@ -113,11 +111,17 @@ public class OffheapWorld {
         
         return pendingMarkers;
     }
-
     public void initialChunkGeneration(OffheapLoadMarker player) {
         // Tell world loader to load stuff, and while doing so, update the load marker
 //        chunkGenerator.seekSector(player.getX(), player.getZ(), player.getHardRadius()*2, worldListener, player);
-        chunkGenerator.seekSector(player.getX(),player.getY(),player.getZ(),player.getHardRadius(),worldListener,player);
+        chunkGenerator.seekSector(player.getX(),player.getY(),player.getZ(),player.getHardRadius(),worldListener,player,null);
+        player.markUpdated();
+    }
+    //Debug method
+    public void initialChunkGeneration(OffheapLoadMarker player, ArrayList<OctreeBase> nodes) {
+        // Tell world loader to load stuff, and while doing so, update the load marker
+//        chunkGenerator.seekSector(player.getX(), player.getZ(), player.getHardRadius()*2, worldListener, player);
+        chunkGenerator.seekSector(player.getX(),player.getY(),player.getZ(),player.getHardRadius(),worldListener,player,nodes);
         player.markUpdated();
     }
 
