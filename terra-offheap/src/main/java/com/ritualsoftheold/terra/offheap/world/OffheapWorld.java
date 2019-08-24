@@ -16,18 +16,6 @@ import java.util.concurrent.CompletableFuture;
  * Represents world that is mainly backed by offheap memory.
  */
 public class OffheapWorld {
-    // Some cached stuff
-    private OffheapOctree masterOctree;
-    private float masterScale;
-    
-    // World generation
-
-    // Coordinates of world center
-    /*private float centerX = 0;
-    private float centerY = 0;
-    private float centerZ = 0;
-    /*
-     */
     
     // New world loader, no more huge methods in this class!
     private ChunkSVOGenerator chunkGenerator;
@@ -41,8 +29,9 @@ public class OffheapWorld {
         this.worldListener = worldListener;
         loadMarkers = new ArrayList<>();
 
-        masterOctree = new OffheapOctree(reg);
-        chunkGenerator = new ChunkSVOGenerator(generator, reg, height,masterOctree);
+        // Some cached stuff
+        OffheapOctree masterOctree = new OffheapOctree(reg);
+        chunkGenerator = new ChunkSVOGenerator(generator, reg, height, masterOctree);
     }
 
     public Registry getMaterialRegistry() {
@@ -110,17 +99,12 @@ public class OffheapWorld {
         
         return pendingMarkers;
     }
-    public void initialChunkGeneration(OffheapLoadMarker player) {
-        // Tell world loader to load stuff, and while doing so, update the load marker
-//        chunkGenerator.seekSector(player.getX(), player.getZ(), player.getHardRadius()*2, worldListener, player);
-        chunkGenerator.seekSector(player.getX(),player.getY(),player.getZ(),player.getHardRadius(),worldListener,player,null);
-        player.markUpdated();
-    }
+
     //Debug method
     public void initialChunkGeneration(OffheapLoadMarker player, ArrayList<OctreeBase> nodes) {
         // Tell world loader to load stuff, and while doing so, update the load marker
 //        chunkGenerator.seekSector(player.getX(), player.getZ(), player.getHardRadius()*2, worldListener, player);
-        chunkGenerator.seekSector(player.getX(),player.getY(),player.getZ(),player.getHardRadius(),worldListener,player,nodes);
+        chunkGenerator.seekSector(player.getX(),player.getY(),player.getZ(),player.getHardRadius(),worldListener,nodes);
         player.markUpdated();
     }
 
@@ -158,14 +142,6 @@ public class OffheapWorld {
         return null;
     }
 
-    /**
-     * Gets current scale of master octree of this world.
-     * @return Master octree scale.
-     */
-    public float getMasterScale() {
-        return masterScale;
-    }
-    
     /**
      * Resulting data from chunk (potentially failed) copy operation.
      *

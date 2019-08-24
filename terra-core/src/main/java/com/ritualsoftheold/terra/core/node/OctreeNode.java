@@ -1,33 +1,25 @@
 package com.ritualsoftheold.terra.core.node;
 
-import net.openhft.chronicle.bytes.Byteable;
-import net.openhft.chronicle.bytes.BytesMarshallable;
-import net.openhft.chronicle.values.Array;
-import net.openhft.chronicle.values.Copyable;
-
-import java.io.Serializable;
-
 /*
 *   New Octree definition. Basic Node for a linear octree
-*
-*
 */
 public class OctreeNode implements OctreeBase {
-    public float worldX;
-    public float worldY;
-    public float worldZ;
+    private float worldX;
+    private float worldY;
+    private float worldZ;
 
-    public int halfSize = 0;
+    private int halfSize = 0;
 
-
-    public OctreeBase[] children;
+    private OctreeBase[] children;
 
     public OctreeNode(boolean isLeaf){
         children = new OctreeBase[]{null,null,null,null,null,null,null,null};
     }
+
     public OctreeNode(){
         this(true);
     }
+
     public void setChildren(OctreeBase c1,OctreeBase c2,OctreeBase c3,OctreeBase c4,OctreeBase c5,OctreeBase c6,OctreeBase c7,OctreeBase c8){
         this.children[0]=c1;
         this.children[1]=c2;
@@ -39,7 +31,8 @@ public class OctreeNode implements OctreeBase {
         this.children[7]=c8;
         calculateCenter();
     }
-    public void calculateCenter(){
+
+    private void calculateCenter() {
 //        if(children[0] instanceof  OctreeLeaf){
 //            OctreeLeaf leaf = (OctreeLeaf)children[0];
 //                this.worldX = leaf.worldX -4;
@@ -52,32 +45,30 @@ public class OctreeNode implements OctreeBase {
 //                this.worldZ = child.worldZ-child.halfSize;
 //        }
 
-        for(int i =0; i< 8;i++){
+        for (int i = 0; i < 8; i++) {
 
-            if(children[i] instanceof OctreeLeaf){
-                OctreeLeaf leaf = (OctreeLeaf)children[i];
+            if (children[i] instanceof OctreeLeaf) {
+                OctreeLeaf leaf = (OctreeLeaf) children[i];
                 this.worldX += leaf.worldX;
-                this.worldY +=leaf.worldY;
+                this.worldY += leaf.worldY;
                 this.worldZ += leaf.worldZ;
                 halfSize += 4;
-            }
-            else{
+            } else {
                 System.out.println("Test");
-                OctreeNode child = (OctreeNode)children[i];
+                OctreeNode child = (OctreeNode) children[i];
                 this.worldX += child.worldX;
-                this.worldY +=child.worldY;
+                this.worldY += child.worldY;
                 this.worldZ += child.worldZ;
                 int halfSizemore = child.halfSize >> 1;
                 halfSize += halfSizemore;
             }
-
         }
-        halfSize = halfSize /2;
+
+        halfSize = halfSize / 2;
         this.worldX /= 8;
         this.worldY /= 8;
         this.worldZ /= 8;
         //Divide by 2 using bitshift
-
     }
 //    public int getNodeDepth(){
 //        int lcIterator = locCode;
