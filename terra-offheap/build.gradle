@@ -1,9 +1,0 @@
-dependencies {
-    compile project(':terra-core')
-}
-
-// Exclude the SLOW tests from Gradle build
-test {
-    exclude 'com/ritualsoftheold/terra/offheap/test/MemoryTest.class'
-    // TODO more slow tests have been added, identify and add them here
-}

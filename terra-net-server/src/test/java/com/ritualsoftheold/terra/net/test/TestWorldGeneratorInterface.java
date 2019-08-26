@@ -2,8 +2,8 @@ package com.ritualsoftheold.terra.net.test;
 
 import com.ritualsoftheold.terra.offheap.DataConstants;
 import com.ritualsoftheold.terra.core.buffer.BlockBuffer;
-import com.ritualsoftheold.terra.core.material.MaterialRegistry;
-import com.ritualsoftheold.terra.core.material.TerraMaterial;
+import com.ritualsoftheold.terra.offheap.material.MaterialRegistry;
+import com.ritualsoftheold.terra.offheap.material.TerraMaterial;
 import com.ritualsoftheold.terra.offheap.world.gen.GenerationTask;
 import com.ritualsoftheold.terra.offheap.world.gen.GeneratorControl;
 import com.ritualsoftheold.terra.offheap.world.gen.Pipeline;

@@ -1,96 +1,19 @@
-plugins {
-    id "me.champeau.gradle.jmh" version "0.4.8" apply false
-    id "application"
-}
-
-application {
-    mainClassName = "com.ritualsoftheold.terra.test.TestGameApp"
-}
-
 allprojects {
     // Apply the java plugin to add support for Java
     apply plugin: 'java'
-    apply plugin: 'eclipse'
-    apply plugin: 'maven-publish'
 
-    
     sourceCompatibility = 12
     targetCompatibility = 12
 
     // In this section you declare where to find the dependencies of your project
     repositories {
-        mavenLocal() // Mainly for snapshot Venom builds
+        mavenCentral()
         jcenter()
-        maven {
-            url project.findProperty("ritualsMavenServer") ?: "https://localhost"
-            credentials {
-                username project.findProperty("ritualsMavenUser") ?: "invalid-user"
-                password project.findProperty("ritualsMavenPassword") ?: "invalid-password"
-            }
-        }
     }
-    
+
     // In this section you declare the dependencies for your production and test code
     dependencies {
         compile 'org.slf4j:slf4j-api:1.7.26'
-        // https://mvnrepository.com/artifact/org.slf4j/slf4j-simple
-        testCompile group: 'org.slf4j', name: 'slf4j-simple', version: '1.7.26'
-
-        testCompile("junit:junit:4.12")
-        testRuntime("org.junit.vintage:junit-vintage-engine:5.4.0")
         compile 'org.xerial.larray:larray_2.12:0.4.1'
-        implementation 'net.openhft:chronicle-core:2.17.12'
-        implementation 'net.openhft:chronicle-map:3.17.3'
-    }
-    
-    task sourceJar(type: Jar) {
-        from sourceSets.main.allJava
-    }
-    
-    publishing {
-        publications {
-            mavenJava(MavenPublication) {
-                groupId "com.ritualsoftheold"
-                artifactId project.name
-                version project.property("version")
-    
-                from components.java
-    
-                artifact sourceJar {
-                    classifier "sources"
-                }
-            }
-        }
-        
-        repositories {
-            maven {
-                url project.findProperty("ritualsMavenServer") ?: "https://localhost"
-                credentials {
-                    username project.findProperty("ritualsMavenUser") ?: "invalid-user"
-                    password project.findProperty("ritualsMavenPassword") ?: "invalid-password"
-                }
-            }
-        }
-    }
-}
-
-
-
-// Define JMH for all subprojects that need it
-allprojects.findAll { it.name in ['terra-meshgen'] }. each { p ->
-    configure(p) {
-        apply plugin: "me.champeau.gradle.jmh"
-
-        dependencies {
-            jmh 'org.openjdk.jmh:jmh-core:1.21'
-            jmh 'org.openjdk.jmh:jmh-generator-annprocess:1.21'
-        }
-        
-        tasks.getByName('jmhJar').doFirst() {duplicatesStrategy(DuplicatesStrategy.EXCLUDE)}
-        
-        jmh {
-            duplicateClassesStrategy = 'exclude' // See https://github.com/melix/jmh-gradle-plugin/issues/125
-            fork = 1 // Fork only once to save time
-        }
     }
 }

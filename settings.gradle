@@ -1,20 +1,3 @@
-rootProject.name = 'Terra'
+rootProject.name = 'TerraServer'
 
-include 'terra-core'
-include 'terra-offheap'
-include 'terra-io-files'
-include 'terra-meshgen'
-include 'terra-net-core'
-include 'terra-net-client'
-include 'terra-net-server'
-
-// Include Venom only if we're not included, because Gradle doesn't support recursive includes
-if (gradle.parent == null && file('../venom').exists()) {
-//    includeBuild('../venom') {
-//        dependencySubstitution {
-//            substitute module('com.starandserpent:venom-listeners') with project(':venom-listeners')
-//            substitute module('com.starandserpent:venom-server') with project(':venom-server')
-//            substitute module('com.starandserpent:venom-client') with project(':venom-client')
-//        }
-//    }
-}
+include 'terra-server-manager'

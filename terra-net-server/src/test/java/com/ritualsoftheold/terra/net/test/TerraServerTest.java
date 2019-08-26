@@ -5,7 +5,7 @@ import java.util.concurrent.ForkJoinPool;
 import com.ritualsoftheold.terra.net.server.SendingLoadListener;
 import com.ritualsoftheold.terra.net.server.WorldObserver;
 import com.ritualsoftheold.terra.core.TerraModule;
-import com.ritualsoftheold.terra.core.material.MaterialRegistry;
+import com.ritualsoftheold.terra.offheap.material.MaterialRegistry;
 import com.ritualsoftheold.terra.offheap.memory.MemoryPanicHandler;
 import com.ritualsoftheold.terra.net.TerraProtocol;
 import com.ritualsoftheold.terra.offheap.chunk.ChunkBuffer;
