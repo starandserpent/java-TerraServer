@@ -2,7 +2,7 @@ package com.ritualsoftheold.terra.manager.world;
 
 import com.ritualsoftheold.terra.manager.gen.objects.LoadMarker;
 import com.ritualsoftheold.terra.manager.Pointer;
-import com.ritualsoftheold.terra.manager.chunk.ChunkLArray;
+import com.ritualsoftheold.terra.memory.chunk.ChunkLArray;
 
 /**
  * Methods in in this interface will be called when world data is loaded.

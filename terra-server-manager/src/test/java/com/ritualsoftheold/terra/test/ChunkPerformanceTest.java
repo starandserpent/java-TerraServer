@@ -4,11 +4,11 @@ import com.ritualsoftheold.terra.manager.material.TerraModule;
 import com.ritualsoftheold.terra.manager.material.Registry;
 import com.ritualsoftheold.terra.manager.material.TerraObject;
 import com.ritualsoftheold.terra.manager.DataConstants;
-import com.ritualsoftheold.terra.manager.chunk.ChunkBuffer;
-import com.ritualsoftheold.terra.manager.chunk.ChunkLArray;
-import com.ritualsoftheold.terra.manager.chunk.ChunkStorage;
-import com.ritualsoftheold.terra.manager.chunk.compress.Palette16ChunkFormat;
-import com.ritualsoftheold.terra.manager.node.OffheapChunk;
+import com.ritualsoftheold.terra.memory.chunk.ChunkBuffer;
+import com.ritualsoftheold.terra.memory.chunk.ChunkLArray;
+import com.ritualsoftheold.terra.memory.chunk.ChunkStorage;
+import com.ritualsoftheold.terra.memory.chunk.compress.Palette16ChunkFormat;
+import com.ritualsoftheold.terra.memory.node.OffheapChunk;
 import net.openhft.chronicle.core.Memory;
 import net.openhft.chronicle.core.OS;
 

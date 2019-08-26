@@ -6,10 +6,10 @@ import com.ritualsoftheold.terra.manager.DataConstants;
 import com.ritualsoftheold.terra.net.TerraProtocol;
 import org.agrona.DirectBuffer;
 
-import com.ritualsoftheold.terra.manager.chunk.ChunkBuffer;
-import com.ritualsoftheold.terra.manager.chunk.ChunkStorage;
-import com.ritualsoftheold.terra.manager.chunk.compress.ChunkFormat;
-import com.ritualsoftheold.terra.manager.node.OffheapChunk;
+import com.ritualsoftheold.terra.memory.chunk.ChunkBuffer;
+import com.ritualsoftheold.terra.memory.chunk.ChunkStorage;
+import com.ritualsoftheold.terra.memory.chunk.compress.ChunkFormat;
+import com.ritualsoftheold.terra.memory.node.OffheapChunk;
 import com.ritualsoftheold.terra.manager.octree.OctreeStorage;
 import com.ritualsoftheold.terra.manager.verifier.TerraVerifier;
 

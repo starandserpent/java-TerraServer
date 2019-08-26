@@ -3,7 +3,7 @@ package com.ritualsoftheold.terra.manager.world;
 import com.ritualsoftheold.terra.manager.WorldGeneratorInterface;
 import com.ritualsoftheold.terra.manager.gen.objects.LoadMarker;
 import com.ritualsoftheold.terra.manager.material.Registry;
-import com.ritualsoftheold.terra.manager.node.OffheapOctree;
+import com.ritualsoftheold.terra.memory.node.OffheapOctree;
 
 import java.util.ArrayList;
 import java.util.Comparator;

@@ -1,0 +1,3 @@
+[submodule "Foreman"]
+	path = Foreman
+	url = https://github.com/starandserpent/Foreman

@@ -1,7 +1,7 @@
 package com.ritualsoftheold.terra.net.client;
 
 import com.ritualsoftheold.terra.manager.io.ChunkLoader;
-import com.ritualsoftheold.terra.manager.chunk.ChunkBuffer;
+import com.ritualsoftheold.terra.memory.chunk.ChunkBuffer;
 
 public class NetChunkLoader implements ChunkLoader {
 

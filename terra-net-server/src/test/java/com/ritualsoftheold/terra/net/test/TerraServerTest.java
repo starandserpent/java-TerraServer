@@ -8,7 +8,7 @@ import com.ritualsoftheold.terra.core.TerraModule;
 import com.ritualsoftheold.terra.manager.material.MaterialRegistry;
 import com.ritualsoftheold.terra.manager.memory.MemoryPanicHandler;
 import com.ritualsoftheold.terra.net.TerraProtocol;
-import com.ritualsoftheold.terra.manager.chunk.ChunkBuffer;
+import com.ritualsoftheold.terra.memory.chunk.ChunkBuffer;
 import com.ritualsoftheold.terra.manager.io.dummy.DummyChunkLoader;
 import com.ritualsoftheold.terra.manager.io.dummy.DummyOctreeLoader;
 import com.ritualsoftheold.terra.manager.world.OffheapWorld;

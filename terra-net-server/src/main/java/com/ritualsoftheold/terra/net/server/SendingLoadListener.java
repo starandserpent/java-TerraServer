@@ -8,7 +8,7 @@ import org.agrona.MutableDirectBuffer;
 import org.agrona.concurrent.UnsafeBuffer;
 
 import com.ritualsoftheold.terra.net.TerraProtocol;
-import com.ritualsoftheold.terra.manager.node.OffheapChunk;
+import com.ritualsoftheold.terra.memory.node.OffheapChunk;
 import com.ritualsoftheold.terra.manager.world.OffheapWorld;
 import com.ritualsoftheold.terra.manager.world.WorldLoadListener;
 import com.ritualsoftheold.terra.manager.world.LoadMarker;

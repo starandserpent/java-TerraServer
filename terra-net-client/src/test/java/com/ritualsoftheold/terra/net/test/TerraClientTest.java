@@ -4,7 +4,7 @@ import static org.junit.Assert.assertFalse;
 
 import java.util.concurrent.ForkJoinPool;
 
-import com.ritualsoftheold.terra.manager.chunk.ChunkBuffer;
+import com.ritualsoftheold.terra.memory.chunk.ChunkBuffer;
 import com.ritualsoftheold.terra.manager.material.MaterialRegistry;
 import com.ritualsoftheold.terra.manager.memory.MemoryPanicHandler;
 import com.ritualsoftheold.terra.net.TerraProtocol;
@@ -17,7 +17,7 @@ import org.junit.Test;
 
 import com.ritualsoftheold.terra.manager.io.dummy.DummyChunkLoader;
 import com.ritualsoftheold.terra.manager.io.dummy.DummyOctreeLoader;
-import com.ritualsoftheold.terra.manager.node.OffheapChunk;
+import com.ritualsoftheold.terra.memory.node.OffheapChunk;
 import com.ritualsoftheold.terra.manager.world.LoadMarker;
 
 import io.aeron.Aeron;
