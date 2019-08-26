@@ -5,12 +5,12 @@ import static org.junit.Assert.assertTrue;
 
 import java.util.concurrent.Executors;
 
-import com.ritualsoftheold.terra.offheap.octree.OctreeStorage;
+import com.ritualsoftheold.terra.manager.octree.OctreeStorage;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.ritualsoftheold.terra.offheap.DataConstants;
-import com.ritualsoftheold.terra.offheap.io.dummy.DummyOctreeLoader;
+import com.ritualsoftheold.terra.manager.DataConstants;
+import com.ritualsoftheold.terra.manager.io.dummy.DummyOctreeLoader;
 
 import net.openhft.chronicle.core.Memory;
 import net.openhft.chronicle.core.OS;

@@ -4,21 +4,21 @@ import static org.junit.Assert.assertFalse;
 
 import java.util.concurrent.ForkJoinPool;
 
-import com.ritualsoftheold.terra.offheap.chunk.ChunkBuffer;
-import com.ritualsoftheold.terra.offheap.material.MaterialRegistry;
-import com.ritualsoftheold.terra.offheap.memory.MemoryPanicHandler;
+import com.ritualsoftheold.terra.manager.chunk.ChunkBuffer;
+import com.ritualsoftheold.terra.manager.material.MaterialRegistry;
+import com.ritualsoftheold.terra.manager.memory.MemoryPanicHandler;
 import com.ritualsoftheold.terra.net.TerraProtocol;
 import com.ritualsoftheold.terra.net.client.TerraClient;
-import com.ritualsoftheold.terra.offheap.world.OffheapWorld;
-import com.ritualsoftheold.terra.offheap.world.WorldLoadListener;
+import com.ritualsoftheold.terra.manager.world.OffheapWorld;
+import com.ritualsoftheold.terra.manager.world.WorldLoadListener;
 import org.agrona.concurrent.BackoffIdleStrategy;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.ritualsoftheold.terra.offheap.io.dummy.DummyChunkLoader;
-import com.ritualsoftheold.terra.offheap.io.dummy.DummyOctreeLoader;
-import com.ritualsoftheold.terra.offheap.node.OffheapChunk;
-import com.ritualsoftheold.terra.offheap.world.LoadMarker;
+import com.ritualsoftheold.terra.manager.io.dummy.DummyChunkLoader;
+import com.ritualsoftheold.terra.manager.io.dummy.DummyOctreeLoader;
+import com.ritualsoftheold.terra.manager.node.OffheapChunk;
+import com.ritualsoftheold.terra.manager.world.LoadMarker;
 
 import io.aeron.Aeron;
 

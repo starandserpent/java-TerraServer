@@ -14,6 +14,5 @@ allprojects {
     // In this section you declare the dependencies for your production and test code
     dependencies {
         compile 'org.slf4j:slf4j-api:1.7.26'
-        compile 'org.xerial.larray:larray_2.12:0.4.1'
     }
 }

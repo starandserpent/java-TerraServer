@@ -6,13 +6,13 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
-import com.ritualsoftheold.terra.offheap.DataConstants;
-import com.ritualsoftheold.terra.offheap.Pointer;
+import com.ritualsoftheold.terra.manager.DataConstants;
+import com.ritualsoftheold.terra.manager.Pointer;
 import org.agrona.MutableDirectBuffer;
 import org.agrona.concurrent.UnsafeBuffer;
 
 import com.ritualsoftheold.terra.net.TerraProtocol;
-import com.ritualsoftheold.terra.offheap.world.LoadMarker;
+import com.ritualsoftheold.terra.manager.world.LoadMarker;
 
 import io.aeron.Publication;
 import net.openhft.chronicle.core.Memory;

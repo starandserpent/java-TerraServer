@@ -2,20 +2,20 @@ package com.ritualsoftheold.terra.test;
 
 import static org.junit.Assert.*;
 
-import com.ritualsoftheold.terra.offheap.material.TerraModule;
+import com.ritualsoftheold.terra.manager.material.TerraModule;
 import com.ritualsoftheold.terra.core.buffer.BlockBuffer;
-import com.ritualsoftheold.terra.offheap.material.Registry;
-import com.ritualsoftheold.terra.offheap.material.TerraObject;
-import com.ritualsoftheold.terra.offheap.chunk.ChunkBuffer;
-import com.ritualsoftheold.terra.offheap.chunk.ChunkStorage;
-import com.ritualsoftheold.terra.offheap.chunk.compress.EmptyChunkFormat;
-import com.ritualsoftheold.terra.offheap.chunk.compress.Palette16ChunkFormat;
-import com.ritualsoftheold.terra.offheap.node.OffheapChunk;
+import com.ritualsoftheold.terra.manager.material.Registry;
+import com.ritualsoftheold.terra.manager.material.TerraObject;
+import com.ritualsoftheold.terra.manager.chunk.ChunkBuffer;
+import com.ritualsoftheold.terra.manager.chunk.ChunkStorage;
+import com.ritualsoftheold.terra.manager.chunk.compress.EmptyChunkFormat;
+import com.ritualsoftheold.terra.manager.chunk.compress.Palette16ChunkFormat;
+import com.ritualsoftheold.terra.manager.node.OffheapChunk;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.ritualsoftheold.terra.offheap.DataConstants;
+import com.ritualsoftheold.terra.manager.DataConstants;
 
 import net.openhft.chronicle.core.Memory;
 import net.openhft.chronicle.core.OS;

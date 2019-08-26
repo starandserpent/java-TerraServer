@@ -7,11 +7,11 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Executors;
 
 import com.jme3.scene.Geometry;
-import com.ritualsoftheold.terra.offheap.material.Registry;
-import com.ritualsoftheold.terra.offheap.chunk.ChunkBuffer;
-import com.ritualsoftheold.terra.offheap.chunk.ChunkStorage;
+import com.ritualsoftheold.terra.manager.material.Registry;
+import com.ritualsoftheold.terra.manager.chunk.ChunkBuffer;
+import com.ritualsoftheold.terra.manager.chunk.ChunkStorage;
 //import com.ritualsoftheold.terra.offheap.io.dummy.DummyChunkLoaderInterface;
-import com.ritualsoftheold.terra.offheap.io.ChunkLoader;
+import com.ritualsoftheold.terra.manager.io.ChunkLoader;
 import org.junit.Before;
 import org.junit.Test;
 
