@@ -1,9 +1,10 @@
 package com.ritualsoftheold.terra.manager.world;
 
+import com.ritualsoftheold.terra.core.materials.Registry;
+import com.ritualsoftheold.terra.core.octrees.OctreeBase;
 import com.ritualsoftheold.terra.manager.WorldGeneratorInterface;
 import com.ritualsoftheold.terra.manager.gen.objects.LoadMarker;
-import com.ritualsoftheold.terra.manager.material.Registry;
-import com.ritualsoftheold.terra.memory.node.OffheapOctree;
+import com.ritualsoftheold.terra.manager.octree.OffheapOctree;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -19,36 +20,24 @@ public class OffheapWorld {
     // New world loader, no more huge methods in this class!
     private ChunkSVOGenerator chunkGenerator;
     private List<OffheapLoadMarker> loadMarkers;
-    private Registry reg;
-    private WorldLoadListener worldListener;
+    private WorldLoadListener listener;
 
     // Only used by the builder
-    public OffheapWorld(WorldGeneratorInterface generator, Registry reg, int height, WorldLoadListener worldListener) {
-        this.reg = reg;
-        this.worldListener = worldListener;
+    public OffheapWorld(WorldGeneratorInterface generator, Registry reg, int height, WorldLoadListener listener) {
         loadMarkers = new ArrayList<>();
 
+        this.listener = listener;
         // Some cached stuff
-        OffheapOctree masterOctree = new OffheapOctree(reg);
+        OffheapOctree masterOctree = new OffheapOctree();
         chunkGenerator = new ChunkSVOGenerator(generator, reg, height, masterOctree);
-    }
-
-    public Registry getMaterialRegistry() {
-        return reg;
     }
 
     /**
      * Attempts to get an id for smallest node at given coordinates.
-     * @param x X coordinate.
-     * @param y Y coordinate.
-     * @param z Z coordinate.
      * @return 32 least significant bits represent the actual id. 33th
      * tells if the id refers to chunk (1) or octree (2).
      */
-    private long getNodeId(float x, float y, float z) {
-        return 0; // TODO redo this
-    }
-    
+
     private OffheapLoadMarker checkLoadMarker(LoadMarker marker) {
         if (!(marker instanceof OffheapLoadMarker))
             throw new IllegalArgumentException("incompatible load marker");
@@ -103,7 +92,7 @@ public class OffheapWorld {
     public void initialChunkGeneration(OffheapLoadMarker player, ArrayList<OctreeBase> nodes) {
         // Tell world loader to load stuff, and while doing so, update the load marker
 //        chunkGenerator.seekSector(player.getX(), player.getZ(), player.getHardRadius()*2, worldListener, player);
-        chunkGenerator.seekSector(player.getX(),player.getY(),player.getZ(),player.getHardRadius(),worldListener,nodes);
+        chunkGenerator.seekSector(player.getX(),player.getY(),player.getZ(),player.getHardRadius(), listener, nodes);
         player.markUpdated();
     }
 
@@ -115,101 +104,9 @@ public class OffheapWorld {
     public void updateLoadMarker(OffheapLoadMarker marker, boolean soft) {
         // Tell world loader to load stuff, and while doing so, update the load marker
      chunkGenerator.updateSector(marker.getX(), marker.getZ(),
-               soft ? marker.getSoftRadius() : marker.getHardRadius(), worldListener, marker);
+               soft ? marker.getSoftRadius() : marker.getHardRadius(), listener, marker);
         marker.markUpdated();
     }
-
-    /**
-     * Sets default load listener for this world. It will be used when loading
-     * world with TerraWorld's API; this implementation also allows you to
-     * override the load listener.
-     * @param listener Load listener.
-     */
-    
-    /**
-     * Updates master octree data from offheap data storage.
-    public OffheapLoadMarker getLoadMarker(float x, float y, float z){
-        for(OffheapLoadMarker loadMarker:loadMarkers){
-            float lessX = loadMarker.getX() - loadMarker.getHardRadius() * 16;
-            float moreX = loadMarker.getX() + loadMarker.getHardRadius() * 16;
-            float lessZ = loadMarker.getZ() - loadMarker.getHardRadius() * 16;
-            float moreZ = loadMarker.getZ() + loadMarker.getHardRadius() * 16;
-            if(lessX < x && lessZ < z &&  moreX > x && moreZ > z){
-               return loadMarker;
-            }
-        }
-        return null;
-    }
-
-    /**
-     * Resulting data from chunk (potentially failed) copy operation.
-     *
-     */
-    public static class CopyChunkResult {
-        
-        private byte type;
-        private int length;
-        private boolean success;
-        
-        public CopyChunkResult(boolean success, byte type, int length) {
-            this.success = success;
-            this.type = type;
-            this.length = length;
-        }
-        
-        /**
-         * Checks if the copy operation was successful.
-         * @return If it succeeded.
-         */
-        public boolean isSuccess() {
-            return success;
-        }
-        
-        /**
-         * Gets the type of chunk.
-         * @return Type of chunk.
-         */
-        public byte getType() {
-            return type;
-        }
-        
-        /**
-         * Gets length of chunk data.
-         * @return Length of chunk data.
-         */
-        public int getLength() {
-            return length;
-        }
-    }
-    
-    /**
-     * Copies chunk data for given chunk to given memory address.
-     * Make sure there is enough space allocated!
-     * @param id Chunk id.
-     * @param target Target memory address
-     * @return Relevant information about copied chunk.
-     */
-    /**
-     * Attempts to copy data of given chunk. You'll provide a function which
-     * can give memory addresses based on length of data.
-     * @param id Chunk id.
-     * @param handler Function to provide target memory address. It will
-     * receive chunk data length as an argument. If it returns 0, copy
-     * operation will fail (but no exception is thrown).
-     * @return Relevant information about copied chunk, or indication of
-     * failure to copy it.
-     */
-    /**
-     * Copies an octree group or parts of one to given memory address.
-     * Make sure there is enough space allocated!
-     * are interpreted as last octree of the group
-     * @return How much bytes were eventually copied.
-    
-    /**
-     * Creates a new data verifier, configured to work with settings of this
-     * world. It is not valid for any other worlds!
-     * @return A new Terra verifier for this world.
-     */
 
     public OffheapLoadMarker createLoadMarker(float x, float y, float z, float hardRadius, float softRadius, int priority) {
         return new OffheapLoadMarker(x, y, z, hardRadius, softRadius, priority);

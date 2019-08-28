@@ -1,7 +1,5 @@
 package com.ritualsoftheold.terra.manager.gen.interfaces;
 
-import com.ritualsoftheold.terra.core.buffer.BlockBuffer;
-import com.ritualsoftheold.terra.manager.material.TerraObject;
 import xerial.larray.LByteArray;
 
 /**
@@ -14,7 +12,6 @@ public interface GeneratorControl {
      * Acquire a block buffer for write access.
      * @return Block buffer where data should be written.
      */
-    BlockBuffer getBuffer();
 
     LByteArray getLArray();
     
@@ -30,5 +27,4 @@ public interface GeneratorControl {
      * acquires the block buffer.
      * @param material Material hint.
      */
-    void useMaterial(TerraObject material);
 }

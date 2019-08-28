@@ -1,4 +1,4 @@
-package com.ritualsoftheold.terra.memory.node;
+package com.ritualsoftheold.terra.manager.octree;
 
 import com.ritualsoftheold.terra.core.BlockBuffer;
 import com.ritualsoftheold.terra.core.DataConstants;
@@ -6,15 +6,10 @@ import com.ritualsoftheold.terra.core.materials.Registry;
 import com.ritualsoftheold.terra.core.octrees.OctreeBase;
 import com.ritualsoftheold.terra.core.octrees.OctreeNode;
 
-import net.openhft.chronicle.core.Memory;
-import net.openhft.chronicle.core.OS;
-
 import java.util.*;
 
 // TODO implement this class or figure out something better
 public class OffheapOctree {
-    
-    private static final Memory mem = OS.memory();
     
     /**
      * Memory address of the octree.
@@ -23,22 +18,13 @@ public class OffheapOctree {
 
     private int octreeId;
 
-    private Registry registry;
-
     private OctreeNode rootNode = null;
     private ArrayList<OctreeBase> octree;
 
     private int x,y,z;
     private int size;
 
-
-    public OffheapOctree(long addr, int octreeId, Registry registry) {
-        this.addr = addr;
-        this.octreeId = octreeId;
-        this.registry = registry;
-    }
-    public OffheapOctree(Registry registry){
-        this.registry = registry;
+    public OffheapOctree(){
         octree = new ArrayList<>();
 //        IntValue avgKeyTmp = Values.newHeapInstance(IntValue.class);
 //        avgKeyTmp.setValue(Integer.MAX_VALUE);
@@ -135,32 +121,9 @@ public class OffheapOctree {
     public ArrayList<OctreeBase> getOctreeNodes(){return octree;}
     //--------------------------------------
 
-    public Octree getOctreeAt(int index) {
-        // TODO Auto-generated method stub
-        return null;
-    }
-    
-    public void setNodeAt(int index, Node node) {
-        // TODO Auto-generated method stub
-        
-    }
-
-    public Node[] getNodes() {
-        // TODO Auto-generated method stub
-        return null;
-    }
-    
-    public void setNodes(Node[] nodes) {
-        // TODO Auto-generated method stub
-    }
-
     public long getNodeAddr(int index) {
         // Address + metadata + size of node * index
         return addr + 1 + DataConstants.OCTREE_NODE_SIZE * index;
-    }
-
-    public int getNodeData(int index) {
-        return mem.readInt(getNodeAddr(index));
     }
 
     public long memoryAddress() {
@@ -175,5 +138,4 @@ public class OffheapOctree {
         return null; // Buffers for octrees would be pretty quite useless
         // TODO implement them to have same API for everything
     }
-
 }

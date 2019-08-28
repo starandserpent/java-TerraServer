@@ -6,7 +6,7 @@ import com.ritualsoftheold.terra.core.materials.Registry;
 import com.ritualsoftheold.terra.core.octrees.OctreeBase;
 import com.ritualsoftheold.terra.core.octrees.OctreeLeaf;
 import com.ritualsoftheold.terra.manager.WorldGeneratorInterface;
-import com.ritualsoftheold.terra.memory.node.OffheapOctree;
+import com.ritualsoftheold.terra.manager.octree.OffheapOctree;
 import com.ritualsoftheold.terra.manager.util.Morton3D;
 
 import java.util.ArrayList;
@@ -87,6 +87,8 @@ class ChunkSVOGenerator {
     private void loadArea(float x, float y, float z, WorldLoadListener listener) {
         if (x > 0 && z > 0) {
             ChunkLArray chunk = new ChunkLArray(x, y, z, reg);
+            generator.generate(chunk);
+            listener.chunkLoaded(chunk);
         }
     }
 }
