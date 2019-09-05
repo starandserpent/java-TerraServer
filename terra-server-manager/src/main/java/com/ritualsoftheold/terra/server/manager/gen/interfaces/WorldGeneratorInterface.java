@@ -1,4 +1,4 @@
-package com.ritualsoftheold.terra.server.manager;
+package com.ritualsoftheold.terra.server.manager.gen.interfaces;
 
 import com.ritualsoftheold.terra.core.chunk.ChunkLArray;
 import com.ritualsoftheold.terra.core.materials.Registry;
