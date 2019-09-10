@@ -30,7 +30,13 @@ class ChunkSVOGenerator {
         System.out.println("Called------------------------------- " + height);
     }
 
-    void seekSector(float x, float y, float z, float range, WorldLoadListener listener, ArrayList<OctreeBase> nodes) {
+    void seekSector(LoadMarker marker, ArrayList<OctreeBase> nodes) {
+
+        float x = marker.getPosX();
+        float y = marker.getPosY();
+        float z = marker.getPosZ();
+
+        float range = marker.getHardRadius();
 
         int chunkWorldSize = DataConstants.CHUNK_SCALE;
 
@@ -55,7 +61,7 @@ class ChunkSVOGenerator {
 
             long lolong = morton3D.encode(xOffset, yOffset, zOffset);
 
-            loadArea(xWorld, yWorld, zWorld, listener);
+            loadArea(xWorld, yWorld, zWorld, marker);
 
             OctreeLeaf leafNode = new OctreeLeaf();
             leafNode.worldX = xWorld;
@@ -72,7 +78,7 @@ class ChunkSVOGenerator {
         }
     }
 
-    void updateSector(float x, float z, float range, WorldLoadListener listener, OffheapLoadMarker trigger) {
+    void updateSector(float x, float z, float range, WorldLoadListener listener, LoadMarker trigger) {
 
     }
 
@@ -85,11 +91,11 @@ class ChunkSVOGenerator {
         }
     }*/
 
-    private void loadArea(float x, float y, float z, WorldLoadListener listener) {
+    private void loadArea(float x, float y, float z, LoadMarker marker) {
         if (x > 0 && z > 0) {
             ChunkLArray chunk = new ChunkLArray(x, y, z, reg);
             generator.generate(chunk);
-            listener.chunkLoaded(chunk);
+            marker.sendChunk(chunk);
         }
     }
 }

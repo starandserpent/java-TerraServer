@@ -1,4 +1,4 @@
-package com.ritualsoftheold.terra.server.manager.world.gen;
+package com.ritualsoftheold.terra.server.manager.gen;
 
 import java.util.HashSet;
 import java.util.Set;

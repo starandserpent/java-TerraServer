@@ -10,7 +10,7 @@ Terra is a voxel engine composed of multiple modules. Currently, those are:
   * NOT A SAFE, PUBLIC API (memory corruption is *possible* if misused)
   * Direct usage in application code should be minimized
 * terra-io-files: terra-offheap data saving and loading using files
-* terra-net-*: networking server and client using Aeron with terra-offheap
+* terra-net-*: networking server and networkClient using Aeron with terra-offheap
   * Not a full solution for multiplayer voxel game
   
 Terra dependency tree:
@@ -21,7 +21,7 @@ Terra dependency tree:
         * terra-io-files
         * terra-net-core
             * terra-net-server
-            * terra-net-client
+            * terra-net-networkClient
       
 terra-testgame depends on everything but networking parts of Terra.
 
