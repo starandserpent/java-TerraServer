@@ -48,7 +48,7 @@ public abstract class LoadMarker{
 
     protected abstract void sendPosition();
 
-    protected abstract void init(String clientAddress, int clientPort, int streamid);
+    protected abstract void init();
 
     public float getPosX() {
         return x;

@@ -1,4 +1,4 @@
-package com.ritualsoftheold.terra.core.client.test;
+package com.ritualsoftheold.game.server.test;
 
 import static org.junit.Assert.*;
 

@@ -1,4 +1,4 @@
-package com.ritualsoftheold.terra.core.client.test;
+package com.ritualsoftheold.game.server.test;
 
 /*import com.ritualsoftheold.terra.offheap.world.gen.GenerationTask;
 import com.ritualsoftheold.terra.offheap.world.gen.GeneratorControl;
