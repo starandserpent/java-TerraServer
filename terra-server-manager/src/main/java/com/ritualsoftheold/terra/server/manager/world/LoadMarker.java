@@ -1,6 +1,8 @@
 package com.ritualsoftheold.terra.server.manager.world;
 
+import com.ritualsoftheold.terra.core.WorldLoadListener;
 import com.ritualsoftheold.terra.core.chunk.ChunkLArray;
+import com.ritualsoftheold.terra.core.markers.MovingMarker;
 import com.ritualsoftheold.terra.server.manager.util.IntFlushList;
 
 /**
@@ -12,13 +14,8 @@ import com.ritualsoftheold.terra.server.manager.util.IntFlushList;
  * and second is priority of the one that this is compared against.
  *
  */
-public abstract class LoadMarker{
-    
-    /**
-     * Coordinates for this marker.
-     */
-    private volatile float x, y, z;
-    
+public abstract class LoadMarker extends MovingMarker implements WorldLoadListener {
+
     /**
      * The radius which this marker will force the world to be loaded.
      * Squared to avoid sqrt.
@@ -32,35 +29,25 @@ public abstract class LoadMarker{
     private final float softRadius;
 
     protected LoadMarker(float x, float y, float z, float hardRadius, float softRadius) {
-        move(x, y, z);
+        super(x, y, z);
         IntFlushList octrees = new IntFlushList(64, 2); // TODO tune these settings
         this.hardRadius = hardRadius;
         this.softRadius = softRadius;
     }
 
-    public void move(float x, float y, float z) {
-        this.x = x;
-        this.y = y;
-        this.z = z;
+    @Override
+    public void chunkLoaded(ChunkLArray chunk) {
+        sendChunk(chunk);
+    }
+
+    @Override
+    public void chunkUnloaded(ChunkLArray chunk) {
+
     }
 
     protected abstract void sendChunk(ChunkLArray chunk);
 
-    protected abstract void sendPosition();
-
-    protected abstract void init();
-
-    public float getPosX() {
-        return x;
-    }
-
-    public float getPosY() {
-        return y;
-    }
-
-    public float getPosZ() {
-        return z;
-    }
+    protected abstract boolean init(int id);
 
     public float getHardRadius() {
         return hardRadius;

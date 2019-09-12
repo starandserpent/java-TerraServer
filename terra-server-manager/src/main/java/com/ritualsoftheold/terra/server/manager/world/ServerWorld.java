@@ -1,6 +1,8 @@
 package com.ritualsoftheold.terra.server.manager.world;
 
 
+import com.ritualsoftheold.terra.core.markers.Marker;
+import com.ritualsoftheold.terra.core.TerraWorld;
 import com.ritualsoftheold.terra.core.WorldLoadListener;
 import com.ritualsoftheold.terra.core.materials.Registry;
 import com.ritualsoftheold.terra.core.octrees.OctreeBase;
@@ -8,25 +10,24 @@ import com.ritualsoftheold.terra.server.manager.gen.interfaces.WorldGeneratorInt
 import com.ritualsoftheold.terra.server.manager.octree.OffheapOctree;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 /**
  * Represents world that is mainly backed by offheap memory.
  */
-public class World implements TerraWorld{
+public class ServerWorld implements TerraWorld {
     
     // New world loader, no more huge methods in this class!
     private ChunkSVOGenerator chunkGenerator;
-    private List<LoadMarker> loadMarkers;
+    private List<Marker> loadMarkers;
     private WorldLoadListener listener;
     private ArrayList<OctreeBase> octreeNodes;
     private Registry reg;
 
     // Only used by the builder
-    public World(WorldGeneratorInterface generator, Registry reg, int height, WorldLoadListener listener,
-                 ArrayList<OctreeBase> octreeNodes) {
+    public ServerWorld(WorldGeneratorInterface generator, Registry reg, int height, WorldLoadListener listener,
+                       ArrayList<OctreeBase> octreeNodes) {
         loadMarkers = new ArrayList<>();
         this.octreeNodes = octreeNodes;
         this.reg = reg;
@@ -37,35 +38,39 @@ public class World implements TerraWorld{
     }
 
     @Override
-    public void addLoadMarker(LoadMarker marker) {
+    public void addMarker(Marker marker) {
         loadMarkers.add(marker);
     }
 
     @Override
-    public void removeLoadMarker(LoadMarker marker) {
-        Iterator<LoadMarker> it = loadMarkers.iterator();
-        while (it.hasNext()) {
-            LoadMarker m = it.next();
-            if (m == marker) {
-                it.remove();
-                return;
-            }
-        }
+    public void removeMarker(Marker marker) {
+        loadMarkers.remove(marker);
     }
 
-    public List<CompletableFuture<Void>> updateLoadMarkers() {
-        List<CompletableFuture<Void>> pendingMarkers = new ArrayList<>(loadMarkers.size());
-        // Delegate updating to async code, this might be costly
-        for (LoadMarker marker : loadMarkers) {
-            updateLoadMarker(marker, false);
-        }
-        
-        return pendingMarkers;
+    @Override
+    public void updateMarker(Marker marker) {
+
+    }
+
+    @Override
+    public boolean checkMarker(Marker marker) {
+        return false;
     }
 
     @Override
     public Registry getRegistry() {
         return reg;
+    }
+
+    @Override
+    public void initialWorldGeneration(Marker marker) {
+        // Tell world loader to load stuff, and while doing so, update the load marker
+        if(marker instanceof LoadMarker) {
+            LoadMarker loadMarker = (LoadMarker) marker;
+            chunkGenerator.seekSector(loadMarker, octreeNodes);
+        }
+        /// chunkGenerator.seekSector(player.getX(),player.getY(),player.getZ(),player.getHardRadius(), listener, octreeNodes);
+        //player.markUpdated();
     }
 
     public List<CompletableFuture<Void>> updateLoadMarkers(WorldLoadListener listener, boolean soft, boolean ignoreMoved) {
@@ -83,25 +88,13 @@ public class World implements TerraWorld{
         return null;
     }
 
-    //Debug method
-    @Override
-    public void initialWorldGeneration(LoadMarker player) {
-        // Tell world loader to load stuff, and while doing so, update the load marker
-//        chunkGenerator.seekSector(player.getX(), player.getZ(), player.getHardRadius()*2, worldListener, player);
-       /// chunkGenerator.seekSector(player.getX(),player.getY(),player.getZ(),player.getHardRadius(), listener, octreeNodes);
-        //player.markUpdated();
-    }
-
     /**
      * Updates given load marker no matter what. Only used internally.
      * @param marker Load marker to update.
      * @param soft If soft radius should be used.
      */
     public void updateLoadMarker(LoadMarker marker, boolean soft) {
-        // Tell world loader to load stuff, and while doing so, update the load marker
-  //   chunkGenerator.updateSector(marker.getX(), marker.getZ(),
-    //           soft ? marker.getSoftRadius() : marker.getHardRadius(), listener, marker);
-      //  marker.markUpdated();
+
 
     }
 }
