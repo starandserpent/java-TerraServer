@@ -1,13 +1,15 @@
 package com.ritualsoftheold.terra.server.manager.world;
 
 
+import com.ritualsoftheold.foreman.main.ChunkSVOGenerator;
+import com.ritualsoftheold.foreman.main.LoadMarker;
+import com.ritualsoftheold.foreman.main.OffheapOctree;
+import com.ritualsoftheold.foreman.main.WorldGeneratorInterface;
 import com.ritualsoftheold.terra.core.markers.Marker;
 import com.ritualsoftheold.terra.core.TerraWorld;
 import com.ritualsoftheold.terra.core.WorldLoadListener;
 import com.ritualsoftheold.terra.core.materials.Registry;
 import com.ritualsoftheold.terra.core.octrees.OctreeBase;
-import com.ritualsoftheold.terra.server.manager.gen.interfaces.WorldGeneratorInterface;
-import com.ritualsoftheold.terra.server.manager.octree.OffheapOctree;
 
 import java.util.ArrayList;
 import java.util.List;
