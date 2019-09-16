@@ -19,5 +19,5 @@ allprojects {
 }
 
 dependencies {
-    compile project(':TerraCore')
+    compile project(':3D-model-loader:TerraCore')
 }

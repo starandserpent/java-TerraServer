@@ -1,3 +1,3 @@
-[submodule "TerraCore"]
-	path = TerraCore
-	url = git@github.com:starandserpent/TerraCore.git
+[submodule "3D-model-loader"]
+	path = 3D-model-loader
+	url = git@github.com:starandserpent/3D-model-loader.git

@@ -1,7 +1,6 @@
-apply from: 'TerraCore/settings.gradle'
+apply from: '3D-model-loader/settings.gradle'
 
 rootProject.name = 'TerraServer'
 
-include ':TerraCore'
+include ':3D-model-loader:TerraCore'
 include 'terra-memory'
-
