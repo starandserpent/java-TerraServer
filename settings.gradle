@@ -1,6 +1,7 @@
+apply from: 'TerraCore/settings.gradle'
+
 rootProject.name = 'TerraServer'
 
-include 'terra-server-manager'
 include ':TerraCore'
 include 'terra-memory'
 

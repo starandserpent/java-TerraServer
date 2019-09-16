@@ -1,3 +1,0 @@
-test {
-    exclude 'com/ritualsoftheold/terra/offheap/test/MemoryTest.class'
-}
