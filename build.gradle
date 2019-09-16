@@ -13,32 +13,12 @@ allprojects {
 
     // In this section you declare the dependencies for your production and test code
     dependencies {
-        compile project(':Foreman:TerraCore')
+        compile project(':TerraCore')
         compile group: 'org.xerial.larray', name: 'larray_2.12', version: '0.4.1'
         compile 'org.slf4j:slf4j-api:1.7.26'
     }
 }
 
-project(':Foreman:Weltschmerz:weltschmerz-environment') {
-    dependencies {
-        compile project(':Foreman:Weltschmerz:weltschmerz-misc')
-    }
-}
-
-project(':Foreman:Weltschmerz:weltschmerz-core') {
-    dependencies {
-        compile project(':Foreman:Weltschmerz:weltschmerz-environment')
-        compile project(':Foreman:Weltschmerz:weltschmerz-misc')
-    }
-}
-
-project(':Foreman') {
-    dependencies {
-        compile project(':Foreman:Weltschmerz:weltschmerz-core')
-        compile project(':Foreman:Weltschmerz:weltschmerz-misc')
-    }
-}
-
 dependencies{
-    compile project(':Foreman')
+    compile project(':TerraCore')
 }
