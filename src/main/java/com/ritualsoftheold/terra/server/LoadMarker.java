@@ -8,11 +8,10 @@ import com.ritualsoftheold.terra.server.morton.IntFlushList;
 /**
  * Load markers are used by some world implementations to figure out
  * which parts to generate and keep loaded.
- * 
+ * <p>
  * Implements comparable to allow sorting based on priority. Uses
  * {@link Integer#compare(int, int)} where first value is priority of this
  * and second is priority of the one that this is compared against.
- *
  */
 public abstract class LoadMarker extends MovingMarker implements WorldLoadListener {
 
@@ -21,7 +20,7 @@ public abstract class LoadMarker extends MovingMarker implements WorldLoadListen
      * Squared to avoid sqrt.
      */
     private final float hardRadius;
-    
+
     /**
      * The radius in which this marker will make world to not be loaded.
      * Squared to avoid sqrt.

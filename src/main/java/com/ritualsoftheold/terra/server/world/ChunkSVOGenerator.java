@@ -1,10 +1,8 @@
 package com.ritualsoftheold.terra.server.world;
 
-
 import com.ritualsoftheold.terra.core.DataConstants;
 import com.ritualsoftheold.terra.core.WorldLoadListener;
 import com.ritualsoftheold.terra.core.chunk.ChunkLArray;
-import com.ritualsoftheold.terra.core.materials.Registry;
 import com.ritualsoftheold.terra.core.octrees.OctreeBase;
 import com.ritualsoftheold.terra.core.octrees.OctreeLeaf;
 import com.ritualsoftheold.terra.server.LoadMarker;
@@ -18,21 +16,19 @@ import java.util.ArrayList;
  * Handles loading of offheap worlds. Usually this class is used by load
  * markers; direct usage is not recommended for application developers.
  */
-public class ChunkSVOGenerator {
+class ChunkSVOGenerator {
 
-    private Registry reg;
     private Morton3D morton3D = new Morton3D();
     private OffheapOctree offheapOctree;
     private ChunkGenerator generator;
 
-   public ChunkSVOGenerator(ChunkGenerator generator, Registry reg, int height, OffheapOctree offheapOctree) {
-        this.reg = reg;
+    ChunkSVOGenerator(ChunkGenerator generator, int height, OffheapOctree offheapOctree) {
         this.generator = generator;
         this.offheapOctree = offheapOctree;
         System.out.println("Called------------------------------- " + height);
     }
 
-   public void seekSector(LoadMarker marker, ArrayList<OctreeBase> nodes) {
+    void seekSector(LoadMarker marker, ArrayList<OctreeBase> nodes) {
 
         float x = marker.getPosX();
         float y = marker.getPosY();
@@ -73,7 +69,7 @@ public class ChunkSVOGenerator {
             octreeLeafs[(int) lolong] = leafNode;
         }
 
-        offheapOctree.SetOctreeOrigin((int) x, (int) y, (int) z, maxSize);
+        offheapOctree.setOctreeOrigin((int) x, (int) y, (int) z, maxSize);
         offheapOctree.createOctree(octreeLeafs);
         if (nodes != null) {
             nodes.addAll(offheapOctree.getOctreeNodes());

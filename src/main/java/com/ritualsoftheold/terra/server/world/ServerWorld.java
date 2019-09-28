@@ -17,7 +17,7 @@ import java.util.concurrent.CompletableFuture;
  * Represents world that is mainly backed by offheap memory.
  */
 public class ServerWorld implements TerraWorld {
-    
+
     // New world loader, no more huge methods in this class!
     private ChunkSVOGenerator chunkGenerator;
     private List<Marker> loadMarkers;
@@ -34,7 +34,7 @@ public class ServerWorld implements TerraWorld {
         this.listener = listener;
         // Some cached stuff
         OffheapOctree masterOctree = new OffheapOctree();
-        chunkGenerator = new ChunkSVOGenerator(generator, reg, height, masterOctree);
+        chunkGenerator = new ChunkSVOGenerator(generator, height, masterOctree);
     }
 
     @Override
@@ -65,7 +65,7 @@ public class ServerWorld implements TerraWorld {
     @Override
     public void initialWorldGeneration(Marker marker) {
         // Tell world loader to load stuff, and while doing so, update the load marker
-        if(marker instanceof LoadMarker) {
+        if (marker instanceof LoadMarker) {
             LoadMarker loadMarker = (LoadMarker) marker;
             chunkGenerator.seekSector(loadMarker, octreeNodes);
         }
@@ -83,15 +83,16 @@ public class ServerWorld implements TerraWorld {
                 pendingMarkers.add(CompletableFuture.runAsync(() -> updateLoadMarker(marker, soft)));
             }
         }*/
-        
-       // return pendingMarkers;
+
+        // return pendingMarkers;
         return null;
     }
 
     /**
      * Updates given load marker no matter what. Only used internally.
+     *
      * @param marker Load marker to update.
-     * @param soft If soft radius should be used.
+     * @param soft   If soft radius should be used.
      */
     public void updateLoadMarker(LoadMarker marker, boolean soft) {
 

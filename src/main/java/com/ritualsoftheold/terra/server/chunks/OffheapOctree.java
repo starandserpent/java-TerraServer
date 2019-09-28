@@ -9,7 +9,7 @@ import java.util.*;
 
 // TODO implement this class or figure out something better
 public class OffheapOctree {
-    
+
     /**
      * Memory address of the octree.
      */
@@ -20,10 +20,10 @@ public class OffheapOctree {
     private OctreeNode rootNode = null;
     private ArrayList<OctreeBase> octree;
 
-    private int x,y,z;
+    private int x, y, z;
     private int size;
 
-    public OffheapOctree(){
+    public OffheapOctree() {
         octree = new ArrayList<>();
 //        IntValue avgKeyTmp = Values.newHeapInstance(IntValue.class);
 //        avgKeyTmp.setValue(Integer.MAX_VALUE);
@@ -40,84 +40,89 @@ public class OffheapOctree {
 //        System.out.println("Value: "+offHeapPoint);
 //        offHeapStore.release();
     }
+
     //--------------------------------------
     // NEW LINEAR OCTREE METHODS
     //--------------------------------------
-    public void SetOctreeOrigin(int x,int y, int z, int size){
+    public void setOctreeOrigin(int x, int y, int z, int size) {
         this.x = x;
         this.y = y;
         this.z = z;
         this.size = size;
     }
-    public OctreeNode GetParentNode(){
+
+    public OctreeNode getParentNode() {
         return rootNode;
     }
+
     //We create the octree from a bottom up approach
-    public void createOctree(OctreeBase[] leafNodes){
+    public void createOctree(OctreeBase[] leafNodes) {
         byte childCounter = 0;
         int nodeCounter = 0;
         Queue<OctreeNode> nodeQueue = new ArrayDeque();
-        while(nodeCounter < leafNodes.length){
-            if(childCounter < 8){
+        while (nodeCounter < leafNodes.length) {
+            if (childCounter < 8) {
                 octree.add(leafNodes[nodeCounter]);
-                childCounter+=1;
-                nodeCounter+=1;
-            }
-            else{
-                OctreeBase c1 = octree.get(nodeCounter-1);
-                OctreeBase c2 =  octree.get(nodeCounter-2);
-                OctreeBase c3 =  octree.get(nodeCounter-3);
-                OctreeBase c4 =  octree.get(nodeCounter-4);
-                OctreeBase c5 =  octree.get(nodeCounter-5);
-                OctreeBase c6 =  octree.get(nodeCounter-6);
-                OctreeBase c7 =  octree.get(nodeCounter-7);
-                OctreeBase c8 =  octree.get(nodeCounter-8);
+                childCounter += 1;
+                nodeCounter += 1;
+            } else {
+                OctreeBase c1 = octree.get(nodeCounter - 1);
+                OctreeBase c2 = octree.get(nodeCounter - 2);
+                OctreeBase c3 = octree.get(nodeCounter - 3);
+                OctreeBase c4 = octree.get(nodeCounter - 4);
+                OctreeBase c5 = octree.get(nodeCounter - 5);
+                OctreeBase c6 = octree.get(nodeCounter - 6);
+                OctreeBase c7 = octree.get(nodeCounter - 7);
+                OctreeBase c8 = octree.get(nodeCounter - 8);
 
                 OctreeNode parent = new OctreeNode(false);
-                parent.setChildren(c1,c2,c3,c4,c5,c6,c7,c8);
-                childCounter=0;
+                parent.setChildren(c1, c2, c3, c4, c5, c6, c7, c8);
+                childCounter = 0;
                 nodeQueue.add(parent);
             }
         }
-        System.out.println("Length of arr: "+leafNodes.length+" Queue size: "+nodeQueue.size()+"  Size of array "+octree.size());
-        while(!nodeQueue.isEmpty()){
-            if(childCounter < 8){
-                OctreeNode node =(OctreeNode) nodeQueue.poll();
+        System.out.println("Length of arr: " + leafNodes.length + " Queue size: " + nodeQueue.size() + "  Size of array " + octree.size());
+        while (!nodeQueue.isEmpty()) {
+            if (childCounter < 8) {
+                OctreeNode node = (OctreeNode) nodeQueue.poll();
                 octree.add(node);
-                childCounter+=1;
-                nodeCounter+=1;
-            }else{
-                OctreeBase c1 = octree.get(nodeCounter-1);
-                OctreeBase c2 =  octree.get(nodeCounter-2);
-                OctreeBase c3 =  octree.get(nodeCounter-3);
-                OctreeBase c4 =  octree.get(nodeCounter-4);
-                OctreeBase c5 =  octree.get(nodeCounter-5);
-                OctreeBase c6 =  octree.get(nodeCounter-6);
-                OctreeBase c7 =  octree.get(nodeCounter-7);
-                OctreeBase c8 =  octree.get(nodeCounter-8);
+                childCounter += 1;
+                nodeCounter += 1;
+            } else {
+                OctreeBase c1 = octree.get(nodeCounter - 1);
+                OctreeBase c2 = octree.get(nodeCounter - 2);
+                OctreeBase c3 = octree.get(nodeCounter - 3);
+                OctreeBase c4 = octree.get(nodeCounter - 4);
+                OctreeBase c5 = octree.get(nodeCounter - 5);
+                OctreeBase c6 = octree.get(nodeCounter - 6);
+                OctreeBase c7 = octree.get(nodeCounter - 7);
+                OctreeBase c8 = octree.get(nodeCounter - 8);
 
                 OctreeNode parent = new OctreeNode(false);
-                parent.setChildren(c1,c2,c3,c4,c5,c6,c7,c8);
-                childCounter=0;
+                parent.setChildren(c1, c2, c3, c4, c5, c6, c7, c8);
+                childCounter = 0;
                 nodeQueue.add(parent);
             }
 
         }
-        OctreeBase c1 = octree.get(nodeCounter-1);
-        OctreeBase c2 =  octree.get(nodeCounter-2);
-        OctreeBase c3 =  octree.get(nodeCounter-3);
-        OctreeBase c4 =  octree.get(nodeCounter-4);
-        OctreeBase c5 =  octree.get(nodeCounter-5);
-        OctreeBase c6 =  octree.get(nodeCounter-6);
-        OctreeBase c7 =  octree.get(nodeCounter-7);
-        OctreeBase c8 =  octree.get(nodeCounter-8);
-        rootNode =  new OctreeNode(false);
-        rootNode.setChildren(c1,c2,c3,c4,c5,c6,c7,c8);
+        OctreeBase c1 = octree.get(nodeCounter - 1);
+        OctreeBase c2 = octree.get(nodeCounter - 2);
+        OctreeBase c3 = octree.get(nodeCounter - 3);
+        OctreeBase c4 = octree.get(nodeCounter - 4);
+        OctreeBase c5 = octree.get(nodeCounter - 5);
+        OctreeBase c6 = octree.get(nodeCounter - 6);
+        OctreeBase c7 = octree.get(nodeCounter - 7);
+        OctreeBase c8 = octree.get(nodeCounter - 8);
+        rootNode = new OctreeNode(false);
+        rootNode.setChildren(c1, c2, c3, c4, c5, c6, c7, c8);
         octree.add(rootNode);
 
-        System.out.println("Length of arr: "+octree.size());
+        System.out.println("Length of arr: " + octree.size());
     }
-    public ArrayList<OctreeBase> getOctreeNodes(){return octree;}
+
+    public ArrayList<OctreeBase> getOctreeNodes() {
+        return octree;
+    }
     //--------------------------------------
 
     public long getNodeAddr(int index) {
@@ -128,7 +133,7 @@ public class OffheapOctree {
     public long memoryAddress() {
         return addr;
     }
-    
+
     public int memoryLength() {
         return DataConstants.OCTREE_SIZE;
     }

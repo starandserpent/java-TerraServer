@@ -156,8 +156,7 @@ public class Morton3D {
      * @param x range is from 0 to 2097151.
      * @param y range is from 0 to 2097151.
      * @param z range is from 0 to 2097151.
-     *
-     * @return	return Morton Code as long .
+     * @return return Morton Code as long .
      */
     public long encode(int x, int y, int z) {
         long result = 0;
@@ -177,7 +176,7 @@ public class Morton3D {
      * Decode Morton (z-ordering)
      *
      * @param c morton code up to 64 bits
-     * @return	array [x,y,z] .
+     * @return array [x,y,z] .
      */
     public int[] decode(long c) {
         int[] result = new int[3];
@@ -193,9 +192,8 @@ public class Morton3D {
     /**
      * Helper Method for LUT decoding
      *
-     * @param c morton code up to 64 bits
+     * @param c     morton code up to 64 bits
      * @param coord morton decode LUT
-     *
      * @return decoded value
      */
     private static int decodeHelper(long c, int coord[]) {
