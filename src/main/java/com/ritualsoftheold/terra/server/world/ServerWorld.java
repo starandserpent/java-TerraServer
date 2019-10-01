@@ -4,10 +4,8 @@ import com.ritualsoftheold.terra.core.markers.Marker;
 import com.ritualsoftheold.terra.core.TerraWorld;
 import com.ritualsoftheold.terra.core.WorldLoadListener;
 import com.ritualsoftheold.terra.core.materials.Registry;
-import com.ritualsoftheold.terra.core.octrees.OctreeBase;
 import com.ritualsoftheold.terra.server.chunks.ChunkGenerator;
 import com.ritualsoftheold.terra.server.LoadMarker;
-import com.ritualsoftheold.terra.server.chunks.OffheapOctree;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -21,20 +19,13 @@ public class ServerWorld implements TerraWorld {
     // New world loader, no more huge methods in this class!
     private ChunkSVOGenerator chunkGenerator;
     private List<Marker> loadMarkers;
-    private WorldLoadListener listener;
-    private ArrayList<OctreeBase> octreeNodes;
     private Registry reg;
 
-    // Only used by the builder
-    public ServerWorld(ChunkGenerator generator, Registry reg, int height, WorldLoadListener listener,
-                       ArrayList<OctreeBase> octreeNodes) {
+    public ServerWorld(int centerX, int centerY, int centerZ, ChunkGenerator generator, Registry reg, int worldSize) {
         loadMarkers = new ArrayList<>();
-        this.octreeNodes = octreeNodes;
         this.reg = reg;
-        this.listener = listener;
-        // Some cached stuff
-        OffheapOctree masterOctree = new OffheapOctree();
-        chunkGenerator = new ChunkSVOGenerator(generator, height, masterOctree);
+
+        chunkGenerator = new ChunkSVOGenerator(centerX, centerY, centerZ, worldSize, generator);
     }
 
     @Override
@@ -48,9 +39,7 @@ public class ServerWorld implements TerraWorld {
     }
 
     @Override
-    public void updateMarker(Marker marker) {
-
-    }
+    public void updateMarker(Marker marker) {}
 
     @Override
     public boolean checkMarker(Marker marker) {
@@ -64,13 +53,11 @@ public class ServerWorld implements TerraWorld {
 
     @Override
     public void initialWorldGeneration(Marker marker) {
-        // Tell world loader to load stuff, and while doing so, update the load marker
+        // Starts initial generation
         if (marker instanceof LoadMarker) {
             LoadMarker loadMarker = (LoadMarker) marker;
-            chunkGenerator.seekSector(loadMarker, octreeNodes);
+            chunkGenerator.seekSector(loadMarker);
         }
-        /// chunkGenerator.seekSector(player.getX(),player.getY(),player.getZ(),player.getHardRadius(), listener, octreeNodes);
-        //player.markUpdated();
     }
 
     public List<CompletableFuture<Void>> updateLoadMarkers(WorldLoadListener listener, boolean soft, boolean ignoreMoved) {
@@ -95,7 +82,6 @@ public class ServerWorld implements TerraWorld {
      * @param soft   If soft radius should be used.
      */
     public void updateLoadMarker(LoadMarker marker, boolean soft) {
-
 
     }
 }

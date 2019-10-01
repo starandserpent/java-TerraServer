@@ -19,43 +19,49 @@ import java.util.ArrayList;
 class ChunkSVOGenerator {
 
     private Morton3D morton3D = new Morton3D();
-    private OffheapOctree offheapOctree;
+    private OffheapOctree masterOctree;
     private ChunkGenerator generator;
+    private ArrayList<OctreeBase> nodes;
 
-    ChunkSVOGenerator(ChunkGenerator generator, int height, OffheapOctree offheapOctree) {
+    private final int centerX;
+    private final int centerY;
+    private final int centerZ;
+
+    private final int worldSize;
+
+    ChunkSVOGenerator(int centerX, int centerY, int centerZ, int worldSize, ChunkGenerator generator) {
         this.generator = generator;
-        this.offheapOctree = offheapOctree;
-        System.out.println("Called------------------------------- " + height);
+        nodes = new ArrayList<>(worldSize);
+        masterOctree = new OffheapOctree();
+
+        this.centerX = (centerX / 16) * 16;
+        this.centerY = (((centerY - (worldSize * DataConstants.CHUNK_SCALE)) / 2) / 16) * 16;
+        this.centerZ = (centerZ / 16) * 16;
+        this.worldSize = worldSize;
+
+        System.out.println("Planet octree center: " + this.centerX + "," + this.centerY + "," + this.centerZ);
     }
 
-    void seekSector(LoadMarker marker, ArrayList<OctreeBase> nodes) {
+    //Initial generation
+    void seekSector(LoadMarker marker) {
 
         float x = marker.getPosX();
         float y = marker.getPosY();
         float z = marker.getPosZ();
 
-        float range = marker.getHardRadius();
-
-        int chunkWorldSize = DataConstants.CHUNK_SCALE;
-
-        float genOriginX = x - (range * chunkWorldSize);
-        float genOriginY = y - (range * chunkWorldSize);
-        float genOriginZ = z - (range * chunkWorldSize);
         System.out.println("Player loc: " + x + " " + y + " " + z);
-        System.out.println("Origin: " + genOriginX + "," + genOriginY + "," + genOriginZ);
-        int size = (int) (range) * 2;
-        int maxSize = size * size * size;
+        int maxSize = worldSize * worldSize * worldSize;
 
         OctreeBase[] octreeLeafs = new OctreeBase[maxSize];
 
         for (int i = 0; i < maxSize; i++) {
-            int xOffset = i % size;
-            int yOffset = (i / size) % size;
-            int zOffset = i / (size * size);
+            int xOffset = i % worldSize;
+            int yOffset = (i / worldSize) % worldSize;
+            int zOffset = i / (worldSize * worldSize);
 
-            float xWorld = (xOffset * chunkWorldSize) + genOriginX;
-            float yWorld = (yOffset * chunkWorldSize) + genOriginY;
-            float zWorld = (zOffset * chunkWorldSize) + genOriginZ;
+            float xWorld = (xOffset * DataConstants.CHUNK_SCALE) + this.centerX;
+            float yWorld = (yOffset * DataConstants.CHUNK_SCALE) + this.centerY;
+            float zWorld = (zOffset * DataConstants.CHUNK_SCALE) + this.centerZ;
 
             long lolong = morton3D.encode(xOffset, yOffset, zOffset);
 
@@ -69,17 +75,17 @@ class ChunkSVOGenerator {
             octreeLeafs[(int) lolong] = leafNode;
         }
 
-        offheapOctree.setOctreeOrigin((int) x, (int) y, (int) z, maxSize);
-        offheapOctree.createOctree(octreeLeafs);
+        masterOctree.setOctreeOrigin((int) x, (int) y, (int) z, maxSize);
+        masterOctree.createOctree(octreeLeafs);
         if (nodes != null) {
-            nodes.addAll(offheapOctree.getOctreeNodes());
+            nodes.addAll(masterOctree.getOctreeNodes());
         }
     }
 
-    void updateSector(float x, float z, float range, WorldLoadListener listener, LoadMarker trigger) {
+    //Procedural generation
+    void updateSector(float x, float z, float range, WorldLoadListener listener, LoadMarker trigger) {}
 
-    }
-
+    //Unloads chunks
   /*  public void unloadArea(float x, float y, float z, WorldLoadListener listener, OffheapLoadMarker trigger){
         ChunkLoader chunkLoader = new ChunkLoader(listener);
         ChunkLArray chunk = chunkLoader.getChunk(x, y, z, trigger);
@@ -89,6 +95,7 @@ class ChunkSVOGenerator {
         }
     }*/
 
+    //Loads chunks
     private void loadArea(float x, float y, float z, LoadMarker marker) {
         if (x > 0 && z > 0) {
             ChunkLArray chunk = generator.getChunk(x, y, z);

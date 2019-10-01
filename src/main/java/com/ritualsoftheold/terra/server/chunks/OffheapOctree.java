@@ -1,21 +1,11 @@
 package com.ritualsoftheold.terra.server.chunks;
 
-import com.ritualsoftheold.terra.core.BlockBuffer;
-import com.ritualsoftheold.terra.core.DataConstants;
 import com.ritualsoftheold.terra.core.octrees.OctreeBase;
 import com.ritualsoftheold.terra.core.octrees.OctreeNode;
 
 import java.util.*;
 
-// TODO implement this class or figure out something better
 public class OffheapOctree {
-
-    /**
-     * Memory address of the octree.
-     */
-    private long addr;
-
-    private int octreeId;
 
     private OctreeNode rootNode = null;
     private ArrayList<OctreeBase> octree;
@@ -25,25 +15,8 @@ public class OffheapOctree {
 
     public OffheapOctree() {
         octree = new ArrayList<>();
-//        IntValue avgKeyTmp = Values.newHeapInstance(IntValue.class);
-//        avgKeyTmp.setValue(Integer.MAX_VALUE);
-//        linearOctree = new HashMap<>();
-//        OctreeNode root = new OctreeNode();
-//        linearOctree.put(root.locCode,root);
-//        Point offHeapPoint = Values.newNativeReference(Point.class);
-//        long size = offHeap159632asdf
-//        Point.maxSize();
-//        NativeBytesStore<Void> offHeapStore = NativeBytesStore.nativeStore(size);
-//        offHeapPoint.bytesStore(offHeapStore,0,size);
-//        offHeapPoint.setX(0);
-//        offHeapPoint.setY(0);
-//        System.out.println("Value: "+offHeapPoint);
-//        offHeapStore.release();
     }
 
-    //--------------------------------------
-    // NEW LINEAR OCTREE METHODS
-    //--------------------------------------
     public void setOctreeOrigin(int x, int y, int z, int size) {
         this.x = x;
         this.y = y;
@@ -51,15 +24,12 @@ public class OffheapOctree {
         this.size = size;
     }
 
-    public OctreeNode getParentNode() {
-        return rootNode;
-    }
-
     //We create the octree from a bottom up approach
     public void createOctree(OctreeBase[] leafNodes) {
+
         byte childCounter = 0;
         int nodeCounter = 0;
-        Queue<OctreeNode> nodeQueue = new ArrayDeque();
+        Queue<OctreeNode> nodeQueue = new ArrayDeque<>();
         while (nodeCounter < leafNodes.length) {
             if (childCounter < 8) {
                 octree.add(leafNodes[nodeCounter]);
@@ -82,9 +52,10 @@ public class OffheapOctree {
             }
         }
         System.out.println("Length of arr: " + leafNodes.length + " Queue size: " + nodeQueue.size() + "  Size of array " + octree.size());
+
         while (!nodeQueue.isEmpty()) {
             if (childCounter < 8) {
-                OctreeNode node = (OctreeNode) nodeQueue.poll();
+                OctreeNode node = nodeQueue.poll();
                 octree.add(node);
                 childCounter += 1;
                 nodeCounter += 1;
@@ -103,7 +74,6 @@ public class OffheapOctree {
                 childCounter = 0;
                 nodeQueue.add(parent);
             }
-
         }
         OctreeBase c1 = octree.get(nodeCounter - 1);
         OctreeBase c2 = octree.get(nodeCounter - 2);
@@ -122,24 +92,5 @@ public class OffheapOctree {
 
     public ArrayList<OctreeBase> getOctreeNodes() {
         return octree;
-    }
-    //--------------------------------------
-
-    public long getNodeAddr(int index) {
-        // Address + metadata + size of node * index
-        return addr + 1 + DataConstants.OCTREE_NODE_SIZE * index;
-    }
-
-    public long memoryAddress() {
-        return addr;
-    }
-
-    public int memoryLength() {
-        return DataConstants.OCTREE_SIZE;
-    }
-
-    public BlockBuffer getBuffer() {
-        return null; // Buffers for octrees would be pretty quite useless
-        // TODO implement them to have same API for everything
     }
 }
