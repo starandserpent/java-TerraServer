@@ -1,9 +1,11 @@
 package com.ritualsoftheold.terra.server;
 
+import com.ritualsoftheold.terra.core.DataConstants;
 import com.ritualsoftheold.terra.core.WorldLoadListener;
 import com.ritualsoftheold.terra.core.chunk.ChunkLArray;
+import com.ritualsoftheold.terra.core.octrees.OffheapOctree;
 import com.ritualsoftheold.terra.core.markers.MovingMarker;
-import com.ritualsoftheold.terra.server.morton.IntFlushList;
+import com.ritualsoftheold.terra.core.utils.CoreUtils;
 
 import java.util.ArrayList;
 
@@ -33,7 +35,6 @@ public abstract class LoadMarker extends MovingMarker implements WorldLoadListen
 
     protected LoadMarker(float x, float y, float z, float hardRadius, float softRadius) {
         super(x, y, z);
-        IntFlushList octrees = new IntFlushList(64, 2); // TODO tune these settings
         this.hardRadius = hardRadius;
         this.softRadius = softRadius;
         playerOctants = new ArrayList<>();
@@ -50,38 +51,28 @@ public abstract class LoadMarker extends MovingMarker implements WorldLoadListen
 
     public abstract void sendChunk(ChunkLArray chunk);
 
+    public abstract void sendOctree(OffheapOctree octree);
+
     protected abstract boolean init(int id);
 
     public void calculateMarkerOctants(float size) {
-        if (x < size / 2 && y < size / 2 && z < size / 2) {
-            // 1. Octant
-            playerOctants.add(1);
-        } else if (x > size / 2 && x < size && y < size / 2 && z < size / 2) {
-            // 2. Octant
-            playerOctants.add(2);
-        } else if (x < size / 2 && y > size / 2 && y < size && z < size / 2) {
-            // 3. Octant
-            playerOctants.add(3);
-        } else if (x > size / 2 && x < size && y > size / 2 && y < size && z < size / 2) {
-            // 4. Octant
-            playerOctants.add(4);
-        } else if (x < size / 2 && y < size / 2 && z > size / 2 && z < size) {
-            // 5. Octant
-            playerOctants.add(5);
-        } else if (x > size / 2 && x < size && y < size / 2 && z > size / 2 && z < size) {
-            // 6. Octant
-            playerOctants.add(6);
-        } else if (x < size / 2 && y > size / 2 && y < size && z > size / 2 && z < size) {
-            // 7. Octant
-            playerOctants.add(7);
-        } else {
-            // 8. Octant
-            playerOctants.add(8);
-        }
 
-        if (size > 16) {
-            calculateMarkerOctants(size / 2);
+        int iterations = CoreUtils.calculateOctreeLayers((int) size);
+        size = size * DataConstants.CHUNK_SCALE;
+
+        for (int i = 0; i < iterations; i++) {
+            int octant = CoreUtils.selectOctant(x, y, z, size);
+            playerOctants.add(octant);
+            size = size / 2;
         }
+    }
+
+    public ArrayList<Integer> getPlayerOctants() {
+        return playerOctants;
+    }
+
+    public int getOctant(int index) {
+        return playerOctants.get(index);
     }
 
     public float getHardRadius() {

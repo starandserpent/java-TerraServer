@@ -1,10 +1,10 @@
 package com.ritualsoftheold.terra.server.world;
 
+import com.ritualsoftheold.terra.core.octrees.OffheapOctree;
 import com.ritualsoftheold.terra.core.markers.Marker;
 import com.ritualsoftheold.terra.core.TerraWorld;
 import com.ritualsoftheold.terra.core.WorldLoadListener;
 import com.ritualsoftheold.terra.core.materials.Registry;
-import com.ritualsoftheold.terra.server.chunks.ChunkGenerator;
 import com.ritualsoftheold.terra.server.LoadMarker;
 
 import java.util.ArrayList;
@@ -16,16 +16,34 @@ import java.util.concurrent.CompletableFuture;
  */
 public class ServerWorld implements TerraWorld {
 
+    public static final int MAX_LOAD_DISTANCE = 128;
+
     // New world loader, no more huge methods in this class!
-    private ChunkSVOGenerator chunkGenerator;
+    private WorldGenerator chunkGenerator;
+    public final OffheapOctree octree;
     private List<Marker> loadMarkers;
     private Registry reg;
+
+    public final int centerX;
+    public final int centerY;
+    public final int centerZ;
 
     public ServerWorld(int centerX, int centerY, int centerZ, ChunkGenerator generator, Registry reg, int worldSize) {
         loadMarkers = new ArrayList<>();
         this.reg = reg;
 
-        chunkGenerator = new ChunkSVOGenerator(centerX, centerY, centerZ, worldSize, generator);
+        int nodeLength = (int) Math.pow(2, (int) (Math.log(worldSize) / Math.log(2)) + 1);
+
+        this.centerX = (centerX / 16) * 16 + MAX_LOAD_DISTANCE;
+        this.centerY = (centerY / 16) * 16 + MAX_LOAD_DISTANCE;
+        this.centerZ = (centerZ / 16) * 16 + MAX_LOAD_DISTANCE;
+        int maxOctreeSize = (int) Math.pow(nodeLength / 16.0, 3.0);
+
+        octree = new OffheapOctree(this.centerX, this.centerY, this.centerZ, nodeLength);
+
+        System.out.println("Planet center: " + this.centerX + "," + this.centerY + "," + this.centerZ);
+
+        chunkGenerator = new WorldGenerator(nodeLength, maxOctreeSize, octree, generator);
     }
 
     @Override

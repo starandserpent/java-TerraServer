@@ -1,4 +1,4 @@
-package com.ritualsoftheold.terra.server.chunks;
+package com.ritualsoftheold.terra.server.world;
 
 import com.ritualsoftheold.terra.core.chunk.ChunkLArray;
 import com.ritualsoftheold.terra.core.materials.Registry;
