@@ -5,6 +5,7 @@ import com.ritualsoftheold.terra.core.markers.Marker;
 import com.ritualsoftheold.terra.core.TerraWorld;
 import com.ritualsoftheold.terra.core.WorldLoadListener;
 import com.ritualsoftheold.terra.core.materials.Registry;
+import com.ritualsoftheold.terra.core.utils.CoreUtils;
 import com.ritualsoftheold.terra.server.LoadMarker;
 
 import java.util.ArrayList;
@@ -15,8 +16,6 @@ import java.util.concurrent.CompletableFuture;
  * Represents world that is mainly backed by offheap memory.
  */
 public class ServerWorld implements TerraWorld {
-
-    public static final int MAX_LOAD_DISTANCE = 128;
 
     // New world loader, no more huge methods in this class!
     private WorldGenerator chunkGenerator;
@@ -34,9 +33,9 @@ public class ServerWorld implements TerraWorld {
 
         int nodeLength = (int) Math.pow(2, (int) (Math.log(worldSize) / Math.log(2)) + 1);
 
-        this.centerX = (centerX / 16) * 16 + MAX_LOAD_DISTANCE;
-        this.centerY = (centerY / 16) * 16 + MAX_LOAD_DISTANCE;
-        this.centerZ = (centerZ / 16) * 16 + MAX_LOAD_DISTANCE;
+        this.centerX = (centerX / 16) * 16 + CoreUtils.MAX_LOAD_DISTANCE/2;
+        this.centerY = (centerY / 16) * 16 + CoreUtils.MAX_LOAD_DISTANCE/2;
+        this.centerZ = (centerZ / 16) * 16 + CoreUtils.MAX_LOAD_DISTANCE/2;
         int maxOctreeSize = (int) Math.pow(nodeLength / 16.0, 3.0);
 
         octree = new OffheapOctree(this.centerX, this.centerY, this.centerZ, nodeLength);

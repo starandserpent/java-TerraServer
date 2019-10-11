@@ -48,13 +48,13 @@ class WorldGenerator {
 
         int roundRadius = (int) (2 * marker.getHardRadius()) - 1;
 
-        if (roundRadius > ServerWorld.MAX_LOAD_DISTANCE / 16) {
-            roundRadius = ServerWorld.MAX_LOAD_DISTANCE / 16;
+        if (roundRadius > CoreUtils.MAX_LOAD_DISTANCE / 16) {
+            roundRadius = CoreUtils.MAX_LOAD_DISTANCE / 16;
         }
 
         int chunkAmount = (int) Math.pow(roundRadius, 3);
 
-        if (nodeLength > ServerWorld.MAX_LOAD_DISTANCE) {
+        if (nodeLength > CoreUtils.MAX_LOAD_DISTANCE) {
             for (int l = 0; l < layers - MAX_OCTANT_LAYERS; l++) {
                 int octant = marker.getOctant(l);
                 octree.createNextLayer(octant);
@@ -92,7 +92,7 @@ class WorldGenerator {
     }
 
     private void createOctree(OctreeNode mainNode) {
-        if (mainNode.layer <= octree.octreeLayers + 1) {
+        if (mainNode.layer <= octree.octreeLayers) {
 
             OctreeNode child = CoreUtils.createNode(mainNode, 0);
             mainNode.setChildren(child, 0);
@@ -143,9 +143,27 @@ class WorldGenerator {
             createOctree(child);
         } else {
             //1. Cube
-            int posX = (int) mainNode.getPosX() + DataConstants.CHUNK_SCALE;
-            int posY = (int) mainNode.getPosY() + DataConstants.CHUNK_SCALE;
-            int posZ = (int) mainNode.getPosZ() + DataConstants.CHUNK_SCALE;
+            int posX;
+            if (mainNode.getPosX() > 31) {
+                posX = (int) mainNode.getPosX() - DataConstants.CHUNK_SCALE;
+            } else {
+                posX = 16;
+            }
+
+            int posY;
+            if (mainNode.getPosY() > 31) {
+                posY = (int) mainNode.getPosY() - DataConstants.CHUNK_SCALE;
+            } else {
+                posY = 16;
+            }
+
+            int posZ;
+
+            if (mainNode.getPosZ() > 31) {
+                posZ = (int) mainNode.getPosZ() - DataConstants.CHUNK_SCALE;
+            } else {
+                posZ = 16;
+            }
 
             OctreeNode child = chunkMap.get(posX, posY, posZ);
             if (child == null) {
@@ -155,9 +173,23 @@ class WorldGenerator {
             mainNode.setChildren(child, 0);
 
             //2. Cube
-            posX = (int) mainNode.getPosX();
-            posY = (int) mainNode.getPosY() + DataConstants.CHUNK_SCALE;
-            posZ = (int) mainNode.getPosZ() + DataConstants.CHUNK_SCALE;
+            if (mainNode.getPosX() > 31) {
+                posX = (int) mainNode.getPosX();
+            } else {
+                posX = 0;
+            }
+
+            if (mainNode.getPosY() > 31) {
+                posY = (int) mainNode.getPosY() - DataConstants.CHUNK_SCALE;
+            } else {
+                posY = 16;
+            }
+
+            if (mainNode.getPosZ() > 31) {
+                posZ = (int) mainNode.getPosZ() - DataConstants.CHUNK_SCALE;
+            } else {
+                posZ = 16;
+            }
 
             child = chunkMap.get(posX, posY, posZ);
             if (child == null) {
@@ -167,9 +199,23 @@ class WorldGenerator {
             mainNode.setChildren(child, 1);
 
             //3. Cube
-            posX = (int) mainNode.getPosX() + DataConstants.CHUNK_SCALE;
-            posY = (int) mainNode.getPosY();
-            posZ = (int) mainNode.getPosZ() + DataConstants.CHUNK_SCALE;
+            if (mainNode.getPosX() > 31) {
+                posX = (int) mainNode.getPosX() - DataConstants.CHUNK_SCALE;
+            } else {
+                posX = 16;
+            }
+
+            if (mainNode.getPosY() > 31) {
+                posY = (int) mainNode.getPosY();
+            } else {
+                posY = 0;
+            }
+
+            if (mainNode.getPosZ() > 31) {
+                posZ = (int) mainNode.getPosZ() - DataConstants.CHUNK_SCALE;
+            } else {
+                posZ = 16;
+            }
 
             child = chunkMap.get(posX, posY, posZ);
             if (child == null) {
@@ -179,9 +225,23 @@ class WorldGenerator {
             mainNode.setChildren(child, 2);
 
             //4. Cube
-            posX = (int) mainNode.getPosX();
-            posY = (int) mainNode.getPosY();
-            posZ = (int) mainNode.getPosZ() + DataConstants.CHUNK_SCALE;
+            if (mainNode.getPosX() > 31) {
+                posX = (int) mainNode.getPosX();
+            } else {
+                posX = 0;
+            }
+
+            if (mainNode.getPosY() > 31) {
+                posY = (int) mainNode.getPosY();
+            } else {
+                posY = 0;
+            }
+
+            if (mainNode.getPosZ() > 31) {
+                posZ = (int) mainNode.getPosZ() - DataConstants.CHUNK_SCALE;
+            } else {
+                posZ = 16;
+            }
 
             child = chunkMap.get(posX, posY, posZ);
             if (child == null) {
@@ -191,9 +251,23 @@ class WorldGenerator {
             mainNode.setChildren(child, 3);
 
             //5. Cube
-            posX = (int) mainNode.getPosX() + DataConstants.CHUNK_SCALE;
-            posY = (int) mainNode.getPosY() + DataConstants.CHUNK_SCALE;
-            posZ = (int) mainNode.getPosZ();
+            if (mainNode.getPosX() > 31) {
+                posX = (int) mainNode.getPosX() - DataConstants.CHUNK_SCALE;
+            } else {
+                posX = 16;
+            }
+
+            if (mainNode.getPosY() > 31) {
+                posY = (int) mainNode.getPosY() - DataConstants.CHUNK_SCALE;
+            } else {
+                posY = 16;
+            }
+
+            if (mainNode.getPosZ() > 31) {
+                posZ = (int) mainNode.getPosZ();
+            } else {
+                posZ = 0;
+            }
 
             child = chunkMap.get(posX, posY, posZ);
             if (child == null) {
@@ -203,9 +277,23 @@ class WorldGenerator {
             mainNode.setChildren(child, 4);
 
             //6. Cube
-            posX = (int) mainNode.getPosX();
-            posY = (int) mainNode.getPosY() + DataConstants.CHUNK_SCALE;
-            posZ = (int) mainNode.getPosZ();
+            if (mainNode.getPosX() > 31) {
+                posX = (int) mainNode.getPosX();
+            } else {
+                posX = 0;
+            }
+
+            if (mainNode.getPosY() > 31) {
+                posY = (int) mainNode.getPosY() - DataConstants.CHUNK_SCALE;
+            } else {
+                posY = 16;
+            }
+
+            if (mainNode.getPosZ() > 31) {
+                posZ = (int) mainNode.getPosZ();
+            } else {
+                posZ = 0;
+            }
 
             child = chunkMap.get(posX, posY, posZ);
             if (child == null) {
@@ -215,9 +303,23 @@ class WorldGenerator {
             mainNode.setChildren(child, 5);
 
             //7. Cube
-            posX = (int) mainNode.getPosX() + DataConstants.CHUNK_SCALE;
-            posY = (int) mainNode.getPosY();
-            posZ = (int) mainNode.getPosZ();
+            if (mainNode.getPosX() > 31) {
+                posX = (int) mainNode.getPosX() - DataConstants.CHUNK_SCALE;
+            } else {
+                posX = 16;
+            }
+
+            if (mainNode.getPosY() > 31) {
+                posY = (int) mainNode.getPosY();
+            } else {
+                posY = 0;
+            }
+
+            if (mainNode.getPosZ() > 31) {
+                posZ = (int) mainNode.getPosZ();
+            } else {
+                posZ = 0;
+            }
 
             child = chunkMap.get(posX, posY, posZ);
             if (child == null) {
@@ -227,9 +329,23 @@ class WorldGenerator {
             mainNode.setChildren(child, 6);
 
             //8. Cube
-            posX = (int) mainNode.getPosX();
-            posY = (int) mainNode.getPosY();
-            posZ = (int) mainNode.getPosZ();
+            if (mainNode.getPosX() > 31) {
+                posX = (int) mainNode.getPosX();
+            } else {
+                posX = 0;
+            }
+
+            if (mainNode.getPosY() > 31) {
+                posY = (int) mainNode.getPosY();
+            } else {
+                posY = 0;
+            }
+
+            if (mainNode.getPosZ() > 31) {
+                posZ = (int) mainNode.getPosZ();
+            } else {
+                posZ = 0;
+            }
 
             child = chunkMap.get(posX, posY, posZ);
             if (child == null) {
