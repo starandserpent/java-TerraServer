@@ -3,8 +3,6 @@ package com.ritualsoftheold.terra.server.world;
 import com.ritualsoftheold.terra.core.DataConstants;
 import com.ritualsoftheold.terra.core.WorldLoadListener;
 import com.ritualsoftheold.terra.core.chunk.ChunkLArray;
-import com.ritualsoftheold.terra.core.octrees.OctreeLeaf;
-import com.ritualsoftheold.terra.core.octrees.OctreeNode;
 import com.ritualsoftheold.terra.core.utils.CoreUtils;
 import com.ritualsoftheold.terra.server.LoadMarker;
 import com.ritualsoftheold.terra.core.octrees.OffheapOctree;
@@ -21,10 +19,8 @@ class WorldGenerator {
     private ChunkGenerator generator;
 
     //This is recommend max static octree size because it takes 134 MB
-    private static final int MAX_LEAF_SIZE = 16777216;
+    private static final int MAX_OCTREE_NODE_SIZE = 256;
     private static final int MAX_OCTANT_LAYERS = 4;
-
-    private MultiKeyMap<Integer, OctreeLeaf> chunkMap;
 
     private final int nodeLength;
     private final int maxOctreeSize;
@@ -34,8 +30,6 @@ class WorldGenerator {
         this.octree = octree;
         this.nodeLength = nodeLength;
         this.maxOctreeSize = maxOctreeSize;
-
-        chunkMap = new MultiKeyMap<>();
     }
 
     //Initial generation
@@ -77,22 +71,20 @@ class WorldGenerator {
 
             ChunkLArray chunk = loadArea(xWorld, yWorld, zWorld, marker);
 
-            OctreeLeaf leafNode = new OctreeLeaf(xWorld, yWorld, zWorld, layers, lolong, chunk);
+          //  OctreeLeaf leafNode = new OctreeLeaf(xWorld, yWorld, zWorld, layers, lolong, chunk);
 
-            chunkMap.put(xWorld, yWorld, zWorld, leafNode);
         }
 
-        createOctree(octree.getCursorNode());
+       // createOctree(octree.getCursorNode());
         marker.sendOctree(octree);
-        chunkMap.clear();
     }
 
     //Procedural generation
     void updateSector(float x, float z, float range, WorldLoadListener listener, LoadMarker trigger) {
     }
 
-    private void createOctree(OctreeNode mainNode) {
-        if (mainNode.layer <= octree.octreeLayers + 1) {
+    private void createOctree(int mainNode) {
+       /* if (mainNode.layer <= octree.octreeLayers + 1) {
 
             OctreeNode child = CoreUtils.createNode(mainNode, 0);
             mainNode.setChildren(child, 0);
@@ -238,6 +230,8 @@ class WorldGenerator {
             octree.addOctant(child);
             mainNode.setChildren(child, 7);
         }
+
+        */
     }
 
     //Unloads chunks
